@@ -148,6 +148,7 @@ class LabelsManager(MetadataManager):
 		except Exception as e:
 			log.error("Metadata Manager: update labels error [%s]" % (e))
 			return
+		#TODO: if sha == NULL, stop processing!
 		metadata["labels"]["dataset"]["sha"] = shas[0]
 		return metadata
 

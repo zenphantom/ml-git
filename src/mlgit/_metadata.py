@@ -95,9 +95,10 @@ class MetadataRepo(object):
 			for d in dirs:
 				if os.path.islink(os.path.join(root, d)):
 					print('{}{}'.format(subindent, self.__realname(d, root=root)))
-			for f in files:
-				if "README" in f: continue
-				print('{}{}'.format(subindent, self.__realname(f, root=root)))
+			#for f in files:
+			#	if "README" in f: continue
+			#	if "MANIFEST.yaml" in root: continue # TODO : check within the ML entity metadat for manifest files
+			#	print('{}{}'.format(subindent, self.__realname(f, root=root)))
 
 	def metadata_spec_from_name(self, spec_name):
 		specs = []

@@ -18,36 +18,25 @@ if __name__=="__main__":
 
 	if args.cmd == "add":
 		metadata_spec = args.label
-		#repo = args.repository
 		m = LabelsManager(config)
 		m.store(metadata_spec)
 	if args.cmd == "get":
 		metadata_spec = args.label
 		repo = args.repository
-		m = DatasetManager(config)
-		m.dataset_get(dataset_spec)
+		m = LabelsManager(config)
+		m.get(metadata_spec)
 	#elif arg1 == "search":
 	if args.cmd == "list":
-		repo = args.repository
-		m = DatasetManager(config)
+		m = LabelsManager(config)
 		m.list()
 	if args.cmd == "show":
-		dataset_name = args.dataset
-		repo = args.repository
-		repos = [repo]
-		if repo == "all":
-			repos = list_repos()
-		print(repos)
-		for repo in repos:
-			print("*** %s ***" % (config))
-			m = DatasetManager(config)
-			m.show(dataset_name)
-			print
+		metadata_spec = args.label
+		m = LabelsManager(config)
+		m.show(metadata_spec)
 	if args.cmd == "publish":
-		repo = args.repository
-		m = DatasetManager(config)
+		m = LabelsManager(config)
 		m.publish()
 	if args.cmd == "update":
 		repo = args.repository
-		m = DatasetManager(config)
+		m = LabelsManager(config)
 		m.update()
