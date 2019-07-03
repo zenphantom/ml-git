@@ -26,5 +26,6 @@ def initialize_data_set_repository(data_set_source_dir, name, version, labels, d
 
 
 def create_metadata_files(cwd, data_set_path, name, version, labels, data_store):
-    create_repository_configuration_file(cwd, name, version, labels, data_store)
-    initialize_data_set_tracking(data_set_path)
+    relative_data_set_source = Path(data_set_path).relative_to(cwd).as_posix()
+    create_repository_configuration_file(cwd, name, version, labels, data_store, relative_data_set_source)
+    initialize_data_set_tracking()

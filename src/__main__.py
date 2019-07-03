@@ -8,6 +8,7 @@ SPDX-License-Identifier: GPL-2.0-only
 import click
 
 from operations.init import handle_init_operation
+from operations.status import handle_status_operation
 from utils.constants import *
 
 
@@ -33,9 +34,9 @@ def add(file):
 
 
 @cli.command(help='Add a file to be tracked')
-@click.argument('file', required=False)
-def status(file):
-    click.echo(f'Status {file}')
+@click.argument('files', required=False, nargs=-1)
+def status(files):
+    handle_status_operation(files)
 
 
 @cli.command(help='Upload the data set files and push the file to the remote repository')
