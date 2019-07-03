@@ -2,4 +2,4 @@
 /local.properties
 .idea/*
 .DS_Store
-**/ml-git.yaml
+**/ml-git*.yaml

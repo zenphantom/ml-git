@@ -26,5 +26,9 @@ def get_repository_root():
     return None
 
 
-def check_running_from_repository():
+def is_running_from_repository():
     return get_repository_root() is not None
+
+def assert_running_from_repository():
+    if not is_running_from_repository():
+        raise Exception('You are not inside a managed ML-Git directory.')
