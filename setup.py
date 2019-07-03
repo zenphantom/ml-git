@@ -19,7 +19,7 @@ setup(
 
     entry_points={
         'console_scripts': [
-            'ml-git = modules.main:main'
+            'ml-git = src.__main__:main'
         ]
     }
 )
