@@ -6,8 +6,10 @@ SPDX-License-Identifier: GPL-2.0-only
 import os
 from pathlib import Path
 
-CONFIG_FILE = 'ml-git.yaml'
-DATA_SET_TRACKING_FILE = '.ml-git'
+import yaml
+
+from repository.MLGitRepositoryConfiguration import MLGitRepositoryConfiguration
+from utils.constants import *
 
 
 def get_repository_root():
@@ -29,6 +31,14 @@ def get_repository_root():
 def is_running_from_repository():
     return get_repository_root() is not None
 
+
 def assert_running_from_repository():
     if not is_running_from_repository():
         raise Exception('You are not inside a managed ML-Git directory.')
+
+
+def create_repository_configuration_file(path, name, version, labels, data_store):
+    config = MLGitRepositoryConfiguration(name=name, version=version, labels=labels, data_store=data_store)
+    full_path = os.path.join(path, CONFIG_FILE)
+    with open(full_path, 'w') as out:
+        out.write(yaml.safe_dump(config.__dict__))
