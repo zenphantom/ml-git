@@ -36,20 +36,32 @@ Installation Guide
         Pip installation guide:
         https://pip.pypa.io/en/stable/installing/
         
-        Git installation guider:
+        Git installation guide:
         https://git-scm.com/book/en/v2/Getting-Started-Installing-Git
         
-        After requirements installation run the follow commands on cmd or powershell
+        After requirements installation run the follow commands on cmd or powershell.
        
         pip install git+https://github.com/project/ml-git.git
         
         SSH Example:
         
          pip install git+ssh://git@github.com/project/ml-git.git
-        
 
 ### MacOS:
 
-
-
-# Usage
+	Install Homebrew:
+		
+		/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+		
+	Install pip:
+		sudo easy_install pip
+		
+	Install git:
+		brew install git
+	
+	After requirements installation run the follow command on terminal.
+	
+	sudo pip install git+https://github.com/project/ml-git.git
+	
+	SSH Example:
+		sudo pip install git+ssh://git@github.com/project/ml-git.git
