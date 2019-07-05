@@ -5,7 +5,18 @@ SPDX-License-Identifier: GPL-2.0-only
 
 import os
 import yaml
+import json
 
+
+def json_load(file):
+    hash = {}
+    try:
+        with open(file) as jfile:
+            hash = json.load(jfile)
+    except Exception as e:
+        print(e)
+        pass
+    return hash
 
 def yaml_load(file):
     hash = {}
@@ -13,7 +24,6 @@ def yaml_load(file):
         with open(file) as yfile:
             hash = yaml.load(yfile, Loader=yaml.SafeLoader)
     except Exception as e:
-        print(e)
         pass
     return hash
 

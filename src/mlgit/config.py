@@ -132,3 +132,23 @@ def list_repos():
 def repo_config(repo):
     global mlgit_config
     return mlgit_config["repos"][repo]
+
+def index_path(config, type="dataset"):
+    default = os.path.join(config["mlgit_path"], type, "index")
+    return getOrElse(config[type], "index_path", default)
+
+def objects_path(config, type="dataset"):
+    default = os.path.join(config["mlgit_path"], type, "objects")
+    return getOrElse(config[type], "objects_path", default)
+
+def cache_path(config, type="dataset"):
+    default = os.path.join(config["mlgit_path"], type, "cache")
+    return getOrElse(config[type], "cache_path", default)
+
+def metadata_path(config, type="dataset"):
+    default = os.path.join(config["mlgit_path"], type, "metadata")
+    return getOrElse(config[type], "metadata_path", default)
+
+def refs_path(config, type="dataset"):
+    default = os.path.join(config["mlgit_path"], type, "refs")
+    return getOrElse(config[type], "refs_path", default)

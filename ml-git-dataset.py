@@ -9,6 +9,7 @@ from mlgit.config import config_load, list_repos
 from mlgit.log import init_logger
 from mlgit.dataset_manager import DatasetManager
 from mlgit.options import parsed_options
+from mlgit.repository import Repository
 
 if __name__=="__main__":
 	config = config_load()
@@ -16,21 +17,30 @@ if __name__=="__main__":
 
 	args = parsed_options("dataset")
 
-	if args.cmd == "add":
-		dataset_spec = args.dataset
-		#repo = args.repository
-		m = DatasetManager(config)
-		m.dataset_store(dataset_spec)
-	if args.cmd == "get":
-		dataset_spec = args.dataset
-		repo = args.repository
-		m = DatasetManager(config)
-		m.dataset_get(dataset_spec)
-	#elif arg1 == "search":
+	repotype = "dataset"
+
+	if args.cmd in ["init", "update", "fsck"]:
+		r = Repository(config, repotype)
+		if args.cmd == "init": r.init()
+		elif args.cmd == "update": r.update()
+		elif args.cmd == "fsck": r.fsck()
+
+	if args.cmd in [ "add", "commit", "status", "push", "get", "fetch"]:
+		spec = args.spec
+		r = Repository(config, repotype)
+
+		if args.cmd == "add": r.add(spec)
+		elif args.cmd == "commit": r.commit(spec)
+		elif args.cmd == "status": r.status(spec)
+		elif args.cmd == "push": r.push(spec)
+		elif args.cmd == "get": r.get(spec)
+		elif args.cmd == "fetch": r.fetch(spec)
+
+
 	if args.cmd == "list":
-		repo = args.repository
 		m = DatasetManager(config)
 		m.list()
+
 	if args.cmd == "show":
 		dataset_name = args.dataset
 		repo = args.repository
@@ -43,11 +53,5 @@ if __name__=="__main__":
 			m = DatasetManager(config)
 			m.show(dataset_name)
 			print
-	if args.cmd == "publish":
-		repo = args.repository
-		m = DatasetManager(config)
-		m.publish()
-	if args.cmd == "update":
-		repo = args.repository
-		m = DatasetManager(config)
-		m.update()
+
+

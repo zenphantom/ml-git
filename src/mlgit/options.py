@@ -22,9 +22,9 @@ force_option = {"--force":
         "default": False,
     }
 }
-dataset_option = {"dataset":
+spec_option = {"spec":
     {
-        "help": "dataset name specification"
+        "help": "ML entity reference (name or tag specification [<categories>__]+<spec-name>__<version> )"
     }
 }
 label_option = {"label":
@@ -46,10 +46,6 @@ command_usage1 = {
     "list": {
         "help": '''lists models stored in mlgit distributed storage''',
         "subs": lambda: repo_option,
-    },
-    "publish": {
-        "help": '''publishes added datasets/models''',
-        "subs": lambda: repo_option,
     }
 }
 
@@ -58,15 +54,36 @@ additional_options = force_option
 command_usage = {
     "add": {
         "help": '''adds a new model under management of ml-git''',
-        "subs": lambda: dict(repo_option, **additional_options),
+        "subs": lambda: dict(additional_options),
     },
     "get": {
         "help": '''gets a model from mlgit distributed storage and store it into your local filesystem''',
-        "subs": lambda: dict(repo_option, **additional_options),
+        "subs": lambda: dict(additional_options),
+    },
+    "fetch": {
+        "help": '''fetches objects from data store to local repository (not workspace)''',
+        "subs": lambda: dict(additional_options)
+    },
+    "status": {
+        "help": '''shows status of staged and untracked files''',
+        "subs": lambda: dict(additional_options)
+    },
+    "commit": {
+        "help": '''commits changes present in ml-git index''',
+        "subs": lambda: dict(additional_options)
+    },
+    "push": {
+        "help": '''publishes added datasets/models''',
+        "subs": lambda: dict(additional_options),
+    },
+    "fsck": {
+        "help": '''performs integrity check of ml-git filesystem''',
+        "subs": lambda: dict()
     },
     "init": {
         "help": '''initializes a ml-git repository''',
-        "subs": lambda: dict(reponame_option)
+        "subs": lambda: dict()
+        # "subs": lambda: dict(reponame_option)
     },
     "init-metadata": {
         "help": '''initializes ml-git metadata repositories''',
@@ -99,8 +116,8 @@ def parse_options(cmds_list):
 def parsed_options(type="model"):
     global additional_options
     if type == "dataset":
-        additional_options = dataset_option
+        additional_options = spec_option
     elif type == "labels":
-        additional_options = label_option
+        additional_options = spec_option
 
     return parse_options([command_usage, command_usage1])

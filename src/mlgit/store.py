@@ -3,15 +3,18 @@
 SPDX-License-Identifier: GPL-2.0-only
 """
 
-import ipfsapi
 from mlgit.config import get_key
 from mlgit import log
 import os
 import boto3
+from botocore.client import ClientError
 from pprint import pprint
+import hashlib
+import multihash
+from cid import CIDv0, make_cid
 
 def store_factory(config, store_string):
-    stores = { "s3" : S3Store, "ipfs" : IPFSStore }
+    stores = { "s3" : S3Store, "s3h" : S3MultihashStore }
     sp = store_string.split('/')
 
     try:
@@ -19,7 +22,7 @@ def store_factory(config, store_string):
         bucket_name = sp[2]
         log.info("Store Factory: store [%s] ; bucket [%s]" % (store_type, bucket_name))
 
-        bucket = config["store"]["s3"][bucket_name]
+        bucket = config["store"][store_type][bucket_name]
 
         return stores[store_type](bucket_name, bucket)
     except Exception as e:
@@ -63,43 +66,28 @@ class Store(object):
 
     def store(self, key, file, path, prefix=None):
         full_path = os.sep.join([path, file])
+        return self.file_store(key, full_path, prefix)
 
-        if os.path.isdir(full_path) == True:
-            return self.__dir_store(key, path, prefix) #TODO add prefix in story & full path
-        else:
-            return self.__file_store(key, full_path, prefix)
-
-    #def __dir_store(self, name, dirname, prefix=None): # TODO : recursive => subdirs must be part of key!
-    #    hfiles = []
-    #    for root, dirs, files in os.walk(dirname):
-    #        for file in files:
-    #            full_path= os.sep.join([root, file])
-    #            log.info("store: adding %s to %s store" % (full_path, self.__store_type))
-
-    #            uri = self.put(key, full_path)
-    #            hfiles.append( {file: uri} )
-    #    return hfiles
-
-    def __file_store(self, key, filepath, prefix=None):
+    def file_store(self, key, filepath, prefix=None):
         keypath = key
         if prefix is not None:
             keypath = prefix + '/' + key
 
         uri = self.put(keypath, filepath)
-        return [ {key: uri} ]
+        return [ {uri: key} ]
 
 class S3Store(Store):
     def __init__(self, bucket_name, bucket):
-        self.__store_type = "S3"
-        self.__profile = bucket["aws-credentials"]["profile"]
-        self.__region = get_key("region", bucket)
-        self.__bucket = bucket_name
+        self._store_type = "S3"
+        self._profile = bucket["aws-credentials"]["profile"]
+        self._region = get_key("region", bucket)
+        self._bucket = bucket_name
         super(S3Store, self).__init__()
 
     def connect(self):
-        log.info("S3Store connect: profile [%s] ; region [%s]" % (self.__profile, self.__region))
-        self.__session = boto3.Session(profile_name=self.__profile, region_name=self.__region)
-        self.__store = self.__session.resource('s3')
+        log.info("S3Store connect: profile [%s] ; region [%s]" % (self._profile, self._region))
+        self._session = boto3.Session(profile_name=self._profile, region_name=self._region)
+        self._store = self._session.resource('s3')
 
     def create_bucket_name(self, bucket_prefix):
         import uuid
@@ -107,8 +95,8 @@ class S3Store(Store):
         return ''.join([bucket_prefix, str(uuid.uuid4())])
 
     def create_bucket(self, bucket_prefix):
-        s3_connection = self.__store
-        current_region = self.__session.region_name
+        s3_connection = self._store
+        current_region = self._session.region_name
         bucket_name = self.create_bucket_name(bucket_prefix)
         print(bucket_name, current_region)
         bucket_response = s3_connection.create_bucket(
@@ -121,10 +109,29 @@ class S3Store(Store):
             return keyfile + '?version=' + version
         return keyfile
 
-    def put(self, keypath, filepath):
-        bucket = self.__bucket
-        s3_resource = self.__store
+    def key_exists(self, keypath):
+        bucket = self._bucket
+        s3_resource = self._store
 
+        object_found = True
+        try:
+            l = s3_resource.Bucket(bucket).Object(keypath).load()
+        except ClientError as e:
+            if e.response['Error']['Code'] == "404":
+                object_found = False
+            else:
+                raise
+
+        return object_found
+
+    def put(self, keypath, filepath):
+        bucket = self._bucket
+        s3_resource = self._store
+
+        self.key_exists(keypath)
+        '''log.info("S3Store put: ")'''
+
+        '''TODO : chunk of 256k with CIDs ; at the end store an IPLD links object'''
         res = s3_resource.Bucket(bucket).Object(keypath).put(filepath, Body=open(filepath, 'rb')) # TODO :test for errors here!!!
         pprint(res)
         try:
@@ -152,13 +159,13 @@ class S3Store(Store):
 
     def get(self, filepath, reference):
         key, version = self._to_file(reference)
-        return self.__get(filepath, key, version=version)
+        return self._get(filepath, key, version=version)
 
-    def __get(self, file, keypath, version=None):
-        bucket = self.__bucket
-        s3_resource = self.__store
+
+    def _get(self, file, keypath, version=None):
+        bucket = self._bucket
+        s3_resource = self._store
         if version is not None:
-
             res = s3_resource.Object(bucket, keypath).get(f'/tmp/{file}', VersionId=version)
             r = res["Body"]
             log.info("S3 Store get: downloading [%s], version [%s], from bucket [%s] into file [%s]" % (keypath, version, bucket, file))
@@ -171,53 +178,58 @@ class S3Store(Store):
         else:
             return s3_resource.Object(bucket, keypath).download_file(file)
 
-class IPFSStore(object):
-    def __init__(self, store="global"):
-        super(IPFSStore, self).__init__()
+class S3MultihashStore(S3Store):
+    def __init__(self, bucket_name, bucket):
+        super(S3MultihashStore, self).__init__(bucket_name, bucket)
 
-    def connect(self):
-        self.__ipfs = ipfsapi.connect(self.node, self.port)
+    def put(self, keypath, filepath):
+        bucket = self._bucket
+        s3_resource = self._store
 
-    def put(self, file):
-        k = self.__ipfs.add(file)
-        return k
+        if self.key_exists(keypath) == True:
+            log.debug("S3MultihashStore: object [%s] already in S3 store"% (keypath))
+            return True
 
-    def get(self, filepath, reference): #TODO :re-implement with link, unlink here
-        self.__ipfs.get(reference)
-        try:
-            os.link(v, os.path.join(full_path, k))
-        except FileExistsError:
-            pass
-        os.unlink(v)
+        res = s3_resource.Bucket(bucket).Object(keypath).put(filepath, Body=open(filepath, 'rb')) # TODO :test for errors here!!!
+        return keypath
 
+    def get(self, filepath, keypath):
+        return self._get(filepath, keypath)
 
-    def _to_uri(self, keyfile, version=None):
-        return "ipfs://" + keyfile
+    def digest(self, data):
+        m = hashlib.sha256()
+        m.update(data)
+        h = m.hexdigest()
+        mh = multihash.encode(bytes.fromhex(h), 'sha2-256')
+        cid = CIDv0(mh)
+        return str(cid)
 
-    def store(self, key, path):
-        if os.path.isdir(path):
-            return self.__dir_store(key, path)
-        else:
-            return self.__file_store(key, path)
+    def check_integrity(self, cid, data):
+        cid0 = self.digest(data)
+        if cid == cid0:
+            log.info("Index: checksum verified for chunk [%s]" % (cid))
+            return True
+        log.error("Index: corruption detected for chunk [%s] - got [%s]" % (cid, cid0))
+        return False
 
-    def __dir_store(self, name, dirname):
-        hfiles = []
-        for root, dirs, files in os.walk(dirname):
-            for file in files:
-                full_path= os.path.join(root, file)
-                log.info("model store: adding %s to IPFS store" % (full_path))
-                ipfs_k = self.put(full_path)
-                uri = self._to_uti(ipfs_k)
-                hfiles.append( {file: uri} )
-        return hfiles
+    def _get(self, file, keypath):
+        bucket = self._bucket
+        s3_resource = self._store
 
-    def __file_store(self, name, filename):
-        ipfs_k = self.put(filename)
-        return [ {name: ipfs_k["Hash"]} ]
+        res = s3_resource.Object(bucket, keypath).get(f'/tmp/{keypath}')
+        c = res["Body"]
+        log.info("S3 Store get: downloading [%s] from bucket [%s] into file [%s]" % (keypath, bucket, file))
+        with open(file, 'wb') as f:
+            while True:
+                chunk = c.read(256 * 1024)
+                if chunk:
+                    if self.check_integrity(keypath, chunk) == False:
+                        return False
+                    f.write(chunk)
+                else:
+                    break
+        return True
 
-#def get_by_name(category, subcategory, model_name):
-#    model_hash = metadata_get_hash(category, subcategory, model_name)
-#    return get_by_hash(model_hash)
 
 if __name__=="__main__":
     bucket = {

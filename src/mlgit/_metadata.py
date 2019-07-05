@@ -4,6 +4,7 @@ SPDX-License-Identifier: GPL-2.0-only
 """
 
 from mlgit.utils import ensure_path_exists, yaml_save, yaml_load
+from mlgit.config import metadata_path
 from mlgit import log
 from git import Repo, Git
 import os
@@ -38,22 +39,22 @@ class MetadataRepo(object):
 		r = o.pull()
 
 	def commit(self, file, msg):
-		log.info("commit : repo[%s] --- spec[%s]" % (self.__path, file))
+		log.info("commit : repo[%s] --- file[%s]" % (self.__path, file))
 		r = Repo(self.__path)
 		r.index.add([file])
-		r.index.commit(msg)
+		return r.index.commit(msg)
 
 	def tag_add(self, tag):
 		r = Repo(self.__path)
 		return r.create_tag(tag, message='Automatic tag "{0}"'.format(tag))
 
-	def publish(self):
-		log.info("Metadata Manager push [%s]" % (self.__path))
+	def push(self):
+		log.info("Metadata Manager: push [%s]" % (self.__path))
 		r = Repo(self.__path)
 		r.remotes.origin.push(tags=True)
 		r.remotes.origin.push()
 
-	def tag_exists(self, tag):
+	def _tag_exists(self, tag):
 		tags= []
 		r = Repo(self.__path)
 		if tag in r.tags:
@@ -112,16 +113,16 @@ class MetadataRepo(object):
 	def metadata_print(self, metadata_file, spec_name):
 		md = yaml_load(metadata_file)
 
-		sections = ["dataset", "model", "metadata"]
+		sections = ["dataset", "model", "labels"]
 		for section in sections:
-			if section in [ "model", "dataset" ]:
+			if section in [ "model", "dataset", "labels" ]:
 				try:
 					md[section] # "hack" to ensure we don't print something useless
 					# "dataset" not present in "model" and vice versa
 					print("-- %s : %s --" % (section, spec_name))
 				except:
 					continue
-			elif section not in [ "model", "dataset" ]:
+			elif section not in [ "model", "dataset", "labels" ]:
 				print("-- %s --" % (section))
 			try:
 				print(yaml.dump(md[section]))
@@ -137,7 +138,10 @@ class MetadataRepo(object):
 
 	def show(self, spec_name):
 		specs = self.metadata_spec_from_name(spec_name)
+
 		for path, file in specs:
+			if "README.md" in file: continue
+			if "MANIFEST.yaml" in file: continue
 			self.metadata_print(os.path.join(path, file), file)
 
 	def get(self, categories, model_name, file=None):
@@ -159,9 +163,9 @@ class MetadataManager(MetadataRepo):
 	def __init__(self, config, type="model"):
 		store = type
 		#log.info("metadatamanager: %s" % (config))
-		self.path = config[type]["metadata"]
+		self.path = metadata_path(config, type)
 		self.git =  config[type]["git"]
-		self.data = config[type]["data"]
+		# self.data = config[type]["data"]
 
 		super(MetadataManager, self).__init__(self.git, self.path)
 

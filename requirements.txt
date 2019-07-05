@@ -1,4 +1,6 @@
 boto3==1.9.164
 GitPython==2.1.11
-ipfsapi==0.4.4
 PyYAML==5.1.1
+py-cid
+py-multihash
+botocore

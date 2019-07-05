@@ -110,29 +110,6 @@ class DatasetManager(MetadataManager):
 		#saves metadata and commit
 		self.__dataset_store(prefix, metadata[mgr_type]["name"], metadata)
 
-	def __readme_store(self, path, prefix):
-		import shutil
-		readme = "README.md"
-		readme_path = os.sep.join([path, readme])
-
-		if os.path.exists(readme_path) == False: return
-
-		full_path = os.sep.join([self.path, prefix])
-		readme_prefix = os.sep.join([full_path, readme])
-		return shutil.copy2(readme_path, readme_prefix)
-
-
-	def __manifest_store(self, prefix, manifest_name, manifest):
-		full_path = os.sep.join([self.path, prefix])
-		log.info("S3 Store: saving manifest [%s] in [%s]" % (manifest_name, full_path))
-
-		if get_key("auto_create_category") == True:
-			log.debug("creating category: %s" % (full_path))
-			ensure_path_exists(full_path)
-
-		manifest_path = os.sep.join([full_path, manifest_name])
-		yaml_save(manifest, manifest_path)
-
 	def __dataset_store(self, prefix, metadata_file, metadata):
 		full_path = os.sep.join([self.path, prefix])
 
