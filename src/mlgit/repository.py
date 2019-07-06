@@ -11,7 +11,7 @@ from mlgit.refs import Refs
 from mlgit.remote import Remote
 from mlgit.index import MultihashIndex, Objects
 from mlgit.utils import yaml_load
-from mlgit.spec import spec_parse
+from mlgit.spec import spec_parse, search_spec_file
 
 import os
 
@@ -27,27 +27,10 @@ class Repository(object):
 		m = Metadata("", metadatapath, self.__config)
 		m.init()
 
-	# TODO: move in utils or something (duplicate)
-	def search_spec_file(self, spec):
-		repotype = self.__repotype
-		try:
-			dir = os.sep.join([repotype, spec])
-			files = os.listdir(os.sep.join([repotype, spec]))
-		except Exception as e: #TODO: search "." path as well
-			dir = spec
-			files = os.listdir(spec)
-
-		for file in files:
-			if spec in file:
-				log.debug("search spec file: found [%s]-[%s]" % (dir, file))
-				return dir, file
-
-		return None, None
-
 	'''Add dir/files to the ml-git index'''
 	def add(self, spec):
 		repotype= self.__repotype
-		path, file = self.search_spec_file(spec)
+		path, file = search_spec_file(repotype, spec)
 
 		indexpath = index_path(self.__config, repotype)
 		metadatapath = metadata_path(self.__config, repotype)
@@ -88,7 +71,7 @@ class Repository(object):
 	'''prints status of changes in the index and changes not yet tracked or staged'''
 	def status(self, spec):
 		repotype = self.__repotype
-		path, file = self.search_spec_file(spec)
+		path, file = search_spec_file(repotype, spec)
 
 		indexpath = index_path(self.__config)
 		metadatapath = metadata_path(self.__config, repotype)
@@ -171,7 +154,7 @@ class Repository(object):
 
 		idxstore = os.path.join(indexpath, "datastore", "store.dat")
 
-		specpath, specfile = self.search_spec_file(spec)
+		specpath, specfile = search_spec_file(repotype, spec)
 		fullspecpath = os.path.join(specpath, specfile)
 
 		r = Remote("", self.__config, repotype)

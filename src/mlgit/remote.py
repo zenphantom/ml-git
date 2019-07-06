@@ -7,7 +7,7 @@ from mlgit.utils import yaml_load
 from mlgit.store import store_factory
 from mlgit.index import Index, MultihashIndex
 from mlgit.utils import yaml_load, ensure_path_exists, json_load
-from mlgit.spec import spec_parse
+from mlgit.spec import spec_parse, search_spec_file
 from mlgit import log
 import os
 import shutil
@@ -76,31 +76,12 @@ class Remote(object):
 				objpath = self.haspath(objectpath, h)
 				if self._fetch_blob(h, objpath, store) == False: return
 
-	def search_spec_file(self, spec):
-		repotype = self.__repotype
-		try:
-			dir = os.sep.join([repotype, spec])
-			files = os.listdir(os.sep.join([repotype, spec]))
-		except Exception as e: #TODO: search "." path as well
-			dir = spec
-			try:
-				files = os.listdir(spec)
-			except:
-				return None, None
-
-		for file in files:
-			if spec in file:
-				log.debug("search spec file: found [%s]-[%s]" % (dir, file))
-				return dir, file
-
-		return None, None
-
 	def get(self, cachepath, metadatapath, objectpath, spec):
 		repotype = self.__repotype
 
 		categories_path, specname, version = spec_parse(spec)
 
-		wspath, spec= self.search_spec_file(specname)
+		wspath, spec= search_spec_file(repotype, specname)
 		if wspath is None:
 			wspath = os.path.join(repotype, categories_path)
 			ensure_path_exists(wspath)
