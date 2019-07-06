@@ -3,7 +3,7 @@
 SPDX-License-Identifier: GPL-2.0-only
 """
 
-from mlgit.hashfs import MultihashFS
+from mlgit.hashfs import MultihashFS, HashFS
 import unittest
 import tempfile
 import os
@@ -50,7 +50,7 @@ def md5sum(file):
 			hash_md5.update(chunk)
 	return hash_md5.hexdigest()
 
-class S3StoreTestCases(unittest.TestCase):
+class MultihashFSTestCases(unittest.TestCase):
 	def test_put256K(self):
 		with tempfile.TemporaryDirectory() as tmpdir:
 			print(tmpdir)
@@ -123,6 +123,65 @@ class S3StoreTestCases(unittest.TestCase):
 				f.write(b"blabla")
 			self.assertFalse(hfs.get(objkey, dst_file))
 			self.assertTrue(os.path.exists(dst_file) == False)
+
+hfsfiles= {"think-hires.jpg"}
+
+class HashFSTestCases(unittest.TestCase):
+	def test_put(self):
+		with tempfile.TemporaryDirectory() as tmpdir:
+			print(tmpdir)
+			hfs = HashFS(tmpdir)
+			hfs.put("data/think-hires.jpg")
+			for files in hfs.walk():
+				for file in files:
+					self.assertTrue(file in hfsfiles)
+
+	def test_put1024K_pathexistence_level1(self):
+		with tempfile.TemporaryDirectory() as tmpdir:
+			print(tmpdir)
+			hfs = HashFS(tmpdir, levels=1)
+			hfs.put("data/think-hires.jpg")
+			m = hashlib.md5()
+			m.update("think-hires.jpg".encode())
+			h = m.hexdigest()
+			fullpath = os.path.join(tmpdir, "hashfs", h[:2], "think-hires.jpg")
+			self.assertTrue(os.path.exists(fullpath))
+
+	def test_put1024K_pathexistence_level2(self):
+		with tempfile.TemporaryDirectory() as tmpdir:
+			print(tmpdir)
+			hfs = HashFS(tmpdir)
+			hfs.put("data/think-hires.jpg")
+			m = hashlib.md5()
+			m.update("think-hires.jpg".encode())
+			h = m.hexdigest()
+			fullpath = os.path.join(tmpdir, "hashfs", h[:2], h[2:4], "think-hires.jpg")
+			self.assertTrue(os.path.exists(fullpath))
+
+	def test_put1024K_toomany_levels(self):
+		with tempfile.TemporaryDirectory() as tmpdir:
+			print(tmpdir)
+			hfs = HashFS(tmpdir, levels=17)
+			hfs.put("data/think-hires.jpg")
+			m = hashlib.md5()
+			m.update("think-hires.jpg".encode())
+			h = m.hexdigest()
+			fullpath = os.path.join(tmpdir, "hashfs", "58", "41", "de", "64", "a3", "7b", "a5", "af", "5c", "f3", "19",
+			                        "d6", "50", "c1", "4a", "b3", "think-hires.jpg")
+			self.assertTrue(os.path.exists(fullpath))
+
+	def test_get_simple(self):
+		with tempfile.TemporaryDirectory() as tmpdir:
+			original_file = "data/think-hires.jpg"
+			dst_file = os.path.join(tmpdir, "think-hires.jpg")
+			hfs = HashFS(tmpdir, blocksize=1024*1024)
+			objkey = hfs.put(original_file)
+			hfs.get(objkey, dst_file)
+			self.assertEqual(md5sum(original_file), md5sum(dst_file))
+
+	'''no way to detect corruption solely based on HashFS capability'''
+	# def test_corruption(self):
+
 
 if __name__ == "__main__":
 	unittest.main()

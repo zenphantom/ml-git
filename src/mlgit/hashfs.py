@@ -13,44 +13,64 @@ import json
 
 '''implementation of a "hashdir" based filesystem
 Lack a few desirable properties of MultihashFS.
-Base implementation for MultihashFS
  
-This is implementation is tested only through MultihashFS 
-and as such not thoroughly tested!
-(lack testing of put/get that are overloaded in MultihashFS)'''
+Although good enough for ml-git cache implementation.'''
 class HashFS(object):
-	def __init__(self, path, blocksize = 256*1024):
+	def __init__(self, path, blocksize = 256*1024, levels=2):
 		self._blk_size = blocksize
 		if blocksize < 64*1024: self._blk_size = 64*1024
 		if blocksize > 1024*1024: self._blk_size = 1024*1024
+
+		self._levels = levels
+		if levels < 1: self._levels = 1
+		if levels > 16: self.levels = 16
 
 		self._path = os.path.join(path, "hashfs")
 		ensure_path_exists(self._path)
 		self._logpath = os.path.join(self._path, "log")
 		ensure_path_exists(self._logpath)
 
-	def _get_hash(self, filename):
+	def _hash_filename(self, filename):
 		m = hashlib.md5()
-		m.update(filename)
-		h = m.hexdigest()
-		h = h[:2]
+		m.update(filename.encode())
+		return m.hexdigest()
+
+	def _get_hash(self, filename, start=0):
+		hs = [filename[i:i + 2] for i in range(start, start+2 * (self._levels), 2)]
+		h = os.sep.join(hs)
 		return h
 
+	def link(self, key, srcfile):
+		dstkey = self._get_hashpath(key)
+		ensure_path_exists(os.path.dirname(dstkey))
+
+		if os.path.exists(dstkey) == True:
+			log.debug("Cache: entry cache [%s] already exists for [%s]. possible duplicate." % (key, srcfile))
+			os.unlink(srcfile)
+			os.link(dstkey, srcfile)
+			return
+
+		log.info("Cache: creating entry cache [%s] for [%s]" % (key, srcfile))
+		os.link(srcfile, dstkey)
+
 	def _get_hashpath(self, filename):
-		h = self._get_hash(filename)
+		hfilename= self._hash_filename(filename)
+		h = self._get_hash(hfilename)
 		return os.path.join(self._path  , h, filename)
+
+	def exists(self, filename):
+		dstfile = self._get_hashpath(os.path.basename(filename))
+		return os.path.exists(dstfile)
 
 	def put(self, srcfile):
 		dstfile = self._get_hashpath(os.path.basename(srcfile))
 		ensure_path_exists(os.path.dirname(dstfile))
 		os.link(srcfile, dstfile)
 		self._log(dstfile)
-		return
+		return os.path.basename(srcfile)
 
-	def get(self, file, dstpath):
-		dstfile = os.path.join(dstpath, file)
+	def get(self, file, dstfile):
 		srcfile = self._get_hashpath(file)
-
 		os.link(srcfile, dstfile)
 		st = os.stat(srcfile)
 		return st.st_size
@@ -91,18 +111,14 @@ This filesystem guarantees by design:
 '''
 class MultihashFS(HashFS):
 	def __init__(self, path, blocksize = 256*1024, levels=2):
-		super(MultihashFS, self).__init__(path, blocksize)
+		super(MultihashFS, self).__init__(path, blocksize, levels)
 		self._levels = levels
-		if levels < 1 : self._levels = 1
+		if levels < 1: self._levels = 1
 		if levels > 22: self.levels = 22
 
-	def _get_hash(self, filename, levels=2):
-		# skip filename[:2] since for CIDv0 it's always equal to 'Qm'
-		# now we're using CIDv1 to enable ml-git to change hash algorithm as risks change over time.
-		# Currently, using sha256.
-		hs = [filename[i:i+2] for i in range(5, 5+2*(self._levels), 2)]
-		h = os.sep.join(hs)
-		return h
+	def _get_hashpath(self, filename):
+		h = self._get_hash(filename, start=5)
+		return os.path.join(self._path  , h, filename)
 
 	def _store_chunk(self, filename, data):
 		fullpath = self._get_hashpath(filename)

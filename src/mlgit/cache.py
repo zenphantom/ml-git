@@ -4,15 +4,12 @@ SPDX-License-Identifier: GPL-2.0-only
 """
 
 from mlgit.utils import ensure_path_exists, yaml_load
-from mlgit.multihash import create_hashpath
-from mlgit import log
+from mlgit.hashfs import HashFS
 import os
-import errno
 
-class Cache(object):
+class Cache(HashFS):
 	def __init__(self, cachepath, datapath, manifest):
-		self.__cachepath = cachepath
-		ensure_path_exists(cachepath)
+		super(Cache, self).__init__(cachepath)
 		self.__datapath = datapath
 		self.__manifest = manifest
 
@@ -20,26 +17,7 @@ class Cache(object):
 		files = yaml_load(self.__manifest)
 		for key in files:
 			file = files[key]
-			src = os.path.join(self.__datapath, file)
-			hdir = create_hashpath(self.__cachepath, key)
-			dst = os.path.join(hdir, key)
 
-			if os.path.exists(dst) == True:
-				log.debug("Cache: entry cache [%s] already exists for [%s]. possible duplicate." % (key, file))
-				os.unlink(src)
-				os.link(dst, src)
-				return
+			srcfile = os.path.join(self.__datapath, file)
+			self.link(key, srcfile)
 
-			log.info("Cache: creating entry cache [%s] for [%s]" % (key, file))
-			os.link(src, dst)
-
-	def fsck(self, objects):
-		pass
-
-
-if __name__=="__main__":
-	from mlgit.log import init_logger
-	init_logger()
-
-	c = Cache(".ml-git/dataset/cache", "dataset/dataset-ex", ".ml-git/dataset/index/files/dataset-ex/MANIFEST.yaml")
-	c.update()
