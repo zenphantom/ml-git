@@ -11,6 +11,7 @@ from mlgit.refs import Refs
 from mlgit.remote import Remote
 from mlgit.index import MultihashIndex, Objects
 from mlgit.utils import yaml_load
+from mlgit.spec import spec_parse
 
 import os
 
@@ -233,6 +234,7 @@ class Repository(object):
 		cachepath = cache_path(self.__config, repotype)
 		metadatapath = metadata_path(self.__config, repotype)
 		objectspath = objects_path(self.__config, repotype)
+		refspath = refs_path(self.__config, repotype)
 
 		self.checkout(tag)
 		self.fetch(tag)
@@ -240,6 +242,13 @@ class Repository(object):
 		# TODO: check if no data left untracked/uncommitted. otherwise, stop.
 		r = Remote("", self.__config, repotype)
 		r.get(cachepath, metadatapath, objectspath, tag)
+
+		m = Metadata("", metadatapath, self.__config)
+		sha = m.sha_from_tag(tag)
+
+		c, spec, v = spec_parse(tag)
+		r = Refs(refspath, spec, self.__repotype)
+		r.update_head(tag, sha)
 
 		# restore to master/head
 		self.checkout("master")
