@@ -7,6 +7,7 @@ from mlgit.utils import yaml_load
 from mlgit.store import store_factory
 from mlgit.index import Index, MultihashIndex
 from mlgit.utils import yaml_load, ensure_path_exists, json_load
+from mlgit.spec import spec_parse
 from mlgit import log
 import os
 import shutil
@@ -35,10 +36,6 @@ class Remote(object):
 				list = store.file_store(obj, objpath)
 		os.unlink(idxstore)
 
-	def spec_split(self, spec):
-		sep = "__"
-		return spec.split('__')
-
 	def haspath(self, path, key):
 		objpath = Index._get_hashpath(path, key)
 		dirname = os.path.dirname(objpath)
@@ -56,17 +53,8 @@ class Remote(object):
 
 	def fetch(self, objectpath, metadatapath, spec):
 		repotype = self.__repotype
-		specs = self.spec_split(spec)
 
-		if len(specs) == 1:
-			# spec format without categories nor version ... take the most recent, if no ambiguity
-			print(specs)
-		else:
-			# must contain categories, spec, version
-			version = specs[-1]
-			specname = specs[-2]
-			categories_path = os.sep.join(specs[:-1])
-			print(categories_path, specname, version)
+		categories_path, specname, version = spec_parse(spec)
 
 		# retrieve specfile from metadata to get store
 		specpath = os.path.join(metadatapath, categories_path, specname + '.spec')
@@ -109,17 +97,8 @@ class Remote(object):
 
 	def get(self, cachepath, metadatapath, objectpath, spec):
 		repotype = self.__repotype
-		specs = self.spec_split(spec)
 
-		if len(specs) == 1:
-			# spec format without categories nor version ... take the most recent, if no ambiguity
-			print(specs)
-		else:
-			# must contain categories, spec, version
-			version = specs[-1]
-			specname = specs[-2]
-			categories_path = os.sep.join(specs[:-1])
-			print(categories_path, specname, version)
+		categories_path, specname, version = spec_parse(spec)
 
 		wspath, spec= self.search_spec_file(specname)
 		if wspath is None:
