@@ -16,11 +16,14 @@ Lack a few desirable properties of MultihashFS.
 Base implementation for MultihashFS
  
 This is implementation is tested only through MultihashFS 
-and as such not throughly tested!
-(lack testing of put/get that are overlodaded in MultihashFS)'''
+and as such not thoroughly tested!
+(lack testing of put/get that are overloaded in MultihashFS)'''
 class HashFS(object):
 	def __init__(self, path, blocksize = 256*1024):
 		self._blk_size = blocksize
+		if blocksize < 64*1024: self._blk_size = 64*1024
+		if blocksize > 1024*1024: self._blk_size = 1024*1024
+
 		self._path = os.path.join(path, "hashfs")
 		ensure_path_exists(self._path)
 		self._logpath = os.path.join(self._path, "log")
@@ -90,6 +93,8 @@ class MultihashFS(HashFS):
 	def __init__(self, path, blocksize = 256*1024, levels=2):
 		super(MultihashFS, self).__init__(path, blocksize)
 		self._levels = levels
+		if levels < 1 : self._levels = 1
+		if levels > 22: self.levels = 22
 
 	def _get_hash(self, filename, levels=2):
 		# skip filename[:2] since for CIDv0 it's always equal to 'Qm'

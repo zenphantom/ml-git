@@ -69,6 +69,40 @@ class S3StoreTestCases(unittest.TestCase):
 				for file in files:
 					self.assertTrue(file in chunks1024)
 
+	def test_put1024K_pathexistence_level1(self):
+		with tempfile.TemporaryDirectory() as tmpdir:
+			print(tmpdir)
+			hfs = MultihashFS(tmpdir, blocksize=1024*1024, levels=1)
+			hfs.put("data/think-hires.jpg")
+			fullpath = os.path.join(tmpdir, "hashfs", "aU", "zdj7WaUNoRAzciw2JJi69s2HjfCyzWt39BHCucCV2CsAX6vSv")
+			self.assertTrue(os.path.exists(fullpath))
+
+	def test_put1024K_pathexistence_level2(self):
+		with tempfile.TemporaryDirectory() as tmpdir:
+			print(tmpdir)
+			hfs = MultihashFS(tmpdir, blocksize=1024*1024)
+			hfs.put("data/think-hires.jpg")
+			fullpath = os.path.join(tmpdir, "hashfs", "aU", "No", "zdj7WaUNoRAzciw2JJi69s2HjfCyzWt39BHCucCV2CsAX6vSv")
+			self.assertTrue(os.path.exists(fullpath))
+
+	def test_put1024K_pathexistence_level3(self):
+		with tempfile.TemporaryDirectory() as tmpdir:
+			print(tmpdir)
+			hfs = MultihashFS(tmpdir, blocksize=1024*1024, levels=3)
+			hfs.put("data/think-hires.jpg")
+			fullpath = os.path.join(tmpdir, "hashfs", "aU", "No", "RA", "zdj7WaUNoRAzciw2JJi69s2HjfCyzWt39BHCucCV2CsAX6vSv")
+			self.assertTrue(os.path.exists(fullpath))
+
+	def test_put1024K_toomany_levels(self):
+		with tempfile.TemporaryDirectory() as tmpdir:
+			print(tmpdir)
+			hfs = MultihashFS(tmpdir, blocksize=1024*1024, levels=23)
+			hfs.put("data/think-hires.jpg")
+			fullpath = os.path.join(tmpdir, "hashfs", "aU", "No", "RA", "zc", "iw", "2J", "Ji", "69", "s2", "Hj", "fC",
+			                        "yz", "Wt", "39", "BH", "Cu", "cC", "V2", "Cs", "AX", "6v", "Sv",
+			                        "zdj7WaUNoRAzciw2JJi69s2HjfCyzWt39BHCucCV2CsAX6vSv")
+			self.assertTrue(os.path.exists(fullpath))
+
 	def test_get_simple(self):
 		with tempfile.TemporaryDirectory() as tmpdir:
 			original_file = "data/think-hires.jpg"
