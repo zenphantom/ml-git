@@ -11,7 +11,7 @@ from botocore.client import ClientError
 from pprint import pprint
 import hashlib
 import multihash
-from cid import CIDv0, make_cid
+from cid import CIDv1, make_cid
 
 def store_factory(config, store_string):
     stores = { "s3" : S3Store, "s3h" : S3MultihashStore }
@@ -179,8 +179,12 @@ class S3Store(Store):
             return s3_resource.Object(bucket, keypath).download_file(file)
 
 class S3MultihashStore(S3Store):
-    def __init__(self, bucket_name, bucket):
+    def __init__(self, bucket_name, bucket, blocksize=256*1024):
+        self._blk_size = blocksize
+        if blocksize < 64 * 1024: self._blk_size = 64 * 1024
+        if blocksize > 1024 * 1024: self._blk_size = 1024 * 1024
         super(S3MultihashStore, self).__init__(bucket_name, bucket)
+
 
     def put(self, keypath, filepath):
         bucket = self._bucket
@@ -190,7 +194,8 @@ class S3MultihashStore(S3Store):
             log.debug("S3MultihashStore: object [%s] already in S3 store"% (keypath))
             return True
 
-        res = s3_resource.Bucket(bucket).Object(keypath).put(filepath, Body=open(filepath, 'rb')) # TODO :test for errors here!!!
+        with open(filepath, 'rb') as f:
+            res = s3_resource.Bucket(bucket).Object(keypath).put(filepath, Body=f) # TODO :test for errors here!!!
         return keypath
 
     def get(self, filepath, keypath):
@@ -201,7 +206,7 @@ class S3MultihashStore(S3Store):
         m.update(data)
         h = m.hexdigest()
         mh = multihash.encode(bytes.fromhex(h), 'sha2-256')
-        cid = CIDv0(mh)
+        cid = CIDv1("dag-pb", mh)
         return str(cid)
 
     def check_integrity(self, cid, data):
@@ -221,31 +226,13 @@ class S3MultihashStore(S3Store):
         log.info("S3 Store get: downloading [%s] from bucket [%s] into file [%s]" % (keypath, bucket, file))
         with open(file, 'wb') as f:
             while True:
-                chunk = c.read(256 * 1024)
+                chunk = c.read(self._blk_size)
                 if chunk:
                     if self.check_integrity(keypath, chunk) == False:
                         return False
                     f.write(chunk)
                 else:
                     break
+        c.close()
         return True
 
-
-if __name__=="__main__":
-    bucket = {
-        "aws-credentials" : { "profile" : "personal"},
-        "region" : "us-east-1"
-    }
-    s3 = S3Store("ml-git-models", bucket)
-    #print(s3.create_bucket("ml-git-models"))
-    #print(s3.put("test.dat"))
-    #print(s3.get("models/test-vision/test.dat", version='gEAkOx.ryMifOKZjLRrsnK4mYQVD3WjC'))
-    #print(s3.get("vision-computing/images/cifar-10/cifar-10.pkl.tar.gz", "cifar-10.pkl.tar.gz", version='dZlanT4yZmPf2pBX5MNJsVfU1u1ZSVbi'))
-    #print(s3.get("models/test-vision/test.dat"))
-    #
-    #
-
-    print(s3._to_file("vision-computing/images/cifar-10/cifar-10.pkl.tar.gz?version=dZlanT4yZmPf2pBX5MNJsVfU1u1ZSVbi"))
-    #from boto3.session import Session
-    #s = Session()
-    #print(s.get_available_regions('dynamodb'))
