@@ -21,7 +21,6 @@ secondfile = {
 class IndexTestCases(unittest.TestCase):
 	def test_add(self):
 		with tempfile.TemporaryDirectory() as tmpdir:
-			print(tmpdir)
 			idx = MultihashIndex("dataset-spec", tmpdir)
 			idx.add("data", "")
 
@@ -32,7 +31,6 @@ class IndexTestCases(unittest.TestCase):
 
 	def test_add_idmpotent(self):
 		with tempfile.TemporaryDirectory() as tmpdir:
-			print(tmpdir)
 			idx = MultihashIndex("dataset-spec", tmpdir)
 			idx.add("data", "")
 			idx.add("data", "")
@@ -42,7 +40,6 @@ class IndexTestCases(unittest.TestCase):
 
 	def test_add2(self):
 		with tempfile.TemporaryDirectory() as tmpdir:
-			print(tmpdir)
 			idx = MultihashIndex("dataset-spec", tmpdir)
 			idx.add("data", "")
 
@@ -59,7 +56,6 @@ class IndexTestCases(unittest.TestCase):
 
 	def test_add_manifest(self):
 		with tempfile.TemporaryDirectory() as tmpdir:
-			print(tmpdir)
 			manifestfile = os.path.join(tmpdir, "MANIFEST.yaml")
 			yaml_save(singlefile["manifest"], manifestfile)
 
@@ -67,6 +63,15 @@ class IndexTestCases(unittest.TestCase):
 			idx.add("data", manifestfile)
 
 			self.assertFalse(os.path.exists(os.path.join(tmpdir, "files", "dataset-spec", "MANIFEST.yaml")))
+
+	# def test_get(self):
+	# 	with tempfile.TemporaryDirectory() as tmpdir:
+	# 		idx = MultihashIndex("dataset-spec", tmpdir)
+	# 		idx.add("data", "")
+	#
+	# 		tmpfile = os.path.join("")
+	# 		idx.get()
+
 
 if __name__ == "__main__":
 	unittest.main()

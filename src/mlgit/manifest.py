@@ -19,6 +19,16 @@ class Manifest(object):
 		except:
 			mf[key] = {file}
 
+	def merge(self, manifest):
+		mf = yaml_load(manifest)
+		smf = self._manifest
+
+		for k in mf:
+			try:
+				smf[k] = smf[k].union(mf[k])
+			except:
+				smf[k] = mf[k]
+
 	def rm(self, key, file):
 		mf = self._manifest
 		try:
@@ -56,6 +66,13 @@ class Manifest(object):
 		for key in mf:
 			if file in mf[key]: return key
 		return None
+
+	def __iter__(self):
+		for key in self._manifest.keys():
+			yield key
+
+	def __getitem__(self, key):
+		return self._manifest[key]
 
 	def get(self, key):
 		try:

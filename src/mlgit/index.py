@@ -12,54 +12,43 @@ import json
 import shutil
 
 
-class Objects(object):
-	def __init__(self, spec, objects_path):
+class Objects(MultihashFS):
+	def __init__(self, spec, objects_path, blocksize = 256*1024, levels=2):
 		self.__spec = spec
-		self._path = objects_path
-		ensure_path_exists(objects_path)
+		# self._path = objects_path
+		# ensure_path_exists(objects_path)
+		super(Objects, self).__init__(objects_path, blocksize, levels)
 
 	def commit_index(self, index_path):
 		self.commit_objects(index_path)
 
 	def commit_objects(self, index_path):
+		idx = MultihashFS(index_path)
+
+		for files in idx.walk():
+			for file in files:
+				idx.move_hfs(self)
+				log.info("Local Repository: commit [%s] to ml-git local repository" % (file))
+
 		# Move all chunks from index/ to objects/
-		for root, dirs, files in os.walk(index_path):
-			dirbase = root[len(index_path):]
-			relative_path = root[len(index_path) + 1:]
-			if "files" in relative_path: continue
-			if "metadata" in relative_path: continue
-			if "datastore" in relative_path: continue
+		# for root, dirs, files in os.walk(index_path):
+		# 	dirbase = root[len(index_path):]
+		# 	relative_path = root[len(index_path) + 1:]
+		# 	if "metadata" in relative_path: continue
+		# 	if "datastore" in relative_path: continue
 
-			dest_dir = os.path.join(self._path, relative_path)
-			if os.path.isdir(dest_dir) == False:
-				log.debug("Objects: creating dir %s" % (dest_dir))
-				os.makedirs(dest_dir)
+			# dest_dir = os.path.join(self._path, relative_path)
+			# ensure_path_exists(dest_dir)
 
-			for file in files:
-				fullpath = os.path.join(root, file)
-				shutil.move(fullpath, os.path.join(dest_dir, file))
-				log.info("Objects: commit [%s] to ml-git data store" % (file))
+			# for file in files:
+			# 	fullpath = os.path.join(root, file)
+			# 	shutil.move(fullpath, os.path.join(dest_dir, file))
 
-	'''Checks integrity of all files under .mlgit/<repotype>/objects'''
-	def fsck(self):
-		corruption_found = False
-		log.info("Objects: starting integrity check on [%s]" % (self._path))
-		for root, dirs, files in os.walk(self._path):
-			if "files" in root: continue
-
-			for file in files:
-				fullpath = os.path.join(root, file)
-				with open(fullpath, 'rb') as c:
-					while True:
-						d = c.read(256 * 1024)
-						if not d: break
-						if check_integrity(file, d) == False:
-							corruption_found = True
-		return corruption_found
 
 class MultihashIndex(object):
 	def __init__(self, spec, index_path):
 		self._spec = spec
+		self._path = index_path
 		self._hfs = MultihashFS(index_path)
 		self._mf = self._get_index(index_path)
 
@@ -68,7 +57,6 @@ class MultihashIndex(object):
 		ensure_path_exists(metadatapath)
 
 		mfpath = os.path.join(metadatapath, "MANIFEST.yaml")
-		print(mfpath)
 		return Manifest(mfpath)
 
 	def add(self, path, manifestpath):
@@ -89,7 +77,7 @@ class MultihashIndex(object):
 		self._mf.save()
 
 	def add_metadata(self, basepath, filepath):
-		log.info("Multihash: add file [%s] to ml-git index [%s]" % (filepath, self._path))
+		log.info("Multihash: add file [%s] to ml-git index" % (filepath))
 		fullpath = os.path.join(basepath, filepath)
 
 		metadatapath = os.path.join(self._path, "metadata", self._spec)
@@ -102,6 +90,9 @@ class MultihashIndex(object):
 	# TODO add : stat to MANIFEST from original file ...
 	def update_index(self, objectkey, filename):
 		self._mf.add(objectkey, filename)
+
+	def get_index(self):
+		return self._mf
 
 	def add_file(self, basepath, filepath):
 		fullpath = os.path.join(basepath, filepath)
@@ -125,7 +116,6 @@ class MultihashIndex(object):
 		self.update_index(scid, filepath)
 
 	def get(self, objectkey, path, file):
-		# write all chunks into temp file
 		log.info("Index: getting file [%s] from local index" % (file))
 		dirs = os.path.dirname(file)
 		fulldir = os.path.join(path, dirs)

@@ -62,15 +62,14 @@ class S3StoreTestCases(unittest.TestCase):
 	def test_get(self):
 		with tempfile.TemporaryDirectory() as tmpdir:
 			s3store = S3MultihashStore(bucketname, bucket)
-			k = "zdj7WZxhD5qi6kNTQVZfFRz3mttuL2JNiTu2j3rU14PMmqqqP"
-			f = "hdata/zdj7WZxhD5qi6kNTQVZfFRz3mttuL2JNiTu2j3rU14PMmqqqP"
+			k = "zdj7WjdojNAZN53Wf29rPssZamfbC6MVerzcGwd9tNciMpsQh"
+			f = "hdata/zdj7WjdojNAZN53Wf29rPssZamfbC6MVerzcGwd9tNciMpsQh"
 			self.assertFalse(s3store.key_exists(k))
 			self.assertEqual(s3store.put(k, f), k)
 			self.assertTrue(s3store.key_exists(k))
 			fpath = os.path.join(tmpdir, "s3.dat")
 			self.assertTrue(s3store.get(fpath, k))
 			self.assertEqual(md5sum(fpath), md5sum(f))
-
 
 	def tearDown(self):
 		s3 = boto3.resource(

@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-2.0-only
 from mlgit.config import get_key
 from mlgit.utils import ensure_path_exists, yaml_save, yaml_load
 from mlgit._metadata import MetadataManager
+from mlgit.manifest import Manifest
 from mlgit import log
 import os
 import shutil
@@ -82,26 +83,18 @@ class Metadata(MetadataManager):
 
 	def __commit_manifest(self, fullmetadatapath, index_path):
 		# Append index/files/MANIFEST.yaml to .ml-git/dataset/metadata/ <categories>/MANIFEST.yaml
-		idxpath = os.path.join(index_path, "files", self._spec, "MANIFEST.yaml")
+		idxpath = os.path.join(index_path, "metadata", self._spec, "MANIFEST.yaml")
 		if os.path.exists(idxpath) == False:
+			log.error("Metadata: not manifest file found in [%s]" % (idxpath))
 			return False
 
 		fullpath = os.path.join(fullmetadatapath, "MANIFEST.yaml")
 
-		# Check duplicates. Don't add to manifest !
-		idxfiles = yaml_load(idxpath)
-		manifestfiles = yaml_load(fullpath)
-		filterout = {}
-		for k in idxfiles:
-			if k in manifestfiles:
-				filterout[k] = True
-				log.info("Objects: file [%s] duplicate of [%s]. filtering out." % (idxfiles[k], manifestfiles[k]))
+		mobj = Manifest(fullpath)
+		mobj.merge(idxpath)
+		mobj.save()
+		del(mobj)
 
-		log.info("Objects: commit manifest [%s] to ml-git metadata" % (self._spec))
-		with open(fullpath, "a") as f:
-			for k, v in idxfiles.items():
-				if k in filterout: continue
-				f.write("%s: %s\n" % (k, v))
 		os.unlink(idxpath)
 
 		return True

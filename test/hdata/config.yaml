@@ -1,0 +1,6 @@
+store:
+  s3h:
+    ml-git-datasets:
+      aws-credentials:
+        profile: personal
+      region: us-east-1

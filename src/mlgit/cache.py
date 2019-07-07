@@ -14,10 +14,11 @@ class Cache(HashFS):
 		self.__manifest = manifest
 
 	def update(self):
-		files = yaml_load(self.__manifest)
-		for key in files:
-			file = files[key]
+		objfiles = yaml_load(self.__manifest)
+		for key in objfiles:
+			files = objfiles[key]
 
-			srcfile = os.path.join(self.__datapath, file)
-			self.link(key, srcfile)
+			for file in files:
+				srcfile = os.path.join(self.__datapath, file)
+				self.link(key, srcfile)
 

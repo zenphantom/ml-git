@@ -4,6 +4,7 @@ SPDX-License-Identifier: GPL-2.0-only
 """
 
 from mlgit.cache import Cache
+from mlgit.utils import yaml_save
 import unittest
 import tempfile
 import os
@@ -14,8 +15,7 @@ class CacheTestCases(unittest.TestCase):
 		with tempfile.TemporaryDirectory() as tmpdir:
 			print(tmpdir)
 			manifest = os.path.join(tmpdir, 'manifest.yaml')
-			with open(manifest, "w") as f:
-				f.write("zdj7WgHSKJkoJST5GWGgS53ARqV7oqMGYVvWzEWku3MBfnQ9u : think-hires.jpg")
+			yaml_save({"zdj7WgHSKJkoJST5GWGgS53ARqV7oqMGYVvWzEWku3MBfnQ9u" : {"think-hires.jpg"}}, manifest)
 			c = Cache(tmpdir, "data", manifest)
 			c.update()
 			st = os.stat("data/think-hires.jpg")

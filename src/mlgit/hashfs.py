@@ -4,7 +4,7 @@ SPDX-License-Identifier: GPL-2.0-only
 """
 
 from mlgit import log
-from mlgit.utils import json_load, ensure_path_exists
+from mlgit.utils import json_load, yaml_load, ensure_path_exists
 from cid import CIDv0, make_cid, CIDv1
 import multihash
 import hashlib
@@ -40,17 +40,27 @@ class HashFS(object):
 		h = os.sep.join(hs)
 		return h
 
-	def link(self, key, srcfile):
+	def ilink(self, key, dstfile):
+		srckey = self._get_hashpath(key)
+		ensure_path_exists(os.path.dirname(dstfile))
+
+		log.info("HashFS: link from [%s] to [%s]" % (srckey, dstfile))
+		if os.path.exists(dstfile) == True:
+			os.unlink(dstfile)
+
+		os.link(srckey, dstfile)
+
+	def link(self, key, srcfile, force=True):
 		dstkey = self._get_hashpath(key)
 		ensure_path_exists(os.path.dirname(dstkey))
 
+		log.info("HashFS: link from [%s] to [%s]" % (srcfile, key))
 		if os.path.exists(dstkey) == True:
-			log.debug("Cache: entry cache [%s] already exists for [%s]. possible duplicate." % (key, srcfile))
-			os.unlink(srcfile)
-			os.link(dstkey, srcfile)
+			if force == True:
+				os.unlink(srcfile)
+				os.link(dstkey, srcfile)
 			return
 
-		log.info("Cache: creating entry cache [%s] for [%s]" % (key, srcfile))
 		os.link(srcfile, dstkey)
 
 	def _get_hashpath(self, filename):
@@ -68,6 +78,11 @@ class HashFS(object):
 		os.link(srcfile, dstfile)
 		self._log(dstfile)
 		return os.path.basename(srcfile)
+
+	def read(self, key):
+		srcfile = self._get_hashpath(file)
+		with open(srcfile, "rb") as f:
+			yield f.read(self._blk_size)
 
 	def get(self, file, dstfile):
 		srcfile = self._get_hashpath(file)
@@ -88,6 +103,26 @@ class HashFS(object):
 			for link in links:
 				h = link["Hash"]
 				f.write("%s\n" % (h))
+
+	def get_log(self):
+		log.debug("HashFS: loading log file")
+		logs = []
+		with open(os.path.join(self._logpath, "store.log"), "r") as f:
+			while True:
+				l = f.readline().strip()
+				if not l: break
+				logs.append(l)
+		return logs
+
+	def _keypath(self, key):
+		return self._get_hashpath(key)
+
+	def move_hfs(self, dsthfs):
+		for files in self.walk():
+			for file in files:
+				srcfile = self._get_hashpath(file)
+				dsthfs.link(file, srcfile, force=False)
+				os.unlink(srcfile)
 
 	'''walk implementation to make appear hashfs as a single namespace (and/or hide hashdir implementation details'''
 	def walk(self, page_size=50):
@@ -116,9 +151,12 @@ class MultihashFS(HashFS):
 		if levels < 1: self._levels = 1
 		if levels > 22: self.levels = 22
 
-	def _get_hashpath(self, filename):
+	def _get_hashpath(self, filename, path=None):
+		hpath = self._path
+		if path is not None: hpath = path
+
 		h = self._get_hash(filename, start=5)
-		return os.path.join(self._path  , h, filename)
+		return os.path.join(hpath, h, filename)
 
 	def _store_chunk(self, filename, data):
 		fullpath = self._get_hashpath(filename)
@@ -169,6 +207,22 @@ class MultihashFS(HashFS):
 		self._log(scid, links)
 		return scid
 
+	def _copy(self, objectkey, dstfile):
+		corruption_found = False
+		hobj = self._get_hashpath(objectkey)
+		with open(dstfile, 'wb') as f:
+			with open(hobj, 'rb') as c:
+				while True:
+					d = c.read(self._blk_size)
+					if not d: break
+					if self._check_integrity(objectkey, d) == False:
+						corruption_found = True
+						break
+					f.write(d)
+
+		if corruption_found == True:
+			os.unlink(dstfile)
+		return not corruption_found
 
 	def get(self, objectkey, dstfile):
 		size = 0
@@ -201,7 +255,18 @@ class MultihashFS(HashFS):
 			os.unlink(dstfile)
 		return size
 
-	def exists(self, key):
+	def load(self, key):
+		srckey = self._get_hashpath(key)
+		return json_load(srckey)
+
+	'''test existence of CIDv1 key in hash dir implementation'''
+	def _exists(self, key):
+		keypath = self._get_hashpath(key)
+		return os.path.exists(keypath)
+
+	'''test existence of filename in system always returns False.
+	no easy way to test if a file exists based on its name only because it's a CAS.'''
+	def exists(self, file):
 		return False
 
 	'''Checks integrity of all files under .mlgit/<repotype>/objects'''

@@ -56,6 +56,10 @@ command_usage = {
         "help": '''adds a new model under management of ml-git''',
         "subs": lambda: dict(additional_options),
     },
+    "branch": {
+        "help": '''retrieves the ref of a specific ML entity branch''',
+        "subs": lambda: dict(additional_options),
+    },
     "get": {
         "help": '''gets a model from mlgit distributed storage and store it into your local filesystem''',
         "subs": lambda: dict(additional_options),
