@@ -15,9 +15,9 @@ class Manifest(object):
 	def add(self, key, file, stats=None):
 		mf = self._manifest
 		try:
-			mf[key].append(file)
+			mf[key].add(file)
 		except:
-			mf[key] = [file]
+			mf[key] = {file}
 
 	def rm(self, key, file):
 		mf = self._manifest

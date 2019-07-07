@@ -201,6 +201,9 @@ class MultihashFS(HashFS):
 			os.unlink(dstfile)
 		return size
 
+	def exists(self, key):
+		return False
+
 	'''Checks integrity of all files under .mlgit/<repotype>/objects'''
 	def fsck(self, exclude=["files", "metadata"]):
 		exclude.append(self._log)

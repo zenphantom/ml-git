@@ -4,89 +4,13 @@ SPDX-License-Identifier: GPL-2.0-only
 """
 
 from mlgit.utils import ensure_path_exists, yaml_load, json_load
-from mlgit.multihash import check_integrity, create_hashpath, digest
+from mlgit.hashfs import MultihashFS
+from mlgit.manifest import Manifest
 from mlgit import log
 import os
 import json
 import shutil
 
-class Index(object):
-	def __init__(self, spec, index_path, hash_based = False):
-		self._spec = spec
-		self.__init(index_path, hash_based)
-
-	def __init(self, index_path, hash_based):
-		self._path = index_path
-		self.__hash_based = hash_based
-
-		ensure_path_exists(self._path)
-		ensure_path_exists(os.path.join(self._path, "files"))
-
-	def add(self, path, manifestpath):
-		if os.path.isdir(path) == True:
-			self.add_dir(path, manifestpath)
-
-	def add_dir(self, path):
-		pass
-
-	@staticmethod
-	def _get_hashpath(path, filename):
-		h = filename[:2]
-		if h == "Qm": h = filename[2:4]
-
-		return os.path.join(path, h, filename)
-
-	def get_hashpath(self, filename):
-		return Index._get_hashpath(self._path, filename)
-
-	def store_chunk(self, filename, data=None):
-		hashd = create_hashpath(self._path, filename)
-		fullpath = os.path.join(hashd, filename)
-
-		# only valid for hash based filesystem
-		if self.__hash_based == True and os.path.isfile(fullpath) == True:
-			log.debug("Index: chunk [%s]-[%d] already exists" % (filename, len(data)))
-			return False
-
-		if data != None:
-			log.info("Index: add chunk [%s]-[%d]" % (filename, len(data)))
-			with open(fullpath, 'wb') as f:
-				f.write(data)
-			return True
-
-	# TODO add : stat to MANIFEST from original file ...
-	def update_index(self, filename, objectkey):
-		files = self.get_index()
-		if objectkey in files:
-			log.debug("Index: [%s]-[%s] already in index" % (filename, objectkey))
-			return
-
-		dirpath = os.path.join(self._path, "files", self._spec)
-		ensure_path_exists(dirpath)
-		fullpath = os.path.join(dirpath, "MANIFEST.yaml")
-		log.info("Index: add [%s]-[%s] to index manifest" % (filename, objectkey))
-		with open(fullpath, "a") as f:
-			f.write("%s : %s\n" % (objectkey, filename))
-
-	def update_metadata_store(self, links):
-		log.info("Index: update metadata for data store")
-		dirpath = os.path.join(self._path, "datastore")
-		ensure_path_exists(dirpath)
-		fullpath = os.path.join(dirpath, "store.dat")
-		with open(fullpath, "a") as f:
-			for link in links:
-				f.write("%s\n" % (link))
-
-	def reset(self):
-		shutil.rmtree(self._path)
-		os.mkdir(self._path)
-
-	def get_index(self):
-		fullpath = os.path.join(self._path, "files", self._spec, "MANIFEST.yaml")
-		try:
-			return yaml_load(fullpath)
-		except:
-			return {}
 
 class Objects(object):
 	def __init__(self, spec, objects_path):
@@ -133,12 +57,24 @@ class Objects(object):
 							corruption_found = True
 		return corruption_found
 
-
-class MultihashIndex(Index):
+class MultihashIndex(object):
 	def __init__(self, spec, index_path):
-		super(MultihashIndex, self).__init__(spec, index_path, hash_based = True)
+		self._spec = spec
+		self._hfs = MultihashFS(index_path)
+		self._mf = self._get_index(index_path)
 
-	def add_dir(self, dirpath, manifestpath):
+	def _get_index(self, idxpath):
+		metadatapath = os.path.join(idxpath, "metadata", self._spec)
+		ensure_path_exists(metadatapath)
+
+		mfpath = os.path.join(metadatapath, "MANIFEST.yaml")
+		print(mfpath)
+		return Manifest(mfpath)
+
+	def add(self, path, manifestpath):
+		if os.path.isdir(path) == True: self._add_dir(path, manifestpath)
+
+	def _add_dir(self, dirpath, manifestpath):
 		self.manifestfiles = yaml_load(manifestpath)
 
 		for root, dirs, files in os.walk(dirpath):
@@ -150,6 +86,7 @@ class MultihashIndex(Index):
 				filepath = os.path.join(relativepath, file)
 				if (".spec" in file) or ("README.md" == file): self.add_metadata(basepath, filepath)
 				else: self.add_file(basepath, filepath)
+		self._mf.save()
 
 	def add_metadata(self, basepath, filepath):
 		log.info("Multihash: add file [%s] to ml-git index [%s]" % (filepath, self._path))
@@ -162,105 +99,47 @@ class MultihashIndex(Index):
 		if os.path.exists(dstpath) == False:
 			os.link(fullpath, dstpath)
 
+	# TODO add : stat to MANIFEST from original file ...
+	def update_index(self, objectkey, filename):
+		self._mf.add(objectkey, filename)
+
 	def add_file(self, basepath, filepath):
 		fullpath = os.path.join(basepath, filepath)
 
+		# TODO: add option to check with manifest of local repository...
+		#  This check is not robust if Cache is shared.
 		st = os.stat(fullpath)
 		if st.st_nlink > 1:
 			log.debug("Multihash: file [%s] already exists in ml-git repository" % (filepath))
 			return
 
-		log.info("Multihash: add file [%s] to ml-git index [%s]" % (filepath, self._path))
-		links = []
+		log.info("Multihash: add file [%s] to ml-git index" % (filepath))
+		scid = self._hfs.put(fullpath)
 
-		with open(fullpath, 'rb') as f:
-			while True:
-				d = f.read(256*1024)
-				if d:
-					scid = digest(d)
-					self.store_chunk(scid, d)
-					links.append( {"Hash" : scid, "Size": len(d)} )
-				else:
-					break
+		# TODO: add an option to enable/disable this check here. Should not be default.
+		# if scid in self.manifestfiles:
+		# 	TODO: add metadata about that file to filter out quickly (no digest at each add) and for usage status (not show in untracked)
+			# log.info("Index: file [%s] duplicate in ml-git repository of [%s]. filtering out." % (filepath, self.manifestfiles[scid]))
+			# return
 
-		ls = json.dumps({ "Links" : links })
-		scid = digest(ls.encode())
+		self.update_index(scid, filepath)
 
-		if scid in self.manifestfiles:
-			# TODO: add metadata about that file to filter out quickly (no digest at each add) and for usage status (not show in untracked)
-			log.info("Index: file [%s] duplicate in ml-git repository of [%s]. filtering out." % (filepath, self.manifestfiles[scid]))
-			return
-
-		self.store_chunk(scid, ls.encode())
-		self.update_index(filepath, scid)
-
-		hs = [scid]
-		for link in links:
-			hs.append(link["Hash"])
-		self.update_metadata_store(hs)
-
-
-	def _get_file(self, objectkey, path, file):
-		# Get all file chunks definition
-		jl = json_load(self.get_hashpath(objectkey))
-		if check_integrity(objectkey, json.dumps(jl).encode()) == False:
-			return
-
+	def get(self, objectkey, path, file):
 		# write all chunks into temp file
 		log.info("Index: getting file [%s] from local index" % (file))
 		dirs = os.path.dirname(file)
-		base = os.path.basename(file)
-
 		fulldir = os.path.join(path, dirs)
-		if dirs != '' and os.path.isdir(fulldir) == False:
-			log.info("Index: creating dir %s " % (fulldir))
-			os.makedirs(fulldir)
+		ensure_path_exists(fulldir)
 
-		with open(os.path.join(path, file), 'wb') as f:
-			for chunk in jl["Links"]:
-				h = chunk["Hash"]
-				s = chunk["Size"]
-				log.debug("Index: cat content of [%s]-[%d] to [%s]" % (h, s, file))
-				with open(self.get_hashpath(h), 'rb') as c:
-					while True:
-						d = c.read(256 * 1024)
-						if not d: break
-						if check_integrity(h, d) == False:
-							return
-						f.write(d)
+		dstfile = os.path.join(path, file)
+		return self._hfs.get(objectkey, dstfile)
 
-	def get(self, objectkey, destination="/tmp/ml-git-tmp"):
-		files = self.get_index()
-		try:
-			file = files[objectkey]
-		except:
-			log.error("Index: [%s] not found in local object store" % (objectkey))
-
-		return self._get_file(objectkey, destination, file)
-
-	'''Checks integrity of all files under .mlgit/<repotype>/objects'''
+	def reset(self):
+		shutil.rmtree(self._path)
+		os.mkdir(self._path)
 
 	def fsck(self):
-		corruption_found = False
-		log.info("Objects: starting integrity check on [%s]" % (self._path))
-		for root, dirs, files in os.walk(self._path):
-			if "files" in root: continue
-			if "metadata" in root: continue
-			if "datastore" in root: continue
-
-			for file in files:
-				fullpath = os.path.join(root, file)
-				with open(fullpath, 'rb') as c:
-					while True:
-						d = c.read(256 * 1024)
-						if not d: break
-						if check_integrity(file, d) == False:
-							corruption_found = True
-		return corruption_found
-
-class FileIndex(object):
-	def add(self, filepath):
-		pass
+		self._hfs.fsck()
 
 if __name__=="__main__":
 	from mlgit.log import init_logger
