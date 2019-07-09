@@ -12,7 +12,7 @@ Compared to legacy SW development, the challenge comes from 2 main reasons:
 1. VCS are usually not made to keep versioning a elevated number (~Millions) of (sometimes large) binary files
 2. it's not a simple code/text -> binary relationship. There is a more complex relationship between a set of, let's call them, ML entities as show in Figure 1.
 
-| ![ml-entity](docs/ML entities.png) |
+| ![ml-entity](docs/ML%20entities.png) |
 |:--:|
 | *ML entities* |
 
