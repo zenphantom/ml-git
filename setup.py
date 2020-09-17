@@ -6,7 +6,7 @@ SPDX-License-Identifier: GPL-2.0-only
 import json
 import sys
 
-from setuptools import setup
+from setuptools import setup, find_packages
 import ml_git
 
 
@@ -21,7 +21,7 @@ try:
             package_name + package_data.get('version', '')
             for package_name, package_data in lock_data['develop'].items()
         ]
-except FileNotFoundError as e:
+except FileNotFoundError:
     print('File Pipfile.lock not found. Run `pipenv lock` to generate it.')
     sys.exit(1)
 
@@ -43,7 +43,7 @@ setup(
     setup_requires=setup_requirements,
     test_suite="tests",
     package_dir={'': '.'},
-    packages=['ml_git', 'ml_git.commands', 'ml_git.storages'],
+    packages=find_packages(),
     keywords='version control, cloud storage, machine learning, datasets, labels, models',
     platforms='Any',
     zip_safe=True,
@@ -52,7 +52,7 @@ setup(
         'Operating System :: OS Independent',
         'Programming Language :: Python',
         'Topic :: Software Development :: Libraries :: Python Modules'
-    ],entry_points={
+    ], entry_points={
         'console_scripts': [
             'ml-git = ml_git.main:run_main',
         ],

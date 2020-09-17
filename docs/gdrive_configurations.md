@@ -68,12 +68,12 @@ When you finish Enabling API step, you need to create your credentials and confi
 
 # Setting up a ml-git project with Google Drive #
 
-Inside ml-git project, create **.credentials** directory and copy here your credentials  file created before with name **credentials.json**.
+Create directory with name  of your preference and copy your credentials  file with name **credentials.json** inside the directory.
 
-Add store configurations:
+Add store configurations example:
 
 ```
-$ ml-git store add path-in-your-drive --type=gdriveh --credentials=.credentials
+$ ml-git store add path-in-your-drive --type=gdriveh --credentials=/home/profile/.gdrive
 ```
 
 After that initialize the metadata repository:
@@ -81,3 +81,29 @@ After that initialize the metadata repository:
 ```
 $ ml-git dataset init
 ```
+
+
+
+We strongly recommend that you add `push_threads_count: 10` option in your .**ml-git/config.yaml**, because of Google Drive API request limit of 10/s. This option change the number of workers used in multithreading push process, by default the number of workers is cpu numbers multiplied by 5. 
+
+The push command was tested with 10 workers and the request limit was not exceeded.
+
+Configuration example:
+
+```
+batch_size: 20
+push_threads_count: 10
+dataset:
+  git: ''
+labels:
+  git: ''
+model:
+  git: ''
+store:
+  s3:
+    mlgit-datasets:
+      aws-credentials:
+        profile: default
+      region: us-east-1
+```
+

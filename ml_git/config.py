@@ -5,12 +5,15 @@ SPDX-License-Identifier: GPL-2.0-only
 
 import os
 import shutil
+from pathlib import Path
 
 from halo import Halo
 
 from ml_git import spec
-from ml_git.constants import FAKE_STORE, FAKE_TYPE, BATCH_SIZE_VALUE, BATCH_SIZE, StoreType
+from ml_git.constants import FAKE_STORE, BATCH_SIZE_VALUE, BATCH_SIZE, StoreType, GLOBAL_ML_GIT_CONFIG, PUSH_THREADS_COUNT
 from ml_git.utils import getOrElse, yaml_load, yaml_save, get_root_path, yaml_load_str
+
+push_threads = os.cpu_count()*5
 
 mlgit_config = {
     'mlgit_path': '.ml-git',
@@ -45,6 +48,8 @@ mlgit_config = {
     'cache_path': '',
     'metadata_path': '',
 
+    PUSH_THREADS_COUNT: push_threads
+
 }
 
 
@@ -52,7 +57,7 @@ def config_verbose():
     global mlgit_config
     try:
         return mlgit_config['verbose']
-    except:
+    except Exception:
         return None
 
 
@@ -60,10 +65,11 @@ def get_key(key, config=None):
     global mlgit_config
 
     conf = mlgit_config
-    if config is not None: conf = config
+    if config is not None:
+        conf = config
     try:
         return getOrElse(conf, key, lambda: '')()
-    except:
+    except Exception:
         return getOrElse(conf, key, '')
 
 
@@ -72,16 +78,18 @@ def __config_from_environment():
 
     for key in mlgit_config.keys():
         val = os.getenv(key.upper())
-        if val is not None: mlgit_config[key] = val
+        if val is not None:
+            mlgit_config[key] = val
 
 
 def __get_conf_filepath():
     models_path = os.getenv('MLMODELS_PATH')
-    if models_path is None: models_path = get_key('mlgit_path')
+    if models_path is None:
+        models_path = get_key('mlgit_path')
     try:
         root_path = get_root_path()
         return os.path.join(root_path, os.sep.join([models_path, get_key('mlgit_conf')]))
-    except:
+    except Exception:
         return os.sep.join([models_path, get_key('mlgit_conf')])
 
 
@@ -96,23 +104,25 @@ def config_load():
 
     __config_from_environment()
 
+    if os.path.exists(config_file_path):
+        merge_local_with_global_config()
+
     return mlgit_config
 
 
 # loads ml-git config.yaml file
 def mlgit_config_load():
     mlgit_file = __get_conf_filepath()
-    if os.path.exists(mlgit_file) == False:
+    if os.path.exists(mlgit_file) is False:
         return {}
 
     return yaml_load(mlgit_file)
 
 
 # saves initial config file in .ml-git/config.yaml
-def mlgit_config_save():
+def mlgit_config_save(mlgit_file=__get_conf_filepath()):
     global mlgit_config
 
-    mlgit_file = __get_conf_filepath()
     if os.path.exists(mlgit_file) is True:
         return
 
@@ -126,9 +136,25 @@ def mlgit_config_save():
     return yaml_save(config, mlgit_file)
 
 
+def save_global_config_in_local(mlgit_file=__get_conf_filepath()):
+    global mlgit_config
+
+    merge_local_with_global_config()
+
+    config = {
+        'dataset': mlgit_config['dataset'],
+        'model': mlgit_config['model'],
+        'labels': mlgit_config['labels'],
+        'store': mlgit_config['store'],
+        'batch_size': mlgit_config['batch_size']
+    }
+    return yaml_save(config, mlgit_file)
+
+
 def list_repos():
     global mlgit_config
-    if 'repos' not in mlgit_config: return None
+    if 'repos' not in mlgit_config:
+        return None
     return mlgit_config['repos'].keys()
 
 
@@ -138,12 +164,9 @@ def repo_config(repo):
 
 
 def get_index_path(config, type='dataset'):
-    try:
-        root_path = get_root_path()
-        default = os.path.join(root_path, config['mlgit_path'], type, 'index')
-        return getOrElse(config[type], 'index_path', default)
-    except Exception as e:
-        raise e
+    root_path = get_root_path()
+    default = os.path.join(root_path, config['mlgit_path'], type, 'index')
+    return getOrElse(config[type], 'index_path', default)
 
 
 def get_index_metadata_path(config, type='dataset'):
@@ -158,45 +181,33 @@ def get_batch_size(config):
         batch_size = -1
 
     if batch_size <= 0:
-        raise Exception('The batch size value is invalid in the config file for the [%s] key' % BATCH_SIZE)
- 
+        raise RuntimeError('The batch size value is invalid in the config file for the [%s] key' % BATCH_SIZE)
+
     return batch_size
 
 
 def get_objects_path(config, type='dataset'):
-    try:
-        root_path = get_root_path()
-        default = os.path.join(root_path, config['mlgit_path'], type, 'objects')
-        return getOrElse(config[type], 'objects_path', default)
-    except Exception as e:
-        raise e
+    root_path = get_root_path()
+    default = os.path.join(root_path, config['mlgit_path'], type, 'objects')
+    return getOrElse(config[type], 'objects_path', default)
 
 
 def get_cache_path(config, type='dataset'):
-    try:
-        root_path = get_root_path()
-        default = os.path.join(root_path, config['mlgit_path'], type, 'cache')
-        return getOrElse(config[type], 'cache_path', default)
-    except Exception as e:
-        raise e
+    root_path = get_root_path()
+    default = os.path.join(root_path, config['mlgit_path'], type, 'cache')
+    return getOrElse(config[type], 'cache_path', default)
 
 
 def get_metadata_path(config, type='dataset'):
-    try:
-        root_path = get_root_path()
-        default = os.path.join(root_path, config['mlgit_path'], type, 'metadata')
-        return getOrElse(config[type], 'metadata_path', default)
-    except Exception as e:
-        raise e
+    root_path = get_root_path()
+    default = os.path.join(root_path, config['mlgit_path'], type, 'metadata')
+    return getOrElse(config[type], 'metadata_path', default)
 
 
 def get_refs_path(config, type='dataset'):
-    try:
-        root_path = get_root_path()
-        default = os.path.join(root_path, config['mlgit_path'], type, 'refs')
-        return getOrElse(config[type], 'refs_path', default)
-    except Exception as e:
-        raise e
+    root_path = get_root_path()
+    default = os.path.join(root_path, config['mlgit_path'], type, 'refs')
+    return getOrElse(config[type], 'refs_path', default)
 
 
 def get_sample_config_spec(bucket, profile, region):
@@ -258,15 +269,14 @@ def get_sample_spec_doc(bucket, repotype='dataset'):
 def get_sample_spec(bucket, repotype='dataset'):
     c = yaml_load_str(get_sample_spec_doc(bucket, repotype))
     return c
-    
+
 
 def validate_spec_hash(the_hash, repotype='dataset'):
-
     if the_hash in [None, {}]:
         return False
 
     if not spec.is_valid_version(the_hash, repotype):
-        return False     # Also checks for the existence of 'dataset'
+        return False  # Also checks for the existence of 'dataset'
 
     if 'categories' not in the_hash[repotype] or 'manifest' not in the_hash[repotype]:
         return False
@@ -289,21 +299,19 @@ def validate_spec_hash(the_hash, repotype='dataset'):
     return True
 
 
-def create_workspace_tree_structure(repo_type, artifact_name, categories, store_type, bucket_name, version, imported_dir):
+def create_workspace_tree_structure(repo_type, artifact_name, categories, store_type, bucket_name, version,
+                                    imported_dir):
     # get root path to create directories and files
-    try:
-        path = get_root_path()
-        artifact_path = os.path.join(path, repo_type, artifact_name)
-        if os.path.exists(artifact_path):
-            raise PermissionError('An entity with that name already exists.')
-        data_path = os.path.join(artifact_path, 'data')
-        # import files from  the directory passed
-        if imported_dir is not None:
-            import_dir(imported_dir, data_path)
-        else:
-            os.makedirs(data_path)
-    except Exception as e:
-        raise e
+    path = get_root_path()
+    artifact_path = os.path.join(path, repo_type, artifact_name)
+    if os.path.exists(artifact_path):
+        raise PermissionError('An entity with that name already exists.')
+    data_path = os.path.join(artifact_path, 'data')
+    # import files from  the directory passed
+    if imported_dir is not None:
+        import_dir(imported_dir, data_path)
+    else:
+        os.makedirs(data_path)
 
     spec_path = os.path.join(artifact_path, artifact_name + '.spec')
     readme_path = os.path.join(artifact_path, 'README.md')
@@ -356,12 +364,12 @@ def start_wizard_questions(repotype):
         has_new_store = False
         # extract necessary info from the store in spec
         store_type, bucket = extract_store_info_from_list(temp_map[int(selected)])
-    except: # the user select create a new data store
+    except Exception:  # the user select create a new data store
         has_new_store = True
         stores_types = [item.value for item in StoreType]
         store_type = input('Please specify the store type ' + str(stores_types) + ': _ ').lower()
         if store_type not in stores_types:
-            raise Exception('Invalid store type.')
+            raise RuntimeError('Invalid store type.')
         bucket = input('Please specify the bucket name: _ ').lower()
         if store_type in (StoreType.S3.value, StoreType.S3H.value):
             profile = input('Please specify the credentials: _ ').lower()
@@ -373,7 +381,7 @@ def start_wizard_questions(repotype):
     if git_repo is None:
         try:
             git_repo = config[repotype]['git']
-        except:
+        except Exception:
             git_repo = ''
     return has_new_store, store_type, bucket, profile, endpoint, git_repo
 
@@ -400,3 +408,37 @@ def validate_spec_string(spec_str):
         if spec_str.startswith(pattern):
             return True
     return False
+
+
+def get_global_config_path():
+    return os.path.join(Path.home(), GLOBAL_ML_GIT_CONFIG)
+
+
+def global_config_load():
+    return yaml_load(get_global_config_path())
+
+
+def merge_conf(local_conf, global_conf):
+    for key, value in local_conf.items():
+        if value and isinstance(value, dict) and key in global_conf:
+            merge_conf(value, global_conf[key])
+        elif value:
+            global_conf[key] = value
+
+    local_conf.update(global_conf)
+
+
+def merge_local_with_global_config():
+    global mlgit_config
+    global_config = global_config_load()
+    merge_conf(mlgit_config, global_config)
+
+
+def get_push_threads_count(config):
+    try:
+        push_threads_count = int(config.get(PUSH_THREADS_COUNT, push_threads))
+    except Exception:
+        raise RuntimeError('Invalid value in config file for the [%s] key. '
+                           'This is should be a integer number greater than 0.' % PUSH_THREADS_COUNT)
+
+    return push_threads_count

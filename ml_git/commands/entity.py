@@ -5,7 +5,6 @@ SPDX-License-Identifier: GPL-2.0-only
 
 from ml_git.commands.utils import repositories, DATASET, MODEL, LABELS
 
-
 from ml_git.commands.general import mlgit
 from click_didyoumean import DYMGroup
 
@@ -58,7 +57,8 @@ def push(context, **kwargs):
     repositories[repo_type].push(entity, retry, clear_on_fail)
 
 
-def checkout(context, sample_type, sampling, seed, retry, ml_entity_tag, force, with_dataset=False, with_labels=False, bare=False):
+def checkout(context, retry, ml_entity_tag, force, with_dataset=False, with_labels=False,
+             bare=False, sample_type=None, sampling=None, seed=None):
     repo_type = context.parent.command.name
     repo = repositories[repo_type]
     sample = None
@@ -66,7 +66,8 @@ def checkout(context, sample_type, sampling, seed, retry, ml_entity_tag, force, 
     if sample_type is not None:
         sample = {sample_type: sampling, 'seed': seed}
 
-    repo.checkout(ml_entity_tag, sample, retries=retry, force_get=force, dataset=with_dataset, labels=with_labels, bare=bare)
+    repo.checkout(ml_entity_tag, sample, retries=retry, force_get=force, dataset=with_dataset, labels=with_labels,
+                  bare=bare)
 
 
 def fetch(context, **kwargs):
@@ -96,6 +97,7 @@ def add(context, **kwargs):
 def commit(context, **kwargs):
     repo_type = context.parent.command.name
     msg = kwargs['message']
+    version_number = kwargs['version_number']
     run_fsck = kwargs['fsck']
     entity_name = kwargs['ml_entity_name']
     dataset_tag = None
@@ -112,7 +114,7 @@ def commit(context, **kwargs):
     if labels_tag is not None:
         tags['labels'] = labels_tag
 
-    repositories[repo_type].commit(entity_name, tags, run_fsck, msg)
+    repositories[repo_type].commit(entity_name, tags, version_number, run_fsck, msg)
 
 
 def tag_list(context, **kwargs):
@@ -208,7 +210,6 @@ def create(context, **kwargs):
 
 
 def export_tag(context, **kwargs):
-
     type = context.parent.command.name
 
     tag = kwargs['ml_entity_tag']
@@ -219,7 +220,7 @@ def export_tag(context, **kwargs):
     endpoint = kwargs['endpoint']
     repositories[type].export(bucket_name, tag, profile, region, endpoint, retry)
 
-    
+
 def unlock(context, **kwargs):
     repo_type = context.parent.command.name
     entity_name = kwargs['ml_entity_name']
@@ -228,7 +229,6 @@ def unlock(context, **kwargs):
 
 
 def log(context, **kwargs):
-
     type = context.parent.command.name
 
     ml_entity_name = kwargs['ml_entity_name']

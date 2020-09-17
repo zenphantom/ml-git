@@ -9,18 +9,18 @@ import unittest
 import pytest
 
 from tests.integration.commands import MLGIT_COMMIT, MLGIT_PUSH
-from tests.integration.helper import ML_GIT_DIR, MINIO_BUCKET_PATH
+from tests.integration.helper import ML_GIT_DIR, MINIO_BUCKET_PATH, GIT_PATH
 from tests.integration.helper import check_output, clear, init_repository, add_file, ERROR_MESSAGE
 from tests.integration.output_messages import messages
 
 
-@pytest.mark.usefixtures('tmp_dir')
+@pytest.mark.usefixtures('tmp_dir', 'aws_session')
 class PushFilesAcceptanceTests(unittest.TestCase):
 
     def _push_entity(self, entity_type):
         clear(os.path.join(MINIO_BUCKET_PATH, 'zdj7WWjGAAJ8gdky5FKcVLfd63aiRUGb8fkc8We2bvsp9WW12'))
         init_repository(entity_type, self)
-        add_file(self, entity_type, '--bumpversion', 'new')
+        add_file(self, entity_type, '--bumpversion', 'new', file_content='0')
         metadata_path = os.path.join(self.tmp_dir, ML_GIT_DIR, entity_type, 'metadata')
         self.assertIn(messages[17] % (metadata_path, os.path.join('computer-vision', 'images', entity_type + '-ex')),
                       check_output(MLGIT_COMMIT % (entity_type, entity_type + '-ex', '')))
@@ -45,3 +45,23 @@ class PushFilesAcceptanceTests(unittest.TestCase):
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_03_push_files_to_model(self):
         self._push_entity('model')
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
+    def test_04_push_with_wrong_repository(self):
+        init_repository('dataset', self)
+        add_file(self, 'dataset', '--bumpversion', 'new')
+        metadata_path = os.path.join(self.tmp_dir, ML_GIT_DIR, 'dataset', 'metadata')
+        self.assertIn(messages[17] % (metadata_path, os.path.join('computer-vision', 'images', 'dataset-ex')),
+                      check_output(MLGIT_COMMIT % ('dataset',  'dataset-ex', '')))
+
+        HEAD = os.path.join(self.tmp_dir, ML_GIT_DIR, 'dataset', 'refs', 'dataset-ex', 'HEAD')
+        self.assertTrue(os.path.exists(HEAD))
+
+        git_path = os.path.join(self.tmp_dir, GIT_PATH)
+
+        clear(git_path)
+
+        output = check_output(MLGIT_PUSH % ('dataset', 'dataset-ex'))
+
+        self.assertIn(ERROR_MESSAGE, output)
+        self.assertIn(git_path, output)

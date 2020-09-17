@@ -14,7 +14,7 @@ from tests.integration.helper import check_output
 from tests.integration.output_messages import messages
 
 
-@pytest.mark.usefixtures('tmp_dir')
+@pytest.mark.usefixtures('tmp_dir', 'aws_session')
 class UpdateAcceptanceTests(unittest.TestCase):
 
     def _update_entity(self, entity_type):
@@ -35,9 +35,14 @@ class UpdateAcceptanceTests(unittest.TestCase):
         self._update_entity('dataset')
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
-    def test_01_update_model(self):
+    def test_02_update_model(self):
         self._update_entity('model')
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
-    def test_01_update_labels(self):
+    def test_03_update_labels(self):
         self._update_entity('labels')
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
+    def test_04_update_with_git_error(self):
+        init_repository('dataset', self)
+        self.assertTrue(messages[97], check_output(MLGIT_UPDATE % 'dataset'))

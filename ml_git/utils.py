@@ -10,7 +10,6 @@ import shutil
 import stat
 import zipfile
 from contextlib import contextmanager
-from itertools import zip_longest
 from pathlib import Path, PurePath, PurePosixPath
 from stat import S_IREAD, S_IRGRP, S_IROTH, S_IWUSR
 
@@ -54,7 +53,7 @@ def json_load(file):
     try:
         with open(file) as jfile:
             hash = json.load(jfile)
-    except Exception as e:
+    except Exception:
         pass
     return hash
 
@@ -64,7 +63,7 @@ def yaml_load(file):
     try:
         with open(file) as y_file:
             hash = yaml_processor.load(y_file)
-    except Exception as e:
+    except Exception:
         pass
     return hash
 
@@ -90,23 +89,25 @@ def ensure_path_exists(path):
 
 def getListOrElse(options, option, default):
     try:
-        if isinstance(options,dict):
-            return options[option].split('','')
+        if isinstance(options, dict):
+            return options[option].split('', '')
         ret = options(option)
-        if ret in ['', None]: return default
+        if ret in ['', None]:
+            return default
         return ret
-    except:
+    except Exception:
         return default
 
 
 def getOrElse(options, option, default):
     try:
-        if isinstance(options,dict):
+        if isinstance(options, dict):
             return options[option]
         ret = options(option)
-        if ret in ['', None]: return default
+        if ret in ['', None]:
+            return default
         return ret
-    except:
+    except Exception:
         return default
 
 
@@ -207,3 +208,15 @@ def unzip_files_in_directory(dir_path):
                 zip_obj.extractall(output_folder_name)
                 zip_obj.close()
                 os.remove(abs_file_path)
+
+
+def remove_from_workspace(file_names, path, spec_name):
+    for root, dirs, files in os.walk(path):
+        for file in files:
+            if file in [spec_name + '.spec', 'README.md']:
+                continue
+            for key in file_names:
+                if file in key:
+                    file_path = convert_path(root, key)
+                    set_write_read(file_path)
+                    os.unlink(file_path)

@@ -5,7 +5,9 @@ SPDX-License-Identifier: GPL-2.0-only
 
 MLGIT_INIT = 'ml-git repository init'
 MLGIT_REMOTE_ADD = 'ml-git repository remote %s add "%s"'
+MLGIT_REMOTE_ADD_GLOBAL = 'ml-git repository remote %s add "%s" --global'
 MLGIT_STORE_ADD = 'ml-git repository store add %s --credentials=%s'
+MLGIT_STORE_ADD_WITH_ENDPOINT = 'ml-git repository store add %s --credentials=%s --endpoint-url=%s'
 MLGIT_STORE_ADD_WITH_TYPE = 'ml-git repository store add %s --credentials=%s --type=%s'
 MLGIT_ENTITY_INIT = 'ml-git %s init'
 MLGIT_COMMIT = 'ml-git %s commit %s %s'

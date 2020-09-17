@@ -7,10 +7,15 @@ import hashlib
 import os
 import shutil
 import textwrap
+from copy import deepcopy
 from pathlib import Path
+from unittest import mock
 
+import boto3
 import pytest
 from git import Repo
+
+from ml_git.config import config_load
 
 test_scr = Path('./tests/unit/test_dir').resolve()
 
@@ -138,3 +143,23 @@ def yaml_obj_sample(request):
         }
     }
     request.cls.yaml_obj_sample = obj
+
+
+@pytest.fixture(scope='class')
+def aws_session():
+    os.environ['AWS_ACCESS_KEY_ID'] = 'fake_access_key'
+    os.environ['AWS_SECRET_ACCESS_KEY'] = 'fake_secret_key'
+    os.environ['AWS_DEFAULT_REGION'] = 'us-east-1'
+    boto3.setup_default_session()
+    with mock.patch('ml_git.storages.s3store.boto3.Session') as mock_session:
+        mock_session.return_value = boto3._get_default_session()
+        yield
+
+
+@pytest.fixture
+def restore_config():
+    config = config_load()
+    config_cp = deepcopy(config)
+    yield
+    for key in config_cp.keys():
+        config[key] = config_cp[key]

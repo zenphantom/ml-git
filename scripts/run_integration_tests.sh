@@ -61,8 +61,8 @@ then
 fi
 
 PATH_TEST=$INTEGRATION_TESTS_BASE_PATH/.test_env
-MINIO_ACCESS_KEY=fake_access_key						    
-MINIO_SECRET_KEY=fake_secret_key	                    
+MINIO_ACCESS_KEY=fake_access_key
+MINIO_SECRET_KEY=fake_secret_key
 docker stop minio1 && docker rm minio1 && rm -rf $PATH_TEST
 docker stop azure && docker rm azure
 
@@ -88,11 +88,13 @@ pipenv install --ignore-pipfile --dev
 pipenv run pip freeze
 
 # Installs ml-git itself in the virtualenv to use on integration tests
-pipenv run python setup.py install
+pipenv run pip install -e .
 
 pipenv run pytest \
+    -n auto \
+    --dist=loadscope \
     -v \
-    --cov \
+    --cov=ml_git \
     --cov-report html:$INTEGRATION_TESTS_BASE_PATH/integration_tests_coverage \
     --cov-report xml:$INTEGRATION_TESTS_BASE_PATH/integration_tests_coverage.xml \
     -o junit_family=xunit1 --junitxml=$INTEGRATION_TESTS_BASE_PATH/integration_tests_report.xml \

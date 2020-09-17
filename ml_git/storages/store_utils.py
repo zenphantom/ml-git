@@ -32,9 +32,9 @@ def store_factory(config, store_string):
     except ProfileNotFound as pfn:
         log.error(pfn, class_name=STORE_FACTORY_CLASS_NAME)
         return None
-    except Exception as e:
-        raise e
-        log.warn('Exception creating store -- bucket name conflicting between config file [%s] and spec file [%s]' % (config_bucket_name, bucket_name), class_name=STORE_FACTORY_CLASS_NAME)
+    except Exception:
+        log.warn('Exception creating store -- bucket name conflicting between config file [%s] and spec file [%s]' % (
+            config_bucket_name, bucket_name), class_name=STORE_FACTORY_CLASS_NAME)
         return None
 
 

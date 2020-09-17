@@ -12,8 +12,8 @@ import botocore
 import pytest
 from moto import mock_s3
 
-from ml_git.index import MultihashIndex, Objects, FullIndex
-from ml_git.local import LocalRepository
+from ml_git.file_system.index import MultihashIndex, Objects, FullIndex
+from ml_git.file_system.local import LocalRepository
 from ml_git.storages.s3store import S3MultihashStore, S3Store
 from ml_git.utils import ensure_path_exists, yaml_save, yaml_load
 
@@ -32,7 +32,7 @@ bucketname_2 = testbucketname_2
 
 
 @mock_s3
-@pytest.mark.usefixtures('md5_fixture', 'tmp_dir', 'switch_to_test_dir')
+@pytest.mark.usefixtures('md5_fixture', 'tmp_dir', 'switch_to_test_dir', 'aws_session')
 class S3StoreTestCases(unittest.TestCase):
     def setUp(self):
         client = boto3.client(
@@ -116,7 +116,6 @@ class S3StoreTestCases(unittest.TestCase):
         self.assertEqual(files[0], 'path/think-hires.jpg')
 
     def test_get_object(self):
-
         s3store = S3Store(bucketname, bucket)
         k = 'path/think-hires.jpg'
         f = 'data/think-hires.jpg'
