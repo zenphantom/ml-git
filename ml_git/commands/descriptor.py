@@ -90,7 +90,8 @@ commands = [
                                                                    'delete untracked/uncommitted '
                                                                    'files from local repository.'},
             '--bare': {'default': False, 'is_flag': True, 'help': 'Ability to add/commit/push without'
-                                                                  ' having the ml-entity checked out.'}
+                                                                  ' having the ml-entity checked out.'},
+            '--version': {'default': -1, 'help': 'Number of artifact version to be downloaded [default: latest].'}
         },
 
         'arguments': {
@@ -98,7 +99,7 @@ commands = [
 
         },
 
-        'help': 'Checkout the ML_ENTITY_TAG of a dataset into user workspace.'
+        'help': 'Checkout the ML_ENTITY_TAG|ML_ENTITY of a dataset into user workspace.'
 
     },
 
@@ -122,10 +123,11 @@ commands = [
                                                                    'delete untracked/uncommitted '
                                                                    'files from local repository.'},
             '--bare': {'default': False, 'is_flag': True, 'help': 'Ability to add/commit/push without'
-                                                                  ' having the ml-entity checked out.'}
+                                                                  ' having the ml-entity checked out.'},
+            '--version': {'default': -1, 'help': 'Number of artifact version to be downloaded [default: latest].'}
         },
 
-        'help': 'Checkout the ML_ENTITY_TAG of a label set into user workspace.'
+        'help': 'Checkout the ML_ENTITY_TAG|ML_ENTITY of a label set into user workspace.'
 
     },
 
@@ -145,7 +147,8 @@ commands = [
                                                                    'delete untracked/uncommitted '
                                                                    'files from local repository.'},
             '--bare': {'default': False, 'is_flag': True, 'help': 'Ability to add/commit/push without'
-                                                                  ' having the ml-entity checked out.'}
+                                                                  ' having the ml-entity checked out.'},
+            '--version': {'default': -1, 'help': 'Number of artifact version to be downloaded [default: latest].'}
         },
 
         'arguments': {
@@ -153,7 +156,7 @@ commands = [
 
         },
 
-        'help': 'Checkout the ML_ENTITY_TAG of a model set into user workspace.'
+        'help': 'Checkout the ML_ENTITY_TAG|ML_ENTITY of a model set into user workspace.'
 
     },
 

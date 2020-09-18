@@ -14,6 +14,7 @@ from ml_git._metadata import MetadataManager
 from ml_git.config import get_refs_path, get_sample_spec_doc
 from ml_git.constants import METADATA_CLASS_NAME, LOCAL_REPOSITORY_CLASS_NAME, ROOT_FILE_NAME, Mutability
 from ml_git.manifest import Manifest
+from ml_git.ml_git_message import output_messages
 from ml_git.refs import Refs
 from ml_git.utils import ensure_path_exists, yaml_save, yaml_load, clear, get_file_size, normalize_path
 
@@ -273,3 +274,38 @@ class Metadata(MetadataManager):
             self.init()
         except Exception as e:
             log.warn('Could not initialize metadata for %s. %s' % (entity_type, e), class_name=METADATA_CLASS_NAME)
+
+    def get_tag(self, entity, version):
+        try:
+            tags = self.list_tags(entity)
+            if len(tags) == 0:
+                raise RuntimeError(output_messages['ERROR_WITHOUT_TAG_FOR_THIS_ENTITY'])
+            target_tag = self._get_target_tag(tags, entity, version)
+            if version == -1:
+                log.info(output_messages['INFO_CHECKOUT_LATEST_TAG'] % target_tag, class_name=METADATA_CLASS_NAME)
+            else:
+                log.info(output_messages['INFO_CHECKOUT_TAG'] % target_tag, class_name=METADATA_CLASS_NAME)
+            return target_tag
+        except RuntimeError as e:
+            log.error(e, class_name=METADATA_CLASS_NAME)
+            return None
+
+    def _get_target_tag(self, tags, entity, target_version):
+        tags_versions = {}
+        for tag in tags:
+            splitted_tag = tag.split('__')
+            version = splitted_tag[-1]
+            categories_path = splitted_tag[:-2]
+            if (target_version == int(version)) or (target_version == -1):
+                tags_versions['__'.join(categories_path)] = entity + '__' + version
+
+        if len(tags_versions) > 1:
+            result = output_messages['ERROR_MULTIPLES_ENTITIES_WITH_SAME_NAME']
+            for target_tag in tags_versions:
+                result += ('\t' + target_tag + '__' + tags_versions[target_tag] + '\n')
+            raise RuntimeError(result)
+        elif len(tags_versions) == 0:
+            raise RuntimeError(output_messages['ERROR_WRONG_VERSION_NUMBER_TO_CHECKOUT'] % tags[-1])
+
+        tag, version = tags_versions.popitem()
+        return tag + '__' + version
