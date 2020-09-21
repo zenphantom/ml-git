@@ -277,10 +277,14 @@ computer-vision__images__imagenet8__1: 00da0d518914cfaeb765633f68ade09a5d80b252
 <summary> <code>ml-git &lt;ml-entity&gt; checkout</code> </summary>
 
 ```
-ml-git (dataset|labels|model) checkout ML_ENTITY_TAG
+ml-git (dataset|labels|model) checkout ML_ENTITY_TAG|ML_ENTITY
 ```
 
-Break up the ML_ENTITY_TAG into categories, specname and version, if the ML_ENTITY_TAG is the current tag, the command show the message *"Repository: already at tag [\<ml-entity-tag\>]"*, otherwise execute git checkout to the **ML_ENTITY_TAG**, then verify if cache has tag's objects:
+You can use this command by passing a specific tag or just the name of the entity as an argument.
+
+If you use the name of the entity, ml-git will checkout the latest available version of that entity.
+
+If you use a tag, the ml-git break up the ML_ENTITY into categories, specname and version, if the ML_ENTITY_TAG is the current tag, the command show the message *"Repository: already at tag [\<ml-entity-tag\>]"*, otherwise execute git checkout to the **ML_ENTITY_TAG**, then verify if cache has tag's objects:
 
 ```
 ml-git_project/

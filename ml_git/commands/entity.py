@@ -76,7 +76,7 @@ def push(context, **kwargs):
 
 
 def checkout(context, retry, ml_entity_tag, force, with_dataset=False, with_labels=False,
-             bare=False, sample_type=None, sampling=None, seed=None):
+             bare=False, sample_type=None, sampling=None, seed=None, version=-1):
     repo_type = context.parent.command.name
     repo = repositories[repo_type]
     sample = None
@@ -85,7 +85,7 @@ def checkout(context, retry, ml_entity_tag, force, with_dataset=False, with_labe
         sample = {sample_type: sampling, 'seed': seed}
 
     repo.checkout(ml_entity_tag, sample, retries=retry, force_get=force, dataset=with_dataset, labels=with_labels,
-                  bare=bare)
+                  bare=bare, version=version)
 
 
 def fetch(context, **kwargs):
