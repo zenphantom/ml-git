@@ -6,8 +6,9 @@ SPDX-License-Identifier: GPL-2.0-only
 import os
 
 from git import Repo, GitCommandError
+
 from ml_git import log
-from ml_git.config import mlgit_config_save
+from ml_git.config import mlgit_config_save, get_global_config_path
 from ml_git.constants import ROOT_FILE_NAME, CONFIG_FILE, ADMIN_CLASS_NAME, StoreType
 from ml_git.storages.store_utils import get_bucket_region
 from ml_git.utils import get_root_path
@@ -45,13 +46,9 @@ def init_mlgit():
              class_name=ADMIN_CLASS_NAME)
 
 
-def remote_add(repotype, ml_git_remote):
-    try:
-        root_path = get_root_path()
-        file = os.path.join(root_path, CONFIG_FILE)
-        conf = yaml_load(file)
-    except Exception as e:
-        raise e
+def remote_add(repotype, ml_git_remote, global_conf=False):
+    file = get_config_path(global_conf)
+    conf = yaml_load(file)
 
     if repotype in conf:
         if conf[repotype]['git'] is None or not len(conf[repotype]['git']) > 0:
@@ -78,7 +75,7 @@ def valid_store_type(store_type):
     return True
 
 
-def store_add(store_type, bucket, credentials_profile, endpoint_url=None):
+def store_add(store_type, bucket, credentials_profile, global_conf=False, endpoint_url=None):
     if not valid_store_type(store_type):
         return
 
@@ -92,8 +89,7 @@ def store_add(store_type, bucket, credentials_profile, endpoint_url=None):
         log.info('Add store [%s://%s] with creds from profile [%s]' %
                  (store_type, bucket, credentials_profile), class_name=ADMIN_CLASS_NAME)
     try:
-        root_path = get_root_path()
-        file = os.path.join(root_path, CONFIG_FILE)
+        file = get_config_path(global_conf)
         conf = yaml_load(file)
     except Exception as e:
         log.error(e, class_name=ADMIN_CLASS_NAME)
@@ -114,12 +110,12 @@ def store_add(store_type, bucket, credentials_profile, endpoint_url=None):
     yaml_save(conf, file)
 
 
-def store_del(store_type, bucket):
+def store_del(store_type, bucket, global_conf=False):
     if not valid_store_type(store_type):
         return
 
     try:
-        config_path = os.path.join(get_root_path(), CONFIG_FILE)
+        config_path = get_config_path(global_conf)
         conf = yaml_load(config_path)
     except Exception as e:
         log.error(e, class_name=ADMIN_CLASS_NAME)
@@ -160,17 +156,32 @@ def clone_config_repository(url, folder, track):
             return False
         Repo.clone_from(url, project_dir)
     except Exception as e:
-        error_msg = str(e)
-        if (e.__class__ == GitCommandError and 'Permission denied' in str(e.args[2])) or e.__class__ == PermissionError:
-            error_msg = 'Permission denied in folder %s' % project_dir
-        else:
-            if folder is not None:
-                clear(project_dir)
-            if e.__class__ == GitCommandError:
-                error_msg = 'Could not read from remote repository.'
+        error_msg = handle_clone_exception(e, folder, project_dir)
         log.error(error_msg, class_name=ADMIN_CLASS_NAME)
         return False
 
+    if not check_successfully_clone(project_dir, git_dir):
+        return False
+
+    if not track:
+        clear(os.path.join(project_dir, git_dir))
+
+    return True
+
+
+def handle_clone_exception(e, folder, project_dir):
+    error_msg = str(e)
+    if (e.__class__ == GitCommandError and 'Permission denied' in str(e.args[2])) or e.__class__ == PermissionError:
+        error_msg = 'Permission denied in folder %s' % project_dir
+    else:
+        if folder is not None:
+            clear(project_dir)
+        if e.__class__ == GitCommandError:
+            error_msg = 'Could not read from remote repository.'
+    return error_msg
+
+
+def check_successfully_clone(project_dir, git_dir):
     try:
         os.chdir(project_dir)
         get_root_path()
@@ -179,8 +190,13 @@ def clone_config_repository(url, folder, track):
         log.error('Wrong minimal configuration files!', class_name=ADMIN_CLASS_NAME)
         clear(git_dir)
         return False
-
-    if not track:
-        clear(os.path.join(project_dir, git_dir))
-
     return True
+
+
+def get_config_path(global_config=False):
+    root_path = get_root_path()
+    if global_config:
+        file = get_global_config_path()
+    else:
+        file = os.path.join(root_path, CONFIG_FILE)
+    return file
