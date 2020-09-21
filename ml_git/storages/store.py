@@ -3,22 +3,42 @@
 SPDX-License-Identifier: GPL-2.0-only
 """
 
+import abc
 import os
 
 
-class Store(object):
+class Store(abc.ABC):
     def __init__(self):
         self.connect()
         if self._store is None:
             return None
 
+    @abc.abstractmethod
     def connect(self):
+        """
+        Method to create a conection with the store.
+        """
         pass
 
+    @abc.abstractmethod
     def put(self, keypath, filepath):
+        """
+        Method to upload file to store.
+
+        :param keypath: local file path.
+        :param filepath: store file path.
+        :return: boolean.
+        """
         pass
 
+    @abc.abstractmethod
     def get(self, filepath, reference):
+        """
+        Method to download file from the store.
+        :param filepath: local file path.
+        :param reference: file located in the store.
+        :return: boolean.
+        """
         pass
 
     def store(self, key, file, path, prefix=None):
@@ -34,4 +54,7 @@ class Store(object):
         return {uri: key}
 
     def import_file_from_url(self, path_dst, url):
+        """
+        Method to  import files from storage url to a destine path.
+        """
         pass
