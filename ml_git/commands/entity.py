@@ -9,33 +9,51 @@ from ml_git.commands.general import mlgit
 from click_didyoumean import DYMGroup
 
 
-@mlgit.group(DATASET, help='management of datasets within this ml-git repository', cls=DYMGroup)
+@mlgit.group(DATASET, help='Management of datasets within this ml-git repository.', cls=DYMGroup)
 def dataset():
+    """
+    Management of datasets within this ml-git repository.
+    """
     pass
 
 
 @dataset.group('tag', help='Management of tags for this entity.', cls=DYMGroup)
 def dt_tag_group():
+    """
+    Management of tags for this entity.
+    """
     pass
 
 
-@mlgit.group(MODEL, help='management of models within this ml-git repository', cls=DYMGroup)
+@mlgit.group(MODEL, help='Management of models within this ml-git repository.', cls=DYMGroup)
 def model():
+    """
+    Management of models within this ml-git repository.
+    """
     pass
 
 
-@model.group('tag', cls=DYMGroup)
+@model.group('tag', help='Management of tags for this entity.', cls=DYMGroup)
 def md_tag_group():
+    """
+    Management of tags for this entity.
+    """
     pass
 
 
-@mlgit.group(LABELS, help='management of labels sets within this ml-git repository', cls=DYMGroup)
+@mlgit.group(LABELS, help='Management of labels sets within this ml-git repository.', cls=DYMGroup)
 def labels():
+    """
+    Management of labels sets within this ml-git repository.
+    """
     pass
 
 
 @labels.group('tag', cls=DYMGroup)
 def lb_tag_group():
+    """
+    Management of tags for this entity.
+    """
     pass
 
 
@@ -97,6 +115,7 @@ def add(context, **kwargs):
 def commit(context, **kwargs):
     repo_type = context.parent.command.name
     msg = kwargs['message']
+    version_number = kwargs['version_number']
     run_fsck = kwargs['fsck']
     entity_name = kwargs['ml_entity_name']
     dataset_tag = None
@@ -113,7 +132,7 @@ def commit(context, **kwargs):
     if labels_tag is not None:
         tags['labels'] = labels_tag
 
-    repositories[repo_type].commit(entity_name, tags, run_fsck, msg)
+    repositories[repo_type].commit(entity_name, tags, version_number, run_fsck, msg)
 
 
 def tag_list(context, **kwargs):

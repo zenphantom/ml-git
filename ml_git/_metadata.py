@@ -98,11 +98,11 @@ class MetadataRepo(object):
         try:
             for i in repo.remotes.origin.push(tags=True):
                 if (i.flags & PushInfo.ERROR) == PushInfo.ERROR:
-                    raise Exception('Error on push metadata to git repository. Please update your mlgit project!')
+                    raise RuntimeError('Error on push metadata to git repository. Please update your mlgit project!')
 
             for i in repo.remotes.origin.push():
                 if (i.flags & PushInfo.ERROR) == PushInfo.ERROR:
-                    raise Exception('Error on push metadata to git repository. Please update your mlgit project!')
+                    raise RuntimeError('Error on push metadata to git repository. Please update your mlgit project!')
         except GitError as e:
             err = e.stderr
             match = re.search("stderr: 'fatal:((?:.|\\s)*)'", err)
@@ -112,17 +112,17 @@ class MetadataRepo(object):
 
     def fetch(self):
         try:
-            log.debug('Metadata Manager: fetch [%s]' % self.__path, class_name=METADATA_MANAGER_CLASS_NAME)
+            log.debug(' fetch [%s]' % self.__path, class_name=METADATA_MANAGER_CLASS_NAME)
             repo = Repo(self.__path)
             repo.remotes.origin.fetch()
         except GitError as e:
             err = e.stderr
-            match = repo.search("stderr: 'fatal:(.*)'$", err)
+            match = re.search('stderr: \'fatal:(.*)\'', err)
             if match:
                 err = match.group(1)
-                log.error('Metadata Manager: %s ' % err, class_name=METADATA_MANAGER_CLASS_NAME)
+                log.error(err, class_name=METADATA_MANAGER_CLASS_NAME)
             else:
-                log.error('Metadata Manager: %s ' % err, class_name=METADATA_MANAGER_CLASS_NAME)
+                log.error(err, class_name=METADATA_MANAGER_CLASS_NAME)
             return False
 
     def list_tags(self, spec, full_info=False):
@@ -139,6 +139,10 @@ class MetadataRepo(object):
         return tags
 
     def delete_tag(self, tag):
+        """
+        Method to delete a specific existent tag.
+        Not implemented yet.
+        """
         pass
 
     def _usrtag_exists(self, usrtag):
@@ -305,7 +309,7 @@ class MetadataRepo(object):
         tags = self.list_tags(spec, True)
         formatted = ''
         if len(tags) == 0:
-            raise Exception('No log found for entity [%s]' % spec)
+            raise RuntimeError('No log found for entity [%s]' % spec)
 
         tags.sort(key=self.__sort_tag_by_date)
 

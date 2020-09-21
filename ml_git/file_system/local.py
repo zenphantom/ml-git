@@ -15,11 +15,11 @@ from botocore.client import ClientError
 from tqdm import tqdm
 
 from ml_git import log
-from ml_git.file_system.cache import Cache
 from ml_git.config import get_index_path, get_objects_path, get_refs_path, get_index_metadata_path, \
-    get_metadata_path, get_batch_size
+    get_metadata_path, get_batch_size, get_push_threads_count
 from ml_git.constants import LOCAL_REPOSITORY_CLASS_NAME, STORE_FACTORY_CLASS_NAME, REPOSITORY_CLASS_NAME, \
     Mutability, StoreType
+from ml_git.file_system.cache import Cache
 from ml_git.file_system.hashfs import MultihashFS
 from ml_git.file_system.index import MultihashIndex, FullIndex, Status
 from ml_git.metadata import Metadata
@@ -42,19 +42,15 @@ class LocalRepository(MultihashFS):
         self.__repo_type = repo_type
         self.__progress_bar = None
 
-    def commit_index(self, index_path):
-        idx = MultihashFS(index_path)
-        idx.move_hfs(self)
-
     def _pool_push(self, ctx, obj, obj_path):
         store = ctx
         log.debug('LocalRepository: push blob [%s] to store' % obj, class_name=LOCAL_REPOSITORY_CLASS_NAME)
         ret = store.file_store(obj, obj_path)
         return ret
 
-    def _create_pool(self, config, store_str, retry, pb_elts=None, pb_desc='blobs'):
+    def _create_pool(self, config, store_str, retry, pb_elts=None, pb_desc='blobs', nworkers=os.cpu_count()*5):
         _store_factory = lambda: store_factory(config, store_str)  # noqa: E731
-        return pool_factory(ctx_factory=_store_factory, retry=retry, pb_elts=pb_elts, pb_desc=pb_desc)
+        return pool_factory(ctx_factory=_store_factory, retry=retry, pb_elts=pb_elts, pb_desc=pb_desc, nworkers=nworkers)
 
     def push(self, object_path, spec_file, retry=2, clear_on_fail=False):
         repo_type = self.__repo_type
@@ -77,7 +73,9 @@ class LocalRepository(MultihashFS):
         if not store.bucket_exists():
             return -2
 
-        wp = self._create_pool(self.__config, manifest['store'], retry, len(objs), 'files')
+        nworkers = get_push_threads_count(self.__config)
+
+        wp = self._create_pool(self.__config, manifest['store'], retry, len(objs), 'files', nworkers)
         for obj in objs:
             # Get obj from filesystem
             obj_path = self.get_keypath(obj)
@@ -157,7 +155,7 @@ class LocalRepository(MultihashFS):
         ensure_path_exists(os.path.dirname(key_path))
         log.debug('Downloading ipld [%s]' % key, class_name=LOCAL_REPOSITORY_CLASS_NAME)
         if store.get(key_path, key) is False:
-            raise Exception('Error download ipld [%s]' % key)
+            raise RuntimeError('Error download ipld [%s]' % key)
         return key
 
     def _fetch_ipld_to_path(self, ctx, key, hash_fs):
@@ -198,7 +196,7 @@ class LocalRepository(MultihashFS):
         ensure_path_exists(os.path.dirname(key_path))
         log.debug('Downloading blob [%s]' % key, class_name=LOCAL_REPOSITORY_CLASS_NAME)
         if store.get(key_path, key) is False:
-            raise Exception('error download blob [%s]' % key)
+            raise RuntimeError('error download blob [%s]' % key)
         return True
 
     def adding_to_cache_dir(self, lkeys, args):
@@ -795,7 +793,7 @@ class LocalRepository(MultihashFS):
             return res
         except ClientError as e:
             if e.response['Error']['Code'] == '404':
-                raise Exception('File %s not found' % path)
+                raise RuntimeError('File %s not found' % path)
             raise e
 
     def _import_files(self, path, directory, bucket, retry, file_object):
@@ -808,7 +806,7 @@ class LocalRepository(MultihashFS):
         if not obj:
             files = store.list_files_from_path(path)
             if not len(files):
-                raise Exception('Path %s not found' % path)
+                raise RuntimeError('Path %s not found' % path)
         else:
             files = [path]
         wp = pool_factory(ctx_factory=lambda: store_factory(self.__config, bucket),
@@ -836,7 +834,7 @@ class LocalRepository(MultihashFS):
         try:
             set_write_read(file_path)
         except Exception:
-            raise Exception('File %s not found' % file)
+            raise RuntimeError('File %s not found' % file)
         idx_yalm.update_index_unlock(file_path[len(path) + 1:])
         log.info('The permissions for %s have been changed.' % file, class_name=LOCAL_REPOSITORY_CLASS_NAME)
 
@@ -905,7 +903,7 @@ class LocalRepository(MultihashFS):
         try:
             return json.loads(ipld_bytes)
         except Exception:
-            raise Exception('Invalid IPLD [%s]' % key)
+            raise RuntimeError('Invalid IPLD [%s]' % key)
 
     @staticmethod
     def _mount_blobs(ctx, links):

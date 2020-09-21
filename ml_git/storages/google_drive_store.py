@@ -3,10 +3,6 @@
 SPDX-License-Identifier: GPL-2.0-only
 """
 
-'''
- Copyright 2020 HP Development Company, L.P.
- SPDX-License-Identifier: MIT
-'''
 import io
 import os
 import os.path
@@ -18,6 +14,7 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient import errors
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload, MediaFileUpload
+
 from ml_git import log
 from ml_git.constants import GDRIVE_STORE
 from ml_git.storages.multihash_store import MultihashStore
@@ -64,7 +61,7 @@ class GoogleDriveStore(Store):
             media = MediaFileUpload(file_path, chunksize=-1, resumable=True)
             self._store.files().create(body=file_metadata, media_body=media).execute()
         except Exception:
-            raise Exception('The file could not be uploaded: [%s]' % file_path, class_name=GDRIVE_STORE)
+            raise RuntimeError('The file could not be uploaded: [%s]' % file_path, class_name=GDRIVE_STORE)
 
         return True
 
@@ -159,8 +156,10 @@ class GoogleDriveStore(Store):
     @property
     def drive_path_id(self):
         if not self._drive_path_id:
-            self._drive_path_id = next(self.list_files('name=\'{}\' and mimeType=\'{}\''
-                                                       .format(self._drive_path, self.mime_type_folder))).get('id')
+            drive_path_info = next(self.list_files('name=\'{}\' and mimeType=\'{}\''
+                                                   .format(self._drive_path, self.mime_type_folder)))
+            if drive_path_info:
+                self._drive_path_id = drive_path_info.get('id')
         return self._drive_path_id
 
     def bucket_exists(self):
@@ -195,9 +194,9 @@ class GoogleDriveStore(Store):
     def import_file_from_url(self, path_dst, url):
         file_id = self.get_file_id_from_url(url)
         if not file_id:
-            raise Exception('Invalid url: [%s]' % url)
+            raise RuntimeError('Invalid url: [%s]' % url)
         if not self.get_by_id(path_dst, file_id):
-            raise Exception('Failed to download file id: [%s]' % file_id)
+            raise RuntimeError('Failed to download file id: [%s]' % file_id)
 
     def get_file_id_from_url(self, url):
         url_parsed = urlparse(url)

@@ -10,7 +10,8 @@ import pytest
 import os
 
 from ml_git.spec import yaml_load, incr_version, is_valid_version, search_spec_file, SearchSpecException, spec_parse, \
-    get_spec_file_dir, increment_version_in_spec, get_root_path, get_version, update_store_spec, validate_bucket_name
+    get_spec_file_dir, increment_version_in_spec, get_root_path, get_version, update_store_spec, validate_bucket_name, \
+    set_version_in_spec
 from ml_git.utils import yaml_save
 
 testdir = 'specdata'
@@ -79,8 +80,6 @@ class SpecTestCases(unittest.TestCase):
         self.assertRaises(Exception, lambda: search_spec_file(spec_dir, specpath, categories_path))
 
     def test_spec_parse(self):
-        cat, spec, version = spec_parse('')
-        self.assertTrue(cat is None)
 
         tag = 'computer-vision__images__imagenet8__1'
         spec = 'imagenet8'
@@ -88,7 +87,7 @@ class SpecTestCases(unittest.TestCase):
         version = '1'
 
         self.assertEqual((os.sep.join(categories), spec, version), spec_parse(tag))
-        self.assertEqual((None, '', None), spec_parse(''))
+        self.assertRaises(SearchSpecException, lambda: spec_parse(''))
 
     def test_increment_version_in_dataset_spec(self):
         dataset = 'test_dataset'
@@ -145,6 +144,15 @@ class SpecTestCases(unittest.TestCase):
 
         spec_with_bucket_in_config = yaml_load(os.path.join(testdir, 'valid2.spec'))
         self.assertTrue(validate_bucket_name(spec_with_bucket_in_config[repo_type], config))
+
+    def test_set_version_in_spec(self):
+        tmpfile = os.path.join(self.tmp_dir, 'sample.spec')
+        file = os.path.join(testdir, 'sample.spec')
+        spec_hash = yaml_load(file)
+        yaml_save(spec_hash, tmpfile)
+        set_version_in_spec(3, tmpfile, 'dataset')
+        spec_hash = yaml_load(tmpfile)
+        self.assertEqual(spec_hash['dataset']['version'], 3)
 
 
 if __name__ == '__main__':
