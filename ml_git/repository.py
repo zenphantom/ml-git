@@ -242,7 +242,7 @@ class Repository(object):
 
     '''commit changes present in the ml-git index to the ml-git repository'''
 
-    def commit(self, spec, specs, version_number=None, run_fsck=False, msg=None):
+    def commit(self, spec, specs, version=None, run_fsck=False, msg=None):
         # Move chunks from index to .ml-git/objects
         repo_type = self.__repo_type
         try:
@@ -280,8 +280,8 @@ class Repository(object):
         spec_path = os.path.join(path, file)
         idx = MultihashIndex(spec, index_path, objects_path)
 
-        if version_number:
-            set_version_in_spec(version_number, spec_path, self.__repo_type)
+        if version:
+            set_version_in_spec(version, spec_path, self.__repo_type)
             idx.add_metadata(path, file)
 
         # Check tag before anything to avoid creating unstable state

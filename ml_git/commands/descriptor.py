@@ -8,7 +8,8 @@ import copy
 import click
 
 from ml_git.commands import entity
-from ml_git.commands.custom_options import MutuallyExclusiveOption, OptionRequiredIf
+from ml_git.commands.custom_options import MutuallyExclusiveOption, OptionRequiredIf, DeprecatedOption, \
+    DeprecatedOptionsCommand
 from ml_git.commands.utils import set_verbose_mode
 
 commands = [
@@ -249,7 +250,8 @@ commands = [
 
         'options': {
             '--tag': {'help': 'Ml-git tag to identify a specific version of a ML entity.'},
-            '--version-number': {'type': click.IntRange(0, int(8 * '9')), 'help': 'Set the number of artifact version.'},
+            ('--version-number', '--version'): {'type': click.IntRange(0, int(8 * '9')), 'help': 'Set the number of artifact version.',
+                                                'cls': DeprecatedOption, 'deprecated': ['--version-number'], 'preferred':'--version'},
             ('--message', '-m'): {'help': 'Use the provided <msg> as the commit message.'},
             '--fsck': {'help': 'Run fsck after command execution.'},
         },
@@ -270,7 +272,8 @@ commands = [
         'options': {
             '--dataset': {'help': 'Link dataset entity name to this label set version.'},
             '--tag': {'help': 'Ml-git tag to identify a specific version of a ML entity.'},
-            '--version-number': {'type': click.IntRange(0, float('inf')), 'help': 'Set the number of artifact version.'},
+            ('--version-number', '--version'): {'type': click.IntRange(0, int(8 * '9')), 'help': 'Set the number of artifact version.',
+                                                'cls': DeprecatedOption, 'deprecated': ['--version-number'], 'preferred':'--version'},
             ('--message', '-m'): {'help': 'Use the provided <msg> as the commit message.'},
             '--fsck': {'help': 'Run fsck after command execution.'},
         },
@@ -292,7 +295,8 @@ commands = [
             '--dataset': {'help': 'Link dataset entity name to this model set version.'},
             '--labels': {'help': 'Link labels entity name to this model set version.'},
             '--tag': {'help': 'Ml-git tag to identify a specific version of a ML entity.'},
-            '--version-number': {'type': click.IntRange(0, float('inf')), 'help': 'Set the number of artifact version.'},
+            ('--version-number', '--version'): {'type': click.IntRange(0, int(8 * '9')), 'help': 'Set the number of artifact version.',
+                                                'cls': DeprecatedOption, 'deprecated': ['--version-number'], 'preferred':'--version'},
             ('--message', '-m'): {'help': 'Use the provided <msg> as the commit message.'},
             '--fsck': {'help': 'Run fsck after command execution.'},
         },
@@ -479,7 +483,8 @@ commands = [
             '--category': {'required': True, 'multiple': True, 'help': 'Artifact\'s category name.'},
             '--store-type': {'type': click.Choice(['s3h', 'azureblobh', 'gdriveh']),
                              'help': 'Data store type [default: s3h].', 'default': 's3h'},
-            '--version-number': {'help': 'Number of artifact version.', 'default': 1},
+            ('--version-number', '--version'): {'help': 'Number of artifact version.', 'default': 1,
+                                                'cls': DeprecatedOption, 'deprecated': ['--version-number'], 'preferred':'--version'},
             '--import': {'help': 'Path to be imported to the project.',
                          'cls': MutuallyExclusiveOption, 'mutually_exclusive': ['import_url', 'credentials_path']},
             '--wizard-config': {'is_flag': True, 'help': 'If specified, ask interactive questions.'
@@ -543,7 +548,7 @@ commands = [
 def define_command(descriptor):
     callback = descriptor['callback']
 
-    command = click.command(name=descriptor['name'], help=descriptor['help'])(click.pass_context(callback))
+    command = click.command(name=descriptor['name'], help=descriptor['help'], cls=DeprecatedOptionsCommand)(click.pass_context(callback))
 
     if 'arguments' in descriptor:
         for key, value in descriptor['arguments'].items():

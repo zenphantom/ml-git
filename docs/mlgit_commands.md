@@ -156,14 +156,17 @@ Usage: ml-git model commit [OPTIONS] ML_ENTITY_NAME
   repository.
 
 Options:
-  --dataset TEXT            Link dataset entity name to this model set version.
-  --labels TEXT             Link labels entity name to this model set version.
-  --tag TEXT                Ml-git tag to identify a specific version of a ML
-                            entity.
-  --version-number INTEGER  Set the number of artifact version.
-  -m, --message TEXT        Use the provided <msg> as the commit message.
-  --fsck TEXT               Run fsck after command execution.
-  --verbose                 Debug mode
+  --dataset TEXT                  Link dataset entity name to this model set
+                                  version.
+  --labels TEXT                   Link labels entity name to this model set
+                                  version.
+  --tag TEXT                      Ml-git tag to identify a specific version of
+                                  a ML entity.
+  --version-number INTEGER RANGE  Set the number of artifact version.
+  -m, --message TEXT              Use the provided <msg> as the commit
+                                  message.
+  --fsck TEXT                     Run fsck after command execution.
+  --verbose                       Debug mode
 ```
 
 Example:
@@ -196,24 +199,28 @@ Options:
   --category TEXT                 Artifact's category name.  [required]
   --store-type [s3h|azureblobh|gdriveh]
                                   Data store type [default: s3h].
-  --version-number INTEGER        Number of artifact version.
-  --import TEXT                   Path to be imported to the project.
+  --version-number, --version     Number of artifact version.
+                                  [DEPRECATED:--version-number]
+  --import TEXT                   Path to be imported to the project. NOTE:
+                                  Mutually exclusive with argument:
+                                  credentials_path, import_url.
   --wizard-config                 If specified, ask interactive questions. at
                                   console for git & store configurations.
   --bucket-name TEXT              Bucket name
   --import-url TEXT               Import data from a google drive url. NOTE:
                                   Mutually exclusive with argument: import.
-  --credentials-path TEXT         Directory of credentials.json. NOTE: This option
-                                  is required if --import-url is used.
-  --unzip                         Unzip imported zipped files. Only available if --import-url
-                                  is used.
+  --credentials-path TEXT         Directory of credentials.json. NOTE: This
+                                  option is required if --import-url is used.
+  --unzip                         Unzip imported zipped files. Only available
+                                  if --import-url is used.
   --verbose                       Debug mode
+
 ```
 
 Examples:
  - To create an entity with s3 as store and importing files from a path of your computer:
 ```
-ml-git dataset create imagenet8 --store-type=s3h --category=computer-vision --category=images --version-number=0 --import='/path/to/dataset'
+ml-git dataset create imagenet8 --store-type=s3h --category=computer-vision --category=images --version=0 --import='/path/to/dataset'
 ```
 
 - To create an entity with s3 as store and importing files from a google drive URL:

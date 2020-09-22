@@ -489,7 +489,7 @@ ml-git_project/
         └── README.md
 ```
 
-The parameters passed ```--category``` and ```--version-number``` are used to fill the spec file.
+The parameters passed ```--category``` and ```--version``` are used to fill the spec file.
 The parameter ```--import``` is used to import files from a src folder to data folder.
 The optional parameter ```--wizard-questions``` if passed, ask interactive questions at console for git & store configurations and update the config.yaml file.
 The parameter ```--store-type``` must be used to define the entity's storage, which can be: s3h, azureblobh, gdriveh.
