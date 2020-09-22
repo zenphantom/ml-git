@@ -1,19 +1,17 @@
-name: MLGit
+name: MLGit-CI
 
 on:
   push:
-    branches: [ master , development]
+    branches: [ development ]
   pull_request:
-    branches: [ master , development]
+    branches: [ development ]
 
 jobs:
-  build-linux:
-    name: Build Linux
+  flake8:
+    name: Flake8
 
     runs-on: ubuntu-latest
 
-    env:
-      BUILD_NAME: 0
     steps:
       - uses: actions/checkout@v2
 
@@ -31,79 +29,9 @@ jobs:
       - name: Lint with flake8
         run: |
           flake8 .
-
-      - name: Build
-        run: |
-         chmod +x ./scripts/build/compile/build.sh
-         make build
-
-      - name: Define build name
-        run: |
-          echo -ne $(cat version.info | grep MAJOR_VERSION | cut -d"=" -f2). >> BUILD_UBUNTU_FILE
-          echo -ne $(cat version.info | grep MINOR_VERSION | cut -d"=" -f2). >> BUILD_UBUNTU_FILE
-          echo -ne $(cat version.info | grep PATCH_VERSION | cut -d"=" -f2) >> BUILD_UBUNTU_FILE
-          BUILD_VERSION="$( cat BUILD_UBUNTU_FILE )"
-          echo '::set-env name=BUILD_NAME::'${BUILD_VERSION}
-
-      - name: Release Build
-        uses: actions/upload-artifact@v2
-        with:
-          name: linux-${{env.BUILD_NAME}}
-          path: dist/*.gz
-        if: ${{ always() }}
-
-  build-windows:
-    name: Build windows
-
-    runs-on: windows-latest
-
-    env:
-      BUILD_NAME: 0
-    steps:
-
-      - uses: actions/checkout@v2
-
-      - name: Set up Python 3.7
-        uses: actions/setup-python@v1
-        with:
-          python-version: 3.7
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install pipenv
-          pip install flake8 pytest
-          pip install pywin32-ctypes
-          pip freeze
-
-      - name: Lint with flake8
-        run: |
-          flake8 .
-
-      - name: Build
-        run: |
-         .\scripts\build\compile\build.bat
-        shell: cmd
-
-      - name: Define build name
-        run: |
-          echo -ne $(cat version.info | grep MAJOR_VERSION | cut -d"=" -f2). >> BUILD_WINDOWS_FILE
-          echo -ne $(cat version.info | grep MINOR_VERSION | cut -d"=" -f2). >> BUILD_WINDOWS_FILE
-          echo -ne $(cat version.info | grep PATCH_VERSION | cut -d"=" -f2) >> BUILD_WINDOWS_FILE
-          BUILD_VERSION="$( cat BUILD_WINDOWS_FILE )"
-          echo '::set-env name=BUILD_NAME::'${BUILD_VERSION}
-        shell: bash
-
-      - name: Release Build
-        uses: actions/upload-artifact@v2
-        with:
-          name: windows-${{env.BUILD_NAME}}
-          path: dist/*.gz
-        if: ${{ always() }}
 
   unit-tests:
     name: Unit Tests
-    needs: [build-linux, build-windows]
 
     runs-on: ubuntu-latest
 
@@ -136,18 +64,8 @@ jobs:
         run: |
           chmod +x ./scripts/run_unit_tests.sh
           make test.unit
-
-      - name: Archive code coverage results of unit tests
-        uses: actions/upload-artifact@v1
-        with:
-          name: ut-code-coverage-report
-          path: tests/unit/unit_tests_coverage
-        if: ${{ always() }}
-
-
   integration-tests:
     name: Integration Tests
-    needs: [build-linux, build-windows]
 
     runs-on: ubuntu-latest
 
@@ -180,10 +98,3 @@ jobs:
         run: |
           chmod +x ./scripts/run_integration_tests.sh
           make test.integration
-
-      - name: Archive code coverage results of integration tests
-        uses: actions/upload-artifact@v1
-        with:
-          name: it-code-coverage-report
-          path: tests/integration/integration_tests_coverage
-        if: ${{ always() }}
