@@ -413,6 +413,12 @@ If you already are in a configured ml-git project directory, the following comma
 $ ml-git dataset update
 ```
 
+Or update all metadata repository:
+
+```
+$ ml-git repository update
+```
+
 To discover which datasets are under ml-git management, you can execute the following command:
 ```
 $ ml-git dataset list

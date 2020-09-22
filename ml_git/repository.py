@@ -17,13 +17,15 @@ from ml_git.config import get_index_path, get_objects_path, get_cache_path, get_
     validate_config_spec_hash, validate_spec_hash, get_sample_config_spec, get_sample_spec_doc, \
     get_index_metadata_path, create_workspace_tree_structure, start_wizard_questions, config_load, \
     get_global_config_path, save_global_config_in_local
-from ml_git.constants import REPOSITORY_CLASS_NAME, LOCAL_REPOSITORY_CLASS_NAME, HEAD, HEAD_1, Mutability, StoreType
+from ml_git.constants import REPOSITORY_CLASS_NAME, LOCAL_REPOSITORY_CLASS_NAME, HEAD, HEAD_1, Mutability, StoreType, \
+    EntityType
 from ml_git.file_system.cache import Cache
 from ml_git.file_system.hashfs import MultihashFS
 from ml_git.file_system.index import MultihashIndex, Objects, Status, FullIndex
 from ml_git.file_system.local import LocalRepository
 from ml_git.manifest import Manifest
 from ml_git.metadata import Metadata, MetadataManager
+from ml_git.ml_git_message import output_messages
 from ml_git.refs import Refs
 from ml_git.spec import spec_parse, search_spec_file, increment_version_in_spec, get_entity_tag, update_store_spec, \
     validate_bucket_name, set_version_in_spec
@@ -969,6 +971,21 @@ class Repository(object):
             log_info = '{}\n{}'.format(log_info, workspace_info)
 
         log.info(log_info, class_name=REPOSITORY_CLASS_NAME)
+
+    def metadata_exists(self, entity):
+        self.__repo_type = entity
+        entity_metadata_path = get_metadata_path(self.__config, self.__repo_type)
+        metadata = Metadata('', entity_metadata_path, self.__config, self.__repo_type)
+        return metadata.check_exists()
+
+    def update_entities_metadata(self):
+        any_metadata = False
+        for entity in EntityType:
+            if self.metadata_exists(entity.value):
+                self.update()
+                any_metadata = True
+        if not any_metadata:
+            log.error(output_messages['ERROR_UNINITIALIZED_METADATA'], class_name=REPOSITORY_CLASS_NAME)
 
 
 if __name__ == '__main__':
