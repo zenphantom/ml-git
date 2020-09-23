@@ -201,7 +201,7 @@ Options:
   --category TEXT                 Artifact's category name.  [required]
   --store-type [s3h|azureblobh|gdriveh]
                                   Data store type [default: s3h].
-  --version-number, --version INTEGER
+  --version-number, --version INTEGER RANGE
                                   Number of artifact version.
                                   [DEPRECATED:--version-number]
   --import TEXT                   Path to be imported to the project. NOTE:
