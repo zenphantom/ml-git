@@ -1,6 +1,6 @@
 # ml-git
 
-ml-git is a tool which provides a Distributed Version Control system to enable efficient dataset management. Like its name emphasizes, it is meant to be like git in mindset, concept and workflows, ml-git enables the following operations:
+ml-git is a tool which provides a Distributed Version Control system to enable efficient dataset management. Like its name emphasizes, it is inspired in git concepts and workflows, ml-git enables the following operations:
 
 - Manage a repository of different datasets, labels and models.
 - Versioning immutable versions of models, labels and documents.
@@ -16,31 +16,40 @@ ml-git is a tool which provides a Distributed Version Control system to enable e
 
 Download ml-git from repository and execute commands below:
 
+**Windows:**
+
 ```
 cd ml-git/
 python3.7 setup.py install
 ```
 
-**OBS:** For Linux users execute with **sudo**.
+**Linux:**
+
+```
+cd ml-git/
+sudo python3.7 setup.py install
+```
 
 ### How to configure
 
-As ml-git leverages git to manage ML entities metadata, it is necessary to configure user name and email address:
+1 - As ml-git leverages git to manage ML entities metadata, it is necessary to configure user name and email address:
 
 ```
 $ git config --global user.name "Your User"
 $ git config --global user.email "your_email@example.com"
 ```
 
-For configure ml-git project you have two choices:
+2 - Storage:
 
-1. Using basic steps to configure the project described in *[first project documentation](docs/first_project.md)*
+Ml-git needs a configured storage to store data from managed artifacts. Please take a look at the [ml-git architecture and internals documentation](docs/mlgit_internals.md) to better understand how ml-git works internally with data.
 
-2. Using ml-git clone command, if you doesn't have git repository with ml-git configuration file (.ml-git/config.yaml), [follow these steps to configure repository for ml-git clone](docs/qs_configure_repository.md).
+- To configure the storage [see documentation about supported stores and how to configure each one.](docs/storage_configurations.md)
 
-Configuring the store:
 
-- [See documentation about supported stores.](docs/storage_configurations.md)
+3 - Ml-git project:
+
+- An ml-git project is an initialized directory that will contain a configuration file to be used by ml-git in managing entities. 
+To configure it you can use the basic steps to configure the project described in *[first project documentation.](docs/first_project.md)*
 
 ### Usage
 
@@ -90,7 +99,7 @@ $ ml-git clone https://github.com/user/ml_git_configuration_file_example.git --t
 
 <details>
 <summary><code>ml-git &lt;ml-entity&gt; create</code></summary>
-This command will help you to start a new project, it create artifact metadata about your project:
+This command will help you to start a new project, it creates your project artifact metadata:
 
 ```
 $ ml-git dataset create --category=computer-vision --category=images --bucket-name=your_bucket --import=../import-path dataset-ex 
@@ -188,7 +197,11 @@ Demonstration video:
 [More about commands in documentation](docs/mlgit_commands.md)
 ### How to contribute
 
+Your contributions are always welcome!
+
 1. Clone repository and create a new branch
-2. [Make changes and test](docs/developer_info.md)
-3. Submit Pull Request with comprehensive description
-4. Open an Issue with your doubt.
+2. Make changes and [test](docs/developer_info.md)
+3. Submit Pull Request with comprehensive description of changes
+
+Another way to contribute with the community is creating an issue to track your ideas, doubts, enhancements, tasks, or bugs found. 
+If an issue with the same topic already exists, discuss on the issue.
