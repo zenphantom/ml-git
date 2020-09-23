@@ -445,7 +445,7 @@ The output is a tuple:
 2. The sha of the git commit of that version. 
 
 
-It is now rather simple to retrieve a specific version locally to start any experiment by executing on of the following commands:
+It is now rather simple to retrieve a specific version locally to start any experiment by executing one of the following commands:
 ```
 $ ml-git dataset checkout computer-vision__images__imagenet8__1
 ```
