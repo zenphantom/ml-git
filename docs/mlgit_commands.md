@@ -162,7 +162,9 @@ Options:
                                   version.
   --tag TEXT                      Ml-git tag to identify a specific version of
                                   a ML entity.
-  --version-number INTEGER RANGE  Set the number of artifact version.
+  --version-number, --version INTEGER RANGE
+                                  Set the number of artifact version.
+                                  [DEPRECATED:--version-number]
   -m, --message TEXT              Use the provided <msg> as the commit
                                   message.
   --fsck TEXT                     Run fsck after command execution.
@@ -199,11 +201,12 @@ Options:
   --category TEXT                 Artifact's category name.  [required]
   --store-type [s3h|azureblobh|gdriveh]
                                   Data store type [default: s3h].
-  --version-number, --version     Number of artifact version.
+  --version-number, --version INTEGER
+                                  Number of artifact version.
                                   [DEPRECATED:--version-number]
   --import TEXT                   Path to be imported to the project. NOTE:
                                   Mutually exclusive with argument:
-                                  credentials_path, import_url.
+                                  import_url, credentials_path.
   --wizard-config                 If specified, ask interactive questions. at
                                   console for git & store configurations.
   --bucket-name TEXT              Bucket name
@@ -214,7 +217,6 @@ Options:
   --unzip                         Unzip imported zipped files. Only available
                                   if --import-url is used.
   --verbose                       Debug mode
-
 ```
 
 Examples:
