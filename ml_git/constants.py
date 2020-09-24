@@ -35,6 +35,7 @@ RGX_ADDED_FILES = r'[+]\s+(.*)[:]\s+null'
 RGX_DELETED_FILES = r'[-]\s+(.*)[:]\s+null'
 RGX_SIZE_FILES = r'[+]\s+size:\s+(\d+(?:[.]\d+)*\s+.+)'
 RGX_AMOUNT_FILES = r'[+]\s+amount:\s+(\d+)'
+RGX_TAG_FORMAT = r'(?:[^_]+_{2}){2,}\d+$'
 ADDED = 'Added files'
 DELETED = 'Deleted files'
 AUTHOR = 'Author'
@@ -61,3 +62,10 @@ class StoreType(Enum):
     AZUREBLOBH = 'azureblobh'
     GDRIVEH = 'gdriveh'
     GDRIVE = 'gdrive'
+
+
+@unique
+class EntityType(Enum):
+    DATASET = 'dataset'
+    LABELS = 'labels'
+    MODEL = 'model'
