@@ -62,3 +62,10 @@ class StoreType(Enum):
     AZUREBLOBH = 'azureblobh'
     GDRIVEH = 'gdriveh'
     GDRIVE = 'gdrive'
+
+
+@unique
+class EntityType(Enum):
+    DATASET = 'dataset'
+    LABELS = 'labels'
+    MODEL = 'model'

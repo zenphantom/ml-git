@@ -885,3 +885,21 @@ $ ml-git repository store del minio
 ```
 
 </details>
+
+<details>
+<summary><code> ml-git repository update </code></summary>
+<br>
+
+```
+Usage: ml-git repository update
+
+  This command updates the metadata for all entities.
+```
+
+Example:
+```
+$ ml-git repository update
+```
+
+</details>
+
