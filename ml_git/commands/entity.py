@@ -88,6 +88,7 @@ def checkout(context, **kwargs):
     options['retry'] = kwargs['retry']
     options['force'] = kwargs['force']
     options['bare'] = kwargs['bare']
+    options['version'] = kwargs['version']
     repo.checkout(kwargs['ml_entity_tag'], sample, options)
 
 

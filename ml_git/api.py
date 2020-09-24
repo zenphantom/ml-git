@@ -32,7 +32,7 @@ def validate_sample(sampling):
     return True
 
 
-def checkout(entity, tag, sampling=None, retries=2, force=False, dataset=False, labels=False):
+def checkout(entity, tag, sampling=None, retries=2, force=False, dataset=False, labels=False, version=-1):
     """This command allows retrieving the data of a specific version of an ML entity.
 
     Example:
@@ -69,6 +69,7 @@ def checkout(entity, tag, sampling=None, retries=2, force=False, dataset=False, 
     options['retry'] = retries
     options['force'] = force
     options['bare'] = False
+    options['version'] = version
     repo.checkout(tag, sampling, options)
 
     data_path = os.path.join(entity, *tag.split('__')[:-1])
