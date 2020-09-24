@@ -56,3 +56,4 @@ UNZIP_OPTION = 'Unzip imported zipped files. Only available if --import-url is u
 STAT_OPTION = 'Show amount of files and size of an ml-entity.'
 FULL_STAT_OPTION = 'Show added and deleted files.'
 SET_VERSION_NUMBER = 'Set the number of artifact version.'
+ARTIFACT_VERSION = 'Number of artifact version to be downloaded [default: latest].'

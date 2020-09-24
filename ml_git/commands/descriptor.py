@@ -8,7 +8,8 @@ import copy
 import click
 
 from ml_git.commands import entity, help_msg
-from ml_git.commands.custom_options import MutuallyExclusiveOption, OptionRequiredIf
+from ml_git.commands.custom_options import MutuallyExclusiveOption, OptionRequiredIf, DeprecatedOption, \
+    DeprecatedOptionsCommand
 from ml_git.commands.utils import set_verbose_mode
 
 commands = [
@@ -75,7 +76,8 @@ commands = [
             '--retry': {'default': 2, 'help': help_msg.RETRY_OPTION},
 
             '--force': {'default': False, 'is_flag': True, 'help': help_msg.FORCE_CHECKOUT},
-            '--bare': {'default': False, 'is_flag': True, 'help': help_msg.BARE_OPTION}
+            '--bare': {'default': False, 'is_flag': True, 'help': help_msg.BARE_OPTION},
+            '--version': {'default': -1, 'help': help_msg.ARTIFACT_VERSION}
         },
 
         'arguments': {
@@ -83,7 +85,7 @@ commands = [
 
         },
 
-        'help': 'Checkout the ML_ENTITY_TAG of a dataset into user workspace.'
+        'help': 'Checkout the ML_ENTITY_TAG|ML_ENTITY of a dataset into user workspace.'
 
     },
 
@@ -102,10 +104,11 @@ commands = [
             '--retry': {'default': 2, 'help': help_msg.RETRY_OPTION},
 
             '--force': {'is_flag': True, 'default': False, 'help': help_msg.FORCE_CHECKOUT},
-            '--bare': {'default': False, 'is_flag': True, 'help': help_msg.BARE_OPTION}
+            '--bare': {'default': False, 'is_flag': True, 'help': help_msg.BARE_OPTION},
+            '--version': {'default': -1, 'help': help_msg.ARTIFACT_VERSION}
         },
 
-        'help': 'Checkout the ML_ENTITY_TAG of a label set into user workspace.'
+        'help': 'Checkout the ML_ENTITY_TAG|ML_ENTITY of a label set into user workspace.'
 
     },
 
@@ -119,7 +122,8 @@ commands = [
             '--retry': {'default': 2, 'help': help_msg.RETRY_OPTION},
 
             '--force': {'default': False, 'is_flag': True, 'help': help_msg.FORCE_CHECKOUT},
-            '--bare': {'default': False, 'is_flag': True, 'help': help_msg.BARE_OPTION}
+            '--bare': {'default': False, 'is_flag': True, 'help': help_msg.BARE_OPTION},
+            '--version': {'default': -1, 'help': help_msg.ARTIFACT_VERSION}
         },
 
         'arguments': {
@@ -127,7 +131,7 @@ commands = [
 
         },
 
-        'help': 'Checkout the ML_ENTITY_TAG of a model set into user workspace.'
+        'help': 'Checkout the ML_ENTITY_TAG|ML_ENTITY of a model set into user workspace.'
 
     },
 
@@ -214,7 +218,8 @@ commands = [
 
         'options': {
             '--tag': {'help': help_msg.TAG_OPTION},
-            '--version-number': {'type': click.IntRange(0, int(8 * '9')), 'help': help_msg.SET_VERSION_NUMBER},
+            ('--version-number', '--version'): {'type': click.IntRange(0, int(8 * '9')), 'help': help_msg.SET_VERSION_NUMBER,
+                                                'cls': DeprecatedOption, 'deprecated': ['--version-number'], 'preferred': '--version'},
             ('--message', '-m'): {'help': help_msg.COMMIT_MSG},
             '--fsck': {'help': help_msg.FSCK_OPTION},
         },
@@ -235,7 +240,8 @@ commands = [
         'options': {
             '--dataset': {'help': 'Link dataset entity name to this label set version.'},
             '--tag': {'help': help_msg.TAG_OPTION},
-            '--version-number': {'type': click.IntRange(0, int(8 * '9')), 'help': help_msg.SET_VERSION_NUMBER},
+            ('--version-number', '--version'): {'type': click.IntRange(0, int(8 * '9')), 'help': help_msg.SET_VERSION_NUMBER,
+                                 'cls': DeprecatedOption, 'deprecated': ['--version-number'], 'preferred':'--version'},
             ('--message', '-m'): {'help': help_msg.COMMIT_MSG},
             '--fsck': {'help': help_msg.FSCK_OPTION},
         },
@@ -257,7 +263,8 @@ commands = [
             '--dataset': {'help': help_msg.LINK_DATASET},
             '--labels': {'help': help_msg.LINK_LABELS},
             '--tag': {'help': help_msg.TAG_OPTION},
-            '--version-number': {'type': click.IntRange(0, int(8 * '9')), 'help': help_msg.SET_VERSION_NUMBER},
+            ('--version-number', '--version'): {'type': click.IntRange(0, int(8 * '9')), 'help': help_msg.SET_VERSION_NUMBER,
+                                                'cls': DeprecatedOption, 'deprecated': ['--version-number'], 'preferred': '--version'},
             ('--message', '-m'): {'help': help_msg.COMMIT_MSG},
             '--fsck': {'help': help_msg.FSCK_OPTION},
         },
@@ -431,7 +438,8 @@ commands = [
             '--category': {'required': True, 'multiple': True, 'help': help_msg.CATEGORY_OPTION},
             '--store-type': {'type': click.Choice(['s3h', 'azureblobh', 'gdriveh']),
                              'help': help_msg.STORE_TYPE, 'default': 's3h'},
-            '--version-number': {'help': help_msg.VERSION_NUMBER, 'default': 1},
+            ('--version-number', '--version'): {'help': help_msg.VERSION_NUMBER, 'default': 1,
+                                                'cls': DeprecatedOption, 'deprecated': ['--version-number'], 'preferred':'--version'},
             '--import': {'help': help_msg.IMPORT_OPTION,
                          'cls': MutuallyExclusiveOption, 'mutually_exclusive': ['import_url', 'credentials_path']},
             '--wizard-config': {'is_flag': True, 'help': help_msg.WIZARD_CONFIG},
@@ -494,7 +502,7 @@ commands = [
 def define_command(descriptor):
     callback = descriptor['callback']
 
-    command = click.command(name=descriptor['name'], help=descriptor['help'])(click.pass_context(callback))
+    command = click.command(name=descriptor['name'], help=descriptor['help'], cls=DeprecatedOptionsCommand)(click.pass_context(callback))
 
     if 'arguments' in descriptor:
         for key, value in descriptor['arguments'].items():

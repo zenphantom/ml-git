@@ -247,15 +247,8 @@ class LocalRepository(MultihashFS):
         # retrieve manifest from metadata to get all files of version tag
         manifest_file = MANIFEST_FILE
         manifest_path = os.path.join(metadata_path, categories_path, manifest_file)
-        files = yaml_load(manifest_path)
-        try:
-            if samples is not None:
-                set_files = SampleValidate.process_samples(samples, files)
-                if set_files is None or len(set_files) == 0:
-                    return False
-                files = set_files
-        except Exception as e:
-            log.error(e, class_name=LOCAL_REPOSITORY_CLASS_NAME)
+        files = self._load_obj_files(samples, manifest_path)
+        if files is None:
             return False
         if bare:
             return True
@@ -299,20 +292,21 @@ class LocalRepository(MultihashFS):
             ensure_path_exists(os.path.dirname(cfile))
             super().get(key, cfile)
 
-    def _update_links_wspace(self, cache, fidex, files, key, ws_path, mfiles, status, mutability):
+    def _update_links_wspace(self, key, status, args):
         # for all concrete files specified in manifest, create a hard link into workspace
-        for file in files:
-            mfiles[file] = key
-            file_path = convert_path(ws_path, file)
+        mutability = args['mutability']
+        for file in args['obj_files'][key]:
+            args['mfiles'][file] = key
+            file_path = convert_path(args['ws_path'], file)
             if mutability == Mutability.STRICT.value or mutability == Mutability.FLEXIBLE.value:
-                cache.ilink(key, file_path)
+                args['cache'].ilink(key, file_path)
             else:
                 if os.path.exists(file_path):
                     set_write_read(file_path)
                     os.unlink(file_path)
                 ensure_path_exists(os.path.dirname(file_path))
                 super().get(key, file_path)
-            fidex.update_full_index(file, file_path, status, key)
+            args['fidx'].update_full_index(file, file_path, status, key)
 
     def _remove_unused_links_wspace(self, ws_path, mfiles):
         for root, dirs, files in os.walk(ws_path):
@@ -360,9 +354,7 @@ class LocalRepository(MultihashFS):
             if self._exists(key) is False:
                 log.error('Blob [%s] not found. exiting...', class_name=LOCAL_REPOSITORY_CLASS_NAME)
                 return False
-            args['wps'].submit(self._update_links_wspace, args['cache'], args['fidex'], args['obj_files'][key], key,
-                               args['ws_path'],
-                               args['mfiles'], Status.u.name, args['mutability'])
+            args['wps'].submit(self._update_links_wspace, key, Status.u.name, args)
         futures = args['wps'].wait()
         try:
             process_futures(futures, args['wps'])
@@ -372,7 +364,26 @@ class LocalRepository(MultihashFS):
             return False
         return True
 
-    def checkout(self, cache_path, metadata_path, object_path, ws_path, tag, samples, bare=False):
+    def _load_obj_files(self, samples, manifest_path, sampling_flag='', is_checkout=False):
+        obj_files = yaml_load(manifest_path)
+        try:
+            if samples is not None:
+                set_files = SampleValidate.process_samples(samples, obj_files)
+                if set_files is None or len(set_files) == 0:
+                    return None
+                obj_files = set_files
+                if is_checkout:
+                    open(sampling_flag, 'a').close()
+                    log.debug('A flag was created to save that the checkout was carried out with sample',
+                              class_name=LOCAL_REPOSITORY_CLASS_NAME)
+            elif os.path.exists(sampling_flag) and is_checkout:
+                os.unlink(sampling_flag)
+        except Exception as e:
+            log.error(e, class_name=LOCAL_REPOSITORY_CLASS_NAME)
+            return None
+        return obj_files
+
+    def checkout(self, cache_path, metadata_path, ws_path, tag, samples, bare=False):
         categories_path, spec_name, version = spec_parse(tag)
         index_path = get_index_path(self.__config, self.__repo_type)
         # get all files for specific tag
@@ -384,25 +395,13 @@ class LocalRepository(MultihashFS):
             os.unlink(fidx_path)
         except FileNotFoundError:
             pass
-        fidex = FullIndex(spec_name, index_path, mutability)
+        fidx = FullIndex(spec_name, index_path, mutability)
         # copy all files defined in manifest from objects to cache (if not there yet) then hard links to workspace
         mfiles = {}
 
-        obj_files = yaml_load(manifest_path)
         sampling_flag = os.path.join(index_manifest_path, 'sampling')
-        try:
-            if samples is not None:
-                set_files = SampleValidate.process_samples(samples, obj_files)
-                if set_files is None or len(set_files) == 0:
-                    return False
-                obj_files = set_files
-                open(sampling_flag, 'a').close()
-                log.debug('A flag was created to save that the checkout was carried out with sample',
-                          class_name=LOCAL_REPOSITORY_CLASS_NAME)
-            elif os.path.exists(sampling_flag):
-                os.unlink(sampling_flag)
-        except Exception as e:
-            log.error(e, class_name=LOCAL_REPOSITORY_CLASS_NAME)
+        obj_files = self._load_obj_files(samples, manifest_path, sampling_flag, True)
+        if obj_files is None:
             return False
         lkey = list(obj_files)
 
@@ -419,21 +418,24 @@ class LocalRepository(MultihashFS):
                     wp.progress_bar_close()
 
             wps = pool_factory(pb_elts=len(lkey), pb_desc='files into workspace')
-            args = {'wps': wps, 'cache': cache, 'fidex': fidex, 'ws_path': ws_path, 'mfiles': mfiles,
+            args = {'wps': wps, 'cache': cache, 'fidx': fidx, 'ws_path': ws_path, 'mfiles': mfiles,
                     'obj_files': obj_files, 'mutability': mutability}
             if not run_function_per_group(lkey, 20, function=self.adding_files_into_workspace, arguments=args):
                 return
             wps.progress_bar_close()
         else:
-            args = {'fidex': fidex, 'ws_path': ws_path, 'obj_files': obj_files}
+            args = {'fidx': fidx, 'ws_path': ws_path, 'obj_files': obj_files}
             run_function_per_group(lkey, 20, function=self._update_index_bare_mode, arguments=args)
 
-        fidex.save_manifest_index()
+        fidx.save_manifest_index()
         # Check files that have been removed (present in wskpace and not in MANIFEST)
         self._remove_unused_links_wspace(ws_path, mfiles)
         # Update metadata in workspace
         full_md_path = os.path.join(metadata_path, categories_path)
         self._update_metadata(full_md_path, ws_path, spec_name)
+        self.check_bare_flag(bare, index_manifest_path)
+
+    def check_bare_flag(self, bare, index_manifest_path):
         bare_path = os.path.join(index_manifest_path, 'bare')
         if bare:
             open(bare_path, 'w+')
@@ -443,7 +445,7 @@ class LocalRepository(MultihashFS):
 
     def _update_index_bare_mode(self, lkeys, args):
         for key in lkeys:
-            [args['fidex'].update_full_index(file, args['ws_path'], Status.u.name, key) for file in
+            [args['fidx'].update_full_index(file, args['ws_path'], Status.u.name, key) for file in
              args['obj_files'][key]]
 
     def _pool_remote_fsck_ipld(self, ctx, obj):
@@ -668,14 +670,14 @@ class LocalRepository(MultihashFS):
             return
 
         idx = MultihashIndex(spec, index_path, objects_path)
-        idx_yalm = idx.get_index_yalm()
+        idx_yaml = idx.get_index_yaml()
         corrupted_files = []
-        idx_yalm_mf = idx_yalm.get_manifest_index()
+        idx_yaml_mf = idx_yaml.get_manifest_index()
 
-        self.__progress_bar = tqdm(total=len(idx_yalm_mf.load()), desc='files', unit='files', unit_scale=True,
+        self.__progress_bar = tqdm(total=len(idx_yaml_mf.load()), desc='files', unit='files', unit_scale=True,
                                    mininterval=1.0)
-        for key in idx_yalm_mf:
-            if idx_yalm_mf[key]['status'] == Status.c.name:
+        for key in idx_yaml_mf:
+            if idx_yaml_mf[key]['status'] == Status.c.name:
                 bisect.insort(corrupted_files, normalize_path(key))
             self.__progress_bar.update(1)
         self.__progress_bar.close()
@@ -709,73 +711,91 @@ class LocalRepository(MultihashFS):
         except Exception as e:
             if log_errors:
                 log.error(e, class_name=REPOSITORY_CLASS_NAME)
-        if path is None:
-            return None, None, None, None, None
-
         # All files in MANIFEST.yaml in the index AND all files in datapath which stats links == 1
         idx = MultihashIndex(spec, index_path, objects_path)
-        idx_yalm = idx.get_index_yalm()
-        new_files = []
-        deleted_files = []
+        idx_yaml = idx.get_index_yaml()
         untracked_files = []
-        all_files = []
-        corrupted_files = []
         changed_files = []
-        idx_yalm_mf = idx_yalm.get_manifest_index()
+        idx_yaml_mf = idx_yaml.get_manifest_index()
 
         bare_mode = os.path.exists(os.path.join(index_metadata_path, spec, 'bare'))
-        for key in idx_yalm_mf:
-            if not bare_mode and not os.path.exists(convert_path(path, key)):
-                bisect.insort(deleted_files, normalize_path(key))
-            elif idx_yalm_mf[key]['status'] == 'a' and os.path.exists(convert_path(path, key)):
-                bisect.insort(new_files, key)
-            elif idx_yalm_mf[key]['status'] == 'c' and os.path.exists(convert_path(path, key)):
-                bisect.insort(corrupted_files, normalize_path(key))
-            bisect.insort(all_files, normalize_path(key))
+        new_files, deleted_files, all_files, corrupted_files = self._get_index_files_status(bare_mode, idx_yaml_mf,
+                                                                                            path)
         if path is not None:
-            for root, dirs, files in os.walk(path):
-                base_path = root[len(path) + 1:]
-                for file in files:
-                    bpath = convert_path(base_path, file)
-                    if bpath in all_files:
-                        full_file_path = os.path.join(root, file)
-                        stat = os.stat(full_file_path)
-                        file_in_index = idx_yalm_mf[posix_path(bpath)]
-                        if file_in_index['mtime'] != stat.st_mtime and self.get_scid(full_file_path) != \
-                                file_in_index['hash']:
-                            bisect.insort(changed_files, bpath)
-                    else:
-                        is_metadata_file = SPEC_EXTENSION in file or 'README.md' in file
+            changed_files, untracked_files = \
+                self._get_workspace_files_status(all_files, full_metadata_path, idx_yaml_mf,
+                                                 index_full_metadata_path_with_cat, index_full_metadata_path_without_cat,
+                                                 path, new_files)
 
-                        if not is_metadata_file:
-                            bisect.insort(untracked_files, bpath)
-                        else:
-                            file_path_metadata = os.path.join(full_metadata_path, file)
-                            file_index_path_with_cat = os.path.join(index_full_metadata_path_with_cat, file)
-                            file_index_path_without_cat = os.path.join(index_full_metadata_path_without_cat, file)
-                            file_index_exists = file_index_path_without_cat if os.path.isfile(
-                                file_index_path_without_cat) else file_index_path_with_cat
-                            full_base_path = os.path.join(root, bpath)
-
-                            if os.path.isfile(file_index_exists) and os.path.isfile(file_path_metadata):
-                                if self._compare_matadata(full_base_path, file_index_exists) and \
-                                        not self._compare_matadata(full_base_path, file_path_metadata):
-                                    bisect.insort(new_files, bpath)
-                                elif not self._compare_matadata(full_base_path, file_index_exists):
-                                    bisect.insort(untracked_files, bpath)
-                            elif os.path.isfile(file_index_exists):
-                                if not self._compare_matadata(full_base_path, file_index_exists):
-                                    bisect.insort(untracked_files, bpath)
-                                else:
-                                    bisect.insort(new_files, bpath)
-                            elif os.path.isfile(file_path_metadata):
-                                if not self._compare_matadata(full_base_path, file_path_metadata):
-                                    bisect.insort(untracked_files, bpath)
-                            else:
-                                bisect.insort(untracked_files, bpath)
         if tag:
             metadata.checkout('master')
         return new_files, deleted_files, untracked_files, corrupted_files, changed_files
+
+    def _get_workspace_files_status(self, all_files, full_metadata_path, idx_yaml_mf,
+                                    index_full_metadata_path_with_cat, index_full_metadata_path_without_cat, path,
+                                    new_files):
+        changed_files = []
+        untracked_files = []
+        for root, dirs, files in os.walk(path):
+            base_path = root[len(path) + 1:]
+            for file in files:
+                bpath = convert_path(base_path, file)
+                if bpath in all_files:
+                    full_file_path = os.path.join(root, file)
+                    stat = os.stat(full_file_path)
+                    file_in_index = idx_yaml_mf[posix_path(bpath)]
+                    if file_in_index['mtime'] != stat.st_mtime and self.get_scid(full_file_path) != \
+                            file_in_index['hash']:
+                        bisect.insort(changed_files, bpath)
+                else:
+                    is_metadata_file = SPEC_EXTENSION in file or 'README.md' in file
+
+                    if not is_metadata_file:
+                        bisect.insort(untracked_files, bpath)
+                    else:
+                        file_path_metadata = os.path.join(full_metadata_path, file)
+                        file_index_path_with_cat = os.path.join(index_full_metadata_path_with_cat, file)
+                        file_index_path_without_cat = os.path.join(index_full_metadata_path_without_cat, file)
+                        file_index_path = file_index_path_without_cat if os.path.isfile(
+                            file_index_path_without_cat) else file_index_path_with_cat
+                        full_base_path = os.path.join(root, bpath)
+                        self._compare_metadata_file(bpath, file_index_path, file_path_metadata, full_base_path,
+                                                    new_files, untracked_files)
+        return changed_files, untracked_files
+
+    def _compare_metadata_file(self, bpath, file_index_exists, file_path_metadata, full_base_path, new_files,
+                               untracked_files):
+        if os.path.isfile(file_index_exists) and os.path.isfile(file_path_metadata):
+            if self._compare_matadata(full_base_path, file_index_exists) and \
+                    not self._compare_matadata(full_base_path, file_path_metadata):
+                bisect.insort(new_files, bpath)
+            elif not self._compare_matadata(full_base_path, file_index_exists):
+                bisect.insort(untracked_files, bpath)
+        elif os.path.isfile(file_index_exists):
+            if not self._compare_matadata(full_base_path, file_index_exists):
+                bisect.insort(untracked_files, bpath)
+            else:
+                bisect.insort(new_files, bpath)
+        elif os.path.isfile(file_path_metadata):
+            if not self._compare_matadata(full_base_path, file_path_metadata):
+                bisect.insort(untracked_files, bpath)
+        else:
+            bisect.insort(untracked_files, bpath)
+
+    def _get_index_files_status(self, bare_mode, idx_yaml_mf, path):
+        new_files = []
+        deleted_files = []
+        all_files = []
+        corrupted_files = []
+        for key in idx_yaml_mf:
+            if not bare_mode and not os.path.exists(convert_path(path, key)):
+                bisect.insort(deleted_files, normalize_path(key))
+            elif idx_yaml_mf[key]['status'] == 'a' and os.path.exists(convert_path(path, key)):
+                bisect.insort(new_files, key)
+            elif idx_yaml_mf[key]['status'] == 'c' and os.path.exists(convert_path(path, key)):
+                bisect.insort(corrupted_files, normalize_path(key))
+            bisect.insort(all_files, normalize_path(key))
+        return new_files, deleted_files, all_files, corrupted_files
 
     def import_files(self, file_object, path, directory, retry, store_string):
         try:
@@ -820,8 +840,8 @@ class LocalRepository(MultihashFS):
     def unlock_file(self, path, file, index_path, objects_path, spec, cache_path):
         file_path = os.path.join(path, file)
         idx = MultihashIndex(spec, index_path, objects_path)
-        idx_yalm = idx.get_index_yalm()
-        hash_file = idx_yalm.get_index()
+        idx_yaml = idx.get_index_yaml()
+        hash_file = idx_yaml.get_index()
         idxfs = Cache(cache_path)
 
         try:
@@ -835,7 +855,7 @@ class LocalRepository(MultihashFS):
             set_write_read(file_path)
         except Exception:
             raise RuntimeError('File %s not found' % file)
-        idx_yalm.update_index_unlock(file_path[len(path) + 1:])
+        idx_yaml.update_index_unlock(file_path[len(path) + 1:])
         log.info('The permissions for %s have been changed.' % file, class_name=LOCAL_REPOSITORY_CLASS_NAME)
 
     def change_config_store(self, profile, bucket_name, store_type=StoreType.S3.value, **kwargs):
@@ -861,7 +881,7 @@ class LocalRepository(MultihashFS):
             return False
         return True
 
-    def export_tag(self, metadata_path, tag, bucket_name, profile, region, endpoint, retry):
+    def export_tag(self, metadata_path, tag, bucket, retry):
         categories_path, spec_name, _ = spec_parse(tag)
         spec_path = os.path.join(metadata_path, categories_path, spec_name + SPEC_EXTENSION)
         spec = yaml_load(spec_path)
@@ -876,7 +896,8 @@ class LocalRepository(MultihashFS):
         if store is None:
             log.error('No store for [%s]' % (manifest['store']), class_name=LOCAL_REPOSITORY_CLASS_NAME)
             return
-        self.change_config_store(profile, bucket_name, region=region, endpoint_url=endpoint)
+        bucket_name = bucket['bucket_name']
+        self.change_config_store(bucket['profile'], bucket_name, region=bucket['region'], endpoint_url=bucket['endpoint'])
         store_dst_type = 's3://{}'.format(bucket_name)
         store_dst = store_factory(self.__config, store_dst_type)
         if store_dst is None:

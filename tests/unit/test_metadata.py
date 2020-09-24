@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-2.0-only
 import os
 import shutil
 import unittest
+from unittest import mock
 
 import pytest
 
@@ -99,6 +100,38 @@ class MetadataTestCases(unittest.TestCase):
         m = Metadata('', self.test_dir, config, repotype)
         m.clone_config_repo()
         self.assertTrue(m.check_exists())
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_test_dir')
+    def test_get_tag(self):
+        mdpath = os.path.join(self.test_dir, 'metadata')
+        specpath = 'dataset-ex'
+        ensure_path_exists(os.path.join(mdpath, specpath))
+        shutil.copy('hdata/dataset-ex.spec', os.path.join(mdpath, specpath) + '/dataset-ex.spec')
+        manifestpath = os.path.join(os.path.join(mdpath, specpath), 'MANIFEST.yaml')
+        yaml_save(files_mock, manifestpath)
+
+        config['mlgit_path'] = self.test_dir
+        m = Metadata(specpath, mdpath, config, repotype)
+        r = Repository(config, repotype)
+        r.init()
+
+        tag_list = ['computer__images__dataset-ex__1']
+        with mock.patch('ml_git.metadata.Metadata.list_tags', return_value=tag_list):
+            target_tag = m.get_tag(specpath, -1)
+        self.assertEqual(target_tag, tag_list[0])
+        clear(m.path)
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_test_dir')
+    def test_get_target_tag(self):
+        tags = ['computer__images__dataset-ex__1',
+                'computer__images__dataset-ex__2',
+                'computer__videos__dataset-ex__1']
+        m = Metadata('', self.test_dir, config, repotype)
+        self.assertRaises(RuntimeError, lambda: m._get_target_tag(tags, 'dataset-ex', -1))
+        self.assertRaises(RuntimeError, lambda: m._get_target_tag(tags, 'dataset-ex', 1))
+        self.assertRaises(RuntimeError, lambda: m._get_target_tag(tags, 'dataset-wrong', 1))
+        self.assertEqual(m._get_target_tag(tags, 'dataset-ex', 2), 'computer__images__dataset-ex__2')
+        clear(m.path)
 
 
 if __name__ == '__main__':

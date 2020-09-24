@@ -18,13 +18,14 @@ from ml_git.config import get_index_path, get_objects_path, get_cache_path, get_
     get_index_metadata_path, create_workspace_tree_structure, start_wizard_questions, config_load, \
     get_global_config_path, save_global_config_in_local
 from ml_git.constants import REPOSITORY_CLASS_NAME, LOCAL_REPOSITORY_CLASS_NAME, HEAD, HEAD_1, Mutability, StoreType, \
-    MANIFEST_FILE, SPEC_EXTENSION
+    RGX_TAG_FORMAT, EntityType, MANIFEST_FILE, SPEC_EXTENSION
 from ml_git.file_system.cache import Cache
 from ml_git.file_system.hashfs import MultihashFS
 from ml_git.file_system.index import MultihashIndex, Objects, Status, FullIndex
 from ml_git.file_system.local import LocalRepository
 from ml_git.manifest import Manifest
 from ml_git.metadata import Metadata, MetadataManager
+from ml_git.ml_git_message import output_messages
 from ml_git.refs import Refs
 from ml_git.spec import spec_parse, search_spec_file, increment_version_in_spec, get_entity_tag, update_store_spec, \
     validate_bucket_name, set_version_in_spec
@@ -97,11 +98,7 @@ class Repository(object):
                 log.error('Spec mutability cannot be changed.', class_name=REPOSITORY_CLASS_NAME)
                 return
 
-            _, deleted, untracked_files, _, changed_files = repo.status(spec, log_errors=False)
-            if deleted is None and untracked_files is None and changed_files is None:
-                return None
-            elif len(deleted) == 0 and len(untracked_files) == 0 and len(changed_files) == 0:
-                log.info('There is no new data to add', class_name=REPOSITORY_CLASS_NAME)
+            if not self._has_new_data(repo, spec):
                 return None
 
             ref = Refs(refs_path, spec, repo_type)
@@ -117,17 +114,7 @@ class Repository(object):
         if path is None:
             return
         spec_path = os.path.join(path, file)
-        spec_file = yaml_load(spec_path)
-
-        if not validate_spec_hash(spec_file, self.__repo_type):
-            log.error(
-                'Invalid %s spec in %s.  It should look something like this:\n%s'
-                % (self.__repo_type, spec_path, get_sample_spec_doc('somebucket', self.__repo_type)),
-                class_name=REPOSITORY_CLASS_NAME
-            )
-            return None
-
-        if not validate_bucket_name(spec_file[self.__repo_type], self.__config):
+        if not self._is_spec_valid(spec_path):
             return None
 
         # Check tag before anything to avoid creating unstable state
@@ -145,12 +132,7 @@ class Repository(object):
             pass
 
         # get version of current manifest file
-        manifest = ''
-        if tag is not None:
-            m.checkout(tag)
-            md_metadata_path = m.get_metadata_path(tag)
-            manifest = os.path.join(md_metadata_path, MANIFEST_FILE)
-            m.checkout('master')
+        manifest = self._get_current_manifest_file(m, tag)
 
         try:
             # adds chunks to ml-git Index
@@ -175,6 +157,37 @@ class Repository(object):
         # Run file check
         if run_fsck:
             self.fsck()
+
+    def _get_current_manifest_file(self, m, tag):
+        manifest = ''
+        if tag is not None:
+            m.checkout(tag)
+            md_metadata_path = m.get_metadata_path(tag)
+            manifest = os.path.join(md_metadata_path, MANIFEST_FILE)
+            m.checkout('master')
+        return manifest
+
+    def _is_spec_valid(self, spec_path):
+        spec_file = yaml_load(spec_path)
+        if not validate_spec_hash(spec_file, self.__repo_type):
+            log.error(
+                'Invalid %s spec in %s.  It should look something like this:\n%s'
+                % (self.__repo_type, spec_path, get_sample_spec_doc('somebucket', self.__repo_type)),
+                class_name=REPOSITORY_CLASS_NAME
+            )
+            return False
+        if not validate_bucket_name(spec_file[self.__repo_type], self.__config):
+            return False
+        return True
+
+    def _has_new_data(self, repo, spec):
+        _, deleted, untracked_files, _, changed_files = repo.status(spec, log_errors=False)
+        if deleted is None and untracked_files is None and changed_files is None:
+            return False
+        elif len(deleted) == 0 and len(untracked_files) == 0 and len(changed_files) == 0:
+            log.info('There is no new data to add', class_name=REPOSITORY_CLASS_NAME)
+            return False
+        return True
 
     @Halo(text='Creating hard links in cache', spinner='dots')
     def create_hard_links_in_cache(self, cache_path, index_path, is_shared_cache, mutability, path, spec):
@@ -222,28 +235,27 @@ class Repository(object):
 
         if new_files is not None and deleted_files is not None and untracked_files is not None:
             print('Changes to be committed:')
-            for file in new_files:
-                print('\tNew file: %s' % file)
+            self._print_files(new_files, 'New file: ')
 
-            for file in deleted_files:
-                print('\tDeleted: %s' % file)
+            self._print_files(deleted_files, 'Deleted: ')
 
             print('\nUntracked files:')
-            for file in untracked_files:
-                print('\t%s' % file)
+            self._print_files(untracked_files)
 
             print('\nCorrupted files:')
-            for file in corruped_files:
-                print('\t%s' % file)
+            self._print_files(corruped_files)
 
             if changed_files and len(changed_files) > 0:
                 print('\nChanges not staged for commit:')
-                for file in changed_files:
-                    print('\t%s' % file)
+                self._print_files(changed_files)
+
+    def _print_files(self, files, files_status=''):
+        for file in files:
+            print('\t%s%s' % (files_status, file))
 
     '''commit changes present in the ml-git index to the ml-git repository'''
 
-    def commit(self, spec, specs, version_number=None, run_fsck=False, msg=None):
+    def commit(self, spec, specs, version=None, run_fsck=False, msg=None):
         # Move chunks from index to .ml-git/objects
         repo_type = self.__repo_type
         try:
@@ -281,8 +293,8 @@ class Repository(object):
         spec_path = os.path.join(path, file)
         idx = MultihashIndex(spec, index_path, objects_path)
 
-        if version_number:
-            set_version_in_spec(version_number, spec_path, self.__repo_type)
+        if version:
+            set_version_in_spec(version, spec_path, self.__repo_type)
             idx.add_metadata(path, file)
 
         # Check tag before anything to avoid creating unstable state
@@ -305,7 +317,7 @@ class Repository(object):
         bare_mode = os.path.exists(os.path.join(index_path, 'metadata', spec, 'bare'))
 
         if not bare_mode and len(deleted_files) > 0:
-            self.remove_deleted_files(idx, index_path, m, manifest_path, path, spec, deleted_files)
+            self.remove_deleted_files(idx, index_path, m, manifest_path, spec, deleted_files)
         elif bare_mode:
             tag, _ = ref.branch()
             self._checkout_ref(tag)
@@ -326,7 +338,7 @@ class Repository(object):
         return tag
 
     @Halo(text='Checking removed files', spinner='dots')
-    def remove_deleted_files(self, idx, index_path, m, manifest_path, path, spec, deleted_files):
+    def remove_deleted_files(self, idx, index_path, m, manifest_path, spec, deleted_files):
         fidx = FullIndex(spec, index_path)
         manifest = m.get_metadata_manifest(manifest_path)
         fidx.remove_deleted_files(deleted_files)
@@ -588,13 +600,15 @@ class Repository(object):
             return metadata_path
         raise RootPathException('You are not in an initialized ml-git repository and do not have a global configuration.')
 
-    def checkout(self, tag, samples, retries=2, force_get=False, dataset=False, labels=False, bare=False):
+    def checkout(self, tag, samples, options):
         try:
             metadata_path = get_metadata_path(self.__config)
         except RootPathException as e:
             log.warn(e, class_name=REPOSITORY_CLASS_NAME)
             metadata_path = self._initialize_repository_on_the_fly()
-        dt_tag, lb_tag = self._checkout(tag, samples, retries, force_get, dataset, labels, bare)
+        dt_tag, lb_tag = self._checkout(tag, samples, options)
+        options['with_dataset'] = False
+        options['with_labels'] = False
         if dt_tag is not None:
             try:
                 self.__repo_type = 'dataset'
@@ -602,7 +616,7 @@ class Repository(object):
                 log.info('Initializing related dataset download', class_name=REPOSITORY_CLASS_NAME)
                 if not m.check_exists():
                     m.init()
-                self._checkout(dt_tag, samples, retries, force_get, False, False, bare)
+                self._checkout(dt_tag, samples, options)
             except Exception as e:
                 log.error('LocalRepository: [%s]' % e, class_name=REPOSITORY_CLASS_NAME)
         if lb_tag is not None:
@@ -612,7 +626,7 @@ class Repository(object):
                 log.info('Initializing related labels download', class_name=REPOSITORY_CLASS_NAME)
                 if not m.check_exists():
                     m.init()
-                self._checkout(lb_tag, samples, retries, force_get, False, False, bare)
+                self._checkout(lb_tag, samples, options)
             except Exception as e:
                 log.error('LocalRepository: [%s]' % e, class_name=REPOSITORY_CLASS_NAME)
 
@@ -649,19 +663,29 @@ class Repository(object):
 
     '''Download data from a specific ML entity version into the workspace'''
 
-    def _checkout(self, tag, samples, retries=2, force_get=False, dataset=False, labels=False, bare=False):
+    def _checkout(self, tag, samples, options):
+        dataset = options['with_dataset']
+        labels = options['with_labels']
+        retries = options['retry']
+        force_get = options['force']
+        bare = options['bare']
+        version = options['version']
         repo_type = self.__repo_type
         try:
             cache_path = get_cache_path(self.__config, repo_type)
             metadata_path = get_metadata_path(self.__config, repo_type)
             objects_path = get_objects_path(self.__config, repo_type)
             refs_path = get_refs_path(self.__config, repo_type)
-            # find out actual workspace path to save data
-            if not self._tag_exists(tag):
+
+            if not re.search(RGX_TAG_FORMAT, tag):
+                metadata_path = get_metadata_path(self.__config, repo_type)
+                metadata = Metadata(tag, metadata_path, self.__config, repo_type)
+                tag = metadata.get_tag(tag, version)
+                if not tag:
+                    return None, None
+            elif not self._tag_exists(tag):
                 return None, None
             categories_path, spec_name, _ = spec_parse(tag)
-            dataset_tag = None
-            labels_tag = None
             root_path = get_root_path()
             ws_path = os.path.join(root_path, os.sep.join([repo_type, categories_path]))
             ensure_path_exists(ws_path)
@@ -687,12 +711,7 @@ class Repository(object):
             log.error('Unable to checkout to %s' % tag, class_name=REPOSITORY_CLASS_NAME)
             return None, None
 
-        spec_path = os.path.join(metadata_path, categories_path, spec_name + SPEC_EXTENSION)
-
-        if dataset is True:
-            dataset_tag = get_entity_tag(spec_path, repo_type, 'dataset')
-        if labels is True:
-            labels_tag = get_entity_tag(spec_path, repo_type, 'labels')
+        dataset_tag, labels_tag = self._get_related_tags(categories_path, dataset, labels, metadata_path, repo_type, spec_name)
 
         fetch_success = self._fetch(tag, samples, retries, bare)
 
@@ -706,15 +725,11 @@ class Repository(object):
             spec_index_path = os.path.join(get_index_metadata_path(self.__config, repo_type), spec_name)
         except Exception:
             return
-        if os.path.exists(spec_index_path):
-            if os.path.exists(os.path.join(spec_index_path, spec_name + SPEC_EXTENSION)):
-                os.unlink(os.path.join(spec_index_path, spec_name + SPEC_EXTENSION))
-            if os.path.exists(os.path.join(spec_index_path, 'README.md')):
-                os.unlink(os.path.join(spec_index_path, 'README.md'))
+        self._delete_spec_and_readme(spec_index_path, spec_name)
 
         try:
             r = LocalRepository(self.__config, objects_path, repo_type)
-            r.checkout(cache_path, metadata_path, objects_path, ws_path, tag, samples, bare)
+            r.checkout(cache_path, metadata_path, ws_path, tag, samples, bare)
         except OSError as e:
             self._checkout_ref('master')
             if e.errno == errno.ENOSPC:
@@ -736,6 +751,23 @@ class Repository(object):
 
         # restore to master/head
         self._checkout_ref('master')
+        return dataset_tag, labels_tag
+
+    def _delete_spec_and_readme(self, spec_index_path, spec_name):
+        if os.path.exists(spec_index_path):
+            if os.path.exists(os.path.join(spec_index_path, spec_name + SPEC_EXTENSION)):
+                os.unlink(os.path.join(spec_index_path, spec_name + SPEC_EXTENSION))
+            if os.path.exists(os.path.join(spec_index_path, 'README.md')):
+                os.unlink(os.path.join(spec_index_path, 'README.md'))
+
+    def _get_related_tags(self, categories_path, dataset, labels, metadata_path, repo_type,
+                          spec_name):
+        dataset_tag, labels_tag = None, None
+        spec_path = os.path.join(metadata_path, categories_path, spec_name + '.spec')
+        if dataset is True:
+            dataset_tag = get_entity_tag(spec_path, repo_type, 'dataset')
+        if labels is True:
+            labels_tag = get_entity_tag(spec_path, repo_type, 'labels')
         return dataset_tag, labels_tag
 
     def reset(self, spec, reset_type, head):
@@ -812,8 +844,7 @@ class Repository(object):
         if reset_type == '--hard':  # reset workspace
             remove_from_workspace(file_names, path, spec)
 
-    def import_files(self, object, path, directory, retry, bucket_name, profile, region, store_type, endpoint_url):
-
+    def import_files(self, object, path, directory, retry, bucket):
         err_msg = 'Invalid ml-git project!'
 
         try:
@@ -824,7 +855,9 @@ class Repository(object):
             return
 
         local = LocalRepository(self.__config, get_objects_path(self.__config, self.__repo_type), self.__repo_type)
-        local.change_config_store(profile, bucket_name, store_type, region=region, endpoint_url=endpoint_url)
+        bucket_name = bucket['bucket_name']
+        store_type = bucket['store_type']
+        local.change_config_store(bucket['profile'], bucket_name, store_type, region=bucket['region'], endpoint_url=bucket['endpoint_url'])
         local.import_files(object, path, root_dir, retry, '{}://{}'.format(store_type, bucket_name))
 
     def unlock_file(self, spec, file_path):
@@ -883,8 +916,17 @@ class Repository(object):
         bucket = {'credentials-path': credentials_path}
         self.__config['store'][store_type] = {store_type: bucket}
 
-    def create(self, artifact_name, categories, store_type, bucket_name, version, imported_dir, start_wizard,
-               import_url, unzip_file, credentials_path):
+    def create(self, kwargs):
+        artifact_name = kwargs['artifact_name']
+        categories = list(kwargs['category'])
+        version = int(kwargs['version_number'])
+        imported_dir = kwargs['import']
+        store_type = kwargs['store_type']
+        bucket_name = kwargs['bucket_name']
+        start_wizard = kwargs['wizard_config']
+        import_url = kwargs['import_url']
+        unzip_file = kwargs['unzip']
+        credentials_path = kwargs['credentials_path']
         repo_type = self.__repo_type
         try:
             create_workspace_tree_structure(repo_type, artifact_name, categories, store_type, bucket_name, version,
@@ -919,7 +961,7 @@ class Repository(object):
             m = Metadata('', get_metadata_path(self.__config), self.__config)
             m.clone_config_repo()
 
-    def export(self, bucket, tag, profile, region, endpoint, retry):
+    def export(self, bucket, tag, retry):
         try:
             categories_path, spec_name, _ = spec_parse(tag)
             get_root_path()
@@ -939,8 +981,7 @@ class Repository(object):
             return None, None
 
         local = LocalRepository(self.__config, get_objects_path(self.__config, self.__repo_type), self.__repo_type)
-        local.export_tag(get_metadata_path(self.__config, self.__repo_type), tag, bucket, profile, region, endpoint,
-                         retry)
+        local.export_tag(get_metadata_path(self.__config, self.__repo_type), tag, bucket, retry)
 
         self._checkout_ref('master')
 
@@ -970,6 +1011,21 @@ class Repository(object):
             log_info = '{}\n{}'.format(log_info, workspace_info)
 
         log.info(log_info, class_name=REPOSITORY_CLASS_NAME)
+
+    def metadata_exists(self, entity):
+        self.__repo_type = entity
+        entity_metadata_path = get_metadata_path(self.__config, self.__repo_type)
+        metadata = Metadata('', entity_metadata_path, self.__config, self.__repo_type)
+        return metadata.check_exists()
+
+    def update_entities_metadata(self):
+        any_metadata = False
+        for entity in EntityType:
+            if self.metadata_exists(entity.value):
+                self.update()
+                any_metadata = True
+        if not any_metadata:
+            log.error(output_messages['ERROR_UNINITIALIZED_METADATA'], class_name=REPOSITORY_CLASS_NAME)
 
 
 if __name__ == '__main__':
