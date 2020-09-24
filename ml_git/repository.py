@@ -17,7 +17,8 @@ from ml_git.config import get_index_path, get_objects_path, get_cache_path, get_
     validate_config_spec_hash, validate_spec_hash, get_sample_config_spec, get_sample_spec_doc, \
     get_index_metadata_path, create_workspace_tree_structure, start_wizard_questions, config_load, \
     get_global_config_path, save_global_config_in_local
-from ml_git.constants import REPOSITORY_CLASS_NAME, LOCAL_REPOSITORY_CLASS_NAME, HEAD, HEAD_1, Mutability, StoreType
+from ml_git.constants import REPOSITORY_CLASS_NAME, LOCAL_REPOSITORY_CLASS_NAME, HEAD, HEAD_1, Mutability, StoreType, \
+    RGX_TAG_FORMAT
 from ml_git.file_system.cache import Cache
 from ml_git.file_system.hashfs import MultihashFS
 from ml_git.file_system.index import MultihashIndex, Objects, Status, FullIndex
@@ -587,13 +588,13 @@ class Repository(object):
             return metadata_path
         raise RootPathException('You are not in an initialized ml-git repository and do not have a global configuration.')
 
-    def checkout(self, tag, samples, retries=2, force_get=False, dataset=False, labels=False, bare=False):
+    def checkout(self, tag, samples, retries=2, force_get=False, dataset=False, labels=False, bare=False, version=-1):
         try:
             metadata_path = get_metadata_path(self.__config)
         except RootPathException as e:
             log.warn(e, class_name=REPOSITORY_CLASS_NAME)
             metadata_path = self._initialize_repository_on_the_fly()
-        dt_tag, lb_tag = self._checkout(tag, samples, retries, force_get, dataset, labels, bare)
+        dt_tag, lb_tag = self._checkout(tag, samples, retries, force_get, dataset, labels, bare, version)
         if dt_tag is not None:
             try:
                 self.__repo_type = 'dataset'
@@ -648,15 +649,21 @@ class Repository(object):
 
     '''Download data from a specific ML entity version into the workspace'''
 
-    def _checkout(self, tag, samples, retries=2, force_get=False, dataset=False, labels=False, bare=False):
+    def _checkout(self, tag, samples, retries=2, force_get=False, dataset=False, labels=False, bare=False, version=-1):
         repo_type = self.__repo_type
         try:
             cache_path = get_cache_path(self.__config, repo_type)
             metadata_path = get_metadata_path(self.__config, repo_type)
             objects_path = get_objects_path(self.__config, repo_type)
             refs_path = get_refs_path(self.__config, repo_type)
-            # find out actual workspace path to save data
-            if not self._tag_exists(tag):
+
+            if not re.search(RGX_TAG_FORMAT, tag):
+                metadata_path = get_metadata_path(self.__config, repo_type)
+                metadata = Metadata(tag, metadata_path, self.__config, repo_type)
+                tag = metadata.get_tag(tag, version)
+                if not tag:
+                    return None, None
+            elif not self._tag_exists(tag):
                 return None, None
             categories_path, spec_name, _ = spec_parse(tag)
             dataset_tag = None
