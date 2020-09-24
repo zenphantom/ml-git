@@ -241,7 +241,7 @@ commands = [
             '--dataset': {'help': 'Link dataset entity name to this label set version.'},
             '--tag': {'help': help_msg.TAG_OPTION},
             ('--version-number', '--version'): {'type': click.IntRange(0, int(8 * '9')), 'help': help_msg.SET_VERSION_NUMBER,
-                                 'cls': DeprecatedOption, 'deprecated': ['--version-number'], 'preferred':'--version'},
+                                                'cls': DeprecatedOption, 'deprecated': ['--version-number'], 'preferred':'--version'},
             ('--message', '-m'): {'help': help_msg.COMMIT_MSG},
             '--fsck': {'help': help_msg.FSCK_OPTION},
         },
