@@ -22,7 +22,7 @@ class CreateAcceptanceTests(unittest.TestCase):
         os.makedirs(os.path.join(self.tmp_dir, IMPORT_PATH))
         self.assertIn(messages[38], check_output(MLGIT_CREATE % (entity_type, entity_type + '-ex')
                                                  + ' --category=imgs --store-type=' + store_type + ' --bucket-name=minio'
-                                                 + ' --version-number=1 --import="' + os.path.join(self.tmp_dir,
+                                                 + ' --version=1 --import="' + os.path.join(self.tmp_dir,
                                                                                                    IMPORT_PATH) + '"'))
 
     def check_folders(self, entity_type, store_type=StoreType.S3H.value):
@@ -68,7 +68,7 @@ class CreateAcceptanceTests(unittest.TestCase):
 
         self.assertIn(messages[38], check_output(
             'ml-git dataset create dataset-ex --category=imgs --store-type=s3h --bucket-name=minio '
-            '--version-number=1 --import="%s"' % os.path.join(self.tmp_dir, IMPORT_PATH)))
+            '--version=1 --import="%s"' % os.path.join(self.tmp_dir, IMPORT_PATH)))
 
         folder_data = os.path.join(self.tmp_dir, 'dataset', 'dataset-ex', 'data')
         spec = os.path.join(self.tmp_dir, 'dataset', 'dataset-ex', 'dataset-ex.spec')
@@ -96,7 +96,7 @@ class CreateAcceptanceTests(unittest.TestCase):
         self.assertFalse(os.path.exists(dataset_path))
         self.assertIn(ERROR_MESSAGE, check_output(MLGIT_CREATE % (entity_type, entity_type + '-ex')
                                                   + ' --category=imgs --store-type=s3h --bucket-name=minio'
-                                                  + ' --version-number=1 --import=' + IMPORT_PATH+'wrong'))
+                                                  + ' --version=1 --import=' + IMPORT_PATH+'wrong'))
         self.assertFalse(os.path.exists(dataset_path))
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
@@ -107,7 +107,7 @@ class CreateAcceptanceTests(unittest.TestCase):
 
         self.assertIn(messages[88], check_output(MLGIT_CREATE % (entity_type, entity_type + '-ex')
                                                  + ' --category=imgs --store-type=s3h --bucket-name=minio'
-                                                 + ' --version-number=1 --import=' + IMPORT_PATH))
+                                                 + ' --version=1 --import=' + IMPORT_PATH))
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_07_create_entity_with_gdriveh_storage(self):
@@ -122,21 +122,21 @@ class CreateAcceptanceTests(unittest.TestCase):
         entity_type = 'dataset'
         self.assertIn(messages[0], check_output(MLGIT_INIT))
         self.assertIn(messages[89], check_output(MLGIT_CREATE % (entity_type, entity_type + '-ex')
-                                                 + ' --category=img --version-number=1 --import="import_path" --import-url="import_url"'))
+                                                 + ' --category=img --version=1 --import="import_path" --import-url="import_url"'))
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_10_create_with_import_url_without_credentials_path(self):
         entity_type = 'dataset'
         self.assertIn(messages[0], check_output(MLGIT_INIT))
         self.assertIn(messages[90], check_output(MLGIT_CREATE % (entity_type, entity_type + '-ex')
-                                                 + ' --category=img --version-number=1 --import-url="import_url"'))
+                                                 + ' --category=img --version=1 --import-url="import_url"'))
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_11_create_with_wrong_import_url(self):
         entity_type = 'dataset'
         self.assertIn(messages[0], check_output(MLGIT_INIT))
         self.assertIn(messages[91] % 'import_url', check_output(MLGIT_CREATE % (entity_type, entity_type + '-ex')
-                                                                + ' --category=img --version-number=1 --import-url="import_url" '
+                                                                + ' --category=img --version=1 --import-url="import_url" '
                                                                   '--credentials-path=test'))
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
@@ -156,3 +156,15 @@ class CreateAcceptanceTests(unittest.TestCase):
         self.assertIn('file1.txt', files)
         self.assertIn('file2.txt', files)
         self.assertEqual(3, len(files))
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir')
+    def test_12_create_with_deprecated_version_number(self):
+        entity_type = 'dataset'
+        self.assertIn(messages[0], check_output(MLGIT_INIT))
+        os.makedirs(os.path.join(self.tmp_dir, IMPORT_PATH))
+        result = check_output(MLGIT_CREATE % (entity_type, entity_type + '-ex') + ' --category=imgs --store-type=s3h --bucket-name=minio'
+                              + ' --version-number=1 --import="' + os.path.join(self.tmp_dir, IMPORT_PATH) + '"')
+
+        self.assertIn(messages[106] % ('--version-number', '--version'), result)
+        self.assertIn(messages[38], result)
+        self.check_folders(entity_type, StoreType.S3H.value)

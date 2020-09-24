@@ -413,6 +413,12 @@ If you already are in a configured ml-git project directory, the following comma
 $ ml-git dataset update
 ```
 
+Or update all metadata repository:
+
+```
+$ ml-git repository update
+```
+
 To discover which datasets are under ml-git management, you can execute the following command:
 ```
 $ ml-git dataset list
@@ -445,9 +451,20 @@ The output is a tuple:
 2. The sha of the git commit of that version. 
 
 
-It is now rather simple to retrieve a specific version locally to start any experiment by executing the following command:
+It is now rather simple to retrieve a specific version locally to start any experiment by executing one of the following commands:
 ```
 $ ml-git dataset checkout computer-vision__images__imagenet8__1
+```
+or 
+```
+$ ml-git dataset checkout imagenet8 --version=1
+```
+
+
+If you want to get the latest available version of an entity you can just pass its name in the checkout command, as shown below:
+
+```
+$ ml-git dataset checkout imagenet8
 ```
 
 Getting the data will auto-create a directory structure under _dataset_ directory as shown below. That structure _computer-vision/images_ is actually coming from the categories defined in the dataset spec file. Doing that way allows for easy download of many datasets in one single ml-git project without creating any conflicts.
