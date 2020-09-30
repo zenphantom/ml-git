@@ -18,7 +18,7 @@ RUN apk add --no-cache gcc musl-dev libffi-dev libressl-dev git && \
     sed -i -e 's/\r//g'  ../init.sh && \
     mkdir $HOME/.aws && \
     echo -e "[default]\naws_access_key_id = fake_access_key\naws_secret_access_key = fake_secret_key" > $HOME/.aws/credentials && \
-    python setup.py install 
+    pip install -e .
 
 WORKDIR /workspace
 
