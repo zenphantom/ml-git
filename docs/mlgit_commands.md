@@ -96,44 +96,36 @@ Both are the same representation. One is human-readable and is also used interna
 <br>
 
 ```
-Usage: ml-git model checkout [OPTIONS] ML_ENTITY_TAG
+Usage: ml-git model checkout [OPTIONS] ML_ENTITY_TAG|ML_ENTITY
 
-  Checkout the ML_ENTITY_TAG of a model set into user workspace.
+  Checkout the ML_ENTITY_TAG|ML_ENTITY of a model set into user workspace.
 
 Options:
-  --sample-type [group|range|random]
-  -l, --with-labels               The checkout associated labels  in user
-                                  workspace as well.
-  -d, --with-dataset              The checkout associated dataset in user
-                                  workspace as well.
-  --sampling TEXT                 group: <amount>:<group> The group sample
-                                  option consists of amount and group used to
-                                  download a sample.
-                                  range: <start:stop:step>
-                                  The range sample option consists of start,
-                                  stop and step used to download a sample. The
-                                  start parameter can be equal or greater than
-                                  zero.The stop parameter can be 'all', -1 or
-                                  any integer above zero.
-                                  random:
-                                  <amount:frequency> The random sample option
-                                  consists of amount and frequency used to
-                                  download a sample.
-  --seed TEXT                     Seed to be used in random-based samplers.
-  --retry INTEGER                 Number of retries to download the files from
-                                  the storage [default: 2].
-  --force                         Force checkout command to delete
-                                  untracked/uncommitted files from local
-                                  repository.
-  --bare                          Ability to add/commit/push without having
-                                  the ml-entity checked out.
-  --help                          Show this message and exit.
+  -l, --with-labels         The checkout associated labels  in user workspace
+                            as well.
+  -d, --with-dataset        The checkout associated dataset in user workspace
+                            as well.
+  --retry INTEGER           Number of retries to download the files from the
+                            storage [default: 2].
+  --force                   Force checkout command to delete
+                            untracked/uncommitted files from local repository.
+  --bare                    Ability to add/commit/push without having the ml-
+                            entity checked out.
+  --version INTEGER         Number of artifact version to be downloaded
+                            [default: latest].
+  --verbose                 Debug mode
 ```
 
-Example:
+Examples:
 ```
-$ ml-git dataset get computer-vision__images__faces__fddb__1
+$ ml-git dataset checkout computer-vision__images__faces__fddb__1
 ```
+or you can use the name of the entity directly and download the latest available tag
+```
+$ ml-git dataset checkout fddb
+```
+
+
 
 Note:
 
@@ -156,14 +148,19 @@ Usage: ml-git model commit [OPTIONS] ML_ENTITY_NAME
   repository.
 
 Options:
-  --dataset TEXT            Link dataset entity name to this model set version.
-  --labels TEXT             Link labels entity name to this model set version.
-  --tag TEXT                Ml-git tag to identify a specific version of a ML
-                            entity.
-  --version-number INTEGER  Set the number of artifact version.
-  -m, --message TEXT        Use the provided <msg> as the commit message.
-  --fsck TEXT               Run fsck after command execution.
-  --verbose                 Debug mode
+  --dataset TEXT                  Link dataset entity name to this model set
+                                  version.
+  --labels TEXT                   Link labels entity name to this model set
+                                  version.
+  --tag TEXT                      Ml-git tag to identify a specific version of
+                                  a ML entity.
+  --version-number, --version INTEGER RANGE
+                                  Set the number of artifact version.
+                                  [DEPRECATED:--version-number]
+  -m, --message TEXT              Use the provided <msg> as the commit
+                                  message.
+  --fsck TEXT                     Run fsck after command execution.
+  --verbose                       Debug mode
 ```
 
 Example:
@@ -196,24 +193,28 @@ Options:
   --category TEXT                 Artifact's category name.  [required]
   --store-type [s3h|azureblobh|gdriveh]
                                   Data store type [default: s3h].
-  --version-number INTEGER        Number of artifact version.
-  --import TEXT                   Path to be imported to the project.
+  --version-number, --version INTEGER RANGE
+                                  Number of artifact version.
+                                  [DEPRECATED:--version-number]
+  --import TEXT                   Path to be imported to the project. NOTE:
+                                  Mutually exclusive with argument:
+                                  import_url, credentials_path.
   --wizard-config                 If specified, ask interactive questions. at
                                   console for git & store configurations.
   --bucket-name TEXT              Bucket name
   --import-url TEXT               Import data from a google drive url. NOTE:
                                   Mutually exclusive with argument: import.
-  --credentials-path TEXT         Directory of credentials.json. NOTE: This option
-                                  is required if --import-url is used.
-  --unzip                         Unzip imported zipped files. Only available if --import-url
-                                  is used.
+  --credentials-path TEXT         Directory of credentials.json. NOTE: This
+                                  option is required if --import-url is used.
+  --unzip                         Unzip imported zipped files. Only available
+                                  if --import-url is used.
   --verbose                       Debug mode
 ```
 
 Examples:
  - To create an entity with s3 as store and importing files from a path of your computer:
 ```
-ml-git dataset create imagenet8 --store-type=s3h --category=computer-vision --category=images --version-number=0 --import='/path/to/dataset'
+ml-git dataset create imagenet8 --store-type=s3h --category=computer-vision --category=images --version=0 --import='/path/to/dataset'
 ```
 
 - To create an entity with s3 as store and importing files from a google drive URL:
@@ -884,3 +885,21 @@ $ ml-git repository store del minio
 ```
 
 </details>
+
+<details>
+<summary><code> ml-git repository update </code></summary>
+<br>
+
+```
+Usage: ml-git repository update
+
+  This command updates the metadata for all entities.
+```
+
+Example:
+```
+$ ml-git repository update
+```
+
+</details>
+
