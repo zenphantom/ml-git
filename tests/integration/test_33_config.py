@@ -4,12 +4,11 @@ SPDX-License-Identifier: GPL-2.0-only
 """
 import os
 import unittest
-from unittest import mock
 
 import pytest
 
 from tests.integration.commands import MLGIT_INIT, MLGIT_CONFIG
-from tests.integration.helper import check_output, GLOBAL_CONFIG_PATH
+from tests.integration.helper import check_output
 from tests.integration.output_messages import messages
 
 
