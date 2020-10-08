@@ -688,7 +688,6 @@ class Repository(object):
             categories_path, spec_name, _ = spec_parse(tag)
             root_path = get_root_path()
             ws_path = os.path.join(root_path, os.sep.join([repo_type, categories_path]))
-            ensure_path_exists(ws_path)
         except Exception as e:
             log.error(e, class_name=LOCAL_REPOSITORY_CLASS_NAME)
             return None, None
@@ -714,12 +713,12 @@ class Repository(object):
         dataset_tag, labels_tag = self._get_related_tags(categories_path, dataset, labels, metadata_path, repo_type, spec_name)
 
         fetch_success = self._fetch(tag, samples, retries, bare)
-
         if not fetch_success:
             objs = Objects('', objects_path)
             objs.fsck(remove_corrupted=True)
             self._checkout_ref('master')
             return None, None
+        ensure_path_exists(ws_path)
 
         try:
             spec_index_path = os.path.join(get_index_metadata_path(self.__config, repo_type), spec_name)
