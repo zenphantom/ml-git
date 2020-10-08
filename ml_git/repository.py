@@ -688,7 +688,6 @@ class Repository(object):
             categories_path, spec_name, _ = spec_parse(tag)
             root_path = get_root_path()
             ws_path = os.path.join(root_path, os.sep.join([repo_type, categories_path]))
-            ensure_path_exists(ws_path)
         except Exception as e:
             log.error(e, class_name=LOCAL_REPOSITORY_CLASS_NAME)
             return None, None
@@ -705,6 +704,7 @@ class Repository(object):
         if not force_get and local_rep.exist_local_changes(spec_name) is True:
             return None, None
 
+        ensure_path_exists(ws_path)
         try:
             self._checkout_ref(tag)
         except Exception:
