@@ -33,7 +33,7 @@ If you create an entity without using the create command and without mutability,
 
 Note:
 ```
-For entities that were created before the mutability parameter became mandatory (version 0.0.1) and that did not define mutability, ml-git treats these entities as strict.
+For entities that were created before the mutability parameter became mandatory and that did not define mutability, ml-git treats these entities as strict.
 ```
 
 Because it is an attribute defined in the spec, you can define a type of mutability for each entity that the project has. For example, you can have in the same project a dataset-ex1 that has strict mutability while a dataset-ex2 has flexible mutability.

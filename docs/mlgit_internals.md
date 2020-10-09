@@ -401,7 +401,7 @@ dataset:
   categories:
     - computer-vision
     - images
-  mutability: mutable
+  mutability: strict
   manifest:
     store: s3h://mlgit-datasets
   name: imagenet8
@@ -415,7 +415,7 @@ dataset:
   categories:
   - computer-vision
   - images
-  mutability: mutable
+  mutability: strict
   manifest:
     files: MANIFEST.yaml
     store: s3h://mlgit-datasets

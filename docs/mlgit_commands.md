@@ -216,12 +216,12 @@ Options:
 Examples:
  - To create an entity with s3 as store and importing files from a path of your computer:
 ```
-ml-git dataset create imagenet8 --store-type=s3h --category=computer-vision --category=images --version=0 --import='/path/to/dataset' --mutability=mutable
+ml-git dataset create imagenet8 --store-type=s3h --category=computer-vision --category=images --version=0 --import='/path/to/dataset' --mutability=strict
 ```
 
 - To create an entity with s3 as store and importing files from a google drive URL:
 ```
-ml-git dataset create imagenet8 --store-type=s3h --category=computer-vision --category=images --import-url='gdrive.url' --credentials-path='/path/to/gdrive/credentials' --mutability=mutable --unzip
+ml-git dataset create imagenet8 --store-type=s3h --category=computer-vision --category=images --import-url='gdrive.url' --credentials-path='/path/to/gdrive/credentials' --mutability=strict --unzip
 ```
 
 </details>

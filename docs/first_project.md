@@ -123,7 +123,7 @@ Ml-git expects any dataset to be specified under _dataset/_ directory of your pr
 To create this specification file for a new entity you must run the following command:
 
 ```
-$ ml-git dataset create imagenet8 --category=computer-vision --category=images --mutability=mutable --store-type=s3h --bucket-name=mlgit-datasets --version=1 
+$ ml-git dataset create imagenet8 --category=computer-vision --category=images --mutability=strict --store-type=s3h --bucket-name=mlgit-datasets --version=1 
 ```
 
 After that a file must have been created in dataset/imagenet8/imagenet8.spec and should look like this:
@@ -133,7 +133,7 @@ dataset:
   categories:
     - computer-vision
     - images
-  mutability: mutable
+  mutability: strict
   manifest:
     store: s3h://mlgit-datasets
   name: imagenet8
@@ -155,7 +155,7 @@ dataset:
   categories:
     - computer-vision
     - images
-  mutability: mutable
+  mutability: strict
   manifest:
     store: s3h://mlgit-datasets
   name: imagenet8
