@@ -3,7 +3,6 @@
 ml-git is a tool which provides a Distributed Version Control system to enable efficient dataset management. Like its name emphasizes, it is inspired in git concepts and workflows, ml-git enables the following operations:
 
 - Manage a repository of different datasets, labels and models.
-- Versioning immutable versions of models, labels and documents.
 - Distribute these ML artifacts between members of a team or across organizations.
 - Apply the right data governance and security models to their artifacts.
 
@@ -11,7 +10,7 @@ ml-git is a tool which provides a Distributed Version Control system to enable e
 
 **Prerequisites:**
 
-- [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git).
+- [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
 - [Python 3.7+](https://www.python.org/downloads/release/python-370/)
 
 Download ml-git from repository and execute commands below:
@@ -102,7 +101,7 @@ $ ml-git clone https://github.com/user/ml_git_configuration_file_example.git --t
 This command will help you to start a new project, it creates your project artifact metadata:
 
 ```
-$ ml-git dataset create --category=computer-vision --category=images --bucket-name=your_bucket --import=../import-path dataset-ex 
+$ ml-git dataset create --category=computer-vision --category=images --bucket-name=your_bucket --import=../import-path --mutability=mutable dataset-ex 
 ```
 
 Demonstration video:

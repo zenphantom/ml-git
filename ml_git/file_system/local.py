@@ -23,6 +23,7 @@ from ml_git.file_system.cache import Cache
 from ml_git.file_system.hashfs import MultihashFS
 from ml_git.file_system.index import MultihashIndex, FullIndex, Status
 from ml_git.metadata import Metadata
+from ml_git.ml_git_message import output_messages
 from ml_git.pool import pool_factory, process_futures
 from ml_git.refs import Refs
 from ml_git.sample import SampleValidate
@@ -1011,7 +1012,7 @@ class LocalRepository(MultihashFS):
 
         try:
             spec_mutability = file_ws_spec[repo_type].get('mutability', 'strict')
-            if spec_mutability not in list(map(lambda c: c.value, Mutability)):
+            if spec_mutability not in Mutability.list():
                 log.error('Invalid mutability type.', class_name=REPOSITORY_CLASS_NAME)
                 return None, False
             else:
@@ -1021,17 +1022,18 @@ class LocalRepository(MultihashFS):
 
     @staticmethod
     def check_mutability_between_specs(repo_type, tag, metadata_path, categories_path, spec_path, spec):
+        ws_spec_path = os.path.join(spec_path, spec + '.spec')
+        file_ws_spec = yaml_load(ws_spec_path)
+        ws_spec_mutability = None
+        if 'mutability' in file_ws_spec[repo_type]:
+            ws_spec_mutability = file_ws_spec[repo_type]['mutability']
+
         if tag:
             metadata_spec_path = os.path.join(metadata_path, categories_path, spec, spec + '.spec')
-            ws_spec_path = os.path.join(spec_path, spec + '.spec')
-            file_ws_spec = yaml_load(ws_spec_path)
             file_md_spec = yaml_load(metadata_spec_path)
             md_spec_mutability = None
-            ws_spec_mutability = None
             try:
-                if 'mutability' in file_ws_spec[repo_type]:
-                    ws_spec_mutability = file_ws_spec[repo_type]['mutability']
-                else:
+                if ws_spec_mutability is None:
                     ws_spec_mutability = Mutability.STRICT.value
                 if 'mutability' in file_md_spec[repo_type]:
                     md_spec_mutability = file_md_spec[repo_type]['mutability']
@@ -1041,7 +1043,10 @@ class LocalRepository(MultihashFS):
             except Exception as e:
                 log.error(e, class_name=REPOSITORY_CLASS_NAME)
                 return False
-        return True
+
+        if ws_spec_mutability is not None:
+            return ws_spec_mutability
+        raise RuntimeError(output_messages['ERROR_SPEC_WITHOUT_MUTABILITY'])
 
     def import_file_from_url(self, path_dst, url, store_type):
         store = store_factory(self.__config, '{}://{}'.format(store_type, store_type))

@@ -11,6 +11,7 @@ from ml_git.commands import entity
 from ml_git.commands.custom_options import MutuallyExclusiveOption, OptionRequiredIf, DeprecatedOption, \
     DeprecatedOptionsCommand
 from ml_git.commands.utils import set_verbose_mode
+from ml_git.constants import Mutability
 
 commands = [
 
@@ -484,6 +485,7 @@ commands = [
 
         'options': {
             '--category': {'required': True, 'multiple': True, 'help': 'Artifact\'s category name.'},
+            '--mutability': {'required': True, 'type': click.Choice(Mutability.list()), 'help': 'Mutability type.'},
             '--store-type': {'type': click.Choice(['s3h', 'azureblobh', 'gdriveh']),
                              'help': 'Data store type [default: s3h].', 'default': 's3h'},
             ('--version-number', '--version'): {'help': 'Number of artifact version.', 'default': 1,
