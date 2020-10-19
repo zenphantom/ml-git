@@ -560,7 +560,10 @@ Applies SHA2 to content of objects , uses multihash to generate the CID, and com
 <details>
 <summary> <code>ml-git &lt;ml-entity&gt; gc</code> </summary>
 <br>
-```To Be Implemented```
+
+```
+To Be Implemented
+```
 
 </details>
 
@@ -932,14 +935,8 @@ This command load the configuration file **.ml-git/config.yaml** and change the 
 <details>
 <summary> <code>ml-git repository remote &lt;ml-entity&gt; del</code> </summary>
 
-This command load the configuration file **.ml-git/config.yaml** and change the attribute **git** to empty, the save it.
-
 ```
-ml-git_project/
-└── .ml-git/
-    └── <ml-entity>/
-       └── metadata/ <- Delete this directory.
-          └── .git
+To Be Implemented
 ```
 
 </details>
