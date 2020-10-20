@@ -15,7 +15,8 @@ from stat import S_IREAD, S_IRGRP, S_IROTH, S_IWUSR
 
 from ruamel.yaml import YAML
 from ruamel.yaml.compat import StringIO
-from ml_git import constants
+
+from ml_git.constants import SPEC_EXTENSION, CONFIG_FILE
 
 
 class RootPathException(Exception):
@@ -129,7 +130,7 @@ def get_root_path():
     current_path = Path(os.getcwd())
     while current_path is not None:
         try:
-            next(current_path.glob(constants.CONFIG_FILE))
+            next(current_path.glob(CONFIG_FILE))
             return current_path
         except StopIteration:
             parent = current_path.parent
@@ -213,7 +214,7 @@ def unzip_files_in_directory(dir_path):
 def remove_from_workspace(file_names, path, spec_name):
     for root, dirs, files in os.walk(path):
         for file in files:
-            if file in [spec_name + constants.SPEC_EXTENSION, 'README.md']:
+            if file in [spec_name + SPEC_EXTENSION, 'README.md']:
                 continue
             for key in file_names:
                 if file in key:
