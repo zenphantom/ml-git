@@ -10,6 +10,7 @@ from git import Repo, GitCommandError
 from ml_git import log
 from ml_git.config import mlgit_config_save, get_global_config_path
 from ml_git.constants import ROOT_FILE_NAME, CONFIG_FILE, ADMIN_CLASS_NAME, StoreType
+from ml_git.ml_git_message import output_messages
 from ml_git.storages.store_utils import get_bucket_region
 from ml_git.utils import get_root_path
 from ml_git.utils import yaml_load, yaml_save, RootPathException, clear, ensure_path_exists
@@ -52,12 +53,13 @@ def remote_add(repotype, ml_git_remote, global_conf=False):
 
     if repotype in conf:
         if conf[repotype]['git'] is None or not len(conf[repotype]['git']) > 0:
-            log.info('Add remote repository [%s] for [%s]' % (ml_git_remote, repotype), class_name=ADMIN_CLASS_NAME)
+            log.info(output_messages['INFO_ADD_REMOTE'] % (ml_git_remote, repotype), class_name=ADMIN_CLASS_NAME)
         else:
-            log.info('Changing remote from [%s]  to [%s] for  [%s]' % (conf[repotype]['git'], ml_git_remote, repotype),
+            log.warn(output_messages['WARN_HAS_CONFIGURED_REMOTE'], class_name=ADMIN_CLASS_NAME)
+            log.info(output_messages['INFO_CHANGING_REMOTE'] % (conf[repotype]['git'], ml_git_remote, repotype),
                      class_name=ADMIN_CLASS_NAME)
     else:
-        log.info('Add remote repository [%s] for [%s]' % (ml_git_remote, repotype), class_name=ADMIN_CLASS_NAME)
+        log.info(output_messages['INFO_ADD_REMOTE'] % (ml_git_remote, repotype), class_name=ADMIN_CLASS_NAME)
     try:
         conf[repotype]['git'] = ml_git_remote
     except Exception:
