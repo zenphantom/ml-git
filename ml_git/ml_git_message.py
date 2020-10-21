@@ -2,6 +2,7 @@
 © Copyright 2020 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
+from ml_git.config import get_sample_spec_doc
 
 output_messages = {
     'INFO_CHECKOUT_LATEST_TAG': 'Performing checkout on the entity\'s lastest tag (%s)',
@@ -17,6 +18,9 @@ output_messages = {
     'ERROR_REMOTE_UNCONFIGURED': 'Remote URL not found for [%s]. Check your configuration file.',
     'ERROR_ENTITY_NOT_FOUND': 'Entity type [%s] not found in your configuration file.',
     'ERROR_REMOTE_NOT_FOUND': 'Remote URL not found.',
-
-    'DEBUG_REMOVE_REMOTE': 'Removing remote from local repository [%s]'
+    'DEBUG_REMOVE_REMOTE': 'Removing remote from local repository [%s]',
+    'ERROR_MISSING_MUTABILITY': 'Missing option "--mutability".  Choose from:\n\tstrict,\n\tflexible,\n\tmutable.',
+    'ERROR_SPEC_WITHOUT_MUTABILITY': 'You need to define a mutability type when creating a new entity. '
+                                     'Your spec should look something like this:' + get_sample_spec_doc('some-bucket')
+	
 }

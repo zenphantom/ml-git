@@ -15,7 +15,7 @@ from zipfile import ZipFile
 
 from ruamel.yaml import YAML
 
-from ml_git.constants import StoreType, GLOBAL_ML_GIT_CONFIG
+from ml_git.constants import StoreType, GLOBAL_ML_GIT_CONFIG, Mutability
 from tests.integration.commands import MLGIT_INIT, MLGIT_REMOTE_ADD, MLGIT_ENTITY_INIT, MLGIT_ADD, \
     MLGIT_STORE_ADD_WITH_TYPE, MLGIT_REMOTE_ADD_GLOBAL, MLGIT_STORE_ADD
 from tests.integration.output_messages import messages
@@ -124,6 +124,7 @@ def init_repository(entity, self, version=1, store_type='s3h', profile=PROFILE, 
                 'files': 'MANIFEST.yaml',
                 'store': '%s://mlgit' % store_type
             },
+            'mutability': Mutability.STRICT.value,
             'name': artifact_name,
             'version': version
         }
