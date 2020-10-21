@@ -12,7 +12,7 @@ from halo import Halo
 from hurry.filesize import alternative, size
 
 from ml_git import log
-from ml_git.admin import remote_add, store_add, clone_config_repository, init_mlgit
+from ml_git.admin import remote_add, store_add, clone_config_repository, init_mlgit, remote_del
 from ml_git.config import get_index_path, get_objects_path, get_cache_path, get_metadata_path, get_refs_path, \
     validate_config_spec_hash, validate_spec_hash, get_sample_config_spec, get_sample_spec_doc, \
     get_index_metadata_path, create_workspace_tree_structure, start_wizard_questions, config_load, \
@@ -56,7 +56,17 @@ class Repository(object):
             self.__config = config_load()
             metadata_path = get_metadata_path(self.__config)
             m = Metadata('', metadata_path, self.__config, self.__repo_type)
-            m.remote_set_url(repo_type, mlgit_remote)
+            m.remote_set_url(mlgit_remote)
+        except Exception as e:
+            log.error(e, class_name=REPOSITORY_CLASS_NAME)
+            return
+
+    def repo_remote_del(self, global_conf=False):
+        try:
+            metadata_path = get_metadata_path(self.__config)
+            metadata = Metadata('', metadata_path, self.__config, self.__repo_type)
+            if metadata.delete_git_reference():
+                remote_del(self.__repo_type, global_conf)
         except Exception as e:
             log.error(e, class_name=REPOSITORY_CLASS_NAME)
             return

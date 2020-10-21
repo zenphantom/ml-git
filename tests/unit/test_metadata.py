@@ -6,9 +6,11 @@ SPDX-License-Identifier: GPL-2.0-only
 import os
 import shutil
 import unittest
+from copy import deepcopy
 from unittest import mock
 
 import pytest
+from git import GitError, Repo
 
 from ml_git.metadata import Metadata
 from ml_git.repository import Repository
@@ -132,6 +134,27 @@ class MetadataTestCases(unittest.TestCase):
         self.assertRaises(RuntimeError, lambda: m._get_target_tag(tags, 'dataset-wrong', 1))
         self.assertEqual(m._get_target_tag(tags, 'dataset-ex', 2), 'computer__images__dataset-ex__2')
         clear(m.path)
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_test_dir')
+    def test_blank_remote_url(self):
+        config_cp = deepcopy(config)
+        config_cp['dataset']['git'] = ''
+        m = Metadata(spec, self.test_dir, config_cp, repotype)
+        self.assertRaises(GitError, m.validate_blank_remote_url)
+        clear(m.path)
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_test_dir')
+    def test_delete_git_reference(self):
+        m = Metadata(spec, self.test_dir, config, repotype)
+        m.init()
+
+        for url in Repo(m.path).remote().urls:
+            self.assertNotEqual(url, '')
+
+        self.assertTrue(m.delete_git_reference())
+
+        for url in Repo(m.path).remote().urls:
+            self.assertEqual(url, '')
 
 
 if __name__ == '__main__':

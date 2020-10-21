@@ -15,6 +15,7 @@ from ml_git.config import get_metadata_path
 from ml_git.constants import METADATA_MANAGER_CLASS_NAME, HEAD_1, RGX_ADDED_FILES, RGX_DELETED_FILES, RGX_SIZE_FILES, \
     RGX_AMOUNT_FILES, TAG, AUTHOR, EMAIL, DATE, MESSAGE, ADDED, SIZE, AMOUNT, DELETED
 from ml_git.manifest import Manifest
+from ml_git.ml_git_message import output_messages
 from ml_git.utils import get_root_path, ensure_path_exists, yaml_load, RootPathException, get_yaml_str
 
 
@@ -53,7 +54,7 @@ class MetadataRepo(object):
                 raise GitError(g.stderr)
             return
 
-    def remote_set_url(self, repotype, mlgit_remote):
+    def remote_set_url(self, mlgit_remote):
         try:
             if self.check_exists():
                 repo = Repo(self.__path)
@@ -78,6 +79,7 @@ class MetadataRepo(object):
     def update(self):
         log.info('Pull [%s]' % self.__path, class_name=METADATA_MANAGER_CLASS_NAME)
         repo = Repo(self.__path)
+        self.validate_blank_remote_url()
         o = repo.remotes.origin
         o.pull('--tags')
 
@@ -96,6 +98,7 @@ class MetadataRepo(object):
         log.debug('Push [%s]' % self.__path, class_name=METADATA_MANAGER_CLASS_NAME)
         repo = Repo(self.__path)
         try:
+            self.validate_blank_remote_url()
             for i in repo.remotes.origin.push(tags=True):
                 if (i.flags & PushInfo.ERROR) == PushInfo.ERROR:
                     raise RuntimeError('Error on push metadata to git repository. Please update your mlgit project!')
@@ -114,6 +117,7 @@ class MetadataRepo(object):
         try:
             log.debug(' fetch [%s]' % self.__path, class_name=METADATA_MANAGER_CLASS_NAME)
             repo = Repo(self.__path)
+            self.validate_blank_remote_url()
             repo.remotes.origin.fetch()
         except GitError as e:
             err = e.stderr
@@ -360,6 +364,23 @@ class MetadataRepo(object):
             amount_files = re.findall(RGX_AMOUNT_FILES, diff)
 
         return added_files, deleted_files, size_files, amount_files
+
+    def validate_blank_remote_url(self):
+        blank_url = ''
+        repo = Repo(self.__path)
+        for url in repo.remote().urls:
+            if url == blank_url:
+                git_error = GitError()
+                git_error.stderr = output_messages['ERROR_REMOTE_NOT_FOUND']
+                raise git_error
+
+    def delete_git_reference(self):
+        try:
+            self.remote_set_url('')
+        except GitError as e:
+            log.error(e.stderr, class_name=METADATA_MANAGER_CLASS_NAME)
+            return False
+        return True
 
 
 class MetadataManager(MetadataRepo):

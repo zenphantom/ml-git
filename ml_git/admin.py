@@ -10,6 +10,7 @@ from git import Repo, GitCommandError
 from ml_git import log
 from ml_git.config import mlgit_config_save, get_global_config_path
 from ml_git.constants import ROOT_FILE_NAME, CONFIG_FILE, ADMIN_CLASS_NAME, StoreType
+from ml_git.ml_git_message import output_messages
 from ml_git.storages.store_utils import get_bucket_region
 from ml_git.utils import get_root_path
 from ml_git.utils import yaml_load, yaml_save, RootPathException, clear, ensure_path_exists
@@ -64,6 +65,22 @@ def remote_add(repotype, ml_git_remote, global_conf=False):
         conf[repotype] = {}
         conf[repotype]['git'] = ml_git_remote
     yaml_save(conf, file)
+
+
+def remote_del(repo_type, global_conf=False):
+    file = get_config_path(global_conf)
+    conf = yaml_load(file)
+
+    if repo_type in conf:
+        git_url = conf[repo_type]['git']
+        if git_url is None or not len(conf[repo_type]['git']) > 0:
+            log.error(output_messages['ERROR_REMOTE_UNCONFIGURED'] % repo_type, class_name=ADMIN_CLASS_NAME)
+        else:
+            log.info(output_messages['INFO_REMOVE_REMOTE'] % (git_url, repo_type), class_name=ADMIN_CLASS_NAME)
+            conf[repo_type]['git'] = ''
+            yaml_save(conf, file)
+    else:
+        log.error(output_messages['ERROR_ENTITY_NOT_FOUND'] % repo_type, class_name=ADMIN_CLASS_NAME)
 
 
 def valid_store_type(store_type):
