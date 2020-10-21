@@ -322,7 +322,9 @@ in the future, fsck should be able to fix some errors of detected corruption.
 <summary><code> ml-git &lt;ml-entity&gt; gc </code></summary>
 <br>
 
-```To Be Implemented```
+```
+To Be Implemented
+```
 
 </details>
 
@@ -821,17 +823,7 @@ $ ml-git repository remote dataset add https://git@github.com/mlgit-datasets
 <br>
 
 ```
-Usage: ml-git repository remote dataset del [OPTIONS] REMOTE_URL
-
-  Remove remote dataset metadata REMOTE_URL from this ml-git repository
-
-Options:
-  --help  Show this message and exit.
-```
-
-Example:
-```
-$ ml-git repository remote dataset del https://git@github.com/mlgit-datasets
+To Be Implemented
 ```
 
 </details>
