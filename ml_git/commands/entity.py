@@ -9,33 +9,51 @@ from ml_git.commands.general import mlgit
 from click_didyoumean import DYMGroup
 
 
-@mlgit.group(DATASET, help='management of datasets within this ml-git repository', cls=DYMGroup)
+@mlgit.group(DATASET, help='Management of datasets within this ml-git repository.', cls=DYMGroup)
 def dataset():
+    """
+    Management of datasets within this ml-git repository.
+    """
     pass
 
 
 @dataset.group('tag', help='Management of tags for this entity.', cls=DYMGroup)
 def dt_tag_group():
+    """
+    Management of tags for this entity.
+    """
     pass
 
 
-@mlgit.group(MODEL, help='management of models within this ml-git repository', cls=DYMGroup)
+@mlgit.group(MODEL, help='Management of models within this ml-git repository.', cls=DYMGroup)
 def model():
+    """
+    Management of models within this ml-git repository.
+    """
     pass
 
 
-@model.group('tag', cls=DYMGroup)
+@model.group('tag', help='Management of tags for this entity.', cls=DYMGroup)
 def md_tag_group():
+    """
+    Management of tags for this entity.
+    """
     pass
 
 
-@mlgit.group(LABELS, help='management of labels sets within this ml-git repository', cls=DYMGroup)
+@mlgit.group(LABELS, help='Management of labels sets within this ml-git repository.', cls=DYMGroup)
 def labels():
+    """
+    Management of labels sets within this ml-git repository.
+    """
     pass
 
 
 @labels.group('tag', cls=DYMGroup)
 def lb_tag_group():
+    """
+    Management of tags for this entity.
+    """
     pass
 
 
@@ -57,17 +75,21 @@ def push(context, **kwargs):
     repositories[repo_type].push(entity, retry, clear_on_fail)
 
 
-def checkout(context, retry, ml_entity_tag, force, with_dataset=False, with_labels=False,
-             bare=False, sample_type=None, sampling=None, seed=None):
+def checkout(context, **kwargs):
     repo_type = context.parent.command.name
     repo = repositories[repo_type]
     sample = None
 
-    if sample_type is not None:
-        sample = {sample_type: sampling, 'seed': seed}
-
-    repo.checkout(ml_entity_tag, sample, retries=retry, force_get=force, dataset=with_dataset, labels=with_labels,
-                  bare=bare)
+    if 'sample_type' in kwargs and kwargs['sample_type'] is not None:
+        sample = {kwargs['sample_type']: kwargs['sampling'], 'seed': kwargs['seed']}
+    options = {}
+    options['with_dataset'] = kwargs.get('with_dataset', False)
+    options['with_labels'] = kwargs.get('with_labels', False)
+    options['retry'] = kwargs['retry']
+    options['force'] = kwargs['force']
+    options['bare'] = kwargs['bare']
+    options['version'] = kwargs['version']
+    repo.checkout(kwargs['ml_entity_tag'], sample, options)
 
 
 def fetch(context, **kwargs):
@@ -156,12 +178,10 @@ def import_tag(context, **kwargs):
     object_name = kwargs['object']
     directory = kwargs['entity_dir']
     retry = kwargs['retry']
-    bucket_name = kwargs['bucket_name']
-    profile = kwargs['credentials']
-    region = kwargs['region']
-    store_type = kwargs['store_type']
-    endpoint_url = kwargs['endpoint_url']
-    repositories[repo_type].import_files(object_name, path, directory, retry, bucket_name, profile, region, store_type, endpoint_url)
+
+    bucket = {'bucket_name': kwargs['bucket_name'], 'profile': kwargs['credentials'],
+              'region': kwargs['region'], 'store_type': kwargs['store_type'], 'endpoint_url': kwargs['endpoint_url']}
+    repositories[repo_type].import_files(object_name, path, directory, retry, bucket)
 
 
 def update(context):
@@ -196,17 +216,7 @@ def remote_fsck(context, **kwargs):
 
 def create(context, **kwargs):
     repo_type = context.parent.command.name
-    artifact_name = kwargs['artifact_name']
-    categories = list(kwargs['category'])
-    version = int(kwargs['version_number'])
-    imported_dir = kwargs['import']
-    store_type = kwargs['store_type']
-    bucket = kwargs['bucket_name']
-    start_wizard = kwargs['wizard_config']
-    import_url = kwargs['import_url']
-    unzip_file = kwargs['unzip']
-    credentials_path = kwargs['credentials_path']
-    repositories[repo_type].create(artifact_name, categories, store_type, bucket, version, imported_dir, start_wizard, import_url, unzip_file, credentials_path)
+    repositories[repo_type].create(kwargs)
 
 
 def export_tag(context, **kwargs):
@@ -214,11 +224,8 @@ def export_tag(context, **kwargs):
 
     tag = kwargs['ml_entity_tag']
     retry = int(kwargs['retry'])
-    bucket_name = kwargs['bucket_name']
-    profile = kwargs['credentials']
-    region = kwargs['region']
-    endpoint = kwargs['endpoint']
-    repositories[type].export(bucket_name, tag, profile, region, endpoint, retry)
+    bucket = {'bucket_name': kwargs['bucket_name'], 'profile': kwargs['credentials'], 'region': kwargs['region'], 'endpoint': kwargs['endpoint']}
+    repositories[type].export(bucket, tag, retry)
 
 
 def unlock(context, **kwargs):

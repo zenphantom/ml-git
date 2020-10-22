@@ -1,38 +1,36 @@
-"""
-© Copyright 2020 HP Development Company, L.P.
-SPDX-License-Identifier: GPL-2.0-only
-"""
-
-import os
-import shutil
-import tempfile
-
-from ml_git import log
-from ml_git.config import config_load
-from ml_git.repository import Repository
-from ml_git.log import init_logger
-
-init_logger()
+# ml-git API #
 
 
-def get_repository_instance(repo_type):
-    return Repository(config_load(), repo_type)
+# <a name="methods"> Methods available in the API </a> #
+
+<details>
+<summary><code> clone </code></summary>
+<br>
+
+```python
+def clone(repository_url, folder=None, track=False):
+ """This command will clone minimal configuration files from repository-url with valid .ml-git/config.yaml,
+    then initialize the metadata according to configurations.
+
+    Example:
+        clone('https://git@github.com/mlgit-repository')
+
+    Args:
+        repository_url (str): The git repository that will be cloned.
+        folder (str, optional): Directory that can be created to execute the clone command. [Default: current path]
+        track (bool, optional): Set if the tracking of the cloned repository should be kept. [Default: False]
+
+    """
+```
+</details>
 
 
-def validate_sample(sampling):
-    if 'group' in sampling or 'random' in sampling:
-        if 'seed' not in sampling:
-            log.error('It is necessary to pass the attribute \'seed\' in \'sampling\'. Example: {\'group\': \'1:2\', '
-                      '\'seed\': \'10\'}.')
-            return False
-    elif 'range' not in sampling:
-        log.error('To use the sampling option, you must pass a valid type of sampling (group, '
-                  'random or range).')
-        return False
-    return True
+<details>
+<summary><code> checkout </code></summary>
+<br>
 
-
-def checkout(entity, tag, sampling=None, retries=2, force=False, dataset=False, labels=False, version=-1):
+```python
+def checkout(entity, tag, sampling=None, retries=2, force=False, dataset=False, labels=False):
     """This command allows retrieving the data of a specific version of an ML entity.
 
     Example:
@@ -53,58 +51,18 @@ def checkout(entity, tag, sampling=None, retries=2, force=False, dataset=False, 
         force (bool, optional): Force checkout command to delete untracked/uncommitted files from the local repository [default: False].
         dataset (bool, optional): If exist a dataset related with the model or labels, this one must be downloaded [default: False].
         labels (bool, optional): If exist labels related with the model, they must be downloaded [default: False].
-
+    
     Returns:
         str: Return the path where the data was checked out.
-
     """
+```
+</details>
 
-    repo = Repository(config_load(), entity)
-    repo.update()
-    if sampling is not None and not validate_sample(sampling):
-        return None
-    options = {}
-    options['with_dataset'] = dataset
-    options['with_labels'] = labels
-    options['retry'] = retries
-    options['force'] = force
-    options['bare'] = False
-    options['version'] = version
-    repo.checkout(tag, sampling, options)
+<details>
+<summary><code> add </code></summary>
+<br>
 
-    data_path = os.path.join(entity, *tag.split('__')[:-1])
-    if not os.path.exists(data_path):
-        data_path = None
-    return data_path
-
-
-def clone(repository_url, folder=None, track=False):
-    """This command will clone minimal configuration files from repository-url with valid .ml-git/config.yaml,
-    then initialize the metadata according to configurations.
-
-    Example:
-        clone('https://git@github.com/mlgit-repository')
-
-    Args:
-        repository_url (str): The git repository that will be cloned.
-        folder (str, optional): Directory that can be created to execute the clone command [default: current path].
-        track (bool, optional): Set if the tracking of the cloned repository should be kept [default: False].
-
-    """
-
-    repo = Repository(config_load(), 'project')
-    if folder is not None:
-        repo.clone_config(repository_url, folder, track)
-    else:
-        current_directory = os.getcwd()
-        with tempfile.TemporaryDirectory(dir=current_directory) as tempdir:
-            mlgit_path = os.path.join(tempdir, 'mlgit')
-            repo.clone_config(repository_url, mlgit_path, track)
-            if not os.path.exists(os.path.join(current_directory, '.ml-git')):
-                shutil.move(os.path.join(mlgit_path, '.ml-git'), current_directory)
-            os.chdir(current_directory)
-
-
+```python
 def add(entity_type, entity_name, bumpversion=False, fsck=False, file_path=[]):
     """This command will add all the files under the directory into the ml-git index/staging area.
 
@@ -118,17 +76,21 @@ def add(entity_type, entity_name, bumpversion=False, fsck=False, file_path=[]):
         fsck (bool, optional): Run fsck after command execution [default: False].
         file_path (list, optional): List of files that must be added by the command [default: all files].
     """
+```
+</details>
 
-    repo = Repository(config_load(), entity_type)
-    repo.add(entity_name, file_path, bumpversion, fsck)
 
+<details>
+<summary><code> commit </code></summary>
+<br>
 
+```python
 def commit(entity, ml_entity_name, commit_message=None, related_dataset=None, related_labels=None):
-    """That command commits the index / staging area to the local repository.
+    """This command commits the index / staging area to the local repository.
 
     Example:
         commit('dataset', 'dataset-ex')
-
+        
     Args:
         entity (str): The type of an ML entity. (dataset, labels or model).
         ml_entity_name (str): Artefact name to commit.
@@ -136,20 +98,15 @@ def commit(entity, ml_entity_name, commit_message=None, related_dataset=None, re
         related_dataset (str, optional): Artefact name of dataset related to commit.
         related_labels (str, optional): Artefact name of labels related to commit.
     """
-
-    repo = get_repository_instance(entity)
-
-    specs = dict()
-
-    if related_dataset:
-        specs['dataset'] = related_dataset
-
-    if related_labels:
-        specs['labels'] = related_labels
-
-    repo.commit(ml_entity_name, specs, msg=commit_message)
+```
+</details>
 
 
+<details>
+<summary><code> push </code></summary>
+<br>
+
+```python
 def push(entity, entity_name,  retries=2, clear_on_fail=False):
     """This command allows pushing the data of a specific version of an ML entity.
 
@@ -161,7 +118,12 @@ def push(entity, entity_name,  retries=2, clear_on_fail=False):
             entity_name (str): An ml-git entity name to identify a ML entity.
             retries (int, optional): Number of retries to upload the files to the storage [default: 2].
             clear_on_fail (bool, optional): Remove the files from the store in case of failure during the push operation [default: False].
-    """
+         """
+```
+</details>
 
-    repo = Repository(config_load(), entity)
-    repo.push(entity_name, retries, clear_on_fail)
+
+# <a name="methods"> API notebooks </a> #
+
+In the api_scripts directory you can find notebooks running the ml-git api for some scenarios. 
+To run them, you just need to boot the jupyter notebook in an environment with ml-git installed and navigate to the notebook.

@@ -27,10 +27,10 @@ At the end of each section there is a video to demonstrate the ml-git usage.
 
 Make sure you have created your own [git repository (more information)](#git_use) for dataset metadata and a S3 bucket or a MinIO server for the dataset actual data.
 
-After that, create a ml-git project. To do this, use the following commands (note that 'dataset-ex' is the project name used as example):
+After that, create a ml-git project. To do this, use the following commands (note that 'mlgit-project' is the project name used as example):
 
 ```
-$ mkdir dataset-ex && cd dataset-ex (or clone an existing repo from Github or Github Enterprise)
+$ mkdir mlgit-project && cd mlgit-project (or clone an existing repo from Github or Github Enterprise)
 $ ml-git repository init
 ```
 
@@ -121,19 +121,24 @@ To create and upload a dataset to a store, you must be in an already initialized
 
 Ml-git expects any dataset to be specified under _dataset/_ directory of your project and it expects a specification file with the name of the dataset.
 
+To create this specification file for a new entity you must run the following command:
+
 ```
-$ mkdir -p dataset/imagenet8
-$ echo "
+$ ml-git dataset create imagenet8 --category=computer-vision --category=images --store-type=s3h --bucket-name=mlgit-datasets --version=1 
+```
+
+After that a file must have been created in dataset/imagenet8/imagenet8.spec and should look like this:
+
+```
 dataset:
   categories:
     - computer-vision
     - images
-  mutability: strict
   manifest:
     store: s3h://mlgit-datasets
+  mutability: strict
   name: imagenet8
   version: 1
-" > dataset/imagenet8/imagenet8.spec
 ```
 
 There are 5 main items in the spec file:
@@ -268,10 +273,8 @@ If you want to add data to a dataset, perform the following steps:
 
 - In your workspace, copy the new data in under ```dataset/<yourdataset>/data```
 - Modify the version number. To do this step you have two ways:
-    1. Modify the ```.spec``` file in one of the following places by **manually incrementing the version number**
-        - ```.ml-git/dataset/index/metadata/<yourdataset>/<yourdataset>.spec```
-        - ```dataset/<yourdataset>/<yourdataset>.spec```
-    2. Or, you can put the option ```--bumpversion``` on the add command to auto increment the version number, as shown below.
+    1. You can put the option ```--bumpversion``` on the add command to auto increment the version number, as shown below.
+    2. Or, you can put the option ```--version``` on the commit command to set an specific version number.
     
 - After that, like in the previous section, you need execute the following commands to upload the new data:
 
@@ -331,27 +334,11 @@ config:
 Now, you can create your first labels set for say mscoco. ml-git expects any labels set to be specified under _labels/_ directory of your project and it expects a specification file with the name of the _labels_.
 
 ```
-$ mkdir -p labels/mscoco-captions
-$ echo "
-labels:
-  categories:
-    - computer-vision
-    - captions
-  mutability: strict
-  manifest:
-    store: s3h://mlgit-labels
-  name: mscoco-captions
-  version: 1
-" > labels/mscoco-captions/mscoco-captions.spec
+$ ml-git labels create mscoco-captions --category=computer-vision --category=captions --store-type=s3h --bucket-name=mlgit-labels --version=1
 ```
 
-There are 4 main items in the spec file:
-1. __name__: it's the name of the labels
-2. __version__: the version should be incremented each time there is new version pushed into ml-git
-3. __categories__ : describes a tree structure to characterize the labels categor-y/-ies. That information is used by ml-git to create a directory structure in the git repository managing the metadata.
-4. __manifest__: describes the data store in which the data is actually stored. In this case a S3 bucket named _mlgit-labels_. The credentials and region should be found in the ml-git config file.
+After create the entity, you can create the README.md to create a web page describing your labels set. Here below is the tree of caption labels for mscoco directory and file structure:
 
-After create the specification file, you can create the README.md to create a web page describing your labels set. Here below is the tree of caption labels for mscoco directory and file structure:
 ```
 mscoco-captions/
 ├── README.md
@@ -413,6 +400,12 @@ If you already are in a configured ml-git project directory, the following comma
 $ ml-git dataset update
 ```
 
+Or update all metadata repository:
+
+```
+$ ml-git repository update
+```
+
 To discover which datasets are under ml-git management, you can execute the following command:
 ```
 $ ml-git dataset list
@@ -428,7 +421,7 @@ The ml-git repository contains 3 different datasets, all falling under the same 
 In order for ml-git to manage the different versions of the same dataset, it internally creates a tag based on categories, ml entity name and its version.
 To show all these tag representing the versions of a dataset, simply type the following:
 ```
-$ ml-git dataset tag imagenet8 list
+$ ml-git dataset tag list imagenet8
 computer-vision__images__imagenet8__1
 computer-vision__images__imagenet8__2
 ```
@@ -445,9 +438,20 @@ The output is a tuple:
 2. The sha of the git commit of that version. 
 
 
-It is now rather simple to retrieve a specific version locally to start any experiment by executing the following command:
+It is now rather simple to retrieve a specific version locally to start any experiment by executing one of the following commands:
 ```
 $ ml-git dataset checkout computer-vision__images__imagenet8__1
+```
+or 
+```
+$ ml-git dataset checkout imagenet8 --version=1
+```
+
+
+If you want to get the latest available version of an entity you can just pass its name in the checkout command, as shown below:
+
+```
+$ ml-git dataset checkout imagenet8
 ```
 
 Getting the data will auto-create a directory structure under _dataset_ directory as shown below. That structure _computer-vision/images_ is actually coming from the categories defined in the dataset spec file. Doing that way allows for easy download of many datasets in one single ml-git project without creating any conflicts.
