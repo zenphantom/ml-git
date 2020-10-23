@@ -20,6 +20,7 @@ from tests.integration.output_messages import messages
 
 @pytest.mark.usefixtures('tmp_dir', 'aws_session')
 class CheckoutTagAcceptanceTests(unittest.TestCase):
+    entity_path = os.path.join('dataset', 'computer_vision', 'images', 'dataset-ex')
 
     def set_up_checkout(self, entity):
         init_repository(entity, self)
@@ -39,15 +40,17 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
 
     def check_amount_of_files(self, entity_type, expected_files, sampling=True):
         entity_dir = os.path.join(self.tmp_dir, entity_type, 'computer-vision', 'images', entity_type+'-ex')
+        if expected_files == 0:
+            self.assertFalse(os.path.exists(entity_dir))
+            self.assertFalse(self.check_sampling_flag('dataset'))
+            return
         self.assertTrue(os.path.exists(entity_dir))
         file_count = 0
         for path in pathlib.Path(entity_dir).iterdir():
             if path.is_file():
                 file_count += 1
         self.assertEqual(file_count, expected_files)
-        if expected_files == 0:
-            self.assertFalse(self.check_sampling_flag('dataset'))
-        elif sampling:
+        if sampling:
             self.assertTrue(self.check_sampling_flag('dataset'))
 
     def check_sampling_flag(self, entity):
