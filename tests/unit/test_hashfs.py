@@ -254,7 +254,3 @@ class HashFSTestCases(unittest.TestCase):
         key = hfs.put(self.test_dir / 'data/think-hires.jpg')
 
         self.assertRaises(FileNotFoundError, lambda: hfs.link(key, 'data/think.jpg', True))
-
-
-if __name__ == '__main__':
-    unittest.main()

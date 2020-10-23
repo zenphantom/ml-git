@@ -1026,12 +1026,3 @@ class Repository(object):
                 any_metadata = True
         if not any_metadata:
             log.error(output_messages['ERROR_UNINITIALIZED_METADATA'], class_name=REPOSITORY_CLASS_NAME)
-
-
-if __name__ == '__main__':
-    config = config_load()
-    r = Repository(config)
-    r.init()
-    r.add('dataset-ex')
-    r.commit('dataset-ex')
-    r.status('dataset-ex')

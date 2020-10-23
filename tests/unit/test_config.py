@@ -191,8 +191,3 @@ class ConfigTestCases(unittest.TestCase):
 
         config = yaml_load('.ml-git/config.yaml')
         self.assertEqual(config['labels']['git'], new_remote)
-
-
-if __name__ == '__main__':
-
-    unittest.main()
