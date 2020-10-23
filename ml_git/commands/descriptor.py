@@ -7,7 +7,7 @@ import copy
 
 import click
 
-from ml_git.commands import entity
+from ml_git.commands import entity, help_msg
 from ml_git.commands.custom_options import MutuallyExclusiveOption, OptionRequiredIf, DeprecatedOption, \
     DeprecatedOptionsCommand
 from ml_git.commands.utils import set_verbose_mode
@@ -55,10 +55,8 @@ commands = [
         },
 
         'options': {
-            '--retry': {'default': 2, 'help': 'Number of retries to upload or download '
-                                              'the files from the storage [default: 2].'},
-            '--clearonfail': {'is_flag': True, 'help': 'Remove the files from the store '
-                                                       'in case of failure during the push operation.'},
+            '--retry': {'default': 2, 'help': help_msg.RETRY_OPTION},
+            '--clearonfail': {'is_flag': True, 'help': help_msg.CLEAR_ON_FAIL},
         },
 
         'help': 'Push local commits from ML_ENTITY_NAME to remote ml-git repository & store.'
@@ -72,28 +70,15 @@ commands = [
 
         'options': {
             '--sample-type': {'type': click.Choice(['group', 'range', 'random'])},
-            '--sampling': {'default': '1:1000', 'help': 'group: <amount>:<group> The group sample option consists of '
-                                                        'amount and group used to download a sample.\n'
-                                                        'range: <start:stop:step> The range sample option consists of '
-                                                        'start, stop and step used to download a sample. The start '
-                                                        'parameter can be equal or greater than zero.'
-                                                        'The stop parameter can be \'all\', -1 or'
-                                                        ' any integer above zero.\nrandom: <amount:frequency> '
-                                                        'The random sample option consists of '
-                                                        'amount and frequency used to download a sample.'
-                           },
+            '--sampling': {'default': '1:1000', 'help': help_msg.SAMPLING_OPTION},
 
-            '--seed': {'default': '1', 'help': 'Seed to be used in random-based samplers.'},
+            '--seed': {'default': '1', 'help': help_msg.SEED_OPTION},
 
-            '--retry': {'default': 2, 'help': 'Number of retries to download '
-                                              'the files from the storage [default: 2].'},
+            '--retry': {'default': 2, 'help': help_msg.RETRY_OPTION},
 
-            '--force': {'default': False, 'is_flag': True, 'help': 'Force checkout command to '
-                                                                   'delete untracked/uncommitted '
-                                                                   'files from local repository.'},
-            '--bare': {'default': False, 'is_flag': True, 'help': 'Ability to add/commit/push without'
-                                                                  ' having the ml-entity checked out.'},
-            '--version': {'default': -1, 'help': 'Number of artifact version to be downloaded [default: latest].'}
+            '--force': {'default': False, 'is_flag': True, 'help': help_msg.FORCE_CHECKOUT},
+            '--bare': {'default': False, 'is_flag': True, 'help': help_msg.BARE_OPTION},
+            '--version': {'default': -1, 'help': help_msg.ARTIFACT_VERSION}
         },
 
         'arguments': {
@@ -116,17 +101,12 @@ commands = [
         },
 
         'options': {
-            ('--with-dataset', '-d'): {'is_flag': True, 'default': False, 'help': 'The checkout associated dataset'
-                                                                                  ' in user workspace as well.'},
-            '--retry': {'default': 2, 'help': 'Number of retries to download '
-                                              'the files from the storage [default: 2].'},
+            ('--with-dataset', '-d'): {'is_flag': True, 'default': False, 'help': help_msg.ASSOCIATED_WITH_DATASET},
+            '--retry': {'default': 2, 'help': help_msg.RETRY_OPTION},
 
-            '--force': {'is_flag': True, 'default': False, 'help': 'Force checkout command to '
-                                                                   'delete untracked/uncommitted '
-                                                                   'files from local repository.'},
-            '--bare': {'default': False, 'is_flag': True, 'help': 'Ability to add/commit/push without'
-                                                                  ' having the ml-entity checked out.'},
-            '--version': {'default': -1, 'help': 'Number of artifact version to be downloaded [default: latest].'}
+            '--force': {'is_flag': True, 'default': False, 'help': help_msg.FORCE_CHECKOUT},
+            '--bare': {'default': False, 'is_flag': True, 'help': help_msg.BARE_OPTION},
+            '--version': {'default': -1, 'help': help_msg.ARTIFACT_VERSION}
         },
 
         'help': 'Checkout the ML_ENTITY_TAG|ML_ENTITY of a label set into user workspace.'
@@ -138,19 +118,13 @@ commands = [
         'callback': entity.checkout,
         'groups': [entity.model],
         'options': {
-            ('--with-labels', '-l'): {'is_flag': True, 'default': False, 'help': 'The checkout associated labels'
-                                                                                 '  in user workspace as well.'},
-            ('--with-dataset', '-d'): {'is_flag': True, 'default': False, 'help': 'The checkout associated dataset'
-                                                                                  ' in user workspace as well.'},
-            '--retry': {'default': 2, 'help': 'Number of retries to download '
-                                              'the files from the storage [default: 2].'},
+            ('--with-labels', '-l'): {'is_flag': True, 'default': False, 'help': help_msg.ASSOCIATED_WITH_LABELS},
+            ('--with-dataset', '-d'): {'is_flag': True, 'default': False, 'help': help_msg.ASSOCIATED_WITH_DATASET},
+            '--retry': {'default': 2, 'help': help_msg.RETRY_OPTION},
 
-            '--force': {'default': False, 'is_flag': True, 'help': 'Force checkout command to '
-                                                                   'delete untracked/uncommitted '
-                                                                   'files from local repository.'},
-            '--bare': {'default': False, 'is_flag': True, 'help': 'Ability to add/commit/push without'
-                                                                  ' having the ml-entity checked out.'},
-            '--version': {'default': -1, 'help': 'Number of artifact version to be downloaded [default: latest].'}
+            '--force': {'default': False, 'is_flag': True, 'help': help_msg.FORCE_CHECKOUT},
+            '--bare': {'default': False, 'is_flag': True, 'help': help_msg.BARE_OPTION},
+            '--version': {'default': -1, 'help': help_msg.ARTIFACT_VERSION}
         },
 
         'arguments': {
@@ -175,21 +149,12 @@ commands = [
         'options': {
             '--sample-type': {'type': click.Choice(['group', 'range', 'random'])},
             '--sampling': {'default': '1:1000',
-                           'help': 'The group: <amount>:<group> The group sample option consists of '
-                                   'amount and group used to download a sample.\n'
-                                   'range: <start:stop:step> The range sample option consists of '
-                                   'start, stop and step used to download a sample. The start '
-                                   'parameter can be equal or greater than zero.'
-                                   'The stop parameter can be \'all\', -1 or'
-                                   ' any integer above zero.\nrandom: <amount:frequency> '
-                                   'The random sample option consists of '
-                                   'amount and frequency used to download a sample.'
+                           'help': help_msg.SAMPLING_OPTION
                            },
 
-            '--seed': {'default': '1', 'help': 'Seed to be used in random-based samplers.'},
+            '--seed': {'default': '1', 'help': help_msg.SEED_OPTION},
 
-            '--retry': {'default': 2, 'help': 'Number of retries to download '
-                                              'the files from the storage [default: 2].'},
+            '--retry': {'default': 2, 'help': help_msg.RETRY_OPTION},
         },
 
         'help': 'Allows you to download just the metadata files of an entity.'
@@ -235,8 +200,8 @@ commands = [
         },
 
         'options': {
-            '--bumpversion': {'is_flag': True, 'help': 'Increment the version number when adding more files.'},
-            '--fsck': {'is_flag': True, 'help': 'Run fsck after command execution.'}
+            '--bumpversion': {'is_flag': True, 'help': help_msg.BUMP_VERSION},
+            '--fsck': {'is_flag': True, 'help': help_msg.FSCK_OPTION}
         },
 
         'help': 'Add %s change set ML_ENTITY_NAME to the local ml-git staging area.'
@@ -253,11 +218,11 @@ commands = [
         },
 
         'options': {
-            '--tag': {'help': 'Ml-git tag to identify a specific version of a ML entity.'},
-            ('--version-number', '--version'): {'type': click.IntRange(0, int(8 * '9')), 'help': 'Set the number of artifact version.',
-                                                'cls': DeprecatedOption, 'deprecated': ['--version-number'], 'preferred':'--version'},
-            ('--message', '-m'): {'help': 'Use the provided <msg> as the commit message.'},
-            '--fsck': {'help': 'Run fsck after command execution.'},
+            '--tag': {'help': help_msg.TAG_OPTION},
+            ('--version-number', '--version'): {'type': click.IntRange(0, int(8 * '9')), 'help': help_msg.SET_VERSION_NUMBER,
+                                                'cls': DeprecatedOption, 'deprecated': ['--version-number'], 'preferred': '--version'},
+            ('--message', '-m'): {'help': help_msg.COMMIT_MSG},
+            '--fsck': {'help': help_msg.FSCK_OPTION},
         },
 
         'help': 'Commit dataset change set of ML_ENTITY_NAME locally to this ml-git repository.'
@@ -275,11 +240,11 @@ commands = [
 
         'options': {
             '--dataset': {'help': 'Link dataset entity name to this label set version.'},
-            '--tag': {'help': 'Ml-git tag to identify a specific version of a ML entity.'},
-            ('--version-number', '--version'): {'type': click.IntRange(0, int(8 * '9')), 'help': 'Set the number of artifact version.',
+            '--tag': {'help': help_msg.TAG_OPTION},
+            ('--version-number', '--version'): {'type': click.IntRange(0, int(8 * '9')), 'help': help_msg.SET_VERSION_NUMBER,
                                                 'cls': DeprecatedOption, 'deprecated': ['--version-number'], 'preferred':'--version'},
-            ('--message', '-m'): {'help': 'Use the provided <msg> as the commit message.'},
-            '--fsck': {'help': 'Run fsck after command execution.'},
+            ('--message', '-m'): {'help': help_msg.COMMIT_MSG},
+            '--fsck': {'help': help_msg.FSCK_OPTION},
         },
 
         'help': 'Commit labels change set of ML_ENTITY_NAME locally to this ml-git repository.'
@@ -296,13 +261,13 @@ commands = [
         },
 
         'options': {
-            '--dataset': {'help': 'Link dataset entity name to this model set version.'},
-            '--labels': {'help': 'Link labels entity name to this model set version.'},
-            '--tag': {'help': 'Ml-git tag to identify a specific version of a ML entity.'},
-            ('--version-number', '--version'): {'type': click.IntRange(0, int(8 * '9')), 'help': 'Set the number of artifact version.',
-                                                'cls': DeprecatedOption, 'deprecated': ['--version-number'], 'preferred':'--version'},
-            ('--message', '-m'): {'help': 'Use the provided <msg> as the commit message.'},
-            '--fsck': {'help': 'Run fsck after command execution.'},
+            '--dataset': {'help': help_msg.LINK_DATASET},
+            '--labels': {'help': help_msg.LINK_LABELS},
+            '--tag': {'help': help_msg.TAG_OPTION},
+            ('--version-number', '--version'): {'type': click.IntRange(0, int(8 * '9')), 'help': help_msg.SET_VERSION_NUMBER,
+                                                'cls': DeprecatedOption, 'deprecated': ['--version-number'], 'preferred': '--version'},
+            ('--message', '-m'): {'help': help_msg.COMMIT_MSG},
+            '--fsck': {'help': help_msg.FSCK_OPTION},
         },
 
         'help': 'Commit model change set of ML_ENTITY_NAME locally to this ml-git repository.'
@@ -352,16 +317,11 @@ commands = [
         },
 
         'options': {
-            '--hard': {'is_flag': True, 'default': False, 'help': 'Remove untracked files from workspace,'
-                                                                  ' files to be committed from staging area as well '
-                                                                  'as committed files upto <reference>.'},
-            '--mixed': {'is_flag': True, 'default': False, 'help': 'Revert the committed files and the staged files to'
-                                                                   ' \'Untracked Files\'. This is the default action.'},
-            '--soft': {'is_flag': True, 'default': False, 'help': 'Revert the committed files'
-                                                                  ' to \'Changes to be committed\'.'},
+            '--hard': {'is_flag': True, 'default': False, 'help': help_msg.RESET_HARD},
+            '--mixed': {'is_flag': True, 'default': False, 'help': help_msg.RESET_MIXED},
+            '--soft': {'is_flag': True, 'default': False, 'help': help_msg.RESET_SOFT},
             '--reference': {'type': click.Choice(['head', 'head~1']),
-                            'default': 'head', 'help': 'head:Will keep the metadata in the current commit.'
-                                                       '\nhead~1:Will move the metadata to the last commit.'}
+                            'default': 'head', 'help': help_msg.RESET_REFENCE}
         },
 
         'help': 'Reset ml-git state(s) of an ML_ENTITY_NAME'
@@ -382,16 +342,14 @@ commands = [
 
         'options': {
             '--credentials': {'default': 'default',
-                              'help': 'Input your profile to an s3 store or your credentials path to '
-                                      'a gdrive store.(eg, --credentials=path/to/.credentials'},
-            '--region': {'default': 'us-east-1', 'help': 'AWS region name.'},
-            '--retry': {'default': 2, 'help': 'Number of retries to download '
-                                              'the files from the storage [default: 2].'},
-            '--path': {'default': None, 'help': 'Store folder path.'},
-            '--object': {'default': None, 'help': 'Filename in store.'},
-            '--store-type': {'default': 's3', 'help': 'Store type (s3 or gdrive) [default: s3]',
+                              'help': help_msg.CREDENTIALS_OPTION},
+            '--region': {'default': 'us-east-1', 'help': help_msg.REGION_OPTION},
+            '--retry': {'default': 2, 'help': help_msg.RETRY_OPTION},
+            '--path': {'default': None, 'help': help_msg.PATH_OPTION},
+            '--object': {'default': None, 'help': help_msg.OBJECT_OPTION},
+            '--store-type': {'default': 's3', 'help': help_msg.STORE_TYPE,
                              'type': click.Choice(['s3', 'gdrive'])},
-            '--endpoint-url': {'default': '', 'help': 'Store endpoint url.'},
+            '--endpoint-url': {'default': '', 'help': help_msg.ENDPOINT_URL},
         },
 
         'help': 'This command allows you to download a file or directory from the S3 or Gdrive to ENTITY_DIR.'
@@ -412,11 +370,10 @@ commands = [
         },
 
         'options': {
-            '--credentials': {'default': 'default', 'help': 'Profile of AWS credentials [default: default].'},
-            '--endpoint': {'default': None, 'help': 'Endpoint where you want to export '},
-            '--region': {'default': 'us-east-1', 'help': 'AWS region name [default: us-east-1].'},
-            '--retry': {'default': 2, 'help': 'Number of retries to upload or download '
-                                              'the files from the storage [default: 2].'},
+            '--credentials': {'default': 'default', 'help': help_msg.AWS_CREDENTIALS},
+            '--endpoint': {'default': None, 'help': help_msg.ENDPOINT_URL},
+            '--region': {'default': 'us-east-1', 'help': help_msg.REGION_OPTION},
+            '--retry': {'default': 2, 'help': help_msg.RETRY_OPTION},
 
         },
 
@@ -458,14 +415,9 @@ commands = [
         'groups': [entity.dataset, entity.model, entity.labels],
 
         'options': {
-            '--thorough': {'is_flag': True, 'help': 'Try to download the IPLD if it is not present in the local '
-                                                    'repository to verify the existence of all contained IPLD '
-                                                    'links associated.'},
-            '--paranoid': {'is_flag': True, 'help': 'Adds an additional step that will download all '
-                                                    'IPLD and its associated IPLD links to verify the content by '
-                                                    'computing the multihash of all these.'},
-            '--retry': {'default': 2, 'help': 'Number of retries to '
-                                              'download the files from the storage [default: 2].'},
+            '--thorough': {'is_flag': True, 'help': help_msg.THOROUGH_OPTION},
+            '--paranoid': {'is_flag': True, 'help': help_msg.PARANOID_OPTION},
+            '--retry': {'default': 2, 'help': help_msg.RETRY_OPTION},
         },
 
         'arguments': {
@@ -484,22 +436,21 @@ commands = [
         'groups': [entity.dataset, entity.model, entity.labels],
 
         'options': {
-            '--category': {'required': True, 'multiple': True, 'help': 'Artifact\'s category name.'},
-            '--mutability': {'required': True, 'type': click.Choice(Mutability.list()), 'help': 'Mutability type.'},
+            '--category': {'required': True, 'multiple': True, 'help': help_msg.CATEGORY_OPTION},
+            '--mutability': {'required': True, 'type': click.Choice(Mutability.list()), 'help': help_msg.MUTABILITY},
             '--store-type': {'type': click.Choice(['s3h', 'azureblobh', 'gdriveh']),
-                             'help': 'Data store type [default: s3h].', 'default': 's3h'},
-            ('--version-number', '--version'): {'help': 'Number of artifact version.', 'default': 1,
+                             'help': help_msg.STORE_TYPE, 'default': 's3h'},
+            ('--version-number', '--version'): {'help': help_msg.VERSION_NUMBER, 'default': 1,
                                                 'cls': DeprecatedOption, 'deprecated': ['--version-number'], 'preferred':'--version'},
-            '--import': {'help': 'Path to be imported to the project.',
+            '--import': {'help': help_msg.IMPORT_OPTION,
                          'cls': MutuallyExclusiveOption, 'mutually_exclusive': ['import_url', 'credentials_path']},
-            '--wizard-config': {'is_flag': True, 'help': 'If specified, ask interactive questions.'
-                                                         ' at console for git & store configurations.'},
-            '--bucket-name': {'help': 'Bucket name'},
-            '--import-url': {'help': 'Import data from a google drive url.',
+            '--wizard-config': {'is_flag': True, 'help': help_msg.WIZARD_CONFIG},
+            '--bucket-name': {'help': help_msg.BUCKET_NAME},
+            '--import-url': {'help': help_msg.IMPORT_URL,
                              'cls': MutuallyExclusiveOption, 'mutually_exclusive': ['import']},
-            '--credentials-path': {'default': None, 'help': 'Directory of credentials.json.',
+            '--credentials-path': {'default': None, 'help': help_msg.CREDENTIALS_PATH,
                                    'cls': OptionRequiredIf, 'required_option': ['import-url']},
-            '--unzip': {'help': 'Unzip imported zipped files. Only available if --import-url is used.', 'is_flag': True}
+            '--unzip': {'help': help_msg.UNZIP_OPTION, 'is_flag': True}
         },
 
         'arguments': {
@@ -539,8 +490,8 @@ commands = [
         },
 
         'options': {
-            '--stat': {'is_flag': True, 'help': 'Show amount of files and size of an ml-entity.', 'default': False},
-            '--fullstat': {'is_flag': True, 'help': 'Show added and deleted files.', 'default': False},
+            '--stat': {'is_flag': True, 'help': help_msg.STAT_OPTION, 'default': False},
+            '--fullstat': {'is_flag': True, 'help': help_msg.FULL_STAT_OPTION, 'default': False},
         },
 
         'help': 'This command shows ml-entity-name\'s commit information like author, date, commit message.'

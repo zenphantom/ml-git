@@ -18,7 +18,7 @@ from ml_git import log
 from ml_git.config import get_index_path, get_objects_path, get_refs_path, get_index_metadata_path, \
     get_metadata_path, get_batch_size, get_push_threads_count
 from ml_git.constants import LOCAL_REPOSITORY_CLASS_NAME, STORE_FACTORY_CLASS_NAME, REPOSITORY_CLASS_NAME, \
-    Mutability, StoreType
+    Mutability, StoreType, SPEC_EXTENSION, MANIFEST_FILE, INDEX_FILE
 from ml_git.file_system.cache import Cache
 from ml_git.file_system.hashfs import MultihashFS
 from ml_git.file_system.index import MultihashIndex, FullIndex, Status
@@ -234,7 +234,7 @@ class LocalRepository(MultihashFS):
         categories_path, spec_name, _ = spec_parse(tag)
 
         # retrieve specfile from metadata to get store
-        spec_path = os.path.join(metadata_path, categories_path, spec_name + '.spec')
+        spec_path = os.path.join(metadata_path, categories_path, spec_name + SPEC_EXTENSION)
         spec = yaml_load(spec_path)
         if repo_type not in spec:
             log.error('No spec file found. You need to initialize an entity (dataset|model|label) first',
@@ -246,7 +246,7 @@ class LocalRepository(MultihashFS):
             return False
 
         # retrieve manifest from metadata to get all files of version tag
-        manifest_file = 'MANIFEST.yaml'
+        manifest_file = MANIFEST_FILE
         manifest_path = os.path.join(metadata_path, categories_path, manifest_file)
         files = self._load_obj_files(samples, manifest_path)
         if files is None:
@@ -316,7 +316,7 @@ class LocalRepository(MultihashFS):
             for file in files:
                 if 'README.md' in file:
                     continue
-                if '.spec' in file:
+                if SPEC_EXTENSION in file:
                     continue
                 full_posix_path = Path(relative_path, file).as_posix()
                 if full_posix_path not in mfiles:
@@ -326,7 +326,7 @@ class LocalRepository(MultihashFS):
 
     @staticmethod
     def _update_metadata(full_md_path, ws_path, spec_name):
-        for md in ['README.md', spec_name + '.spec']:
+        for md in ['README.md', spec_name + SPEC_EXTENSION]:
             md_path = os.path.join(full_md_path, md)
             if os.path.exists(md_path) is False:
                 continue
@@ -388,10 +388,10 @@ class LocalRepository(MultihashFS):
         categories_path, spec_name, version = spec_parse(tag)
         index_path = get_index_path(self.__config, self.__repo_type)
         # get all files for specific tag
-        manifest_path = os.path.join(metadata_path, categories_path, 'MANIFEST.yaml')
+        manifest_path = os.path.join(metadata_path, categories_path, MANIFEST_FILE)
         mutability, _ = self.get_mutability_from_spec(spec_name, self.__repo_type, tag)
         index_manifest_path = os.path.join(index_path, 'metadata', spec_name)
-        fidx_path = os.path.join(index_manifest_path, 'INDEX.yaml')
+        fidx_path = os.path.join(index_manifest_path, INDEX_FILE)
         try:
             os.unlink(fidx_path)
         except FileNotFoundError:
@@ -579,7 +579,7 @@ class LocalRepository(MultihashFS):
         manifest = spec[self.__repo_type]['manifest']
         categories_path, spec_name, version = spec_parse(tag)
         # get all files for specific tag
-        manifest_path = os.path.join(metadata_path, categories_path, 'MANIFEST.yaml')
+        manifest_path = os.path.join(metadata_path, categories_path, MANIFEST_FILE)
         obj_files = yaml_load(manifest_path)
 
         store = store_factory(self.__config, manifest['store'])
@@ -645,8 +645,8 @@ class LocalRepository(MultihashFS):
         new_files, deleted_files, untracked_files, _, _ = self.status(spec_name, log_errors=False)
         if new_files is not None and deleted_files is not None and untracked_files is not None:
             unsaved_files = new_files + deleted_files + untracked_files
-            if spec_name + '.spec' in unsaved_files:
-                unsaved_files.remove(spec_name + '.spec')
+            if spec_name + SPEC_EXTENSION in unsaved_files:
+                unsaved_files.remove(spec_name + SPEC_EXTENSION)
             if 'README.md' in unsaved_files:
                 unsaved_files.remove('README.md')
             if len(unsaved_files) > 0:
@@ -749,7 +749,7 @@ class LocalRepository(MultihashFS):
                             file_in_index['hash']:
                         bisect.insort(changed_files, bpath)
                 else:
-                    is_metadata_file = '.spec' in file or 'README.md' in file
+                    is_metadata_file = SPEC_EXTENSION in file or 'README.md' in file
 
                     if not is_metadata_file:
                         bisect.insort(untracked_files, bpath)
@@ -884,7 +884,7 @@ class LocalRepository(MultihashFS):
 
     def export_tag(self, metadata_path, tag, bucket, retry):
         categories_path, spec_name, _ = spec_parse(tag)
-        spec_path = os.path.join(metadata_path, categories_path, spec_name + '.spec')
+        spec_path = os.path.join(metadata_path, categories_path, spec_name + SPEC_EXTENSION)
         spec = yaml_load(spec_path)
 
         if self.__repo_type not in spec:
@@ -904,7 +904,7 @@ class LocalRepository(MultihashFS):
         if store_dst is None:
             log.error('No store for [%s]' % store_dst_type, class_name=LOCAL_REPOSITORY_CLASS_NAME)
             return
-        manifest_file = 'MANIFEST.yaml'
+        manifest_file = MANIFEST_FILE
         manifest_path = os.path.join(metadata_path, categories_path, manifest_file)
         files = yaml_load(manifest_path)
         log.info('Exporting tag [{}] from [{}] to [{}].'.format(tag, manifest['store'], store_dst_type),
@@ -968,7 +968,7 @@ class LocalRepository(MultihashFS):
         return True
 
     def _compare_matadata(self, file, file_to_compare):
-        if '.spec' in file:
+        if SPEC_EXTENSION in file:
             return self._compare_spec(file, file_to_compare)
         return filecmp.cmp(file, file_to_compare, shallow=True)
 
@@ -1007,7 +1007,7 @@ class LocalRepository(MultihashFS):
             log.error(e, class_name=REPOSITORY_CLASS_NAME)
             return None, False
 
-        full_spec_path = os.path.join(spec_path, spec + '.spec')
+        full_spec_path = os.path.join(spec_path, spec + SPEC_EXTENSION)
         file_ws_spec = yaml_load(full_spec_path)
 
         try:
@@ -1022,14 +1022,14 @@ class LocalRepository(MultihashFS):
 
     @staticmethod
     def check_mutability_between_specs(repo_type, tag, metadata_path, categories_path, spec_path, spec):
-        ws_spec_path = os.path.join(spec_path, spec + '.spec')
+        ws_spec_path = os.path.join(spec_path, spec + SPEC_EXTENSION)
         file_ws_spec = yaml_load(ws_spec_path)
         ws_spec_mutability = None
         if 'mutability' in file_ws_spec[repo_type]:
             ws_spec_mutability = file_ws_spec[repo_type]['mutability']
 
         if tag:
-            metadata_spec_path = os.path.join(metadata_path, categories_path, spec, spec + '.spec')
+            metadata_spec_path = os.path.join(metadata_path, categories_path, spec, spec + SPEC_EXTENSION)
             file_md_spec = yaml_load(metadata_spec_path)
             md_spec_mutability = None
             try:
