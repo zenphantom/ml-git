@@ -893,7 +893,7 @@ class Repository(object):
 
         try:
             mutability = spec_file[repo_type]['mutability']
-            if mutability not in list(map(lambda c: c.value, Mutability)):
+            if mutability not in Mutability.list():
                 log.error('Invalid mutability type.', class_name=REPOSITORY_CLASS_NAME)
                 return
         except Exception:
@@ -929,8 +929,8 @@ class Repository(object):
         credentials_path = kwargs['credentials_path']
         repo_type = self.__repo_type
         try:
-            create_workspace_tree_structure(repo_type, artifact_name, categories, store_type, bucket_name, version,
-                                            imported_dir)
+            create_workspace_tree_structure(repo_type, artifact_name, categories, store_type, bucket_name,
+                                            version, imported_dir, kwargs['mutability'])
             if start_wizard:
                 has_new_store, store_type, bucket, profile, endpoint_url, git_repo = start_wizard_questions(repo_type)
                 if has_new_store:
@@ -1026,12 +1026,3 @@ class Repository(object):
                 any_metadata = True
         if not any_metadata:
             log.error(output_messages['ERROR_UNINITIALIZED_METADATA'], class_name=REPOSITORY_CLASS_NAME)
-
-
-if __name__ == '__main__':
-    config = config_load()
-    r = Repository(config)
-    r.init()
-    r.add('dataset-ex')
-    r.commit('dataset-ex')
-    r.status('dataset-ex')

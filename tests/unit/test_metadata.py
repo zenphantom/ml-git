@@ -153,7 +153,3 @@ class MetadataTestCases(unittest.TestCase):
         m = Metadata('', self.test_dir, config, repotype)
         m.clone_config_repo()
         self.assertFalse(m.check_exists())
-
-
-if __name__ == '__main__':
-    unittest.main()

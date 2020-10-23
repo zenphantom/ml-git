@@ -16,7 +16,7 @@ from ml_git.config import validate_config_spec_hash, get_sample_config_spec, get
     get_index_path, get_objects_path, get_cache_path, get_metadata_path, import_dir, \
     extract_store_info_from_list, create_workspace_tree_structure, get_batch_size, merge_conf, \
     merge_local_with_global_config, mlgit_config, save_global_config_in_local, start_wizard_questions
-from ml_git.constants import BATCH_SIZE_VALUE, BATCH_SIZE
+from ml_git.constants import BATCH_SIZE_VALUE, BATCH_SIZE, Mutability
 from ml_git.utils import get_root_path, yaml_load
 
 
@@ -132,12 +132,13 @@ class ConfigTestCases(unittest.TestCase):
         IMPORT_PATH = os.path.join(os.getcwd(), 'test', 'src')
         os.makedirs(IMPORT_PATH)
         self.assertTrue(create_workspace_tree_structure('repotype', 'artefact_name',
-                                                        ['imgs', 'old', 'blue'], 's3h', 'minio', 2, IMPORT_PATH))
+                                                        ['imgs', 'old', 'blue'], 's3h', 'minio', 2, IMPORT_PATH, Mutability.STRICT.value))
 
         spec_path = os.path.join(os.getcwd(), os.sep.join(['repotype', 'artefact_name', 'artefact_name.spec']))
         spec1 = yaml_load(spec_path)
         self.assertEqual(spec1['repotype']['manifest']['store'], 's3h://minio')
         self.assertEqual(spec1['repotype']['name'], 'artefact_name')
+        self.assertEqual(spec1['repotype']['mutability'], 'strict')
         self.assertEqual(spec1['repotype']['version'], 2)
 
         shutil.rmtree(IMPORT_PATH)
@@ -227,7 +228,3 @@ class ConfigTestCases(unittest.TestCase):
             self.assertIsNone(endpoint_url)
             self.assertEqual(git_repo, 'git_repo')
             self.assertTrue(has_new_store)
-
-
-if __name__ == '__main__':
-    unittest.main()
