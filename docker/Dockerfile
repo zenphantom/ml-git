@@ -27,6 +27,7 @@ WORKDIR ../api_scripts/mnist_notebook
 RUN ml-git clone /local_ml_git_config_server.git
 
 ADD docs/api/api_scripts ../
+ADD docs/api/api_scripts/mnist_notebook/enriched_mnist.tar.gz ../mnist_notebook/
 
 WORKDIR /workspace
 
