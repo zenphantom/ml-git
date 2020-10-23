@@ -11,6 +11,7 @@ from ml_git.commands import entity, help_msg
 from ml_git.commands.custom_options import MutuallyExclusiveOption, OptionRequiredIf, DeprecatedOption, \
     DeprecatedOptionsCommand
 from ml_git.commands.utils import set_verbose_mode
+from ml_git.constants import Mutability
 
 commands = [
 
@@ -436,6 +437,7 @@ commands = [
 
         'options': {
             '--category': {'required': True, 'multiple': True, 'help': help_msg.CATEGORY_OPTION},
+            '--mutability': {'required': True, 'type': click.Choice(Mutability.list()), 'help': help_msg.MUTABILITY},
             '--store-type': {'type': click.Choice(['s3h', 'azureblobh', 'gdriveh']),
                              'help': help_msg.STORE_TYPE, 'default': 's3h'},
             ('--version-number', '--version'): {'help': help_msg.VERSION_NUMBER, 'default': 1,

@@ -132,7 +132,3 @@ class MetadataTestCases(unittest.TestCase):
         self.assertRaises(RuntimeError, lambda: m._get_target_tag(tags, 'dataset-wrong', 1))
         self.assertEqual(m._get_target_tag(tags, 'dataset-ex', 2), 'computer__images__dataset-ex__2')
         clear(m.path)
-
-
-if __name__ == '__main__':
-    unittest.main()
