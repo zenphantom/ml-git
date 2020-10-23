@@ -184,7 +184,7 @@ class CreateAcceptanceTests(unittest.TestCase):
                               + ' --version-number=1 --import="' + os.path.join(self.tmp_dir, IMPORT_PATH) + '"'
                               + ' --mutability=' + Mutability.STRICT.value)
 
-        self.assertIn(messages[100] % ('--version-number', '--version'), result)
+        self.assertIn(messages[106] % ('--version-number', '--version'), result)
         self.assertIn(messages[38], result)
         self.check_folders(entity_type, StoreType.S3H.value)
 
