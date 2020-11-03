@@ -120,6 +120,13 @@ config:
 To create and upload a dataset to a store, you must be in an already initialized project, if necessary read [section 1](#initial-config) to initialize and configure a project.
 
 Ml-git expects any dataset to be specified under _dataset/_ directory of your project and it expects a specification file with the name of the dataset.
+To create this specification file for a new entity you must run the following command:
+
+```
+$ ml-git dataset create imagenet8 --category=computer-vision --category=images --mutability=strict --store-type=s3h --bucket-name=mlgit-datasets --version=1 
+```
+
+After that a file must have been created in dataset/imagenet8/imagenet8.spec and should look like this:
 
 To create this specification file for a new entity you must run the following command:
 
@@ -146,11 +153,8 @@ There are 5 main items in the spec file:
 2. __version__: the version should be an integer, incremented each time there is new version pushed into ml-git.  You can use the --bumpversion argument to do the increment automatically for you when you add more files to a dataset.
 3. __categories__ : describes a tree structure to characterize the dataset category. That information is used by ml-git to create a directory structure in the git repository managing the metadata.
 4. __manifest__: describes the data store in which the data is actually stored. In this case a S3 bucket named _mlgit-datasets_. The AWS credential profile name and AWS region should be found in the ml-git config file.
-5. __mutability__: describes the mutability option that your project will have, choosing an option that can never be changed. The mutability options are "strict", "flexible" and "mutable".
-    * __strict__ :  this option the spec is strict by default and the files in a dataset can never be changed.
-    * __flexible__: this option is like strict but using the __ml-git__ __unlock__ command the files in a dataset can be modified.
-    * __mutable__ : this option can modify the files in a dataset.
-   
+5. __mutability__: describes the mutability option that your project will have, choosing an option that can never be changed. The mutability options are "strict", "flexible" and "mutable". If you want to know more about each type of mutability and how it works, please take a look at [mutability documentation](mutability_helper.md).
+
 The items listed above are mandatory in the spec. An important point to note here is that if the user wishes, he can add new items that will be versioned with the spec. 
 The example below presents a spec with the entity's owner information to be versioned. Those information were put under metadata field just for purpose of organization.
 
@@ -334,7 +338,7 @@ config:
 Now, you can create your first labels set for say mscoco. ml-git expects any labels set to be specified under _labels/_ directory of your project and it expects a specification file with the name of the _labels_.
 
 ```
-$ ml-git labels create mscoco-captions --category=computer-vision --category=captions --store-type=s3h --bucket-name=mlgit-labels --version=1
+$ ml-git labels create mscoco-captions --category=computer-vision --category=captions --mutability=mutable --store-type=s3h --bucket-name=mlgit-labels --version=1
 ```
 
 After create the entity, you can create the README.md to create a web page describing your labels set. Here below is the tree of caption labels for mscoco directory and file structure:

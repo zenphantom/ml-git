@@ -2,6 +2,7 @@
 © Copyright 2020 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
+from ml_git.config import get_sample_spec_doc
 
 output_messages = {
     'INFO_INITIALIZED_PROJECT': 'Initialized empty ml-git repository in %s',
@@ -16,6 +17,9 @@ output_messages = {
     'ERROR_MULTIPLES_ENTITIES_WITH_SAME_NAME': 'You have more than one entity with the same name. Use one of the following tags to perform the checkout:\n',
     'ERROR_WRONG_VERSION_NUMBER_TO_CHECKOUT': 'The version specified for that entity does not exist. Last entity tag:\n\t%s',
     'ERROR_UNINITIALIZED_METADATA': 'You don\'t have any metadata initialized',
+    'ERROR_MISSING_MUTABILITY': 'Missing option "--mutability".  Choose from:\n\tstrict,\n\tflexible,\n\tmutable.',
+    'ERROR_SPEC_WITHOUT_MUTABILITY': 'You need to define a mutability type when creating a new entity. '
+                                     'Your spec should look something like this:' + get_sample_spec_doc('some-bucket'),
 
     'WARN_HAS_CONFIGURED_REMOTE': 'YOU ALREADY HAS A CONFIGURED REMOTE. All data stored in this repository will be sent to the new one on the first push.',
 }
