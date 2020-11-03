@@ -8,6 +8,7 @@ import unittest
 
 import pytest
 
+from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_INIT, MLGIT_REMOTE_ADD
 from tests.integration.helper import check_output, ML_GIT_DIR, GIT_PATH, yaml_processor
 from tests.integration.output_messages import messages
@@ -50,10 +51,12 @@ class AddRemoteAcceptanceTests(unittest.TestCase):
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_06_change_remote_repository(self):
-        self.assertIn(messages[0], check_output(MLGIT_INIT))
-        self.assertIn(messages[2] % (GIT_PATH, 'dataset'), check_output(MLGIT_REMOTE_ADD % ('dataset', GIT_PATH)))
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'] % self.tmp_dir, check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_ADD_REMOTE'] % (GIT_PATH, 'dataset'), check_output(MLGIT_REMOTE_ADD % ('dataset', GIT_PATH)))
         self.check_remote_in_config(os.path.join(ML_GIT_DIR, 'config.yaml'))
-        self.assertIn(messages[5] % (GIT_PATH, 'second_path'), check_output(MLGIT_REMOTE_ADD % ('dataset', 'second_path')))
+        output_message = check_output(MLGIT_REMOTE_ADD % ('dataset', 'second_path'))
+        self.assertIn(output_messages['WARN_HAS_CONFIGURED_REMOTE'], output_message)
+        self.assertIn(output_messages['INFO_CHANGING_REMOTE'] % (GIT_PATH, 'second_path', 'dataset'), output_message)
         self.check_remote_in_config(os.path.join(ML_GIT_DIR, 'config.yaml'), 'second_path')
 
     def check_remote_in_config(self, path, git_repo=GIT_PATH):

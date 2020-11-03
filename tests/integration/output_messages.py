@@ -106,5 +106,11 @@ messages = [
     'Could not update metadata. Check your remote configuration.',  # 97
     'Initializing the project with global settings',  # 98
     'You are not in an initialized ml-git repository and do not have a global configuration.',  # 99
-    '\'%s\' has been deprecated, use \'%s\' instead',  # 100
+    'fatal: not a git repository (or any of the parent directories): .git',  # 100
+    'error: pathspec \'%s\' did not match any file(s) known to git',  # 101
+    'Azure credentials could not be found. See the ml-git documentation for how to configure.',  # 102
+    'Unable to connect to the Azure storage.',  # 103
+    'Tag [%s] already exists in the ml-git repository.',  # 104
+    'Could not update metadata. Check your remote configuration.',  # 105
+    '\'%s\' has been deprecated, use \'%s\' instead',  # 106
 ]

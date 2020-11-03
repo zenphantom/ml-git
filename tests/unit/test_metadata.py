@@ -36,6 +36,13 @@ config = {
     'dataset': {
         'git': os.path.join(os.getcwd(), 'git_local_server.git'),
     },
+    'labels': {
+        'git': os.path.join(os.getcwd(), 'git_local_server.git'),
+    },
+    'model': {
+        'git': os.path.join(os.getcwd(), 'git_local_server.git'),
+    },
+
 
     'store': {
         's3': {
@@ -136,6 +143,20 @@ class MetadataTestCases(unittest.TestCase):
         clear(m.path)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_test_dir')
+    def test_clone_empty_config_repo(self):
+        config = {
+            'mlgit_path': './mdata',
+            'mlgit_conf': 'config.yaml',
+            'verbose': 'info',
+            'dataset': {'git': '', },
+            'labels': {'git': '', },
+            'model': {'git': '', }, }
+
+        m = Metadata('', self.test_dir, config, repotype)
+        m.clone_config_repo()
+        self.assertFalse(m.check_exists())
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_test_dir')
     def test_blank_remote_url(self):
         config_cp = deepcopy(config)
         config_cp['dataset']['git'] = ''
@@ -155,7 +176,3 @@ class MetadataTestCases(unittest.TestCase):
 
         for url in Repo(m.path).remote().urls:
             self.assertEqual(url, '')
-
-
-if __name__ == '__main__':
-    unittest.main()

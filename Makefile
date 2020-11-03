@@ -53,3 +53,31 @@ ifeq ($(detected_OS),Windows)
 else
 	./scripts/run_integration_tests.sh --gdrive
 endif
+
+container_name = mlgit_env
+container_exists = $(shell docker ps -a -q -f name=$(container_name))
+image_name = mlgit_docker_env
+image_exists = $(shell docker images -a -q $(image_name))
+
+.PHONY: docker.build
+docker.build:
+	docker build -t $(image_name) -f docker/Dockerfile .
+
+.PHONY: docker.run
+docker.run:
+ifneq ($(container_exists),)
+	docker stop $(container_name)
+	docker start $(container_name)
+	docker exec -it $(container_name) /bin/sh
+else
+	docker run -it -p 8888:8888 --name $(container_name) $(image_name)
+endif
+
+.PHONY: docker.clean
+docker.clean:
+ifneq ($(container_exists),)
+	docker rm --force $(container_name)
+endif
+ifneq ($(image_exists),)
+	docker rmi --force $(image_name)
+endif
