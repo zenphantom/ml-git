@@ -15,7 +15,7 @@ from zipfile import ZipFile
 
 from ruamel.yaml import YAML
 
-from ml_git.constants import StoreType, GLOBAL_ML_GIT_CONFIG
+from ml_git.constants import StoreType, GLOBAL_ML_GIT_CONFIG, Mutability
 from tests.integration.commands import MLGIT_INIT, MLGIT_REMOTE_ADD, MLGIT_ENTITY_INIT, MLGIT_ADD, \
     MLGIT_STORE_ADD_WITH_TYPE, MLGIT_REMOTE_ADD_GLOBAL, MLGIT_STORE_ADD
 from tests.integration.output_messages import messages
@@ -124,6 +124,7 @@ def init_repository(entity, self, version=1, store_type='s3h', profile=PROFILE, 
                 'files': 'MANIFEST.yaml',
                 'store': '%s://mlgit' % store_type
             },
+            'mutability': Mutability.STRICT.value,
             'name': artifact_name,
             'version': version
         }
@@ -289,3 +290,12 @@ def delete_global_config():
     global_config_file = os.path.join(GLOBAL_CONFIG_PATH, GLOBAL_ML_GIT_CONFIG)
     if os.path.exists(global_config_file):
         __remove_file(global_config_file)
+
+
+def change_git_in_config(ml_git_dir, git_url, entity='dataset'):
+    with open(os.path.join(ml_git_dir, 'config.yaml'), 'r') as config_file:
+        config = yaml_processor.load(config_file)
+        config[entity]['git'] = git_url
+    with open(os.path.join(ml_git_dir, 'config.yaml'), 'w') as config_file:
+        yaml_processor.dump(config, config_file)
+    clear(os.path.join(ml_git_dir, entity, 'metadata', '.git'))

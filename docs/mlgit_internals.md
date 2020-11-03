@@ -494,6 +494,10 @@ ml-git_project/
 ```
 
 The parameters passed ```--category``` and ```--version``` are used to fill the spec file.
+
+The parameter ```--mutability``` must be used to define the entity's mutability, which can be: strict, flexible, mutable.
+If you want to know more about each type of mutability and how it works, please take a look at [mutability helper documentation](mutability_helper.md).
+
 The parameter ```--import``` is used to import files from a src folder to data folder.
 The optional parameter ```--wizard-questions``` if passed, ask interactive questions at console for git & store configurations and update the config.yaml file.
 The parameter ```--store-type``` must be used to define the entity's storage, which can be: s3h, azureblobh, gdriveh.
@@ -560,7 +564,10 @@ Applies SHA2 to content of objects , uses multihash to generate the CID, and com
 <details>
 <summary> <code>ml-git &lt;ml-entity&gt; gc</code> </summary>
 <br>
-```To Be Implemented```
+
+```
+To Be Implemented
+```
 
 </details>
 
@@ -932,14 +939,8 @@ This command load the configuration file **.ml-git/config.yaml** and change the 
 <details>
 <summary> <code>ml-git repository remote &lt;ml-entity&gt; del</code> </summary>
 
-This command load the configuration file **.ml-git/config.yaml** and change the attribute **git** to empty, the save it.
-
 ```
-ml-git_project/
-└── .ml-git/
-    └── <ml-entity>/
-       └── metadata/ <- Delete this directory.
-          └── .git
+To Be Implemented
 ```
 
 </details>

@@ -9,6 +9,7 @@ import unittest
 import pytest
 
 from ml_git import api
+from ml_git.constants import Mutability
 from tests.integration.helper import ML_GIT_DIR, CLONE_FOLDER, check_output, init_repository, create_git_clone_repo, \
     clear, yaml_processor
 
@@ -48,6 +49,7 @@ class APIAcceptanceTests(unittest.TestCase):
                     'files': 'MANIFEST.yaml',
                     'store': 's3h://mlgit'
                 },
+                'mutability': Mutability.STRICT.value,
                 'name': 'dataset-ex',
                 'version': 9
             }

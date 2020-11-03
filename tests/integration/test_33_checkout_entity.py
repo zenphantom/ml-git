@@ -10,7 +10,7 @@ import unittest
 import pytest
 
 from ml_git.ml_git_message import output_messages
-from tests.integration.commands import MLGIT_CHECKOUT, MLGIT_PUSH, MLGIT_COMMIT
+from tests.integration.commands import MLGIT_CHECKOUT, MLGIT_PUSH, MLGIT_COMMIT, MLGIT_ADD
 from tests.integration.helper import ML_GIT_DIR, MLGIT_ENTITY_INIT, ERROR_MESSAGE, \
     add_file, GIT_PATH, check_output, clear, init_repository
 
@@ -131,3 +131,19 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
         self.assertIn(output_messages['ERROR_MULTIPLES_ENTITIES_WITH_SAME_NAME'] +
                       '\tcomputer-vision__images__dataset-ex__2\n\tcomputer-vision__video__dataset-ex__2',
                       check_output(MLGIT_CHECKOUT % ('dataset', 'dataset-ex --version=2')))
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
+    def test_07_checkout_without_clear_workspace(self):
+        entity = 'dataset'
+        init_repository(entity, self)
+        self._create_new_tag(entity, 'new')
+        with open(os.path.join(self.tmp_dir, entity, entity+'-ex', 'newfile-tag2'), 'wt') as z:
+            z.write('0' * 100)
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ADD % (entity, entity + '-ex', '--bumpversion')))
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_COMMIT % (entity, entity + '-ex', '')))
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_PUSH % (entity, entity + '-ex')))
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_CHECKOUT % (entity, 'computer-vision__images__dataset-ex__2')))
+        file = os.path.join(self.tmp_dir, entity, 'computer-vision', 'images', 'dataset-ex', 'newfile0')
+        self.check_metadata()
+        self.check_amount_of_files(entity, 6)
+        self.assertTrue(os.path.exists(file))

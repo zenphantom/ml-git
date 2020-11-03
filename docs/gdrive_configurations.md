@@ -73,7 +73,7 @@ Create directory with name  of your preference and copy your credentials  file w
 Add store configurations example:
 
 ```
-$ ml-git store add path-in-your-drive --type=gdriveh --credentials=/home/profile/.gdrive
+$ ml-git repository store add path-in-your-drive --type=gdriveh --credentials=/home/profile/.gdrive
 ```
 
 After that initialize the metadata repository:
