@@ -704,7 +704,6 @@ class Repository(object):
         if not force_get and local_rep.exist_local_changes(spec_name) is True:
             return None, None
 
-        ensure_path_exists(ws_path)
         try:
             self._checkout_ref(tag)
         except Exception:
