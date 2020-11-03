@@ -8,13 +8,23 @@ This image enables new users to get started with ml-git in a lightweight Linux-b
 1. Ensure that you have Docker installed.
 
 2. Inside root of ml-git directory build the image locally with the following command:
-
-   `docker build -t image_name -f docker/Dockerfile .`
+   
+   `make docker.build`
+   
+   or
+   
+   `docker build -t mlgit_docker_env -f docker/Dockerfile .`
 
 3. Run the Docker container to launch the built image:
 
-   `docker run -it --name container_name image_name`
+   `make docker.run`
+   
+   or
+   
+   `docker run -it -p 8888:8888 --name mlgit_env mlgit_docker_env`
 
+    Port 8888 will be used to start the jupyter notebook web service.
+    
 ##### **Using the ml-git with environment (inside docker container):**
 
 The container has a ml-git project initialized inside directory workspace, the content of versioned tag is an image from [mnist database](http://yann.lecun.com/exdb/mnist/). 
@@ -22,7 +32,7 @@ The container has a ml-git project initialized inside directory workspace, the c
 You can execute the command checkout directly to tag: 
 
 ```
-ml-git dataset checkout computer-vision__images__dataset-ex__1
+ml-git dataset checkout handwritten__digits__mnist__1
 ```
 
 ##### **Summary of files in image:**
