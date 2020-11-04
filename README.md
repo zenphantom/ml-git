@@ -211,3 +211,7 @@ Your contributions are always welcome!
 
 Another way to contribute with the community is creating an issue to track your ideas, doubts, enhancements, tasks, or bugs found. 
 If an issue with the same topic already exists, discuss on the issue.
+
+### Links
+
+- [Working with tabular data](docs/tabular_data/tabular_data.md) - Find suggestions on how to use ml-git with tabular data.
