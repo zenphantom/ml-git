@@ -11,7 +11,7 @@ from unittest import mock
 
 import pytest
 
-from ml_git.admin import init_mlgit, remote_add, store_add, clone_config_repository, store_del
+from ml_git.admin import init_mlgit, remote_add, store_add, clone_config_repository, store_del, remote_del
 from ml_git.utils import yaml_load
 
 
@@ -149,3 +149,17 @@ class AdminTestCases(unittest.TestCase):
 
         config = yaml_load('.mlgitconfig')
         self.assertFalse('s3' in config['store'] and 'bucket_test' in config['store']['s3'])
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir')
+    def test_remote_del(self):
+        remote_default = 'git_local_server.git'
+        dataset = 'dataset'
+        init_mlgit()
+        config = yaml_load('.ml-git/config.yaml')
+        self.assertEqual(config['dataset']['git'], '')
+        remote_add(dataset, remote_default)
+        config = yaml_load('.ml-git/config.yaml')
+        self.assertEqual(config['dataset']['git'], remote_default)
+        remote_del(dataset)
+        config_ = yaml_load('.ml-git/config.yaml')
+        self.assertEqual(config_['dataset']['git'], '')

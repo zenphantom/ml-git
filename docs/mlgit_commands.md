@@ -823,7 +823,17 @@ $ ml-git repository remote dataset add https://git@github.com/mlgit-datasets
 <br>
 
 ```
-To Be Implemented
+Usage: ml-git repository remote dataset del
+
+  Remove remote dataset metadata REMOTE_URL from this ml-git repository
+
+Options:
+  --help  Show this message and exit.
+```
+
+Example:
+```
+$ ml-git repository remote dataset del
 ```
 
 </details>

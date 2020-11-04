@@ -939,8 +939,14 @@ This command load the configuration file **.ml-git/config.yaml** and change the 
 <details>
 <summary> <code>ml-git repository remote &lt;ml-entity&gt; del</code> </summary>
 
+This command load the configuration file **.ml-git/config.yaml** and change the attribute **git** to empty, the save it.
+
 ```
-To Be Implemented
+ml-git_project/
+└── .ml-git/
+    └── <ml-entity>/
+       └── metadata/ 
+          └── .git <- Change actual origin url to a blank url.
 ```
 
 </details>
