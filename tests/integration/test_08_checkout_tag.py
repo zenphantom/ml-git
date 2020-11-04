@@ -340,3 +340,12 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
         self.check_amount_of_files('dataset', 4)
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_CHECKOUT % ('dataset', 'computer-vision__images__dataset-ex__2')))
         self.assertFalse(self.check_sampling_flag('dataset'))
+
+    @pytest.mark.usefixtures('start_local_git_server_with_main_branch', 'switch_to_tmp_dir')
+    def test_25_checkout_tag_with_main_branch(self):
+        self.set_up_checkout('dataset')
+        check_output(MLGIT_CHECKOUT % ('dataset', 'computer-vision__images__dataset-ex__1'))
+        file = os.path.join(self.tmp_dir, 'dataset', 'computer-vision', 'images', 'dataset-ex', 'newfile0')
+        self.check_metadata()
+        self.check_amount_of_files('dataset', 6, sampling=False)
+        self.assertTrue(os.path.exists(file))
