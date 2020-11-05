@@ -8,8 +8,9 @@ import unittest
 
 import pytest
 
+from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_INIT, MLGIT_STORE_ADD, MLGIT_STORE_DEL, MLGIT_STORE_ADD_WITH_TYPE, \
-    MLGIT_STORE_ADD_WITH_ENDPOINT
+    MLGIT_STORE_ADD_WITH_ENDPOINT, MLGIT_STORE_ADD_WITHOUT_CREDENTIALS
 from tests.integration.helper import check_output, ML_GIT_DIR, BUCKET_NAME, PROFILE, STORE_TYPE, yaml_processor
 from tests.integration.output_messages import messages
 
@@ -118,3 +119,14 @@ class AddStoreAcceptanceTests(unittest.TestCase):
             config = yaml_processor.load(c)
             self.assertEqual(PROFILE, config['store']['s3h'][BUCKET_NAME]['aws-credentials']['profile'])
             self.assertEqual(endpoint, config['store']['s3h'][BUCKET_NAME]['endpoint-url'])
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir')
+    def test_10_add_store_without_credentials(self):
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'] % self.tmp_dir, check_output(MLGIT_INIT))
+        self.check_store()
+        self.assertIn(output_messages['INFO_ADD_STORE_WITHOUT_PROFILE'] % (STORE_TYPE, BUCKET_NAME),
+                      check_output(MLGIT_STORE_ADD_WITHOUT_CREDENTIALS % BUCKET_NAME))
+        with open(os.path.join(self.tmp_dir, ML_GIT_DIR, 'config.yaml'), 'r') as c:
+            config = yaml_processor.load(c)
+            self.assertEqual(None, config['store']['s3h'][BUCKET_NAME]['aws-credentials']['profile'])
+            self.assertEqual(None, config['store']['s3h'][BUCKET_NAME]['region'])
