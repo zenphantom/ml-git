@@ -301,7 +301,7 @@ class APIAcceptanceTests(unittest.TestCase):
         entity_type = 'dataset'
         store_type = StoreType.S3H.value
         self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'] % self.tmp_dir, check_output(MLGIT_INIT))
-        api.create('dataset', 'dataset-ex', categories=['computer-vision', 'images'])
+        api.create('dataset', 'dataset-ex', categories=['computer-vision', 'images'], mutability='strict')
         self.check_created_folders(entity_type, store_type)
 
     @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
@@ -309,7 +309,7 @@ class APIAcceptanceTests(unittest.TestCase):
         entity_type = 'dataset'
         store_type = StoreType.AZUREBLOBH.value
         self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'] % self.tmp_dir, check_output(MLGIT_INIT))
-        api.create('dataset', 'dataset-ex', categories=['computer-vision', 'images'], version=5, store_type=store_type, bucket_name='test')
+        api.create('dataset', 'dataset-ex', categories=['computer-vision', 'images'], version=5, store_type=store_type, bucket_name='test', mutability='strict')
         self.check_created_folders(entity_type, store_type, version=5, bucket_name='test')
 
     @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
@@ -321,7 +321,7 @@ class APIAcceptanceTests(unittest.TestCase):
         os.makedirs(import_path)
         create_zip_file(IMPORT_PATH, 3)
         self.assertTrue(os.path.exists(os.path.join(import_path, 'file.zip')))
-        api.create(entity_type, entity_type+'-ex', categories=['computer-vision', 'images'], unzip=True, import_path=import_path)
+        api.create(entity_type, entity_type+'-ex', categories=['computer-vision', 'images'], unzip=True, import_path=import_path, mutability='strict')
         self.check_created_folders(entity_type, StoreType.S3H.value)
         folder_data = os.path.join(self.tmp_dir, entity_type, entity_type + '-ex', 'data', 'file')
         self.assertTrue(os.path.exists(folder_data))
