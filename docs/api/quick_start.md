@@ -190,9 +190,10 @@ from ml_git import api
 
 entity = 'dataset'
 spec = 'dataset-ex'
-categories= ['computer-vision', 'images']
+categories = ['computer-vision', 'images']
+mutability = 'strict'
 
-api.create(entity, spec, categories, import_path='/path/to/dataset', unzip=True, version=2)
+api.create(entity, spec, categories, mutability, import_path='/path/to/dataset', unzip=True, version=2)
 ```
 
 output:
