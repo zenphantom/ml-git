@@ -123,6 +123,33 @@ def push(entity, entity_name,  retries=2, clear_on_fail=False):
 </details>
 
 
+<details>
+<summary><code> create </code></summary>
+<br>
+
+```python
+def create(entity, entity_name, categories, **kwargs):
+    """This command will create the workspace structure with data and spec file for an entity and set the store configurations.
+
+        Example:
+            create('dataset', 'dataset-ex', categories=['computer-vision', 'images'])
+
+        Args:
+            entity (str): The type of an ML entity. (dataset, labels or model).
+            entity_name (str): An ml-git entity name to identify a ML entity.
+            categories (list): Artifact's category name.
+            store_type (str, optional): Data store type [default: s3h].
+            version (int, optional): Number of retries to upload the files to the storage [default: 2].
+            import_path (str, optional): Path to be imported to the project.
+            bucket_name (str, optional): Bucket name.
+            import_url (str, optional): Import data from a google drive url.
+            credentials_path (str, optional): Directory of credentials.json.
+            unzip (bool, optional): Unzip imported zipped files [default: False].
+    """
+```
+</details>
+
+
 # <a name="methods"> API notebooks </a> #
 
 In the api_scripts directory you can find notebooks running the ml-git api for some scenarios. 

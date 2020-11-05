@@ -181,3 +181,20 @@ api.push(entity, spec)
 output:
 
     files: 100%|##########| 24.0/24.0 [00:00<00:00, 34.3files/s]
+    
+
+## Create
+
+```python
+from ml_git import api
+
+entity = 'dataset'
+spec = 'dataset-ex'
+categories= ['computer-vision', 'images']
+
+api.create(entity, spec, categories, import_path='/path/to/dataset', unzip=True, version=2)
+```
+
+output:
+
+    INFO - MLGit: Project Created.
