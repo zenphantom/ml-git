@@ -172,7 +172,7 @@ def create(entity, entity_name, categories, mutability, **kwargs):
     """This command will create the workspace structure with data and spec file for an entity and set the store configurations.
 
         Example:
-            create('dataset', 'dataset-ex', categories=['computer-vision', 'images'], mutability=mutable)
+            create('dataset', 'dataset-ex', categories=['computer-vision', 'images'], mutability='strict')
 
         Args:
             entity (str): The type of an ML entity. (dataset, labels or model).
