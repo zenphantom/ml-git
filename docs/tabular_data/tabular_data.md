@@ -19,12 +19,13 @@ An example of a tabular data structure can be seen below:
 
 Due to the way the data is versioned by ml-git (see [internals documentation](../mlgit_internals.md)) the way the data is organized can influence the performance and optimization of the data storage that ml-git has.
 
-When ml-git is dealing with tabular data, the user should pay greater attention to actions that edit data that were previously added.​
+When ml-git is dealing with tabular data, in order to obtain higher storage usage efficiency, it is recommended to avoid actions that edit data that were previously added.​
 
-We strongly recommend that the user organize their data in such a way that the entry of new data into the set is done without influencing the data already added.​
+We strongly recommend that the user organize their data in such a way that the entry of new data into the set is done without changing the data already added.
+​
 Examples of this type of organization is to partition the data by insertion date. This way, each partition should not be modified by future data insertions.​
 
-The way how we can achieve partitioning is using the folders structure to split data in different physical sets, even with several levels, 
+One good way how we can achieve partitioning is using the folders structure to split data in different physical sets, even with several levels, 
 with a part of the information of the table. As we can see in the picture, the name of each folder should contain the concrete value of the column 
 and optionally also the name of the column.
 
