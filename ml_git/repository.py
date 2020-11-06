@@ -271,8 +271,7 @@ class Repository(object):
         for base_path, path_files in files.items():
             if not base_path:
                 print('\t%s%s' % (files_status, '\n\t'.join(path_files)))
-                return
-            if len(path_files) == one_file:
+            elif len(path_files) == one_file:
                 print('\t%s%s' % (files_status, os.path.join(base_path, ''.join(path_files))))
             else:
                 print('\t%s%s\t->\t%d FILES' % (files_status, base_path + '/', len(path_files)))
