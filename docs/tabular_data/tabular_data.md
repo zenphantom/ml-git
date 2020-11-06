@@ -21,9 +21,7 @@ Due to the way the data is versioned by ml-git (see [internals documentation](..
 
 When ml-git is dealing with tabular data, in order to obtain higher storage usage efficiency, it is recommended to avoid actions that edit data that were previously added.​
 
-We strongly recommend that the user organize their data in such a way that the entry of new data into the set is done without changing the data already added.
-​
-Examples of this type of organization is to partition the data by insertion date. This way, each partition should not be modified by future data insertions.​
+We strongly recommend that the user organize their data in such a way that the entry of new data into the set is done without changing the data already added. Examples of this type of organization is to partition the data by insertion date. This way, each partition should not be modified by future data insertions.​
 
 One good way how we can achieve partitioning is using the folders structure to split data in different physical sets, even with several levels, 
 with a part of the information of the table. As we can see in the picture, the name of each folder should contain the concrete value of the column 
