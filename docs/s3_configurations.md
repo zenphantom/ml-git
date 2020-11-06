@@ -60,7 +60,7 @@ You can configure the AWS in two ways (through the console or with the [AWS Comm
 
 - Demonstrating AWS Configure
   
-  [![asciicast](https://asciinema.org/a/9JJEpAEUnqp9SWueIrcSV7tDZ.svg)](https://asciinema.org/a/9JJEpAEUnqp9SWueIrcSV7tDZ)
+  [![asciicast](https://asciinema.org/a/371052.svg)](https://asciinema.org/a/371052)
    
 ## MinIO ##
 

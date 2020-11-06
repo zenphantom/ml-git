@@ -113,7 +113,7 @@ $ ml-git dataset create --category=computer-vision --category=images --bucket-na
 
 Demonstration video:
 
-  [![asciicast](https://asciinema.org/a/353448.svg)](https://asciinema.org/a/353448)
+  [![asciicast](https://asciinema.org/a/371042.svg)](https://asciinema.org/a/371042)
 
 
 </details>
@@ -128,7 +128,7 @@ $ ml-git dataset status dataset-ex
 
 Demonstration video:
 
-  [![asciicast](https://asciinema.org/a/353454.svg)](https://asciinema.org/a/353454)
+  [![asciicast](https://asciinema.org/a/371043.svg)](https://asciinema.org/a/371043)
 
 
 </details>
@@ -155,7 +155,7 @@ $ ml-git dataset add dataset-ex data/file_name.ex
 
 Demonstration video:
 
-  [![asciicast](https://asciinema.org/a/353456.svg)](https://asciinema.org/a/353456)
+  [![asciicast](https://asciinema.org/a/371045.svg)](https://asciinema.org/a/371045)
 
 
 </details>
@@ -169,7 +169,7 @@ $ ml-git dataset commit dataset-ex
 
 Demonstration video:
 
-  [![asciicast](https://asciinema.org/a/353457.svg)](https://asciinema.org/a/353457)
+  [![asciicast](https://asciinema.org/a/371046.svg)](https://asciinema.org/a/371046)
 
 
 </details>
@@ -183,7 +183,7 @@ $ ml-git dataset push dataset-ex
 
 Demonstration video:
 
-  [![asciicast](https://asciinema.org/a/353458.svg)](https://asciinema.org/a/353458)
+  [![asciicast](https://asciinema.org/a/371048.svg)](https://asciinema.org/a/371048)
 
 
 </details>
@@ -197,7 +197,7 @@ $ ml-git dataset checkout computer-vision__images__dataset-ex__1
 
 Demonstration video:
 
-  [![asciicast](https://asciinema.org/a/353461.svg)](https://asciinema.org/a/353461)
+  [![asciicast](https://asciinema.org/a/371049.svg)](https://asciinema.org/a/371049)
 </details>
 
 [More about commands in documentation](docs/mlgit_commands.md)
