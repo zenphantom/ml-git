@@ -171,6 +171,10 @@ commands = [
             'ml-entity-name': {}
         },
 
+        'options': {
+            '--full': {'is_flag': True, 'default': False, 'help': 'Show all contents for each directory.'},
+        },
+
         'help': 'Print the files that are tracked or not and the ones that are in the index/staging area.'
 
     },
