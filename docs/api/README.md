@@ -140,7 +140,7 @@ def create(entity, entity_name, categories, mutability, **kwargs):
             categories (list): Artifact's category name.
             mutability (str): Mutability type. The mutability options are strict, flexible and mutable.
             store_type (str, optional): Data store type [default: s3h].
-            version (int, optional): Number of retries to upload the files to the storage [default: 2].
+            version (int, optional): Number of artifact version [default: 1].
             import_path (str, optional): Path to be imported to the project.
             bucket_name (str, optional): Bucket name.
             import_url (str, optional): Import data from a google drive url.
