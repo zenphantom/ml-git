@@ -21,7 +21,7 @@ class MetadataPersistenceTests(unittest.TestCase):
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_01_change_metadata(self):
         init_repository('dataset', self)
-        self.assertRegex(check_output(MLGIT_STATUS % ('dataset', 'dataset-ex')+' --full'),
+        self.assertRegex(check_output(MLGIT_STATUS % ('dataset', 'dataset-ex')),
                          r'Changes to be committed:\n\nUntracked files:\n\tdataset-ex.spec\n\nCorrupted files')
 
         self.assertIn(messages[13] % 'dataset', check_output(MLGIT_ADD % ('dataset', 'dataset-ex', '')))
@@ -31,12 +31,12 @@ class MetadataPersistenceTests(unittest.TestCase):
         with open(readme, 'w') as file:
             file.write('NEW')
 
-        self.assertRegex(check_output(MLGIT_STATUS % ('dataset', 'dataset-ex'))+' --full',
+        self.assertRegex(check_output(MLGIT_STATUS % ('dataset', 'dataset-ex')),
                          r'Changes to be committed:\n\tNew file: dataset-ex.spec\n\nUntracked files:\n\tREADME.md\n\nCorrupted files')
 
         self.assertIn(messages[13] % 'dataset', check_output(MLGIT_ADD % ('dataset', 'dataset-ex', '')))
 
-        status = check_output(MLGIT_STATUS % ('dataset', 'dataset-ex')+' --full')
+        status = check_output(MLGIT_STATUS % ('dataset', 'dataset-ex'))
 
         self.assertIn('New file: dataset-ex.spec', status)
         self.assertIn('New file: README.md', status)
@@ -61,7 +61,7 @@ class MetadataPersistenceTests(unittest.TestCase):
             spec['dataset']['version'] = 17
             yaml_processor.dump(spec, y)
 
-        status = check_output(MLGIT_STATUS % ('dataset', 'dataset-ex')+' --full')
+        status = check_output(MLGIT_STATUS % ('dataset', 'dataset-ex'))
 
         self.assertNotIn('new file: README.md', status)
         self.assertIn('README.md', status)
@@ -76,7 +76,7 @@ class MetadataPersistenceTests(unittest.TestCase):
 
         self.assertIn('No blobs', check_output(MLGIT_PUSH % ('dataset', 'dataset-ex')))
 
-        self.assertRegex(check_output(MLGIT_STATUS % ('dataset', 'dataset-ex')+' --full'),
+        self.assertRegex(check_output(MLGIT_STATUS % ('dataset', 'dataset-ex')),
                          r'Changes to be committed:\n\nUntracked files:\n\nCorrupted files')
 
         clear(ML_GIT_DIR)

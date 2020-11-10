@@ -173,7 +173,7 @@ commands = [
         },
 
         'options': {
-            '--full': {'is_flag': True, 'default': False, 'help': 'Show all contents for each directory.'},
+            '--full': {'is_flag': True, 'default': False, 'help': help_msg.STATUS_FULL_OPTION},
         },
 
         'help': 'Print the files that are tracked or not and the ones that are in the index/staging area.'
