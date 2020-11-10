@@ -9,7 +9,7 @@ from stat import S_IWUSR, S_IREAD
 
 import pytest
 
-from tests.integration.commands import MLGIT_COMMIT, MLGIT_PUSH, MLGIT_ENTITY_INIT, MLGIT_STATUS, MLGIT_ADD, \
+from tests.integration.commands import MLGIT_COMMIT, MLGIT_PUSH, MLGIT_ENTITY_INIT, MLGIT_STATUS_SHORT, MLGIT_ADD, \
     MLGIT_CHECKOUT
 from tests.integration.helper import ML_GIT_DIR, GIT_PATH, ERROR_MESSAGE
 from tests.integration.helper import check_output, clear, init_repository, create_file
@@ -48,7 +48,7 @@ class StatusShortModeAcceptanceTests(unittest.TestCase):
         data_path = os.path.join(self.tmp_dir, 'dataset', 'dataset-ex', 'data')
         os.makedirs(data_path, exist_ok=True)
         create_file(data_path, 'file', '0', '')
-        self.assertRegex(check_output(MLGIT_STATUS % ('dataset', 'dataset-ex')),
+        self.assertRegex(check_output(MLGIT_STATUS_SHORT % ('dataset', 'dataset-ex')),
                          r'Changes to be committed:\s+Untracked files:(\s|.)*data/file(\s|.)*')
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
@@ -58,7 +58,7 @@ class StatusShortModeAcceptanceTests(unittest.TestCase):
         os.makedirs(data_path, exist_ok=True)
         create_file(data_path, 'file', '0', '')
         create_file(data_path, 'file2', '0', '')
-        self.assertRegex(check_output(MLGIT_STATUS % ('dataset', 'dataset-ex')),
+        self.assertRegex(check_output(MLGIT_STATUS_SHORT % ('dataset', 'dataset-ex')),
                          r'Changes to be committed:\s+Untracked files:(\s|.)*data/\t->\t2 FILES(\s|.)*')
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
@@ -68,7 +68,7 @@ class StatusShortModeAcceptanceTests(unittest.TestCase):
         os.makedirs(data_path, exist_ok=True)
         create_file(data_path, 'file0', '0', '')
         self.assertIn(messages[13] % 'dataset', check_output(MLGIT_ADD % ('dataset', 'dataset-ex', '--bumpversion')))
-        self.assertRegex(check_output(MLGIT_STATUS % ('dataset', 'dataset-ex')),
+        self.assertRegex(check_output(MLGIT_STATUS_SHORT % ('dataset', 'dataset-ex')),
                          r'Changes to be committed:(\s|.)*New file: data/file0(\s|.)*'
                          r'Untracked files:\n\nCorrupted files:')
 
@@ -85,7 +85,7 @@ class StatusShortModeAcceptanceTests(unittest.TestCase):
         self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, 'dataset', 'metadata'),
                                       os.path.join('computer-vision', 'images', 'dataset-ex')),
                       check_output(MLGIT_COMMIT % ('dataset', 'dataset-ex', '')))
-        self.assertRegex(check_output(MLGIT_STATUS % ('dataset', 'dataset-ex')),
+        self.assertRegex(check_output(MLGIT_STATUS_SHORT % ('dataset', 'dataset-ex')),
                          r'Changes to be committed:\s+Untracked files:')
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
@@ -93,7 +93,7 @@ class StatusShortModeAcceptanceTests(unittest.TestCase):
         self.set_up_checkout('dataset')
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_CHECKOUT % ('dataset',
                                                                        'computer-vision__images__dataset-ex__1')))
-        self.assertRegex(check_output(MLGIT_STATUS % ('dataset', 'dataset-ex')),
+        self.assertRegex(check_output(MLGIT_STATUS_SHORT % ('dataset', 'dataset-ex')),
                          r'Changes to be committed:\s+Untracked files')
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
@@ -108,5 +108,5 @@ class StatusShortModeAcceptanceTests(unittest.TestCase):
         os.chmod(file_to_be_deleted2, S_IWUSR | S_IREAD)
         os.remove(file_to_be_deleted)
         os.remove(file_to_be_deleted2)
-        self.assertRegex(check_output(MLGIT_STATUS % ('dataset', 'dataset-ex')),
+        self.assertRegex(check_output(MLGIT_STATUS_SHORT % ('dataset', 'dataset-ex')),
                          r'Changes to be committed:\s+Deleted: (\s|.)*data/\t->\t2 FILES(\s|.)*')
