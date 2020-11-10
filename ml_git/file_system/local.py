@@ -642,7 +642,7 @@ class LocalRepository(MultihashFS):
         return True
 
     def exist_local_changes(self, spec_name):
-        new_files, deleted_files, untracked_files, _, _ = self.status(spec_name, log_errors=False)
+        new_files, deleted_files, untracked_files, _, _ = self.status(spec_name, status_directory="", log_errors=False)
         if new_files is not None and deleted_files is not None and untracked_files is not None:
             unsaved_files = new_files + deleted_files + untracked_files
             if spec_name + SPEC_EXTENSION in unsaved_files:
@@ -685,7 +685,7 @@ class LocalRepository(MultihashFS):
 
         return corrupted_files
 
-    def status(self, spec, log_errors=True):
+    def status(self, spec, status_directory="", log_errors=True):
         try:
             repo_type = self.__repo_type
             index_path = get_index_path(self.__config, repo_type)
@@ -712,6 +712,10 @@ class LocalRepository(MultihashFS):
         except Exception as e:
             if log_errors:
                 log.error(e, class_name=REPOSITORY_CLASS_NAME)
+
+        if status_directory:
+            path = os.path.join(path, status_directory)
+
         # All files in MANIFEST.yaml in the index AND all files in datapath which stats links == 1
         idx = MultihashIndex(spec, index_path, objects_path)
         idx_yaml = idx.get_index_yaml()
