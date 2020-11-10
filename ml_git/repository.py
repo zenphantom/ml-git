@@ -191,7 +191,7 @@ class Repository(object):
         return True
 
     def _has_new_data(self, repo, spec):
-        _, deleted, untracked_files, _, changed_files = repo.status(spec, log_errors=False)
+        _, deleted, untracked_files, _, changed_files = repo.status(spec, status_directory="", log_errors=False)
         if deleted is None and untracked_files is None and changed_files is None:
             return False
         elif len(deleted) == 0 and len(untracked_files) == 0 and len(changed_files) == 0:
@@ -232,13 +232,13 @@ class Repository(object):
 
     '''prints status of changes in the index and changes not yet tracked or staged'''
 
-    def status(self, spec, full_option):
+    def status(self, spec, full_option, status_directory):
         repo_type = self.__repo_type
         try:
             objects_path = get_objects_path(self.__config, repo_type)
             repo = LocalRepository(self.__config, objects_path, repo_type)
             log.info('%s: status of ml-git index for [%s]' % (repo_type, spec), class_name=REPOSITORY_CLASS_NAME)
-            new_files, deleted_files, untracked_files, corruped_files, changed_files = repo.status(spec)
+            new_files, deleted_files, untracked_files, corruped_files, changed_files = repo.status(spec, status_directory)
         except Exception as e:
             log.error(e, class_name=REPOSITORY_CLASS_NAME)
             return
