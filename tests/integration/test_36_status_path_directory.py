@@ -5,12 +5,12 @@ SPDX-License-Identifier: GPL-2.0-only
 
 import os
 import unittest
-from stat import S_IWUSR, S_IREAD
 
 import pytest
 
-from tests.integration.commands import  MLGIT_STATUS_DIRECTORY
+from tests.integration.commands import MLGIT_STATUS_DIRECTORY
 from tests.integration.helper import check_output, init_repository, create_file
+
 
 @pytest.mark.usefixtures('tmp_dir')
 class StatusShortModeAcceptanceTests(unittest.TestCase):
