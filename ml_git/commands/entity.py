@@ -200,9 +200,9 @@ def show(context, ml_entity_name):
     repositories[repo_type].show(ml_entity_name)
 
 
-def status(context, ml_entity_name, full):
+def status(context, ml_entity_name, full, status_directory):
     repo_type = context.parent.command.name
-    repositories[repo_type].status(ml_entity_name, full)
+    repositories[repo_type].status(ml_entity_name, full, status_directory)
 
 
 def remote_fsck(context, **kwargs):
