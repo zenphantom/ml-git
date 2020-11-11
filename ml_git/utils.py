@@ -13,6 +13,7 @@ from contextlib import contextmanager
 from pathlib import Path, PurePath, PurePosixPath
 from stat import S_IREAD, S_IRGRP, S_IROTH, S_IWUSR
 
+from halo import Halo
 from ruamel.yaml import YAML
 from ruamel.yaml.compat import StringIO
 
@@ -221,3 +222,27 @@ def remove_from_workspace(file_names, path, spec_name):
                     file_path = convert_path(root, key)
                     set_write_read(file_path)
                     os.unlink(file_path)
+
+
+@Halo(text='Removing unnecessary files', spinner='dots')
+def remove_unnecessary_files(file_names, path):
+    count = 0
+    reclaimed_space = 0
+    for root, dirs, files in os.walk(path):
+        for file in files:
+            if file not in file_names:
+                file_path = os.path.join(root, file)
+                reclaimed_space += Path(file_path).stat().st_size
+                set_write_read(file_path)
+                os.unlink(file_path)
+                count += 1
+    return count, reclaimed_space
+
+
+def number_to_human_format(num):
+    num = float('{:.3g}'.format(num))
+    magnitude = 0
+    while abs(num) >= 1000:
+        magnitude += 1
+        num /= 1000.0
+    return '{}{}'.format('{:f}'.format(num).rstrip('0').rstrip('.'), ['', 'k', 'M', 'B', 'T'][magnitude])
