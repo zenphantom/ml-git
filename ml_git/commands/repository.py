@@ -47,7 +47,7 @@ def update():
     repositories[PROJECT].update_entities_metadata()
 
 
-@repository.command('gc', help='Cleanup unnecessary files and optimize the disk space.')
+@repository.command('gc', help='Cleanup unnecessary files and optimize the use of the disk space.')
 @click.help_option(hidden=True)
 @click.option('--verbose', is_flag=True, expose_value=False, callback=set_verbose_mode, help='Debug mode')
 def gc():
