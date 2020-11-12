@@ -11,6 +11,7 @@ import unittest
 from unittest.mock import Mock
 
 import pytest
+from hurry.filesize import alternative, size
 
 from ml_git.utils import json_load, yaml_load, yaml_save, RootPathException, get_root_path, change_mask_for_routine, \
     ensure_path_exists, yaml_load_str, get_yaml_str, run_function_per_group, unzip_files_in_directory, \
@@ -164,8 +165,8 @@ class UtilsTestCases(unittest.TestCase):
         total_count, total_reclaimed_space = remove_unnecessary_files(['image1.jpg'], self.tmp_dir)
         expected_deleted_files = 58
         self.assertEqual(total_count, expected_deleted_files)
-        expected_reclaimed_space = 12860387
-        self.assertEqual(total_reclaimed_space, expected_reclaimed_space)
+        expected_reclaimed_space = size(12860387, system=alternative)
+        self.assertEqual(size(total_reclaimed_space, system=alternative), expected_reclaimed_space)
 
     def test_number_to_human_format(self):
         self.assertEqual(number_to_human_format(1), '1')
