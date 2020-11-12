@@ -5,8 +5,8 @@ SPDX-License-Identifier: GPL-2.0-only
 
 import boto3
 from botocore.exceptions import ProfileNotFound
+
 from ml_git import log
-from ml_git.config import mlgit_config
 from ml_git.constants import STORE_FACTORY_CLASS_NAME, StoreType
 from ml_git.storages.azure_store import AzureMultihashStore
 from ml_git.storages.google_drive_store import GoogleDriveMultihashStore, GoogleDriveStore
@@ -40,11 +40,7 @@ def store_factory(config, store_string):
 
 
 def get_bucket_region(bucket, credentials_profile=None):
-    if credentials_profile is not None:
-        profile = credentials_profile
-    else:
-        profile = mlgit_config['store'][StoreType.S3.value][bucket]['aws-credentials']['profile']
-    session = boto3.Session(profile_name=profile)
+    session = boto3.Session(profile_name=credentials_profile)
     client = session.client(StoreType.S3.value)
     location = client.get_bucket_location(Bucket=bucket)
     if location['LocationConstraint'] is not None:

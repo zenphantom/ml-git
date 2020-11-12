@@ -16,8 +16,9 @@ from zipfile import ZipFile
 from ruamel.yaml import YAML
 
 from ml_git.constants import StoreType, GLOBAL_ML_GIT_CONFIG, Mutability
+from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_INIT, MLGIT_REMOTE_ADD, MLGIT_ENTITY_INIT, MLGIT_ADD, \
-    MLGIT_STORE_ADD_WITH_TYPE, MLGIT_REMOTE_ADD_GLOBAL, MLGIT_STORE_ADD
+    MLGIT_STORE_ADD_WITH_TYPE, MLGIT_REMOTE_ADD_GLOBAL, MLGIT_STORE_ADD, MLGIT_STORE_ADD_WITHOUT_CREDENTIALS
 from tests.integration.output_messages import messages
 
 PATH_TEST = os.path.join(os.getcwd(), 'tests', 'integration', '.test_env')
@@ -108,9 +109,13 @@ def init_repository(entity, self, version=1, store_type='s3h', profile=PROFILE, 
     if store_type == StoreType.GDRIVEH.value:
         self.assertIn(messages[87] % (store_type, BUCKET_NAME),
                       check_output(MLGIT_STORE_ADD_WITH_TYPE % (BUCKET_NAME, profile, store_type)))
-    else:
-        self.assertIn(messages[7] % (store_type, BUCKET_NAME, profile),
+    elif profile is not None:
+        self.assertIn(output_messages['INFO_ADD_STORE'] % (store_type, BUCKET_NAME, profile),
                       check_output(MLGIT_STORE_ADD_WITH_TYPE % (BUCKET_NAME, profile, store_type)))
+    else:
+        self.assertIn(output_messages['INFO_ADD_STORE_WITHOUT_PROFILE'] % (store_type, BUCKET_NAME),
+                      check_output(MLGIT_STORE_ADD_WITHOUT_CREDENTIALS % BUCKET_NAME))
+
     self.assertIn(messages[8] % (os.path.join(self.tmp_dir, GIT_PATH), os.path.join(self.tmp_dir, ML_GIT_DIR, entity, 'metadata')),
                   check_output(MLGIT_ENTITY_INIT % entity))
 

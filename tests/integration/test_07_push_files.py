@@ -5,9 +5,12 @@ SPDX-License-Identifier: GPL-2.0-only
 
 import os
 import unittest
+from pathlib import Path
+from unittest import mock
 
 import pytest
 
+from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_COMMIT, MLGIT_PUSH
 from tests.integration.helper import ML_GIT_DIR, MINIO_BUCKET_PATH, GIT_PATH
 from tests.integration.helper import check_output, clear, init_repository, add_file, ERROR_MESSAGE
@@ -29,6 +32,10 @@ class PushFilesAcceptanceTests(unittest.TestCase):
         self.assertTrue(os.path.exists(HEAD))
 
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_PUSH % (entity_type, entity_type+'-ex')))
+        self.check_metadata_after_push(entity_type)
+
+    def check_metadata_after_push(self, entity_type='dataset'):
+        metadata_path = os.path.join(self.tmp_dir, ML_GIT_DIR, entity_type, 'metadata')
         os.chdir(metadata_path)
         self.assertTrue(os.path.exists(
             os.path.join(MINIO_BUCKET_PATH, 'zdj7WWjGAAJ8gdky5FKcVLfd63aiRUGb8fkc8We2bvsp9WW12')))
@@ -65,3 +72,45 @@ class PushFilesAcceptanceTests(unittest.TestCase):
 
         self.assertIn(ERROR_MESSAGE, output)
         self.assertIn(git_path, output)
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
+    def test_05_push_with_wrong_credentials_profile(self):
+        entity_type = 'dataset'
+        artifact_name = 'dataset-ex'
+        init_repository(entity_type, self, profile='personal2')
+        add_file(self, entity_type, '--bumpversion', 'new')
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_COMMIT % (entity_type,  artifact_name, '')))
+        self.assertIn(output_messages['ERROR_AWS_KEY_NOT_EXIST'], check_output(MLGIT_PUSH % (entity_type, artifact_name)))
+
+    def set_up_push_without_profile(self, entity_type='dataset', artifact_name='dataset-ex'):
+        init_repository(entity_type, self, profile=None)
+        add_file(self, entity_type, '--bumpversion', 'new')
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_COMMIT % (entity_type, artifact_name, '')))
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
+    @mock.patch.dict(os.environ, {'AWS_ACCESS_KEY_ID': 'fake_access_key'})
+    @mock.patch.dict(os.environ, {'AWS_SECRET_ACCESS_KEY': 'fake_secret_key'})
+    def test_06_push_with_environment_variables(self):
+        entity_type = 'dataset'
+        artifact_name = 'dataset-ex'
+        self.set_up_push_without_profile()
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_PUSH % (entity_type, artifact_name)))
+        self.check_metadata_after_push(entity_type)
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
+    @mock.patch.dict(os.environ, {'AWS_SHARED_CREDENTIALS_FILE': os.path.join(Path('./tests/integration/.aws/credentials-default').resolve())})
+    def test_07_push_with_default_aws_config(self):
+        entity_type = 'dataset'
+        artifact_name = 'dataset-ex'
+        self.set_up_push_without_profile()
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_PUSH % (entity_type, artifact_name)))
+        self.check_metadata_after_push(entity_type)
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
+    def test_08_push_without_default_config(self):
+        entity_type = 'dataset'
+        artifact_name = 'dataset-ex'
+        init_repository(entity_type, self, profile=None)
+        add_file(self, entity_type, '--bumpversion', 'new')
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_COMMIT % (entity_type, artifact_name, '')))
+        self.assertIn('Unable to locate credentials', check_output(MLGIT_PUSH % (entity_type, artifact_name)))
