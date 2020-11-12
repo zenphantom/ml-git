@@ -17,7 +17,7 @@ from halo import Halo
 from ruamel.yaml import YAML
 from ruamel.yaml.compat import StringIO
 
-from ml_git.constants import SPEC_EXTENSION, CONFIG_FILE, HASH_FS_CLASS_NAME
+from ml_git.constants import SPEC_EXTENSION, CONFIG_FILE
 from ml_git.pool import pool_factory
 
 

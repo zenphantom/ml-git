@@ -65,7 +65,7 @@ class GcAcceptanceTests(unittest.TestCase):
         self.set_up_gc(entity)
         original_size, number_of_files = self.get_metadata_infos()
         result = check_output(MLGIT_REPOSITORY_GC)
-        self.check_result(result, entity,original_size, number_of_files,
+        self.check_result(result, entity, original_size, number_of_files,
                           expected_removed_files=3, expected_reclaimed_space='2 KB')
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
