@@ -100,8 +100,8 @@ def store_add(store_type, bucket, credentials_profile, global_conf=False, endpoi
     try:
         region = get_bucket_region(bucket, credentials_profile)
     except Exception:
-        region = 'us-east-1'
-    if store_type not in (StoreType.S3H.value, StoreType.S3.value):
+        region = None
+    if store_type not in (StoreType.S3H.value, StoreType.S3.value) or credentials_profile is None:
         log.info('Add store [%s://%s]' % (store_type, bucket), class_name=ADMIN_CLASS_NAME)
     else:
         log.info('Add store [%s://%s] with creds from profile [%s]' %

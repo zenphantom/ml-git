@@ -15,6 +15,8 @@ output_messages = {
     'INFO_COMMIT_REPO': 'Commit repo[%s] --- file[%s]',
     'INFO_CHANGING_REMOTE': 'Changing remote from [%s] to [%s] for [%s]',
     'INFO_REMOVE_REMOTE': 'Removing remote repository [%s] from [%s].',
+    'INFO_ADD_STORE': 'Add store [%s://%s] with creds from profile [%s]',
+    'INFO_ADD_STORE_WITHOUT_PROFILE': 'Add store [%s://%s]',
     'INFO_STARTING_GC': 'Starting the garbage collector for %s',
     'INFO_REMOVED_FILES': 'A total of %s files have been removed from %s',
     'INFO_RECLAIMED_SPACE': 'Total reclaimed space %s.',
@@ -30,6 +32,8 @@ output_messages = {
     'ERROR_MISSING_MUTABILITY': 'Missing option "--mutability".  Choose from:\n\tstrict,\n\tflexible,\n\tmutable.',
     'ERROR_SPEC_WITHOUT_MUTABILITY': 'You need to define a mutability type when creating a new entity. '
                                      'Your spec should look something like this:' + get_sample_spec_doc('some-bucket'),
+    'ERROR_AWS_KEY_NOT_EXIST': 'The AWS Access Key Id you provided does not exist in our records.',
+    'ERROR_BUCKET_DOES_NOT_EXIST': 'This bucket does not exist -- [%s]',
 
     'WARN_HAS_CONFIGURED_REMOTE': 'YOU ALREADY HAS A CONFIGURED REMOTE. All data stored in this repository will be sent to the new one on the first push.',
 }

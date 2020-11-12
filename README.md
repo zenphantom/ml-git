@@ -211,3 +211,7 @@ Your contributions are always welcome!
 
 Another way to contribute with the community is creating an issue to track your ideas, doubts, enhancements, tasks, or bugs found. 
 If an issue with the same topic already exists, discuss on the issue.
+
+### Links
+
+- [ML-Git API documentation](docs/api/README.md) - Find the commands that are available in our api, usage examples and more.

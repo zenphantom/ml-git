@@ -9,9 +9,11 @@ import unittest
 import pytest
 
 from ml_git import api
-from ml_git.constants import Mutability
-from tests.integration.helper import ML_GIT_DIR, CLONE_FOLDER, check_output, init_repository, create_git_clone_repo, \
-    clear, yaml_processor
+from ml_git.constants import Mutability, StoreType
+from ml_git.ml_git_message import output_messages
+from tests.integration.commands import MLGIT_INIT
+from tests.integration.helper import ML_GIT_DIR, check_output, init_repository, create_git_clone_repo, \
+    clear, yaml_processor, create_zip_file, CLONE_FOLDER
 
 
 @pytest.mark.usefixtures('tmp_dir')
@@ -276,3 +278,55 @@ class APIAcceptanceTests(unittest.TestCase):
         self.assertTrue(os.path.exists(HEAD))
 
         self.assertEqual('computer-vision__images__dataset-ex__2', spec['labels']['dataset']['tag'])
+
+    def check_created_folders(self, entity_type, store_type=StoreType.S3H.value, version=1, bucket_name='fake_store'):
+        folder_data = os.path.join(self.tmp_dir, entity_type, entity_type + '-ex', 'data')
+        spec = os.path.join(self.tmp_dir, entity_type, entity_type + '-ex', entity_type + '-ex.spec')
+        readme = os.path.join(self.tmp_dir, entity_type, entity_type + '-ex', 'README.md')
+        with open(spec, 'r') as s:
+            spec_file = yaml_processor.load(s)
+            self.assertEqual(spec_file[entity_type]['manifest']['store'], store_type + '://' + bucket_name)
+            self.assertEqual(spec_file[entity_type]['name'], entity_type + '-ex')
+            self.assertEqual(spec_file[entity_type]['version'], version)
+        with open(os.path.join(self.tmp_dir, ML_GIT_DIR, 'config.yaml'), 'r') as y:
+            config = yaml_processor.load(y)
+            self.assertIn(entity_type, config)
+
+        self.assertTrue(os.path.exists(folder_data))
+        self.assertTrue(os.path.exists(spec))
+        self.assertTrue(os.path.exists(readme))
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
+    def test_14_create_entity(self):
+        entity_type = 'dataset'
+        store_type = StoreType.S3H.value
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'] % self.tmp_dir, check_output(MLGIT_INIT))
+        api.create('dataset', 'dataset-ex', categories=['computer-vision', 'images'], mutability='strict')
+        self.check_created_folders(entity_type, store_type)
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
+    def test_15_create_entity_with_optional_arguments(self):
+        entity_type = 'dataset'
+        store_type = StoreType.AZUREBLOBH.value
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'] % self.tmp_dir, check_output(MLGIT_INIT))
+        api.create('dataset', 'dataset-ex', categories=['computer-vision', 'images'], version=5, store_type=store_type, bucket_name='test', mutability='strict')
+        self.check_created_folders(entity_type, store_type, version=5, bucket_name='test')
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
+    def test_16_create_entity_with_import(self):
+        entity_type = 'dataset'
+        IMPORT_PATH = 'src'
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'] % self.tmp_dir, check_output(MLGIT_INIT))
+        import_path = os.path.join(self.tmp_dir, IMPORT_PATH)
+        os.makedirs(import_path)
+        create_zip_file(IMPORT_PATH, 3)
+        self.assertTrue(os.path.exists(os.path.join(import_path, 'file.zip')))
+        api.create(entity_type, entity_type+'-ex', categories=['computer-vision', 'images'], unzip=True, import_path=import_path, mutability='strict')
+        self.check_created_folders(entity_type, StoreType.S3H.value)
+        folder_data = os.path.join(self.tmp_dir, entity_type, entity_type + '-ex', 'data', 'file')
+        self.assertTrue(os.path.exists(folder_data))
+        files = [f for f in os.listdir(folder_data)]
+        self.assertIn('file0.txt', files)
+        self.assertIn('file1.txt', files)
+        self.assertIn('file2.txt', files)
+        self.assertEqual(3, len(files))

@@ -57,7 +57,7 @@ class AdminTestCases(unittest.TestCase):
         store_add('s3', 'bucket_test', 'personal')
         config_edit = yaml_load('.ml-git/config.yaml')
         self.assertEqual(config_edit['store']['s3']['bucket_test']['aws-credentials']['profile'], 'personal')
-        self.assertEqual(config_edit['store']['s3']['bucket_test']['region'], 'us-east-1')
+        self.assertEqual(config_edit['store']['s3']['bucket_test']['region'], None)
         s = store_add('s4', 'bucket_test', 'personal')
         self.assertEqual(s, None)
         config = yaml_load('.ml-git/config.yaml')
@@ -126,7 +126,7 @@ class AdminTestCases(unittest.TestCase):
 
         config_edit = yaml_load('.mlgitconfig')
         self.assertEqual(config_edit['store']['s3']['bucket_test']['aws-credentials']['profile'], 'personal')
-        self.assertEqual(config_edit['store']['s3']['bucket_test']['region'], 'us-east-1')
+        self.assertEqual(config_edit['store']['s3']['bucket_test']['region'], None)
 
         with mock.patch('pathlib.Path.home', return_value=self.tmp_dir):
             s = store_add('s4', 'bucket_test', 'personal', global_conf=True)
@@ -149,6 +149,18 @@ class AdminTestCases(unittest.TestCase):
 
         config = yaml_load('.mlgitconfig')
         self.assertFalse('s3' in config['store'] and 'bucket_test' in config['store']['s3'])
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir')
+    def test_store_add_without_credentials(self):
+        init_mlgit()
+        store_add('s3', 'bucket_test', None)
+        config_edit = yaml_load('.ml-git/config.yaml')
+        self.assertEqual(config_edit['store']['s3']['bucket_test']['aws-credentials']['profile'], None)
+        self.assertEqual(config_edit['store']['s3']['bucket_test']['region'], None)
+        s = store_add('s4', 'bucket_test', 'personal')
+        self.assertEqual(s, None)
+        config = yaml_load('.ml-git/config.yaml')
+        self.assertTrue('s3' in config['store'])
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_remote_del(self):
