@@ -18,7 +18,7 @@ from ml_git.config import get_index_path, get_objects_path, get_cache_path, get_
     get_index_metadata_path, create_workspace_tree_structure, start_wizard_questions, config_load, \
     get_global_config_path, save_global_config_in_local
 from ml_git.constants import REPOSITORY_CLASS_NAME, LOCAL_REPOSITORY_CLASS_NAME, HEAD, HEAD_1, Mutability, StoreType, \
-    RGX_TAG_FORMAT, EntityType, MANIFEST_FILE, SPEC_EXTENSION
+    RGX_TAG_FORMAT, EntityType, MANIFEST_FILE, SPEC_EXTENSION, HASH_FS_CLASS_NAME
 from ml_git.file_system.cache import Cache
 from ml_git.file_system.hashfs import MultihashFS
 from ml_git.file_system.index import MultihashIndex, Status, FullIndex
@@ -1053,7 +1053,8 @@ class Repository(object):
                 blobs_hashes = self._get_blobs_hashes(index_path, objects_path, repo_type)
 
                 # Clear cache
-                count_removed_cache, reclaimed_cache_space = remove_unnecessary_files(blobs_hashes, cache_path)
+                count_removed_cache, reclaimed_cache_space = remove_unnecessary_files(
+                    blobs_hashes, os.path.join(cache_path, HASH_FS_CLASS_NAME.lower()))
                 log.debug(output_messages['INFO_REMOVED_FILES'] % (number_to_human_format(count_removed_cache), cache_path))
 
                 # Clear objects

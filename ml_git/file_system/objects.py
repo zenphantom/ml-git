@@ -6,6 +6,7 @@ import os
 
 from halo import Halo
 
+from ml_git.constants import HASH_FS_CLASS_NAME
 from ml_git.file_system.hashfs import MultihashFS
 from ml_git.file_system.index import FullIndex, Status
 from ml_git.utils import yaml_load, remove_unnecessary_files
@@ -48,4 +49,4 @@ class Objects(MultihashFS):
             for hash in descriptor['Links']:
                 used_blobs.append(hash['Hash'])
         used_blobs.extend(descriptor_hashes)
-        return remove_unnecessary_files(used_blobs, self._objects_path)
+        return remove_unnecessary_files(used_blobs, os.path.join(self._objects_path, HASH_FS_CLASS_NAME.lower()))

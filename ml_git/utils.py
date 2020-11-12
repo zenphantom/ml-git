@@ -17,7 +17,8 @@ from halo import Halo
 from ruamel.yaml import YAML
 from ruamel.yaml.compat import StringIO
 
-from ml_git.constants import SPEC_EXTENSION, CONFIG_FILE
+from ml_git.constants import SPEC_EXTENSION, CONFIG_FILE, HASH_FS_CLASS_NAME
+from ml_git.pool import pool_factory
 
 
 class RootPathException(Exception):
@@ -225,18 +226,34 @@ def remove_from_workspace(file_names, path, spec_name):
 
 
 @Halo(text='Removing unnecessary files', spinner='dots')
-def remove_unnecessary_files(file_names, path):
-    count = 0
+def remove_unnecessary_files(filenames, path):
+    total_count = 0
+    total_reclaimed_space = 0
+    dirs = os.listdir(path)
+    wp = pool_factory()
+    for dir in dirs:
+        wp.submit(remove_other_files, filenames, os.path.join(path, dir))
+    futures = wp.wait()
+    for future in futures:
+        reclaimed_space, count = future.result()
+        total_reclaimed_space += reclaimed_space
+        total_count += count
+    wp.reset_futures()
+    return total_count, total_reclaimed_space
+
+
+def remove_other_files(filenames, path):
     reclaimed_space = 0
+    count = 0
     for root, dirs, files in os.walk(path):
         for file in files:
-            if file not in file_names:
+            if file not in filenames:
                 file_path = os.path.join(root, file)
                 reclaimed_space += Path(file_path).stat().st_size
                 set_write_read(file_path)
                 os.unlink(file_path)
                 count += 1
-    return count, reclaimed_space
+    return reclaimed_space, count
 
 
 def number_to_human_format(num):
