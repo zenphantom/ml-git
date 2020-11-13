@@ -13,7 +13,7 @@ from tests.integration.helper import check_output, init_repository, create_file
 
 
 @pytest.mark.usefixtures('tmp_dir')
-class StatusShortModeAcceptanceTests(unittest.TestCase):
+class StatusPathDirectoryAcceptanceTests(unittest.TestCase):
 
     def set_up_status(self, entity):
         init_repository(entity, self)
