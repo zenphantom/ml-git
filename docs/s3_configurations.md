@@ -91,7 +91,7 @@ You can configure the AWS in three ways (environment variables, through the cons
 
 - Demonstrating AWS Configure
   
-  [![asciicast](https://asciinema.org/a/9JJEpAEUnqp9SWueIrcSV7tDZ.svg)](https://asciinema.org/a/9JJEpAEUnqp9SWueIrcSV7tDZ)
+  [![asciicast](https://asciinema.org/a/371052.svg)](https://asciinema.org/a/371052)
    
 ## MinIO ##
 
