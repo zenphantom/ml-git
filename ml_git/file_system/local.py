@@ -642,7 +642,7 @@ class LocalRepository(MultihashFS):
         return True
 
     def exist_local_changes(self, spec_name):
-        new_files, deleted_files, untracked_files, _, _ = self.status(spec_name, status_directory="", log_errors=False)
+        new_files, deleted_files, untracked_files, _, _ = self.status(spec_name, status_directory='', log_errors=False)
         if new_files is not None and deleted_files is not None and untracked_files is not None:
             unsaved_files = new_files + deleted_files + untracked_files
             if spec_name + SPEC_EXTENSION in unsaved_files:
