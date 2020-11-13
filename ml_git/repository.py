@@ -191,7 +191,7 @@ class Repository(object):
         return True
 
     def _has_new_data(self, repo, spec):
-        _, deleted, untracked_files, _, changed_files = repo.status(spec, status_directory="", log_errors=False)
+        _, deleted, untracked_files, _, changed_files = repo.status(spec, status_directory='', log_errors=False)
         if deleted is None and untracked_files is None and changed_files is None:
             return False
         elif len(deleted) == 0 and len(untracked_files) == 0 and len(changed_files) == 0:

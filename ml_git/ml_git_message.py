@@ -26,6 +26,7 @@ output_messages = {
     'ERROR_MISSING_MUTABILITY': 'Missing option "--mutability".  Choose from:\n\tstrict,\n\tflexible,\n\tmutable.',
     'ERROR_SPEC_WITHOUT_MUTABILITY': 'You need to define a mutability type when creating a new entity. '
                                      'Your spec should look something like this:' + get_sample_spec_doc('some-bucket'),
+    'ERROR_INVALID_STATUS_DIRECTORY': 'The directory informed is invalid.',
 
     'WARN_HAS_CONFIGURED_REMOTE': 'YOU ALREADY HAS A CONFIGURED REMOTE. All data stored in this repository will be sent to the new one on the first push.',
 }
