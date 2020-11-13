@@ -10,11 +10,42 @@ This section explains how to configure the settings that the ml-git uses to inte
 The _Access Key ID_ and _Secret Access Key_ are your credentials. The _Region Name_ identifies the AWS Region whose servers you want to send your requests. The _Output Format_ specifies how the results are formatted.
 
 Ml-git allows you to have your bucket directly on AWS infrastructure or through MinIO. This document is divided into two sections wich describe how configure each one of these.
+
 ## AWS ##
 
-You can configure the AWS in two ways (through the console or with the [AWS Command Line Interface](https://aws.amazon.com/cli/?nc1=h_ls)). These are described in the following sections.
+Internally ml-git uses [Boto3](https://github.com/boto/boto3) to communicate with AWS services. Boto3 is the Amazon Web Services (AWS) SDK for Python. 
+It enables Python developers to create, configure, and manage AWS services.
 
--  Console 
+Boto3 looks at various configuration locations until it finds configuration values. The following lookup order is used searching through sources for configuration values:
+
+* Environment variables
+* The ~/.aws/config file
+
+```Note:``` 
+If, when creating a storage, you define a specific profile to be used, Boto3 will only search for that profile in the ~/.aws/config file.
+
+You can configure the AWS in three ways (environment variables, through the console or with the [AWS Command Line Interface](https://aws.amazon.com/cli/?nc1=h_ls)). These are described in the following sections.
+
+
+1 - Environment Variables
+
+   **Linux or macOS**:
+
+    ```
+    $ export AWS_ACCESS_KEY_ID=your-access-key
+    $ export AWS_SECRET_ACCESS_KEY=your-secret-access-key
+    $ export AWS_DEFAULT_REGION=us-west-2
+    ```
+
+   **Windows**:
+    
+    ```
+    C:\> setx AWS_ACCESS_KEY_ID your-access-key
+    C:\> setx AWS_SECRET_ACCESS_KEY your-secret-access-key
+    C:\> setx AWS_DEFAULT_REGION us-west-2
+    ```
+
+2 -  Console 
    
    From the home directory (UserProfile) execute:   
             
@@ -43,7 +74,7 @@ You can configure the AWS in two ways (through the console or with the [AWS Comm
    " > .aws/credentials
    ```
 
-- AWS CLI
+3 - AWS CLI
 
    For general use, the *aws configure* command is the fastest way to set up, but requires the AWS CLI installed. For install and configure type the following commands:
 
@@ -60,7 +91,7 @@ You can configure the AWS in two ways (through the console or with the [AWS Comm
 
 - Demonstrating AWS Configure
   
-  [![asciicast](https://asciinema.org/a/9JJEpAEUnqp9SWueIrcSV7tDZ.svg)](https://asciinema.org/a/9JJEpAEUnqp9SWueIrcSV7tDZ)
+  [![asciicast](https://asciinema.org/a/371052.svg)](https://asciinema.org/a/371052)
    
 ## MinIO ##
 
