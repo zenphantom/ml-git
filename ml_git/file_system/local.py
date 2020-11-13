@@ -727,7 +727,7 @@ class LocalRepository(MultihashFS):
         bare_mode = os.path.exists(os.path.join(index_metadata_path, spec, 'bare'))
         new_files, deleted_files, all_files, corrupted_files = self._get_index_files_status(bare_mode, idx_yaml_mf,
                                                                                             path, status_directory)
-        
+
         if path is not None:
             changed_files, untracked_files = \
                 self._get_workspace_files_status(all_files, full_metadata_path, idx_yaml_mf,
