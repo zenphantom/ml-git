@@ -326,9 +326,9 @@ class Repository(object):
 
         bare_mode = os.path.exists(os.path.join(index_path, 'metadata', spec, 'bare'))
 
-        if not bare_mode and len(deleted_files) > 0:
-            self.remove_deleted_files(idx, index_path, m, manifest_path, spec, deleted_files)
-        elif bare_mode:
+        if not bare_mode:
+            self.remove_deleted_files(idx, index_path, m, manifest_path, spec, deleted_files, path)
+        else:
             tag, _ = ref.branch()
             self._checkout_ref(tag)
         # update metadata spec & README.md
@@ -348,12 +348,12 @@ class Repository(object):
         return tag
 
     @Halo(text='Checking removed files', spinner='dots')
-    def remove_deleted_files(self, idx, index_path, m, manifest_path, spec, deleted_files):
+    def remove_deleted_files(self, idx, index_path, m, manifest_path, spec, deleted_files, ws_path):
         fidx = FullIndex(spec, index_path)
         manifest = m.get_metadata_manifest(manifest_path)
         fidx.remove_deleted_files(deleted_files)
         idx.remove_deleted_files_index_manifest(deleted_files)
-        m.remove_deleted_files_meta_manifest(manifest, deleted_files)
+        m.remove_deleted_files_meta_manifest(manifest, ws_path)
 
     def list(self):
         repo_type = self.__repo_type
