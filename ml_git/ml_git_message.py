@@ -17,7 +17,7 @@ output_messages = {
     'INFO_REMOVE_REMOTE': 'Removing remote repository [%s] from [%s].',
     'INFO_ADD_STORE': 'Add store [%s://%s] with creds from profile [%s]',
     'INFO_ADD_STORE_WITHOUT_PROFILE': 'Add store [%s://%s]',
-    'INFO_INITIALIZED_PROJECT': 'Initialized empty ml-git repository in %s',
+    'INFO_INITIALIZING_RESET': 'Initializing reset [%s] [%s] of commit. ',
 
     'ERROR_WITHOUT_TAG_FOR_THIS_ENTITY': 'No entity with that name was found.',
     'ERROR_MULTIPLES_ENTITIES_WITH_SAME_NAME': 'You have more than one entity with the same name. Use one of the following tags to perform the checkout:\n',

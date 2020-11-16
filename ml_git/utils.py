@@ -218,6 +218,6 @@ def remove_from_workspace(file_names, path, spec_name):
                 continue
             for key in file_names:
                 if file in key:
-                    file_path = convert_path(root, key)
+                    file_path = convert_path(root, file)
                     set_write_read(file_path)
                     os.unlink(file_path)
