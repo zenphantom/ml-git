@@ -78,7 +78,7 @@ class MetadataRepo(object):
             sha = self.get_default_branch()
         repo.checkout(sha)
 
-    def get_symbolic_ref(self):
+    def _get_symbolic_ref(self):
         repo = Repo(self.__path)
         for ref in repo.remotes.origin.refs:
             if ref.remote_head == 'HEAD':
@@ -86,7 +86,7 @@ class MetadataRepo(object):
         return None
 
     def get_default_branch(self):
-        reference = self.get_symbolic_ref()
+        reference = self._get_symbolic_ref()
         if reference is None:
             return Repo(self.__path).active_branch.name
         branch_name = reference.name.split('/')[-1]
