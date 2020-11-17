@@ -10,7 +10,7 @@ assignees: ''
 **Describe the bug**
 A clear and concise description of what the bug is.
 
-**To Reproduce**
+**How to Reproduce**
 Steps to reproduce the behavior
 
 **Expected behavior**
@@ -22,7 +22,7 @@ If applicable, add screenshots to help explain your problem.
 **Environment (please complete the following information):**
  - OS: [e.g. Linux Ubuntu 20.04]
  - Python version
- - Ml-git version
+ - ml-git version
 
 **Additional context**
 Add any other context about the problem here.
