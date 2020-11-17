@@ -6,10 +6,12 @@ import os
 
 from halo import Halo
 
+from ml_git import log
 from ml_git.constants import HASH_FS_CLASS_NAME
 from ml_git.file_system.hashfs import MultihashFS
 from ml_git.file_system.index import FullIndex, Status
-from ml_git.utils import yaml_load, remove_unnecessary_files
+from ml_git.ml_git_message import output_messages
+from ml_git.utils import yaml_load, remove_unnecessary_files, number_to_human_format
 
 
 class Objects(MultihashFS):
@@ -41,7 +43,15 @@ class Objects(MultihashFS):
         fidx.get_manifest_index().save()
         return added_files, deleted_files
 
-    def clear_objects(self, descriptor_hashes):
+    def garbage_collector(self, blobs_hashes):
+        used_blobs = self._get_used_blobs(blobs_hashes)
+        count_removed_objects, reclaimed_objects_space = remove_unnecessary_files(used_blobs,
+                                                                                  os.path.join(self._objects_path, HASH_FS_CLASS_NAME.lower()))
+        log.debug(output_messages['INFO_REMOVED_FILES'] % (number_to_human_format(count_removed_objects),
+                                                           self._objects_path))
+        return count_removed_objects, reclaimed_objects_space
+
+    def _get_used_blobs(self, descriptor_hashes):
         used_blobs = []
         for file in descriptor_hashes:
             descriptor_path = self._get_hashpath(file)
@@ -49,4 +59,4 @@ class Objects(MultihashFS):
             for hash in descriptor['Links']:
                 used_blobs.append(hash['Hash'])
         used_blobs.extend(descriptor_hashes)
-        return remove_unnecessary_files(used_blobs, os.path.join(self._objects_path, HASH_FS_CLASS_NAME.lower()))
+        return used_blobs

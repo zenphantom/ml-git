@@ -30,7 +30,7 @@ class GcAcceptanceTests(unittest.TestCase):
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_PUSH % (entity, entity + '-ex')))
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_CHECKOUT % (entity, entity + '-ex --version=1')))
 
-    def get_metadata_infos(self):
+    def get_metadata_info(self):
         metadata_path = os.path.join(self.tmp_dir, ML_GIT_DIR)
         number_of_files = 0
         original_size = 0
@@ -42,7 +42,7 @@ class GcAcceptanceTests(unittest.TestCase):
 
     def check_result(self, result, entity, original_size, number_of_files, expected_removed_files, expected_reclaimed_space):
         self.assertIn(output_messages['INFO_STARTING_GC'] % entity, result)
-        size_of_metadata, files_in_metadata = self.get_metadata_infos()
+        size_of_metadata, files_in_metadata = self.get_metadata_info()
         removed_files = number_of_files - files_in_metadata
         self.assertEqual(expected_removed_files, removed_files)
         self.assertIn(output_messages['INFO_REMOVED_FILES'] % (removed_files, self.tmp_dir), result)
@@ -54,7 +54,7 @@ class GcAcceptanceTests(unittest.TestCase):
     def test_01_gc_dataset_entity(self):
         entity = 'dataset'
         self.set_up_gc(entity)
-        original_size, number_of_files = self.get_metadata_infos()
+        original_size, number_of_files = self.get_metadata_info()
         result = check_output(MLGIT_REPOSITORY_GC)
         self.check_result(result, entity, original_size, number_of_files,
                           expected_removed_files=3, expected_reclaimed_space='2 KB')
@@ -63,7 +63,7 @@ class GcAcceptanceTests(unittest.TestCase):
     def test_02_gc_labels_entity(self):
         entity = 'labels'
         self.set_up_gc(entity)
-        original_size, number_of_files = self.get_metadata_infos()
+        original_size, number_of_files = self.get_metadata_info()
         result = check_output(MLGIT_REPOSITORY_GC)
         self.check_result(result, entity, original_size, number_of_files,
                           expected_removed_files=3, expected_reclaimed_space='2 KB')
@@ -72,7 +72,7 @@ class GcAcceptanceTests(unittest.TestCase):
     def test_03_gc_model_entity(self):
         entity = 'model'
         self.set_up_gc(entity)
-        original_size, number_of_files = self.get_metadata_infos()
+        original_size, number_of_files = self.get_metadata_info()
         result = check_output(MLGIT_REPOSITORY_GC)
         self.check_result(result, entity, original_size, number_of_files,
                           expected_removed_files=3, expected_reclaimed_space='2 KB')
@@ -82,7 +82,7 @@ class GcAcceptanceTests(unittest.TestCase):
         self.set_up_gc('dataset')
         self.set_up_gc('model')
         self.set_up_gc('labels')
-        original_size, number_of_files = self.get_metadata_infos()
+        original_size, number_of_files = self.get_metadata_info()
         result = check_output(MLGIT_REPOSITORY_GC)
         self.assertIn(output_messages['INFO_STARTING_GC'] % 'labels', result)
         self.assertIn(output_messages['INFO_STARTING_GC'] % 'model', result)
@@ -93,7 +93,7 @@ class GcAcceptanceTests(unittest.TestCase):
     def test_05_gc_deleted_entity(self):
         self.set_up_gc('dataset')
         self.set_up_gc('labels')
-        original_size, number_of_files = self.get_metadata_infos()
+        original_size, number_of_files = self.get_metadata_info()
         clear(os.path.join(self.tmp_dir, 'labels'))
         result = check_output(MLGIT_REPOSITORY_GC)
         self.assertIn(output_messages['INFO_STARTING_GC'] % 'labels', result)
@@ -109,7 +109,7 @@ class GcAcceptanceTests(unittest.TestCase):
     def test_07_gc_basic_flow(self):
         entity = 'dataset'
         self.set_up_gc(entity)
-        original_size, number_of_files = self.get_metadata_infos()
+        original_size, number_of_files = self.get_metadata_info()
         result = check_output(MLGIT_REPOSITORY_GC)
         self.check_result(result, entity, original_size, number_of_files,
                           expected_removed_files=3, expected_reclaimed_space='2 KB')

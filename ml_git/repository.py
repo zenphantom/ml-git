@@ -18,12 +18,12 @@ from ml_git.config import get_index_path, get_objects_path, get_cache_path, get_
     get_index_metadata_path, create_workspace_tree_structure, start_wizard_questions, config_load, \
     get_global_config_path, save_global_config_in_local
 from ml_git.constants import REPOSITORY_CLASS_NAME, LOCAL_REPOSITORY_CLASS_NAME, HEAD, HEAD_1, Mutability, StoreType, \
-    RGX_TAG_FORMAT, EntityType, MANIFEST_FILE, SPEC_EXTENSION, HASH_FS_CLASS_NAME
+    RGX_TAG_FORMAT, EntityType, MANIFEST_FILE, SPEC_EXTENSION
 from ml_git.file_system.cache import Cache
 from ml_git.file_system.hashfs import MultihashFS
 from ml_git.file_system.index import MultihashIndex, Status, FullIndex
-from ml_git.file_system.objects import Objects
 from ml_git.file_system.local import LocalRepository
+from ml_git.file_system.objects import Objects
 from ml_git.manifest import Manifest
 from ml_git.metadata import Metadata, MetadataManager
 from ml_git.ml_git_message import output_messages
@@ -33,7 +33,7 @@ from ml_git.spec import spec_parse, search_spec_file, increment_version_in_spec,
 from ml_git.tag import UsrTag
 from ml_git.utils import yaml_load, ensure_path_exists, get_root_path, get_path_with_categories, \
     RootPathException, change_mask_for_routine, clear, get_yaml_str, unzip_files_in_directory, remove_from_workspace, \
-    remove_unnecessary_files, number_to_human_format
+    number_to_human_format
 
 
 class Repository(object):
@@ -1049,18 +1049,12 @@ class Repository(object):
                 any_metadata = True
                 index_path = get_index_path(self.__config, repo_type)
                 objects_path = get_objects_path(self.__config, repo_type)
-                cache_path = get_cache_path(self.__config, repo_type)
                 blobs_hashes = self._get_blobs_hashes(index_path, objects_path, repo_type)
 
-                # Clear cache
-                count_removed_cache, reclaimed_cache_space = remove_unnecessary_files(
-                    blobs_hashes, os.path.join(cache_path, HASH_FS_CLASS_NAME.lower()))
-                log.debug(output_messages['INFO_REMOVED_FILES'] % (number_to_human_format(count_removed_cache), cache_path))
-
-                # Clear objects
+                cache = Cache(get_cache_path(self.__config, repo_type))
+                count_removed_cache, reclaimed_cache_space = cache.garbage_collector(blobs_hashes)
                 objects = Objects('', objects_path)
-                count_removed_objects, reclaimed_objects_space = objects.clear_objects(blobs_hashes)
-                log.debug(output_messages['INFO_REMOVED_FILES'] % (number_to_human_format(count_removed_objects), objects_path))
+                count_removed_objects, reclaimed_objects_space = objects.garbage_collector(blobs_hashes)
 
                 reclaimed_space += reclaimed_objects_space + reclaimed_cache_space
                 removed_files += count_removed_objects + count_removed_cache
@@ -1087,7 +1081,6 @@ class Repository(object):
 
     def check_is_valid_entity(self, repo_type, spec):
         ref = Refs(get_refs_path(self.__config, repo_type), spec, repo_type)
-        tag, sha = ref.branch()
+        tag, _ = ref.branch()
         categories_path = get_path_with_categories(tag)
         search_spec_file(repo_type, spec, categories_path)
-        return True
