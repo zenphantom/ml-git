@@ -104,9 +104,7 @@ class StatusShortModeAcceptanceTests(unittest.TestCase):
         data_path = os.path.join(self.tmp_dir, 'dataset', 'computer-vision', 'images', 'dataset-ex', 'data')
         file_to_be_deleted = os.path.join(data_path, 'file')
         file_to_be_deleted2 = os.path.join(data_path, 'file2')
-        os.chmod(file_to_be_deleted, S_IWUSR | S_IREAD)
-        os.chmod(file_to_be_deleted2, S_IWUSR | S_IREAD)
-        os.remove(file_to_be_deleted)
-        os.remove(file_to_be_deleted2)
+        clear(file_to_be_deleted)
+        clear(file_to_be_deleted2)
         self.assertRegex(check_output(MLGIT_STATUS_SHORT % ('dataset', 'dataset-ex')),
                          r'Changes to be committed:\s+Deleted: (\s|.)*data/\t->\t2 FILES(\s|.)*')
