@@ -7,9 +7,10 @@ import os
 import shutil
 import tempfile
 
-from ml_git import log
+from ml_git import log, admin
+from ml_git.admin import init_mlgit
 from ml_git.config import config_load
-from ml_git.constants import StoreType
+from ml_git.constants import StoreType, EntityType
 from ml_git.repository import Repository
 from ml_git.log import init_logger
 
@@ -197,3 +198,60 @@ def create(entity, entity_name, categories, mutability, **kwargs):
 
     repo = Repository(config_load(), entity)
     repo.create(args)
+
+
+def init(entity):
+    """This command will start this ml-git repository or
+
+        Examples:
+            init('repository')
+            init('dataset')
+
+        Args:
+            entity (str): The type of entity that will be initialized. (repository, dataset, labels or model).
+    """
+
+    if entity == 'repository':
+        init_mlgit()
+    elif entity in EntityType.list():
+        repo = Repository(config_load(), entity)
+        repo.init()
+    else:
+        log.error('The type of entity entered is invalid. Valid types are: [repository, dataset, labels or model]')
+
+
+def store_add(bucket_name, bucket_type=StoreType.S3H.value, credentials=None, global_configuration=False, endpoint_url=None):
+    """This command will add a store to the ml-git project
+
+        Examples:
+            store_add('my-bucket', type='minio')
+
+        Args:
+            bucket_name (str): The name of the bucket in the storage.
+            bucket_type (str, optional): Store type (s3h, azureblobh or gdriveh) [default: s3h].
+            credentials (str, optional): Name of the profile that stores the credentials or the path to the credentials.
+            global_configuration (bool, optional): Use this option to set configuration at global level [default: False].
+            endpoint_url (str, optional): Store endpoint url.
+    """
+
+    if bucket_type not in StoreType.list():
+        log.error('Aqui2')
+        return
+
+    admin.store_add(bucket_type, bucket_name, credentials, global_configuration, endpoint_url)
+
+
+def remote_add(entity, remote_url, global_configuration=False):
+    """This command will add a remote to store the metadata from this ml-git project
+
+        Examples:
+            remote_add('dataset', 'my-bucket')
+
+        Args:
+            entity (str): The type of an ML entity. (repository, dataset, labels or model).
+            remote_url(str): URL of an existing remote git repository.
+            global_configuration (bool, optional): Use this option to set configuration at global level [default: False].
+    """
+
+    repo = Repository(config_load(), entity)
+    repo.repo_remote_add(entity, remote_url, global_configuration)
