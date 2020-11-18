@@ -17,7 +17,7 @@ An example of a tabular data structure can be seen below:
 
 ### <a name="versioning-tabular-data"> Versioning </a> ###
 
-Due to the way the data is versioned by ml-git (see [internals documentation](../mlgit_internals.md)) the way the data is organized can influence the performance and optimization of the data storage that ml-git has.
+Due to the way the data is versioned by ml-git (see [internals documentation](../mlgit_internals.md)) the data organization structure can influence the performance and optimization of the data storage that ml-git has.
 
 When ml-git is dealing with tabular data, in order to obtain higher storage usage efficiency, it is recommended to avoid actions that edit data that were previously added.​
 
@@ -47,4 +47,10 @@ The increment of new data must be given by the creation of new files.
 One way to make these changes without modifying the data is to use the append save mode if you are working with parquet data.
 Using append save mode, you can append a dataframe to an existing parquet file. See more in this [link](https://spark.apache.org/docs/1.4.0/api/java/org/apache/spark/sql/SaveMode.html).
 
-If you are working with another type of data, such as csv, whenever new data is added to your dataset you must create a new file for that data.
+**Note:** 
+In exploratory tests it was observed that the use of parquet data with the append writing mode is the most efficient in terms of performance and optimization for ml-git, since this writing mode avoids the modification of previous files.
+
+If you are working with another type of data, such as CSV, whenever new data is added to your dataset you must create a new file for that data.
+
+**Note:**
+CSV format files are generally not recommended for large volumes of data. It is recommended to use a more efficient data structure, such as parquet. 
