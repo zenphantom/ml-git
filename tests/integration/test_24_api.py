@@ -16,7 +16,7 @@ from tests.integration.helper import ML_GIT_DIR, check_output, init_repository, 
     clear, yaml_processor, create_zip_file, CLONE_FOLDER
 
 
-@pytest.mark.usefixtures('tmp_dir')
+@pytest.mark.usefixtures('tmp_dir', 'aws_session')
 class APIAcceptanceTests(unittest.TestCase):
 
     objects = os.path.join(ML_GIT_DIR, 'dataset', 'objects')
@@ -96,6 +96,14 @@ class APIAcceptanceTests(unittest.TestCase):
         self.assertFalse(os.path.exists(self.file2))
         self.assertFalse(os.path.exists(self.file3))
         self.assertFalse(os.path.exists(self.file4))
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
+    def test_00_test(self):
+        self.set_up_test()
+
+        data_path = api.checkout('dataset2', self.dataset_tag, {'seed': '10'})
+
+        self._checkout_fail(data_path)
 
     @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
     def test_01_checkout_tag(self):
@@ -330,3 +338,25 @@ class APIAcceptanceTests(unittest.TestCase):
         self.assertIn('file1.txt', files)
         self.assertIn('file2.txt', files)
         self.assertEqual(3, len(files))
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
+    def test_17_create_with_invalid_entity(self):
+        try:
+            entity_type = 'dataset_invalid'
+            store_type = StoreType.S3H.value
+            self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'] % self.tmp_dir, check_output(MLGIT_INIT))
+            api.create('dataset_invalid', 'dataset-ex', categories=['computer-vision', 'images'], mutability='strict')
+            self.check_created_folders(entity_type, store_type)
+            self.assertTrue(False)
+        except Exception:
+            self.assertTrue(True)
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
+    def test_18_checkout_tag_with_invalid_entity(self):
+        try:
+            self.set_up_test()
+            data_path = api.checkout('dataset_invalid', self.dataset_tag)
+            self.assertEqual(self.data_path, data_path)
+            self.check_metadata()
+        except Exception:
+            self.assertTrue(True)

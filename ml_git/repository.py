@@ -31,11 +31,14 @@ from ml_git.spec import spec_parse, search_spec_file, increment_version_in_spec,
     validate_bucket_name, set_version_in_spec
 from ml_git.tag import UsrTag
 from ml_git.utils import yaml_load, ensure_path_exists, get_root_path, get_path_with_categories, \
-    RootPathException, change_mask_for_routine, clear, get_yaml_str, unzip_files_in_directory, remove_from_workspace
+    RootPathException, change_mask_for_routine, clear, get_yaml_str, unzip_files_in_directory, \
+    remove_from_workspace, disable_exception_traceback
 
 
 class Repository(object):
     def __init__(self, config, repo_type='dataset'):
+
+        self._valid_entity_type(repo_type)
         self.__config = config
         self.__repo_type = repo_type
 
@@ -167,6 +170,16 @@ class Repository(object):
         # Run file check
         if run_fsck:
             self.fsck()
+
+    def _valid_entity_type(self, repo_type):
+
+        type_list = EntityType.list()
+        type_list.append('repository')
+        type_list.append('project')
+
+        if repo_type not in type_list:
+            with disable_exception_traceback():
+                raise RuntimeError(output_messages['ERROR_INVALID_ENTITY_TYPE'])
 
     def _get_current_manifest_file(self, m, tag):
         manifest = ''

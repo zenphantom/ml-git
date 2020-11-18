@@ -9,6 +9,7 @@ import os
 import shutil
 import stat
 import zipfile
+import sys
 from contextlib import contextmanager
 from pathlib import Path, PurePath, PurePosixPath
 from stat import S_IREAD, S_IRGRP, S_IROTH, S_IWUSR
@@ -187,6 +188,14 @@ def change_mask_for_routine(is_shared_path=False):
         os.umask(previous_mask)
     else:
         yield
+
+
+@contextmanager
+def disable_exception_traceback():
+    default_value = getattr(sys, "tracebacklimit", 1000)
+    sys.tracebacklimit = 0
+    yield
+    sys.tracebacklimit = default_value
 
 
 def run_function_per_group(iterable, n, function=None, arguments=None, exit_on_fail=True):
