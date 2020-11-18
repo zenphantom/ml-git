@@ -14,6 +14,7 @@ from cid import CIDv1
 from ml_git import log
 from ml_git.config import get_key
 from ml_git.constants import STORE_FACTORY_CLASS_NAME, S3STORE_NAME, S3_MULTI_HASH_STORE_NAME, StoreType
+from ml_git.ml_git_message import output_messages
 from ml_git.storages.multihash_store import MultihashStore
 from ml_git.storages.store import Store
 
@@ -44,9 +45,9 @@ class S3Store(Store):
         except ClientError as e:
             error_msg = e.response['Error']['Message']
             if e.response['Error']['Code'] == '404':
-                error_msg = 'This bucket does not exist -- [%s]' % self._bucket
+                error_msg = output_messages['ERROR_BUCKET_DOES_NOT_EXIST'] % self._bucket
             elif e.response['Error']['Code'] == '403':
-                error_msg = 'The AWS Access Key Id you provided does not exist in our records.'
+                error_msg = output_messages['ERROR_AWS_KEY_NOT_EXIST']
             log.error(error_msg, class_name=STORE_FACTORY_CLASS_NAME)
             return False
 

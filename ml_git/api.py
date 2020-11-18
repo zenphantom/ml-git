@@ -9,6 +9,7 @@ import tempfile
 
 from ml_git import log
 from ml_git.config import config_load
+from ml_git.constants import StoreType
 from ml_git.repository import Repository
 from ml_git.log import init_logger
 
@@ -165,3 +166,34 @@ def push(entity, entity_name,  retries=2, clear_on_fail=False):
 
     repo = Repository(config_load(), entity)
     repo.push(entity_name, retries, clear_on_fail)
+
+
+def create(entity, entity_name, categories, mutability, **kwargs):
+    """This command will create the workspace structure with data and spec file for an entity and set the store configurations.
+
+        Example:
+            create('dataset', 'dataset-ex', categories=['computer-vision', 'images'], mutability='strict')
+
+        Args:
+            entity (str): The type of an ML entity. (dataset, labels or model).
+            entity_name (str): An ml-git entity name to identify a ML entity.
+            categories (list): Artifact's category name.
+            mutability (str): Mutability type. The mutability options are strict, flexible and mutable.
+            store_type (str, optional): Data store type [default: s3h].
+            version (int, optional): Number of retries to upload the files to the storage [default: 2].
+            import_path (str, optional): Path to be imported to the project.
+            bucket_name (str, optional): Bucket name.
+            import_url (str, optional): Import data from a google drive url.
+            credentials_path (str, optional): Directory of credentials.json.
+            unzip (bool, optional): Unzip imported zipped files [default: False].
+    """
+
+    args = {'artifact_name': entity_name, 'category': categories, 'mutability': mutability,
+            'version_number': kwargs.get('version', 1), 'import': kwargs.get('import_path', None),
+            'store_type':  kwargs.get('store_type', StoreType.S3H.value),
+            'bucket_name': kwargs.get('bucket_name', None), 'unzip': kwargs.get('unzip', False),
+            'import_url': kwargs.get('import_url', None), 'credentials_path': kwargs.get('credentials_path', None),
+            'wizard_config': False}
+
+    repo = Repository(config_load(), entity)
+    repo.create(args)
