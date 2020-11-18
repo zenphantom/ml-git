@@ -13,7 +13,7 @@ from ml_git.constants import Mutability, StoreType
 from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_INIT
 from tests.integration.helper import ML_GIT_DIR, check_output, init_repository, create_git_clone_repo, \
-    clear, yaml_processor, create_zip_file, CLONE_FOLDER
+    clear, yaml_processor, create_zip_file, CLONE_FOLDER, GIT_PATH, BUCKET_NAME, PROFILE, STORE_TYPE
 
 
 @pytest.mark.usefixtures('tmp_dir')
@@ -330,3 +330,87 @@ class APIAcceptanceTests(unittest.TestCase):
         self.assertIn('file1.txt', files)
         self.assertIn('file2.txt', files)
         self.assertEqual(3, len(files))
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir')
+    def test_17_init_repository(self):
+        config = os.path.join(self.tmp_dir, ML_GIT_DIR, 'config.yaml')
+        self.assertFalse(os.path.exists(config))
+        api.init('repository')
+        self.assertTrue(os.path.exists(config))
+
+    def _add_remote(self, entity_type):
+        api.init('repository')
+        api.remote_add(entity_type, os.path.join(self.tmp_dir, GIT_PATH))
+        with open(os.path.join(self.tmp_dir, ML_GIT_DIR, 'config.yaml'), 'r') as c:
+            config = yaml_processor.load(c)
+            self.assertEqual(os.path.join(self.tmp_dir, GIT_PATH), config[entity_type]['git'])
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir')
+    def test_18_add_remote_dataset(self):
+        self._add_remote(entity_type='dataset')
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir')
+    def test_19_add_remote_laebls(self):
+        self._add_remote(entity_type='labels')
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir')
+    def test_20_add_remote_model(self):
+        self._add_remote(entity_type='model')
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir')
+    def test_21_add_store(self):
+        api.init('repository')
+        with open(os.path.join(self.tmp_dir, ML_GIT_DIR, 'config.yaml'), 'r') as c:
+            config = yaml_processor.load(c)
+            self.assertNotIn('s3h', config['store'])
+        api.store_add(bucket_name=BUCKET_NAME, credentials=PROFILE)
+        with open(os.path.join(self.tmp_dir, ML_GIT_DIR, 'config.yaml'), 'r') as c:
+            config = yaml_processor.load(c)
+            self.assertEqual(PROFILE, config['store']['s3h'][BUCKET_NAME]['aws-credentials']['profile'])
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir')
+    def test_22_add_store_azure_type(self):
+        bucket_type = 'azureblobh'
+        bucket_name = 'container_azure'
+        api.init('repository')
+        with open(os.path.join(self.tmp_dir, ML_GIT_DIR, 'config.yaml'), 'r') as c:
+            config = yaml_processor.load(c)
+            self.assertNotIn(bucket_type, config['store'])
+        api.store_add(bucket_name=bucket_name, bucket_type=bucket_type)
+        with open(os.path.join(self.tmp_dir, ML_GIT_DIR, 'config.yaml'), 'r') as c:
+            config = yaml_processor.load(c)
+            self.assertIn(bucket_name, config['store'][bucket_type])
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir')
+    def test_23_add_store_gdrive_type(self):
+        bucket_type = 'gdriveh'
+        bucket_name = 'my-drive'
+        profile = 'path-to-credentials'
+        api.init('repository')
+        with open(os.path.join(self.tmp_dir, ML_GIT_DIR, 'config.yaml'), 'r') as c:
+            config = yaml_processor.load(c)
+            self.assertNotIn(bucket_type, config['store'])
+        api.store_add(bucket_name=bucket_name, bucket_type=bucket_type, credentials=profile)
+        with open(os.path.join(self.tmp_dir, ML_GIT_DIR, 'config.yaml'), 'r') as c:
+            config = yaml_processor.load(c)
+            self.assertEqual(profile, config['store'][bucket_type][bucket_name]['credentials-path'])
+
+    def _initialize_entity(self, entity_type, git=GIT_PATH):
+        api.init('repository')
+        api.remote_add(entity_type, git)
+        api.store_add(bucket_type=STORE_TYPE, bucket_name=BUCKET_NAME, credentials=PROFILE)
+        api.init(entity_type)
+        metadata_path = os.path.join(self.tmp_dir, ML_GIT_DIR, entity_type, 'metadata')
+        self.assertTrue(os.path.exists(metadata_path))
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir')
+    def test_24_init_dataset(self):
+        self._initialize_entity('dataset')
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir')
+    def test_24_init_labels(self):
+        self._initialize_entity('labels')
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir')
+    def test_24_init_model(self):
+        self._initialize_entity('model')

@@ -201,7 +201,7 @@ def create(entity, entity_name, categories, mutability, **kwargs):
 
 
 def init(entity):
-    """This command will start this ml-git repository or
+    """This command will start the ml-git entity.
 
         Examples:
             init('repository')
@@ -221,7 +221,7 @@ def init(entity):
 
 
 def store_add(bucket_name, bucket_type=StoreType.S3H.value, credentials=None, global_configuration=False, endpoint_url=None):
-    """This command will add a store to the ml-git project
+    """This command will add a store to the ml-git project.
 
         Examples:
             store_add('my-bucket', type='minio')
@@ -242,7 +242,7 @@ def store_add(bucket_name, bucket_type=StoreType.S3H.value, credentials=None, gl
 
 
 def remote_add(entity, remote_url, global_configuration=False):
-    """This command will add a remote to store the metadata from this ml-git project
+    """This command will add a remote to store the metadata from this ml-git project.
 
         Examples:
             remote_add('dataset', 'my-bucket')
