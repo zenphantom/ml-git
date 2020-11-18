@@ -408,9 +408,9 @@ class APIAcceptanceTests(unittest.TestCase):
         self._initialize_entity('dataset')
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
-    def test_24_init_labels(self):
+    def test_25_init_labels(self):
         self._initialize_entity('labels')
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
-    def test_24_init_model(self):
+    def test_26_init_model(self):
         self._initialize_entity('model')

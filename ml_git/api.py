@@ -224,7 +224,7 @@ def store_add(bucket_name, bucket_type=StoreType.S3H.value, credentials=None, gl
     """This command will add a store to the ml-git project.
 
         Examples:
-            store_add('my-bucket', type='minio')
+            store_add('my-bucket', type='s3h')
 
         Args:
             bucket_name (str): The name of the bucket in the storage.
@@ -245,7 +245,7 @@ def remote_add(entity, remote_url, global_configuration=False):
     """This command will add a remote to store the metadata from this ml-git project.
 
         Examples:
-            remote_add('dataset', 'my-bucket')
+            remote_add('dataset', 'https://git@github.com/mlgit-datasets')
 
         Args:
             entity (str): The type of an ML entity. (repository, dataset, labels or model).
