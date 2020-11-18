@@ -98,14 +98,6 @@ class APIAcceptanceTests(unittest.TestCase):
         self.assertFalse(os.path.exists(self.file4))
 
     @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
-    def test_00_test(self):
-        self.set_up_test()
-
-        data_path = api.checkout('dataset2', self.dataset_tag, {'seed': '10'})
-
-        self._checkout_fail(data_path)
-
-    @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
     def test_01_checkout_tag(self):
         self.set_up_test()
 
