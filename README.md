@@ -215,3 +215,4 @@ If an issue with the same topic already exists, discuss on the issue.
 ### Links
 
 - [ML-Git API documentation](docs/api/README.md) - Find the commands that are available in our api, usage examples and more.
+- [ml-git plugins](docs/plugins.md) - Dynamically link third-party packages to do extra activities on ml-git.
