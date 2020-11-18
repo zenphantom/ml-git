@@ -208,7 +208,7 @@ def init(entity):
             init('dataset')
 
         Args:
-            entity (str): The type of entity that will be initialized. (repository, dataset, labels or model).
+            entity (str): The type of entity that will be initialized (repository, dataset, labels or model).
     """
 
     if entity == 'repository':

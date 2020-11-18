@@ -16,7 +16,7 @@ from tests.integration.helper import ML_GIT_DIR, check_output, init_repository, 
     clear, yaml_processor, create_zip_file, CLONE_FOLDER, GIT_PATH, BUCKET_NAME, PROFILE, STORE_TYPE
 
 
-@pytest.mark.usefixtures('tmp_dir')
+@pytest.mark.usefixtures('tmp_dir', 'aws_session')
 class APIAcceptanceTests(unittest.TestCase):
 
     objects = os.path.join(ML_GIT_DIR, 'dataset', 'objects')
@@ -67,10 +67,9 @@ class APIAcceptanceTests(unittest.TestCase):
         self.create_file(workspace, 'file3', 'a')
         self.create_file(workspace, 'file4', 'b')
 
-        check_output('ml-git dataset add dataset-ex --bumpversion')
-        check_output('ml-git dataset commit dataset-ex')
-
-        check_output('ml-git dataset push dataset-ex')
+        api.add('dataset', 'dataset-ex', bumpversion=True)
+        api.commit('dataset', 'dataset-ex')
+        api.push('dataset', 'dataset-ex')
 
         self.assertTrue(os.path.exists(os.path.join(self.tmp_dir, self.metadata)))
 
