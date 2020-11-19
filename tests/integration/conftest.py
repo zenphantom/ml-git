@@ -79,3 +79,24 @@ def google_drive_links(request):
 def aws_session():
     aws_shared_path = os.path.join(aws_path)
     os.environ['AWS_SHARED_CREDENTIALS_FILE'] = aws_shared_path
+
+
+@pytest.fixture()
+def start_local_git_server_with_main_branch(tmp_path):
+    local_git_server = os.path.join(tmp_path, GIT_PATH)
+    os.makedirs(local_git_server, exist_ok=True)
+    master_path = os.path.join(tmp_path, 'master')
+    readme = os.path.join(master_path, 'README.md')
+    os.makedirs(master_path, exist_ok=True)
+
+    Repo.init(local_git_server, bare=True)
+    local_repo = Repo(local_git_server)
+    local_repo.git.symbolic_ref(['HEAD', 'refs/heads/main'])
+    repo = Repo.clone_from(local_git_server, master_path)
+
+    open(readme, 'w').close()
+
+    repo.git.add([readme])
+    repo.git.commit(['-m', 'README'])
+    repo.git.branch(['-M', 'main'])
+    repo.git.push(['-u', 'origin', 'main'])
