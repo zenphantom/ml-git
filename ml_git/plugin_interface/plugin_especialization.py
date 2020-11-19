@@ -5,8 +5,6 @@ SPDX-License-Identifier: GPL-2.0-only
 
 import importlib
 
-from ml_git import log
-
 
 class PluginCaller:
     SPEC_PLUGIN_KEY = 'data-plugin'
