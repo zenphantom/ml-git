@@ -4,9 +4,7 @@
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 pipenv uninstall --all
-pipenv install --ignore-pipfile --dev
-pipenv install pywin32-ctypes
-pipenv install pyinstaller
+pipenv install --dev
 pipenv run python -O -m PyInstaller -D -n ml-git ./ml_git/main.py
 
 mkdir dist\ml-git
