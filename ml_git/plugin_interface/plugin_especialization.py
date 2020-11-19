@@ -21,8 +21,7 @@ class PluginCaller:
         try:
             package = importlib.import_module(self.plugin_name)
             return package
-        except ImportError as e:
-            log.error(e, class_name=type(self).__name__)
+        except ImportError:
             return None
 
     def call(self, name, *args, **kwargs):
