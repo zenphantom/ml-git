@@ -340,8 +340,8 @@ class APIAcceptanceTests(unittest.TestCase):
             api.create('dataset_invalid', 'dataset-ex', categories=['computer-vision', 'images'], mutability='strict')
             self.check_created_folders(entity_type, store_type)
             self.assertTrue(False)
-        except Exception:
-            self.assertTrue(True)
+        except Exception as e:
+            self.assertIn(output_messages['ERROR_INVALID_ENTITY_TYPE'], str(e))
 
     @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
     def test_18_checkout_tag_with_invalid_entity(self):
@@ -350,5 +350,6 @@ class APIAcceptanceTests(unittest.TestCase):
             data_path = api.checkout('dataset_invalid', self.dataset_tag)
             self.assertEqual(self.data_path, data_path)
             self.check_metadata()
-        except Exception:
-            self.assertTrue(True)
+            self.assertTrue(False)
+        except Exception as e:
+            self.assertIn(output_messages['ERROR_INVALID_ENTITY_TYPE'], str(e))

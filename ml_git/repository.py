@@ -173,7 +173,7 @@ class Repository(object):
 
     def _valid_entity_type(self, repo_type):
 
-        type_list = EntityType.list()
+        type_list = EntityType.to_list()
         type_list.append('repository')
         type_list.append('project')
 

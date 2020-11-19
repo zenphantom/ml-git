@@ -192,7 +192,7 @@ def change_mask_for_routine(is_shared_path=False):
 
 @contextmanager
 def disable_exception_traceback():
-    default_value = getattr(sys, "tracebacklimit", 1000)
+    default_value = getattr(sys, 'tracebacklimit', 1000)
     sys.tracebacklimit = 0
     yield
     sys.tracebacklimit = default_value

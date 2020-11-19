@@ -79,5 +79,5 @@ class EntityType(Enum):
     MODEL = 'model'
 
     @staticmethod
-    def list():
-        return list(map(lambda c: c.value, EntityType))
+    def to_list():
+        return [entity.value for entity in EntityType]
