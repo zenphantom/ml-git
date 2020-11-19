@@ -213,7 +213,7 @@ def init(entity):
 
     if entity == 'repository':
         init_mlgit()
-    elif entity in EntityType.list():
+    elif entity in EntityType.to_list():
         repo = Repository(config_load(), entity)
         repo.init()
     else:
@@ -234,7 +234,7 @@ def store_add(bucket_name, bucket_type=StoreType.S3H.value, credentials=None, gl
             endpoint_url (str, optional): Store endpoint url.
     """
 
-    if bucket_type not in StoreType.list():
+    if bucket_type not in StoreType.to_list():
         log.error('Aqui2')
         return
 

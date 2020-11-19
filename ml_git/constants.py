@@ -72,8 +72,8 @@ class StoreType(Enum):
     GDRIVE = 'gdrive'
 
     @staticmethod
-    def list():
-        return list(map(lambda c: c.value, StoreType))
+    def to_list():
+        return [store.value for store in StoreType]
 
 
 @unique
@@ -83,5 +83,5 @@ class EntityType(Enum):
     MODEL = 'model'
 
     @staticmethod
-    def list():
-        return list(map(lambda c: c.value, EntityType))
+    def to_list():
+        return [entity.value for entity in EntityType]
