@@ -10,7 +10,6 @@ pytest-xdist = "==1.33.*"
 pytest-cov = "==2.8.*"
 pyinstaller = "==3.6"
 setuptools = "==44.*"
-pywin32-ctypes = "==0.2.0"
 
 [packages]
 boto3 = "==1.9.164"
