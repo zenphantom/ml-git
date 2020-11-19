@@ -10,7 +10,8 @@ from pathlib import Path
 from halo import Halo
 
 from ml_git import spec
-from ml_git.constants import FAKE_STORE, BATCH_SIZE_VALUE, BATCH_SIZE, StoreType, GLOBAL_ML_GIT_CONFIG, PUSH_THREADS_COUNT
+from ml_git.constants import FAKE_STORE, BATCH_SIZE_VALUE, BATCH_SIZE, StoreType, GLOBAL_ML_GIT_CONFIG, \
+    PUSH_THREADS_COUNT, SPEC_EXTENSION
 from ml_git.utils import getOrElse, yaml_load, yaml_save, get_root_path, yaml_load_str
 
 push_threads = os.cpu_count()*5
@@ -300,7 +301,7 @@ def validate_spec_hash(the_hash, repotype='dataset'):
 
 
 def create_workspace_tree_structure(repo_type, artifact_name, categories, store_type, bucket_name, version,
-                                    imported_dir):
+                                    imported_dir, mutability):
     # get root path to create directories and files
     path = get_root_path()
     artifact_path = os.path.join(path, repo_type, artifact_name)
@@ -313,7 +314,7 @@ def create_workspace_tree_structure(repo_type, artifact_name, categories, store_
     else:
         os.makedirs(data_path)
 
-    spec_path = os.path.join(artifact_path, artifact_name + '.spec')
+    spec_path = os.path.join(artifact_path, artifact_name + SPEC_EXTENSION)
     readme_path = os.path.join(artifact_path, 'README.md')
     file_exists = os.path.isfile(spec_path)
 
@@ -325,6 +326,7 @@ def create_workspace_tree_structure(repo_type, artifact_name, categories, store_
                 'store': store
             },
             'name': artifact_name,
+            'mutability': mutability,
             'version': version
         }
     }

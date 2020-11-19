@@ -191,6 +191,8 @@ Usage: ml-git dataset create [OPTIONS] ARTIFACT_NAME
 
 Options:
   --category TEXT                 Artifact's category name.  [required]
+  --mutability [strict|flexible|mutable]
+                                  Mutability type.  [required]
   --store-type [s3h|azureblobh|gdriveh]
                                   Data store type [default: s3h].
   --version-number, --version INTEGER RANGE
@@ -198,7 +200,7 @@ Options:
                                   [DEPRECATED:--version-number]
   --import TEXT                   Path to be imported to the project. NOTE:
                                   Mutually exclusive with argument:
-                                  import_url, credentials_path.
+                                  credentials_path, import_url.
   --wizard-config                 If specified, ask interactive questions. at
                                   console for git & store configurations.
   --bucket-name TEXT              Bucket name
@@ -214,12 +216,12 @@ Options:
 Examples:
  - To create an entity with s3 as store and importing files from a path of your computer:
 ```
-ml-git dataset create imagenet8 --store-type=s3h --category=computer-vision --category=images --version=0 --import='/path/to/dataset'
+ml-git dataset create imagenet8 --store-type=s3h --category=computer-vision --category=images --version=0 --import='/path/to/dataset' --mutability=strict
 ```
 
 - To create an entity with s3 as store and importing files from a google drive URL:
 ```
-ml-git dataset create imagenet8 --store-type=s3h --category=computer-vision --category=images --import-url='gdrive.url' --credentials-path='/path/to/gdrive/credentials' --unzip
+ml-git dataset create imagenet8 --store-type=s3h --category=computer-vision --category=images --import-url='gdrive.url' --credentials-path='/path/to/gdrive/credentials' --mutability=strict --unzip
 ```
 
 </details>
@@ -821,7 +823,17 @@ $ ml-git repository remote dataset add https://git@github.com/mlgit-datasets
 <br>
 
 ```
-To Be Implemented
+Usage: ml-git repository remote dataset del
+
+  Remove remote dataset metadata REMOTE_URL from this ml-git repository
+
+Options:
+  --help  Show this message and exit.
+```
+
+Example:
+```
+$ ml-git repository remote dataset del
 ```
 
 </details>
