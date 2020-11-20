@@ -215,4 +215,5 @@ If an issue with the same topic already exists, discuss on the issue.
 ### Links
 
 - [ML-Git API documentation](docs/api/README.md) - Find the commands that are available in our api, usage examples and more.
-- [ml-git plugins](docs/plugins.md) - Dynamically link third-party packages to do extra activities on ml-git.
+- [Working with tabular data](docs/tabular_data/tabular_data.md) - Find suggestions on how to use ml-git with tabular data.
+- [ml-git data specialization plugins](docs/plugins.md) - Dynamically link third-party packages to add specialized behaviors for the data type.

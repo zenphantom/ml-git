@@ -729,7 +729,7 @@ class LocalRepository(MultihashFS):
                                                  path, new_files)
 
         if tag:
-            metadata.checkout('master')
+            metadata.checkout()
         return new_files, deleted_files, untracked_files, corrupted_files, changed_files
 
     def _get_workspace_files_status(self, all_files, full_metadata_path, idx_yaml_mf,

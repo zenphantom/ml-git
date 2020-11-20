@@ -1,17 +1,35 @@
-# Ml-git Plugins
+# ml-git Data Specialization Plugins
 
-The ml-git plugin is an interface to bind external functions to changes some commands behavior.
+The ml-git plugin is an interface that aims to promote data specialization through a contract with a plugin that will do extra operations in some commands, allowing that the users to develop their own plugins to btter handle the data type of your choice for each entity.
 
-## Commands with plugin
+## Plugin contracts
 
-- `ml-git <ml-entity> commit`
+<details>
+<summary><code> add_metadata </code></summary>
+</br>
 
-  In commit we have a point with plugin statement to help us to increment spec file with additional informations.
+This method is responsible for processing or gathering information about the versioned data and inserting it into the specification file, if the plugin is installed and properly configured, this signature will be triggered before the metadata is committed. 
+
+*Definition:*
+
+```python
+def add_metadata(work_space_path, metadata):
+    """
+    Args:
+        works_space_path (str): Absolute path where the files managed by 
+        ml-git will be used to generate extra information that can be
+        inserted in metadata.
+        metadata (dict): Content of spec file that can be changed to add extra data.
+    """
+```
+</details>
+
+**Note:**
+The plugin doesn't need to implement all methods defined in plugin contract.
 
 ## How to create a plugin
 
-#### Plugin structure
-
+When developing the plugin we recommend that the user follow the structure proposed below:
 ```
 ml-git-plugin-project-name/
     tests/
@@ -21,29 +39,22 @@ ml-git-plugin-project-name/
         core.py <-- main module where the entry function is located.
     setup.py
 ```
-#### Implementation
 
-Your need to implement the method *add_metadata*, it will be used by plugin caller in commit command to add extra informations in metadata file (.spec).
+In `package_name/core.py` it is expected to contain only the contract methods essential to the operation of the plugin.
 
 ```python
-# package_name/core.py
 def add_metadata(work_space_path, metadata):
-    """
-    Args:
-        works_space_path (str): Absolute path where the files managed by ml-git going to           be used to generate extra information that can be inserted in metadata.
-        
-        metadata (dict): Content of spec file that can be changed to add extra data.
-    """
+    ...
     ...
 ```
 
-*Import entry function required to facilitate the use of the ml-git plugin.*
+In `package_name/__init__.py` it's necessary to import the implemented contract's methods.
 
 ```python
-# package_name/__init__.py
-
 from package_name.core import add_metadata
 ```
+
+The main purpose of the setup script is to describe your module distribution.
 
 ```python
 # setup.py
@@ -68,8 +79,9 @@ cd plugin-project-name
 pip3 install --user .
 ```
 
-In your project managed by ml-git, change your spec file like below:
+In an entity of your preference change the spec file like below: 
 
+*(ex: dataset/dataset-ex/dataset-ex.spec)*
 ```yaml
 dataset:
   categories:

@@ -5,12 +5,14 @@ SPDX-License-Identifier: GPL-2.0-only
 
 import importlib
 
+from ml_git import log
+from ml_git.plugin_interface.data_plugin_constants import SPEC_PLUGIN_KEY
+
 
 class PluginCaller:
-    SPEC_PLUGIN_KEY = 'data-plugin'
 
     def __init__(self, manifest):
-        self.plugin_name = manifest.get(self.SPEC_PLUGIN_KEY, '')
+        self.plugin_name = manifest.get(SPEC_PLUGIN_KEY, '')
         self.package = self.__import_plugin()
 
     def __import_plugin(self):
@@ -19,7 +21,8 @@ class PluginCaller:
         try:
             package = importlib.import_module(self.plugin_name)
             return package
-        except ImportError:
+        except ImportError as e:
+            log.error(str(e), class_name=self.__class__.__name__)
             return None
 
     def call(self, name, *args, **kwargs):

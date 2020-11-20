@@ -15,6 +15,7 @@ from ml_git.constants import METADATA_CLASS_NAME, LOCAL_REPOSITORY_CLASS_NAME, R
     SPEC_EXTENSION, MANIFEST_FILE
 from ml_git.manifest import Manifest
 from ml_git.ml_git_message import output_messages
+from ml_git.plugin_interface.data_plugin_constants import ADD_METADATA
 from ml_git.plugin_interface.plugin_especialization import PluginCaller
 from ml_git.refs import Refs
 from ml_git.utils import ensure_path_exists, yaml_save, yaml_load, clear, get_file_size, normalize_path
@@ -163,7 +164,7 @@ class Metadata(MetadataManager):
         store = metadata[self.__repo_type]['manifest']['store']
 
         manifest = metadata[self.__repo_type]['manifest']
-        PluginCaller(manifest).call('add_metadata', ws_path, manifest)
+        PluginCaller(manifest).call(ADD_METADATA, ws_path, manifest)
 
         # Add metadata specific to labels ML entity type
         self._add_associate_entity_metadata(metadata, specs)
