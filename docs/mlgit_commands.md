@@ -319,16 +319,6 @@ in the future, fsck should be able to fix some errors of detected corruption.
 </details>
 
 <details>
-<summary><code> ml-git &lt;ml-entity&gt; gc </code></summary>
-<br>
-
-```
-To Be Implemented
-```
-
-</details>
-
-<details>
 <summary><code> ml-git &lt;ml-entity&gt; import </code></summary>
 <br>
 
@@ -774,6 +764,23 @@ config:
 
 Use this command if you want to check what configuration ml-git is running with. It is highly likely one will need to 
 change the default configuration to adapt for her needs.
+
+</details>
+
+<details>
+<summary><code> ml-git repository gc </code></summary>
+<br>
+
+```
+Usage: ml-git repository gc [OPTIONS]
+
+  Cleanup unnecessary files and optimize the use of the disk space.
+
+Options:
+  --verbose  Debug mode
+```
+
+This command will remove unnecessary files contained in the cache and objects directories of the ml-git metadata (.ml-git).
 
 </details>
 

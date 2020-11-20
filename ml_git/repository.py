@@ -6,9 +6,9 @@ import errno
 import os
 import re
 
+import humanize
 from git import InvalidGitRepositoryError, GitError
 from halo import Halo
-from hurry.filesize import alternative, size
 
 from ml_git import log
 from ml_git.admin import remote_add, store_add, clone_config_repository, init_mlgit, remote_del
@@ -20,8 +20,9 @@ from ml_git.constants import REPOSITORY_CLASS_NAME, LOCAL_REPOSITORY_CLASS_NAME,
     RGX_TAG_FORMAT, EntityType, MANIFEST_FILE, SPEC_EXTENSION
 from ml_git.file_system.cache import Cache
 from ml_git.file_system.hashfs import MultihashFS
-from ml_git.file_system.index import MultihashIndex, Objects, Status, FullIndex
+from ml_git.file_system.index import MultihashIndex, Status, FullIndex
 from ml_git.file_system.local import LocalRepository
+from ml_git.file_system.objects import Objects
 from ml_git.manifest import Manifest
 from ml_git.metadata import Metadata, MetadataManager
 from ml_git.ml_git_message import output_messages
@@ -1037,7 +1038,7 @@ class Repository(object):
             workspace_size = fidx.get_total_size()
 
             amount_message = 'Total of files: %s' % fidx.get_total_count()
-            size_message = 'Workspace size: %s' % size(workspace_size, system=alternative)
+            size_message = 'Workspace size: %s' % humanize.naturalsize(workspace_size)
 
             workspace_info = '------------------------------------------------- \n{}\t{}' \
                 .format(amount_message, size_message)
@@ -1060,3 +1061,50 @@ class Repository(object):
                 any_metadata = True
         if not any_metadata:
             log.error(output_messages['ERROR_UNINITIALIZED_METADATA'], class_name=REPOSITORY_CLASS_NAME)
+
+    def _check_is_valid_entity(self, repo_type, spec):
+        ref = Refs(get_refs_path(self.__config, repo_type), spec, repo_type)
+        tag, _ = ref.branch()
+        categories_path = get_path_with_categories(tag)
+        search_spec_file(repo_type, spec, categories_path)
+
+    def _get_blobs_hashes(self, index_path, objects_path, repo_type):
+        blobs_hashes = []
+        for root, dirs, files in os.walk(os.path.join(index_path, 'metadata')):
+            for spec in dirs:
+                try:
+                    self._check_is_valid_entity(repo_type, spec)
+                    idx = MultihashIndex(spec, index_path, objects_path)
+                    blobs_hashes.extend(idx.get_hashes_list())
+                except Exception:
+                    log.debug(output_messages['INFO_ENTITY_DELETED'] % spec, class_name=REPOSITORY_CLASS_NAME)
+        return blobs_hashes
+
+    def garbage_collector(self):
+        any_metadata = False
+        removed_files = 0
+        reclaimed_space = 0
+        for entity in EntityType:
+            repo_type = entity.value
+            if self.metadata_exists(repo_type):
+                log.info(output_messages['INFO_STARTING_GC'] % repo_type, class_name=REPOSITORY_CLASS_NAME)
+                any_metadata = True
+                index_path = get_index_path(self.__config, repo_type)
+                objects_path = get_objects_path(self.__config, repo_type)
+                blobs_hashes = self._get_blobs_hashes(index_path, objects_path, repo_type)
+
+                cache = Cache(get_cache_path(self.__config, repo_type))
+                count_removed_cache, reclaimed_cache_space = cache.garbage_collector(blobs_hashes)
+                objects = Objects('', objects_path)
+                count_removed_objects, reclaimed_objects_space = objects.garbage_collector(blobs_hashes)
+
+                reclaimed_space += reclaimed_objects_space + reclaimed_cache_space
+                removed_files += count_removed_objects + count_removed_cache
+        if not any_metadata:
+            log.error(output_messages['ERROR_UNINITIALIZED_METADATA'], class_name=REPOSITORY_CLASS_NAME)
+            return
+        log.info(output_messages['INFO_REMOVED_FILES'] % (humanize.intword(removed_files),
+                                                          os.path.join(get_root_path(), '.ml-git')),
+                 class_name=REPOSITORY_CLASS_NAME)
+        log.info(output_messages['INFO_RECLAIMED_SPACE'] % humanize.naturalsize(reclaimed_space),
+                 class_name=REPOSITORY_CLASS_NAME)
