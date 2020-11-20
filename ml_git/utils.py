@@ -2,7 +2,7 @@
 © Copyright 2020 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
-
+import bisect
 import itertools
 import json
 import os
@@ -221,3 +221,19 @@ def remove_from_workspace(file_names, path, spec_name):
                     file_path = convert_path(root, file)
                     set_write_read(file_path)
                     os.unlink(file_path)
+
+
+def group_files_by_path(files):
+    group = {}
+    dir_len_offset = 1
+    for file in files:
+        directory = os.path.dirname(file)
+        if directory:
+            if directory not in group:
+                group[directory] = []
+            bisect.insort(group[directory], file[len(directory) + dir_len_offset:])
+        else:
+            if '' not in group:
+                group[''] = []
+            bisect.insort(group[''], file)
+    return group

@@ -215,3 +215,4 @@ If an issue with the same topic already exists, discuss on the issue.
 ### Links
 
 - [ML-Git API documentation](docs/api/README.md) - Find the commands that are available in our api, usage examples and more.
+- [Working with tabular data](docs/tabular_data/tabular_data.md) - Find suggestions on how to use ml-git with tabular data.
