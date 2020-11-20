@@ -174,7 +174,7 @@ class Repository(object):
             m.checkout(tag)
             md_metadata_path = m.get_metadata_path(tag)
             manifest = os.path.join(md_metadata_path, MANIFEST_FILE)
-            m.checkout('master')
+            m.checkout()
         return manifest
 
     def _is_spec_valid(self, spec_path):
@@ -385,7 +385,7 @@ class Repository(object):
             m = Metadata('', metadata_path, self.__config, repo_type)
             if not m.check_exists():
                 raise RuntimeError('The %s doesn\'t have been initialized.' % self.__repo_type)
-            m.checkout('master')
+            m.checkout()
             m.list(title='ML ' + repo_type)
         except GitError as g:
             error_message = g.stderr
@@ -440,7 +440,7 @@ class Repository(object):
             return
         log.info('Create Tag Successfull', class_name=REPOSITORY_CLASS_NAME)
         # checkout at metadata repository at master version
-        m.checkout('master')
+        m.checkout()
         return True
 
     def list_tag(self, spec):
@@ -497,7 +497,7 @@ class Repository(object):
         ret = repo.push(objects_path, full_spec_path, retry, clear_on_fail)
 
         # ensure first we're on master !
-        met.checkout('master')
+        met.checkout()
         if ret == 0:
             # push metadata spec to LocalRepository git repository
             try:
@@ -547,20 +547,22 @@ class Repository(object):
             if not fetch_success:
                 objs = Objects('', objects_path)
                 objs.fsck(remove_corrupted=True)
-                m.checkout('master')
+                m.checkout()
         except Exception as e:
             log.error(e, class_name=REPOSITORY_CLASS_NAME)
             return
 
         # restore to master/head
-        self._checkout_ref('master')
+        self._checkout_ref()
 
-    def _checkout_ref(self, ref):
+    def _checkout_ref(self, ref=None):
         repo_type = self.__repo_type
         metadata_path = get_metadata_path(self.__config, repo_type)
-
-        # checkout
         m = Metadata('', metadata_path, self.__config, repo_type)
+
+        if ref is None:
+            ref = m.get_default_branch()
+
         m.checkout(ref)
 
     '''Performs fsck on several aspects of ml-git filesystem.
@@ -611,7 +613,7 @@ class Repository(object):
 
         m.show(spec)
 
-        m.checkout('master')
+        m.checkout()
 
     def _tag_exists(self, tag):
         md = MetadataManager(self.__config, self.__repo_type)
@@ -692,7 +694,7 @@ class Repository(object):
         r.remote_fsck(metadata_path, tag, full_spec_path, retries, thorough, paranoid)
 
         # ensure first we're on master !
-        self._checkout_ref('master')
+        self._checkout_ref()
 
     '''Download data from a specific ML entity version into the workspace'''
 
@@ -749,7 +751,7 @@ class Repository(object):
         if not fetch_success:
             objs = Objects('', objects_path)
             objs.fsck(remove_corrupted=True)
-            self._checkout_ref('master')
+            self._checkout_ref()
             return None, None
         ensure_path_exists(ws_path)
 
@@ -763,7 +765,7 @@ class Repository(object):
             r = LocalRepository(self.__config, objects_path, repo_type)
             r.checkout(cache_path, metadata_path, ws_path, tag, samples, bare)
         except OSError as e:
-            self._checkout_ref('master')
+            self._checkout_ref()
             if e.errno == errno.ENOSPC:
                 log.error('There is not enough space in the disk. Remove some files and try again.',
                           class_name=REPOSITORY_CLASS_NAME)
@@ -772,7 +774,7 @@ class Repository(object):
                           class_name=REPOSITORY_CLASS_NAME)
                 return None, None
         except Exception as e:
-            self._checkout_ref('master')
+            self._checkout_ref()
             log.error('An error occurred while creating the files into workspace: %s \n.' % e,
                       class_name=REPOSITORY_CLASS_NAME)
             return None, None
@@ -782,7 +784,7 @@ class Repository(object):
         ref.update_head(tag, sha)
 
         # restore to master/head
-        self._checkout_ref('master')
+        self._checkout_ref()
         return dataset_tag, labels_tag
 
     def _delete_spec_and_readme(self, spec_index_path, spec_name):
@@ -1015,7 +1017,7 @@ class Repository(object):
         local = LocalRepository(self.__config, get_objects_path(self.__config, self.__repo_type), self.__repo_type)
         local.export_tag(get_metadata_path(self.__config, self.__repo_type), tag, bucket, retry)
 
-        self._checkout_ref('master')
+        self._checkout_ref()
 
     def log(self, spec, stat=False, fullstat=False):
 
