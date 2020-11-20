@@ -13,8 +13,9 @@ from halo import Halo
 from ml_git import log
 from ml_git.config import get_metadata_path
 from ml_git.constants import METADATA_MANAGER_CLASS_NAME, HEAD_1, RGX_ADDED_FILES, RGX_DELETED_FILES, RGX_SIZE_FILES, \
-    RGX_AMOUNT_FILES, TAG, AUTHOR, EMAIL, DATE, MESSAGE, ADDED, SIZE, AMOUNT, DELETED
+    RGX_AMOUNT_FILES, TAG, AUTHOR, EMAIL, DATE, MESSAGE, ADDED, SIZE, AMOUNT, DELETED, SPEC_EXTENSION
 from ml_git.manifest import Manifest
+from ml_git.ml_git_message import output_messages
 from ml_git.utils import get_root_path, ensure_path_exists, yaml_load, RootPathException, get_yaml_str
 
 
@@ -53,7 +54,7 @@ class MetadataRepo(object):
                 raise GitError(g.stderr)
             return
 
-    def remote_set_url(self, repotype, mlgit_remote):
+    def remote_set_url(self, mlgit_remote):
         try:
             if self.check_exists():
                 repo = Repo(self.__path)
@@ -78,6 +79,7 @@ class MetadataRepo(object):
     def update(self):
         log.info('Pull [%s]' % self.__path, class_name=METADATA_MANAGER_CLASS_NAME)
         repo = Repo(self.__path)
+        self.validate_blank_remote_url()
         o = repo.remotes.origin
         o.pull('--tags')
 
@@ -96,6 +98,7 @@ class MetadataRepo(object):
         log.debug('Push [%s]' % self.__path, class_name=METADATA_MANAGER_CLASS_NAME)
         repo = Repo(self.__path)
         try:
+            self.validate_blank_remote_url()
             for i in repo.remotes.origin.push(tags=True):
                 if (i.flags & PushInfo.ERROR) == PushInfo.ERROR:
                     raise RuntimeError('Error on push metadata to git repository. Please update your mlgit project!')
@@ -114,6 +117,7 @@ class MetadataRepo(object):
         try:
             log.debug(' fetch [%s]' % self.__path, class_name=METADATA_MANAGER_CLASS_NAME)
             repo = Repo(self.__path)
+            self.validate_blank_remote_url()
             repo.remotes.origin.fetch()
         except GitError as e:
             err = e.stderr
@@ -254,7 +258,7 @@ class MetadataRepo(object):
             if '.git' in root:
                 continue
             if specname in root:
-                specs.append(os.path.join(root, specname + '.spec'))
+                specs.append(os.path.join(root, specname + SPEC_EXTENSION))
         return specs
 
     def show(self, spec):
@@ -322,12 +326,13 @@ class MetadataRepo(object):
 
     def get_formatted_log_info(self, tag, fullstat):
         commit = tag.commit
+        info_format = '\n{}: {}'
         info = ''
-        info += '\n{}: {}'.format(TAG, str(tag))
-        info += '\n{}: {}'.format(AUTHOR, commit.author.name)
-        info += '\n{}: {}'.format(EMAIL, commit.author.email)
-        info += '\n{}: {}'.format(DATE, time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(commit.authored_date)))
-        info += '\n{}: {}'.format(MESSAGE, commit.message)
+        info += info_format.format(TAG, str(tag))
+        info += info_format.format(AUTHOR, commit.author.name)
+        info += info_format.format(EMAIL, commit.author.email)
+        info += info_format.format(DATE, time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(commit.authored_date)))
+        info += info_format.format(MESSAGE, commit.message)
 
         if fullstat:
             added, deleted, size, amount = self.get_ref_diff(tag)
@@ -361,6 +366,23 @@ class MetadataRepo(object):
 
         return added_files, deleted_files, size_files, amount_files
 
+    def validate_blank_remote_url(self):
+        blank_url = ''
+        repo = Repo(self.__path)
+        for url in repo.remote().urls:
+            if url == blank_url:
+                git_error = GitError()
+                git_error.stderr = output_messages['ERROR_REMOTE_NOT_FOUND']
+                raise git_error
+
+    def delete_git_reference(self):
+        try:
+            self.remote_set_url('')
+        except GitError as e:
+            log.error(e.stderr, class_name=METADATA_MANAGER_CLASS_NAME)
+            return False
+        return True
+
 
 class MetadataManager(MetadataRepo):
     def __init__(self, config, type='model'):
@@ -373,21 +395,3 @@ class MetadataManager(MetadataRepo):
 class MetadataObject(object):
     def __init__(self):
         pass
-
-
-# TODO signed tag
-# try:
-#            self.repo.create_tag(self.config['tag'],
-#                verify=True,
-#                ref=None)
-#            print('okay')
-#        except:
-#            print('not okay')
-
-
-if __name__ == '__main__':
-    r = MetadataRepo('git@github.com:example/your-mlgit-datasets.git', 'ml-git/datasets/')
-    # tag = 'vision-computing__images__cifar-10__1'
-    # sha = '0e4649ad0b5fa48875cdfc2ea43366dc06b3584e'
-    # #r.checkout(sha)
-    # #r.checkout('master')

@@ -10,7 +10,7 @@ import os
 import multihash
 from cid import CIDv1
 from ml_git import log
-from ml_git.constants import HASH_FS_CLASS_NAME, LOCAL_REPOSITORY_CLASS_NAME
+from ml_git.constants import HASH_FS_CLASS_NAME, LOCAL_REPOSITORY_CLASS_NAME, STORE_LOG
 from ml_git.utils import json_load, ensure_path_exists, get_root_path, set_write_read
 from tqdm import tqdm
 
@@ -90,7 +90,7 @@ class HashFS(object):
         dstfile = self._get_hashpath(os.path.basename(srcfile))
         ensure_path_exists(os.path.dirname(dstfile))
         os.link(srcfile, dstfile)
-        fullpath = os.path.join(self._logpath, 'store.log')
+        fullpath = os.path.join(self._logpath, STORE_LOG)
         with open(fullpath, 'a') as log_file:
             self._log(dstfile, log_file=log_file)
         return os.path.basename(srcfile)
@@ -103,14 +103,14 @@ class HashFS(object):
 
     def reset_log(self):
         log.debug('Update hashfs log', class_name=HASH_FS_CLASS_NAME)
-        fullpath = os.path.join(self._logpath, 'store.log')
+        fullpath = os.path.join(self._logpath, STORE_LOG)
         if os.path.exists(fullpath) is False:
             return None
         os.unlink(fullpath)
 
     def update_log(self, files_to_keep):
         log.debug('Update hashfs log with a list of files to keep', class_name=HASH_FS_CLASS_NAME)
-        fullpath = os.path.join(self._logpath, 'store.log')
+        fullpath = os.path.join(self._logpath, STORE_LOG)
         if not os.path.exists(fullpath):
             return None
         with open(fullpath, 'w') as log_file:
@@ -129,7 +129,7 @@ class HashFS(object):
         logs = []
         try:
             root_path = get_root_path()
-            log_path = os.path.join(root_path, self._logpath, 'store.log')
+            log_path = os.path.join(root_path, self._logpath, STORE_LOG)
         except Exception as e:
             log.error(e, class_name=LOCAL_REPOSITORY_CLASS_NAME)
             raise e
@@ -152,7 +152,7 @@ class HashFS(object):
         """walk implementation to make appear hashfs as a single namespace (and/or hide hashdir implementation details"""
         nfiles = []
         for root, dirs, files in os.walk(self._path):
-            if 'store.log' in files:
+            if STORE_LOG in files:
                 continue
             if len(files) > 0:
                 nfiles.extend(files)
@@ -168,7 +168,7 @@ class HashFS(object):
         return None
 
     def remove_hash(self, hash_to_remove):
-        fullpath = os.path.join(self._logpath, 'store.log')
+        fullpath = os.path.join(self._logpath, STORE_LOG)
         if not os.path.exists(fullpath):
             return None
         with open(fullpath, 'r') as f:
@@ -419,14 +419,3 @@ class MultihashFS(HashFS):
                       class_name=HASH_FS_CLASS_NAME)
 
         return is_valid
-
-
-if __name__ == '__main__':
-    try:
-        os.mkdir('/tmp/hashfs-test')
-    except Exception:
-        pass
-    hfs = MultihashFS('/tmp/hashfs-test/')
-    scid = hfs.put('test/data/think-hires.jpg')
-    for files in hfs.walk():
-        print(files)

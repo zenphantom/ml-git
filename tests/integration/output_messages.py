@@ -63,7 +63,7 @@ messages = [
     'No current tag for [%s]. commit first',  # 55
     'ML %s\n|-- computer-vision\n|   |-- images\n|   |   |-- %s-ex\n',  # 56
     '-- %s : %s-ex --\ncategories:\n- computer-vision\n- images\nmanifest:\n  amount: 5\n  '
-    'files: MANIFEST.yaml\n  size: 14 KB\n  store: s3h://mlgit\nname: %s-ex\nversion: %s\n\n',  # 57
+    'files: MANIFEST.yaml\n  size: 14 KB\n  store: s3h://mlgit\nmutability: strict\nname: %s-ex\nversion: %s\n\n',  # 57
     '%d missing descriptor files. Consider using the --thorough option.',  # 58
     '%d missing descriptor files. Download:',  # 59
     'Corruption detected for chunk [%s]',  # 60
@@ -106,5 +106,11 @@ messages = [
     'Could not update metadata. Check your remote configuration.',  # 97
     'Initializing the project with global settings',  # 98
     'You are not in an initialized ml-git repository and do not have a global configuration.',  # 99
-    '\'%s\' has been deprecated, use \'%s\' instead',  # 100
+    'fatal: not a git repository (or any of the parent directories): .git',  # 100
+    'error: pathspec \'%s\' did not match any file(s) known to git',  # 101
+    'Azure credentials could not be found. See the ml-git documentation for how to configure.',  # 102
+    'Unable to connect to the Azure storage.',  # 103
+    'Tag [%s] already exists in the ml-git repository.',  # 104
+    'Could not update metadata. Check your remote configuration.',  # 105
+    '\'%s\' has been deprecated, use \'%s\' instead',  # 106
 ]

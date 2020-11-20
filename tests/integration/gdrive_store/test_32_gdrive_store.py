@@ -8,6 +8,7 @@ import unittest
 
 import pytest
 
+from ml_git.constants import Mutability
 from tests.integration.commands import MLGIT_IMPORT, MLGIT_CREATE, MLGIT_INIT
 from tests.integration.helper import ML_GIT_DIR, CREDENTIALS_PATH, ERROR_MESSAGE
 from tests.integration.helper import check_output, clear, init_repository, add_file
@@ -78,19 +79,21 @@ class GdrivePushFilesAcceptanceTests(unittest.TestCase):
     def test_03_create_gdrive(self):
         self.assertIn(messages[0], check_output(MLGIT_INIT))
 
-        self.assertIn(messages[38], check_output(MLGIT_CREATE % ('dataset', 'dataset-ex') +
-                                                 ' --category=imgs --bucket-name=test'
-                                                 ' --import-url=%s --credentials-path=%s' % (self.gdrive_links['test-folder'],
-                                                                                             CREDENTIALS_PATH)))
+        self.assertIn(messages[38], check_output(MLGIT_CREATE % ('dataset', 'dataset-ex')
+                                                 + ' --category=imgs --bucket-name=test'
+                                                   ' --import-url=%s --credentials-path=%s '
+                                                 % (self.gdrive_links['test-folder'], CREDENTIALS_PATH)
+                                                 + ' --mutability=%s' % Mutability.STRICT.value))
 
         file_a_test_folder = os.path.join('dataset', 'dataset-ex', 'data', 'test-folder', 'A')
 
         self.assertTrue(os.path.exists(file_a_test_folder))
 
-        self.assertIn(messages[38], check_output(MLGIT_CREATE % ('dataset', 'dataset-ex2') +
-                                                 ' --category=imgs --bucket-name=test'
-                                                 ' --import-url=%s --credentials-path=%s' % (self.gdrive_links['B'],
-                                                                                             CREDENTIALS_PATH)))
+        self.assertIn(messages[38], check_output(MLGIT_CREATE % ('dataset', 'dataset-ex2')
+                                                 + ' --category=imgs --bucket-name=test'
+                                                   ' --import-url=%s --credentials-path=%s'
+                                                 % (self.gdrive_links['B'], CREDENTIALS_PATH)
+                                                 + ' --mutability=%s' % Mutability.STRICT.value))
 
         file_b = os.path.join('dataset', 'dataset-ex2', 'data', 'B')
 
