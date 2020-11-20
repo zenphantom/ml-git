@@ -163,3 +163,16 @@ def restore_config():
     yield
     for key in config_cp.keys():
         config[key] = config_cp[key]
+
+
+def change_branch(path, new_name):
+    open(os.path.join(path, 'README.md'), 'w').close()
+    repo = Repo(path)
+    repo.git.add(['README.md'])
+    repo.git.commit(['-m', 'README.md'])
+    repo.git.branch(['-m', new_name])
+
+
+@pytest.fixture
+def change_branch_name(request):
+    request.cls.change_branch = lambda _, path, new_name: change_branch(path, new_name)

@@ -15,7 +15,7 @@ from hurry.filesize import alternative, size
 
 from ml_git.utils import json_load, yaml_load, yaml_save, RootPathException, get_root_path, change_mask_for_routine, \
     ensure_path_exists, yaml_load_str, get_yaml_str, run_function_per_group, unzip_files_in_directory, \
-    remove_from_workspace, number_to_human_format, remove_other_files, remove_unnecessary_files
+    remove_from_workspace, group_files_by_path, number_to_human_format, remove_other_files, remove_unnecessary_files
 
 
 @pytest.mark.usefixtures('tmp_dir', 'switch_to_test_dir', 'yaml_str_sample', 'yaml_obj_sample')
@@ -149,6 +149,20 @@ class UtilsTestCases(unittest.TestCase):
         self.assertTrue(os.path.exists(file))
         remove_from_workspace({img}, self.tmp_dir, 'dataex')
         self.assertFalse(os.path.exists(file))
+
+    def test_group_files_by_path(self):
+        files = ['images1/example.jpg', 'images1/example2.jpg', 'example-x.jpg', 'images2/example3.jpg']
+        group_files = group_files_by_path(files)
+        keys = group_files.keys()
+        images_one = 'images1'
+        images_two = 'images2'
+        images_three = ''
+        self.assertIn(images_one, keys)
+        self.assertIn(images_two, keys)
+        self.assertIn(images_three, keys)
+        self.assertTrue(len(group_files[images_one]) == 2)
+        self.assertTrue(len(group_files[images_two]) == 1)
+        self.assertTrue(len(group_files[images_three]) == 1)
 
     def test_remove_unnecessary_files(self):
         data_path = os.path.join(self.tmp_dir, 'data')
