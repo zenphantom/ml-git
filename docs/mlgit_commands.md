@@ -587,7 +587,7 @@ version: 1
 <br>
 
 ```
-Usage: ml-git dataset status [OPTIONS] ML_ENTITY_NAME
+Usage: ml-git dataset status [OPTIONS] ML_ENTITY_NAME [STATUS_DIRECTORY]
 
   Print the files that are tracked or not and the ones that are in the
   index/staging area.
