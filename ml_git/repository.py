@@ -2,7 +2,6 @@
 © Copyright 2020 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
-
 import errno
 import os
 import re
@@ -32,7 +31,7 @@ from ml_git.spec import spec_parse, search_spec_file, increment_version_in_spec,
 from ml_git.tag import UsrTag
 from ml_git.utils import yaml_load, ensure_path_exists, get_root_path, get_path_with_categories, \
     RootPathException, change_mask_for_routine, clear, get_yaml_str, unzip_files_in_directory, \
-    remove_from_workspace, disable_exception_traceback
+    remove_from_workspace, disable_exception_traceback, group_files_by_path
 
 
 class Repository(object):
@@ -182,7 +181,7 @@ class Repository(object):
             m.checkout(tag)
             md_metadata_path = m.get_metadata_path(tag)
             manifest = os.path.join(md_metadata_path, MANIFEST_FILE)
-            m.checkout('master')
+            m.checkout()
         return manifest
 
     def _is_spec_valid(self, spec_path):
@@ -240,7 +239,7 @@ class Repository(object):
 
     '''prints status of changes in the index and changes not yet tracked or staged'''
 
-    def status(self, spec):
+    def status(self, spec, full_option):
         repo_type = self.__repo_type
         try:
             objects_path = get_objects_path(self.__config, repo_type)
@@ -253,23 +252,46 @@ class Repository(object):
 
         if new_files is not None and deleted_files is not None and untracked_files is not None:
             print('Changes to be committed:')
-            self._print_files(new_files, 'New file: ')
+            self._print_files(new_files, full_option, 'New file: ')
 
-            self._print_files(deleted_files, 'Deleted: ')
+            self._print_files(deleted_files, full_option, 'Deleted: ')
 
             print('\nUntracked files:')
-            self._print_files(untracked_files)
+            self._print_files(untracked_files, full_option)
 
             print('\nCorrupted files:')
-            self._print_files(corruped_files)
+            self._print_files(corruped_files, full_option)
 
             if changed_files and len(changed_files) > 0:
                 print('\nChanges not staged for commit:')
-                self._print_files(changed_files)
+                self._print_files(changed_files, full_option)
 
-    def _print_files(self, files, files_status=''):
+    @staticmethod
+    def _print_full_option(files, files_status):
         for file in files:
             print('\t%s%s' % (files_status, file))
+
+    @staticmethod
+    def _print_short(files, files_status):
+        one_file = 1
+
+        for base_path, path_files in files.items():
+            if not base_path:
+                print('\t%s%s' % (files_status, '\n\t'.join(path_files)))
+            elif len(path_files) == one_file:
+                print('\t%s%s' % (files_status, os.path.join(base_path, ''.join(path_files))))
+            else:
+                print('\t%s%s\t->\t%d FILES' % (files_status, base_path + '/', len(path_files)))
+
+    def _print_files(self, files, full_option, files_status=''):
+
+        print_method = self._print_full_option
+
+        if not full_option:
+            files = group_files_by_path(files)
+            print_method = self._print_short
+
+        print_method(files, files_status)
 
     '''commit changes present in the ml-git index to the ml-git repository'''
 
@@ -370,7 +392,7 @@ class Repository(object):
             m = Metadata('', metadata_path, self.__config, repo_type)
             if not m.check_exists():
                 raise RuntimeError('The %s doesn\'t have been initialized.' % self.__repo_type)
-            m.checkout('master')
+            m.checkout()
             m.list(title='ML ' + repo_type)
         except GitError as g:
             error_message = g.stderr
@@ -425,7 +447,7 @@ class Repository(object):
             return
         log.info('Create Tag Successfull', class_name=REPOSITORY_CLASS_NAME)
         # checkout at metadata repository at master version
-        m.checkout('master')
+        m.checkout()
         return True
 
     def list_tag(self, spec):
@@ -482,7 +504,7 @@ class Repository(object):
         ret = repo.push(objects_path, full_spec_path, retry, clear_on_fail)
 
         # ensure first we're on master !
-        met.checkout('master')
+        met.checkout()
         if ret == 0:
             # push metadata spec to LocalRepository git repository
             try:
@@ -532,20 +554,22 @@ class Repository(object):
             if not fetch_success:
                 objs = Objects('', objects_path)
                 objs.fsck(remove_corrupted=True)
-                m.checkout('master')
+                m.checkout()
         except Exception as e:
             log.error(e, class_name=REPOSITORY_CLASS_NAME)
             return
 
         # restore to master/head
-        self._checkout_ref('master')
+        self._checkout_ref()
 
-    def _checkout_ref(self, ref):
+    def _checkout_ref(self, ref=None):
         repo_type = self.__repo_type
         metadata_path = get_metadata_path(self.__config, repo_type)
-
-        # checkout
         m = Metadata('', metadata_path, self.__config, repo_type)
+
+        if ref is None:
+            ref = m.get_default_branch()
+
         m.checkout(ref)
 
     '''Performs fsck on several aspects of ml-git filesystem.
@@ -596,7 +620,7 @@ class Repository(object):
 
         m.show(spec)
 
-        m.checkout('master')
+        m.checkout()
 
     def _tag_exists(self, tag):
         md = MetadataManager(self.__config, self.__repo_type)
@@ -677,7 +701,7 @@ class Repository(object):
         r.remote_fsck(metadata_path, tag, full_spec_path, retries, thorough, paranoid)
 
         # ensure first we're on master !
-        self._checkout_ref('master')
+        self._checkout_ref()
 
     '''Download data from a specific ML entity version into the workspace'''
 
@@ -734,7 +758,7 @@ class Repository(object):
         if not fetch_success:
             objs = Objects('', objects_path)
             objs.fsck(remove_corrupted=True)
-            self._checkout_ref('master')
+            self._checkout_ref()
             return None, None
         ensure_path_exists(ws_path)
 
@@ -748,7 +772,7 @@ class Repository(object):
             r = LocalRepository(self.__config, objects_path, repo_type)
             r.checkout(cache_path, metadata_path, ws_path, tag, samples, bare)
         except OSError as e:
-            self._checkout_ref('master')
+            self._checkout_ref()
             if e.errno == errno.ENOSPC:
                 log.error('There is not enough space in the disk. Remove some files and try again.',
                           class_name=REPOSITORY_CLASS_NAME)
@@ -757,7 +781,7 @@ class Repository(object):
                           class_name=REPOSITORY_CLASS_NAME)
                 return None, None
         except Exception as e:
-            self._checkout_ref('master')
+            self._checkout_ref()
             log.error('An error occurred while creating the files into workspace: %s \n.' % e,
                       class_name=REPOSITORY_CLASS_NAME)
             return None, None
@@ -767,7 +791,7 @@ class Repository(object):
         ref.update_head(tag, sha)
 
         # restore to master/head
-        self._checkout_ref('master')
+        self._checkout_ref()
         return dataset_tag, labels_tag
 
     def _delete_spec_and_readme(self, spec_index_path, spec_name):
@@ -1000,7 +1024,7 @@ class Repository(object):
         local = LocalRepository(self.__config, get_objects_path(self.__config, self.__repo_type), self.__repo_type)
         local.export_tag(get_metadata_path(self.__config, self.__repo_type), tag, bucket, retry)
 
-        self._checkout_ref('master')
+        self._checkout_ref()
 
     def log(self, spec, stat=False, fullstat=False):
 
