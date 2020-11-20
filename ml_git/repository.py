@@ -171,9 +171,8 @@ class Repository(object):
             self.fsck()
 
     def _valid_entity_type(self, repo_type):
-        type_list = EntityType.to_list()
-        type_list.append('repository')
-        type_list.append('project')
+        another_valid_types = ['repository', 'project']
+        type_list = EntityType.to_list() + another_valid_types
 
         if repo_type not in type_list:
             with disable_exception_traceback():
