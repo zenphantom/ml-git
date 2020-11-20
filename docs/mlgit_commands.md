@@ -593,7 +593,8 @@ Usage: ml-git dataset status [OPTIONS] ML_ENTITY_NAME
   index/staging area.
 
 Options:
-  --help  Show this message and exit.
+  --full     Show all contents for each directory.
+  --verbose  Debug mode
 ```
 
 Example:
