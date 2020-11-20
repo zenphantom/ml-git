@@ -562,16 +562,6 @@ Applies SHA2 to content of objects , uses multihash to generate the CID, and com
 </details>
 
 <details>
-<summary> <code>ml-git &lt;ml-entity&gt; gc</code> </summary>
-<br>
-
-```
-To Be Implemented
-```
-
-</details>
-
-<details>
 <summary> <code>ml-git &lt;ml-entity&gt; import</code> </summary>
 This command allows you to download a file or directory from the S3 bucket.
 
@@ -902,6 +892,31 @@ Note:
 Command try to load the configurations from the file **.ml-git/config.yaml**. 
 
 If the file is found, it will show the configurations read from the file, if not it will show the default configurations in the project.
+</details>
+
+<details>
+<summary> <code>ml-git repository gc</code> </summary>
+<br>
+
+```
+ml-git repository gc
+```
+
+This command will scan the metadata in each entity's index directory to identify which objects are being used by the user's worskpace.
+After this check, objects that are not being used and that are contained in the cache and object directories will be removed.
+
+```
+ml-git_project/
+└── .ml-git/
+    └── <ml-entity>/
+       └── index/
+       |  └── metadata/
+       └── cache/
+       |  └── hashfs/ <-- Objects here
+       └── objects/
+          └── hashfs/ <-- Objects here
+```
+
 </details>
 
 <details>
