@@ -6,9 +6,9 @@ import errno
 import os
 import re
 
+import humanize
 from git import InvalidGitRepositoryError, GitError
 from halo import Halo
-from hurry.filesize import alternative, size
 
 from ml_git import log
 from ml_git.admin import remote_add, store_add, clone_config_repository, init_mlgit, remote_del
@@ -32,7 +32,7 @@ from ml_git.spec import spec_parse, search_spec_file, increment_version_in_spec,
 from ml_git.tag import UsrTag
 from ml_git.utils import yaml_load, ensure_path_exists, get_root_path, get_path_with_categories, \
     RootPathException, change_mask_for_routine, clear, get_yaml_str, unzip_files_in_directory, remove_from_workspace, \
-    group_files_by_path, number_to_human_format
+    group_files_by_path
 
 
 class Repository(object):
@@ -1038,7 +1038,7 @@ class Repository(object):
             workspace_size = fidx.get_total_size()
 
             amount_message = 'Total of files: %s' % fidx.get_total_count()
-            size_message = 'Workspace size: %s' % size(workspace_size, system=alternative)
+            size_message = 'Workspace size: %s' % humanize.naturalsize(workspace_size)
 
             workspace_info = '------------------------------------------------- \n{}\t{}' \
                 .format(amount_message, size_message)
@@ -1061,6 +1061,24 @@ class Repository(object):
                 any_metadata = True
         if not any_metadata:
             log.error(output_messages['ERROR_UNINITIALIZED_METADATA'], class_name=REPOSITORY_CLASS_NAME)
+
+    def _check_is_valid_entity(self, repo_type, spec):
+        ref = Refs(get_refs_path(self.__config, repo_type), spec, repo_type)
+        tag, _ = ref.branch()
+        categories_path = get_path_with_categories(tag)
+        search_spec_file(repo_type, spec, categories_path)
+
+    def _get_blobs_hashes(self, index_path, objects_path, repo_type):
+        blobs_hashes = []
+        for root, dirs, files in os.walk(os.path.join(index_path, 'metadata')):
+            for spec in dirs:
+                try:
+                    self._check_is_valid_entity(repo_type, spec)
+                    idx = MultihashIndex(spec, index_path, objects_path)
+                    blobs_hashes.extend(idx.get_hashes_list())
+                except Exception:
+                    log.debug(output_messages['INFO_ENTITY_DELETED'] % spec, class_name=REPOSITORY_CLASS_NAME)
+        return blobs_hashes
 
     def garbage_collector(self):
         any_metadata = False
@@ -1085,26 +1103,8 @@ class Repository(object):
         if not any_metadata:
             log.error(output_messages['ERROR_UNINITIALIZED_METADATA'], class_name=REPOSITORY_CLASS_NAME)
             return
-        log.info(output_messages['INFO_REMOVED_FILES'] % (number_to_human_format(removed_files),
+        log.info(output_messages['INFO_REMOVED_FILES'] % (humanize.intword(removed_files),
                                                           os.path.join(get_root_path(), '.ml-git')),
                  class_name=REPOSITORY_CLASS_NAME)
-        log.info(output_messages['INFO_RECLAIMED_SPACE'] % size(reclaimed_space, system=alternative),
+        log.info(output_messages['INFO_RECLAIMED_SPACE'] % humanize.naturalsize(reclaimed_space),
                  class_name=REPOSITORY_CLASS_NAME)
-
-    def _get_blobs_hashes(self, index_path, objects_path, repo_type):
-        blobs_hashes = []
-        for root, dirs, files in os.walk(os.path.join(index_path, 'metadata')):
-            for spec in dirs:
-                try:
-                    self.check_is_valid_entity(repo_type, spec)
-                    idx = MultihashIndex(spec, index_path, objects_path)
-                    blobs_hashes.extend(idx.get_hashes_list())
-                except Exception:
-                    log.debug(output_messages['INFO_ENTITY_DELETED'] % spec, class_name=REPOSITORY_CLASS_NAME)
-        return blobs_hashes
-
-    def check_is_valid_entity(self, repo_type, spec):
-        ref = Refs(get_refs_path(self.__config, repo_type), spec, repo_type)
-        tag, _ = ref.branch()
-        categories_path = get_path_with_categories(tag)
-        search_spec_file(repo_type, spec, categories_path)

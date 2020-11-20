@@ -10,12 +10,12 @@ import tempfile
 import unittest
 from unittest.mock import Mock
 
+import humanize
 import pytest
-from hurry.filesize import alternative, size
 
 from ml_git.utils import json_load, yaml_load, yaml_save, RootPathException, get_root_path, change_mask_for_routine, \
     ensure_path_exists, yaml_load_str, get_yaml_str, run_function_per_group, unzip_files_in_directory, \
-    remove_from_workspace, group_files_by_path, number_to_human_format, remove_other_files, remove_unnecessary_files
+    remove_from_workspace, group_files_by_path, remove_other_files, remove_unnecessary_files
 
 
 @pytest.mark.usefixtures('tmp_dir', 'switch_to_test_dir', 'yaml_str_sample', 'yaml_obj_sample')
@@ -179,17 +179,8 @@ class UtilsTestCases(unittest.TestCase):
         total_count, total_reclaimed_space = remove_unnecessary_files(['image1.jpg'], self.tmp_dir)
         expected_deleted_files = 58
         self.assertEqual(total_count, expected_deleted_files)
-        expected_reclaimed_space = size(12860387, system=alternative)
-        self.assertEqual(size(total_reclaimed_space, system=alternative), expected_reclaimed_space)
-
-    def test_number_to_human_format(self):
-        self.assertEqual(number_to_human_format(1), '1')
-        self.assertEqual(number_to_human_format(999), '999')
-        self.assertEqual(number_to_human_format(1430), '1.43k')
-        self.assertEqual(number_to_human_format(10000), '10k')
-        self.assertEqual(number_to_human_format(528458156), '528M')
-        self.assertEqual(number_to_human_format(15151581081), '15.2B')
-        self.assertEqual(number_to_human_format(1515110851511), '1.52T')
+        expected_reclaimed_space = humanize.naturalsize(12860387)
+        self.assertEqual(humanize.naturalsize(total_reclaimed_space), expected_reclaimed_space)
 
     def test_remove_other_files(self):
         file1 = os.path.join(self.tmp_dir, 'image1.jpg')
