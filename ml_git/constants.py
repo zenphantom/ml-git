@@ -77,6 +77,8 @@ class EntityType(Enum):
     DATASET = 'dataset'
     LABELS = 'labels'
     MODEL = 'model'
+    REPOSITORY = 'repository'
+    PROJECT = 'project'
 
     @staticmethod
     def to_list():
