@@ -313,14 +313,22 @@ class MetadataRepo(object):
             return Manifest(path)
         return None
 
-    def remove_deleted_files_meta_manifest(self, manifest, ws_path):
-        deleted_files = []
+    @staticmethod
+    def remove_deleted_files_meta_manifest(manifest, deleted_files):
+        if manifest is not None:
+            for file in deleted_files:
+                manifest.rm_file(file)
+            manifest.save()
+
+    @staticmethod
+    def remove_files_added_after_base_tag(manifest, ws_path):
+        files_added = []
         if manifest is not None:
             for key, value in manifest.get_yaml().items():
                 for key_value in value:
                     if not os.path.exists(os.path.join(ws_path, key_value)):
-                        deleted_files.append(key_value)
-            for file in deleted_files:
+                        files_added.append(key_value)
+            for file in files_added:
                 manifest.rm_file(file)
             manifest.save()
 

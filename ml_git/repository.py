@@ -288,12 +288,11 @@ class Repository(object):
         print_method(files, files_status)
 
     @Halo(text='Checking removed files', spinner='dots')
-    def _remove_deleted_files(self, idx, index_path, m, manifest_path, spec, deleted_files, ws_path):
+    def _remove_deleted_files(self, idx, index_path, m, manifest, spec, deleted_files):
         fidx = FullIndex(spec, index_path)
-        manifest = m.get_metadata_manifest(manifest_path)
         fidx.remove_deleted_files(deleted_files)
         idx.remove_deleted_files_index_manifest(deleted_files)
-        m.remove_deleted_files_meta_manifest(manifest, ws_path)
+        m.remove_deleted_files_meta_manifest(manifest, deleted_files)
 
     '''commit changes present in the ml-git index to the ml-git repository'''
 
@@ -359,7 +358,9 @@ class Repository(object):
         bare_mode = os.path.exists(os.path.join(index_path, 'metadata', spec, 'bare'))
 
         if not bare_mode:
-            self._remove_deleted_files(idx, index_path, m, manifest_path, spec, deleted_files, path)
+            manifest = m.get_metadata_manifest(manifest_path)
+            self._remove_deleted_files(idx, index_path, m, manifest, spec, deleted_files)
+            m.remove_files_added_after_base_tag(manifest, path)
         else:
             tag, _ = ref.branch()
             self._checkout_ref(tag)
