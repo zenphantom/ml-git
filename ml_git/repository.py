@@ -287,6 +287,14 @@ class Repository(object):
 
         print_method(files, files_status)
 
+    @Halo(text='Checking removed files', spinner='dots')
+    def _remove_deleted_files(self, idx, index_path, m, manifest_path, spec, deleted_files, ws_path):
+        fidx = FullIndex(spec, index_path)
+        manifest = m.get_metadata_manifest(manifest_path)
+        fidx.remove_deleted_files(deleted_files)
+        idx.remove_deleted_files_index_manifest(deleted_files)
+        m.remove_deleted_files_meta_manifest(manifest, ws_path)
+
     '''commit changes present in the ml-git index to the ml-git repository'''
 
     def commit(self, spec, specs, version=None, run_fsck=False, msg=None):
@@ -351,7 +359,7 @@ class Repository(object):
         bare_mode = os.path.exists(os.path.join(index_path, 'metadata', spec, 'bare'))
 
         if not bare_mode:
-            self.remove_deleted_files(idx, index_path, m, manifest_path, spec, deleted_files, path)
+            self._remove_deleted_files(idx, index_path, m, manifest_path, spec, deleted_files, path)
         else:
             tag, _ = ref.branch()
             self._checkout_ref(tag)
@@ -370,14 +378,6 @@ class Repository(object):
             self.fsck()
 
         return tag
-
-    @Halo(text='Checking removed files', spinner='dots')
-    def remove_deleted_files(self, idx, index_path, m, manifest_path, spec, deleted_files, ws_path):
-        fidx = FullIndex(spec, index_path)
-        manifest = m.get_metadata_manifest(manifest_path)
-        fidx.remove_deleted_files(deleted_files)
-        idx.remove_deleted_files_index_manifest(deleted_files)
-        m.remove_deleted_files_meta_manifest(manifest, ws_path)
 
     def list(self):
         repo_type = self.__repo_type
