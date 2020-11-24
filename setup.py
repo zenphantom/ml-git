@@ -46,6 +46,8 @@ setup(
     keywords='version control, cloud storage, machine learning, datasets, labels, models',
     platforms='Any',
     zip_safe=True,
+    include_package_data=True,
+    package_data={'ml_git': ['version.info']},
     classifiers=[
         'Development Status :: 4 - Beta',
         'Operating System :: OS Independent',
