@@ -1,6 +1,6 @@
 # ml-git Data Specialization Plugins
 
-The ml-git plugin is an interface that aims to promote data specialization through a contract with a plugin that will do extra operations in some commands, allowing that the users to develop their own plugins to btter handle the data type of your choice for each entity.
+The ml-git plugin is an interface that aims to promote data specialization through a contract with a plugin that will do extra operations in some commands, allowing that the users to develop their own plugins to better handle the data type of your choice for each entity.
 
 ## Plugin contracts
 
@@ -16,7 +16,7 @@ This method is responsible for processing or gathering information about the ver
 def add_metadata(work_space_path, metadata):
     """
     Args:
-        works_space_path (str): Absolute path where the files managed by 
+        work_space_path (str): Absolute path where the files managed by 
         ml-git will be used to generate extra information that can be
         inserted in metadata.
         metadata (dict): Content of spec file that can be changed to add extra data.
@@ -25,7 +25,7 @@ def add_metadata(work_space_path, metadata):
 </details>
 
 **Note:**
-The plugin doesn't need to implement all methods defined in plugin contract.
+The plugin doesn't need to implement all methods defined in the plugin contract.
 
 ## How to create a plugin
 
@@ -43,14 +43,18 @@ ml-git-plugin-project-name/
 In `package_name/core.py` it is expected to contain only the contract methods essential to the operation of the plugin.
 
 ```python
+# package_name/core.py
+
 def add_metadata(work_space_path, metadata):
     ...
     ...
 ```
 
-In `package_name/__init__.py` it's necessary to import the implemented contract's methods.
+In `package_name/__init__.py` it's necessary to import the implemented contract's methods. As in the following example:
 
 ```python
+# package_name/__init__.py
+
 from package_name.core import add_metadata
 ```
 
