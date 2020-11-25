@@ -143,12 +143,17 @@ class UtilsTestCases(unittest.TestCase):
 
     def test_remove_from_workspace(self):
         img = 'image.jpg'
-        file = os.path.join(self.tmp_dir, img)
-        with open(file, 'w'):
+        data_path = os.path.join(self.tmp_dir, 'data')
+        ensure_path_exists(data_path)
+        file1 = os.path.join(self.tmp_dir, img)
+        file2 = os.path.join(data_path, img)
+        with open(file1, 'w'), open(file2, 'w'):
             pass
-        self.assertTrue(os.path.exists(file))
+        self.assertTrue(os.path.exists(file1))
+        self.assertTrue(os.path.exists(file2))
         remove_from_workspace({img}, self.tmp_dir, 'dataex')
-        self.assertFalse(os.path.exists(file))
+        self.assertFalse(os.path.exists(file1))
+        self.assertFalse(os.path.exists(file2))
 
     def test_group_files_by_path(self):
         files = ['images1/example.jpg', 'images1/example2.jpg', 'example-x.jpg', 'images2/example3.jpg']

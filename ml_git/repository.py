@@ -806,7 +806,7 @@ class Repository(object):
         return dataset_tag, labels_tag
 
     def reset(self, spec, reset_type, head):
-        log.info('Initializing reset [%s] [%s] of commit. ' % (reset_type, head), class_name=REPOSITORY_CLASS_NAME)
+        log.info(output_messages['INFO_INITIALIZING_RESET'] % (reset_type, head), class_name=REPOSITORY_CLASS_NAME)
         if (reset_type == '--soft' or reset_type == '--mixed') and head == HEAD:
             return
         try:

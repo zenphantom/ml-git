@@ -17,6 +17,7 @@ output_messages = {
     'INFO_REMOVE_REMOTE': 'Removing remote repository [%s] from [%s].',
     'INFO_ADD_STORE': 'Add store [%s://%s] with creds from profile [%s]',
     'INFO_ADD_STORE_WITHOUT_PROFILE': 'Add store [%s://%s]',
+    'INFO_INITIALIZING_RESET': 'Initializing reset [%s] [%s] of commit. ',
     'INFO_STARTING_GC': 'Starting the garbage collector for %s',
     'INFO_REMOVED_FILES': 'A total of %s files have been removed from %s',
     'INFO_RECLAIMED_SPACE': 'Total reclaimed space %s.',
