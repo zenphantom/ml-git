@@ -26,6 +26,8 @@ At the end of each section there is a video to demonstrate the ml-git usage.
 ## <a name="initial-config"> Initial configuration of ml-git</a> ##
 
 Make sure you have created your own [git repository (more information)](#git_use) for dataset metadata and a S3 bucket or a MinIO server for the dataset actual data.
+If you haven't created it yet, you can use the [resources initialization script](../scripts/resources_initialization/README.md) which aims to facilitate the creation of resources (buckets and repositories).
+
 
 After that, create a ml-git project. To do this, use the following commands (note that 'mlgit-project' is the project name used as example):
 
