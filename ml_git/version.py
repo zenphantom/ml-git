@@ -9,28 +9,39 @@ from pkg_resources import resource_string
 
 
 def get_version():
-    version_info = read_info_file(os.path.dirname(__file__), 'version.info')
+    version_file_name = 'version.info'
+    version_info = get_version_info(version_file_name)
     __version__ = '{}.{}.{}'.format(version_info['MAJOR_VERSION'], version_info['MINOR_VERSION'], version_info['PATCH_VERSION'])
 
-    build_number_file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'build'))
-    if os.path.exists(os.path.join(build_number_file_path, 'version.info')):
-        build_number_info = read_info_file(build_number_file_path, 'version.info')
-        __version__ += '-' + build_number_info['BUILD_NUMBER']
+    build_number = get_build_number(version_file_name)
+
+    if build_number:
+        __version__ += '-' + build_number['BUILD_NUMBER']
 
     return __version__
 
 
-def read_info_file(dir_name, file_name):
-    try:
-        file = open(os.path.abspath(os.path.join(dir_name, file_name)), encoding='utf-8')
-    except NotADirectoryError:
-        file = io.StringIO(resource_string(__name__, file_name).decode('utf-8'))
+def get_version_info(file_name):
+    file_stream = io.StringIO(resource_string(__name__, file_name).decode('utf-8'))
+    return read_info_file(file_stream)
 
-    line = file.readline().strip()
+
+def get_build_number(file_name):
+    build_number_file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'build'))
+    build_version_info_path = os.path.join(build_number_file_path, file_name)
+    if os.path.exists(build_version_info_path):
+        file_stream = open(os.path.abspath(build_version_info_path), encoding='utf-8')
+        return read_info_file(file_stream)
+    return None
+
+
+def read_info_file(file_stream):
+
+    line = file_stream.readline().strip()
     dict_info = {}
     while line:
         line_info = line.split('=')
         dict_info[line_info[0]] = line_info[1]
-        line = file.readline().strip()
-    file.close()
+        line = file_stream.readline().strip()
+    file_stream.close()
     return dict_info
