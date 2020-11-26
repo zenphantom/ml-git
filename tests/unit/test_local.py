@@ -15,7 +15,8 @@ from moto import mock_s3
 from ml_git.file_system.cache import Cache
 from ml_git.config import get_sample_config_spec, get_sample_spec
 from ml_git.file_system.hashfs import MultihashFS
-from ml_git.file_system.index import MultihashIndex, Objects, Status, FullIndex
+from ml_git.file_system.index import MultihashIndex, Status, FullIndex
+from ml_git.file_system.objects import Objects
 from ml_git.file_system.local import LocalRepository
 from ml_git.sample import SampleValidate, SampleValidateException
 from ml_git.storages.s3store import S3Store

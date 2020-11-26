@@ -71,6 +71,10 @@ class StoreType(Enum):
     GDRIVEH = 'gdriveh'
     GDRIVE = 'gdrive'
 
+    @staticmethod
+    def to_list():
+        return [store.value for store in StoreType]
+
 
 @unique
 class EntityType(Enum):

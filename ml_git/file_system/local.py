@@ -642,7 +642,7 @@ class LocalRepository(MultihashFS):
         return True
 
     def exist_local_changes(self, spec_name):
-        new_files, deleted_files, untracked_files, _, _ = self.status(spec_name, log_errors=False)
+        new_files, deleted_files, untracked_files, _, _ = self.status(spec_name, status_directory='', log_errors=False)
         if new_files is not None and deleted_files is not None and untracked_files is not None:
             unsaved_files = new_files + deleted_files + untracked_files
             if spec_name + SPEC_EXTENSION in unsaved_files:
@@ -685,7 +685,7 @@ class LocalRepository(MultihashFS):
 
         return corrupted_files
 
-    def status(self, spec, log_errors=True):
+    def status(self, spec, status_directory='', log_errors=True):
         try:
             repo_type = self.__repo_type
             index_path = get_index_path(self.__config, repo_type)
@@ -712,6 +712,11 @@ class LocalRepository(MultihashFS):
         except Exception as e:
             if log_errors:
                 log.error(e, class_name=REPOSITORY_CLASS_NAME)
+
+        if status_directory and not os.path.exists(os.path.join(path, status_directory)):
+            log.error(output_messages['ERROR_INVALID_STATUS_DIRECTORY'], class_name=REPOSITORY_CLASS_NAME)
+            return
+
         # All files in MANIFEST.yaml in the index AND all files in datapath which stats links == 1
         idx = MultihashIndex(spec, index_path, objects_path)
         idx_yaml = idx.get_index_yaml()
@@ -721,12 +726,13 @@ class LocalRepository(MultihashFS):
 
         bare_mode = os.path.exists(os.path.join(index_metadata_path, spec, 'bare'))
         new_files, deleted_files, all_files, corrupted_files = self._get_index_files_status(bare_mode, idx_yaml_mf,
-                                                                                            path)
+                                                                                            path, status_directory)
+
         if path is not None:
             changed_files, untracked_files = \
                 self._get_workspace_files_status(all_files, full_metadata_path, idx_yaml_mf,
                                                  index_full_metadata_path_with_cat, index_full_metadata_path_without_cat,
-                                                 path, new_files)
+                                                 path, new_files, status_directory)
 
         if tag:
             metadata.checkout()
@@ -734,11 +740,16 @@ class LocalRepository(MultihashFS):
 
     def _get_workspace_files_status(self, all_files, full_metadata_path, idx_yaml_mf,
                                     index_full_metadata_path_with_cat, index_full_metadata_path_without_cat, path,
-                                    new_files):
+                                    new_files, status_directory=''):
         changed_files = []
         untracked_files = []
         for root, dirs, files in os.walk(path):
             base_path = root[len(path) + 1:]
+            base_path_with_separator = base_path + os.path.sep
+
+            if status_directory and not base_path_with_separator.startswith(status_directory + os.path.sep):
+                continue
+
             for file in files:
                 bpath = convert_path(base_path, file)
                 if bpath in all_files:
@@ -783,12 +794,15 @@ class LocalRepository(MultihashFS):
         else:
             bisect.insort(untracked_files, bpath)
 
-    def _get_index_files_status(self, bare_mode, idx_yaml_mf, path):
+    def _get_index_files_status(self, bare_mode, idx_yaml_mf, path, status_directory=''):
         new_files = []
         deleted_files = []
         all_files = []
         corrupted_files = []
         for key in idx_yaml_mf:
+            if status_directory and not key.startswith(status_directory + '/'):
+                bisect.insort(all_files, normalize_path(key))
+                continue
             if not bare_mode and not os.path.exists(convert_path(path, key)):
                 bisect.insort(deleted_files, normalize_path(key))
             elif idx_yaml_mf[key]['status'] == 'a' and os.path.exists(convert_path(path, key)):

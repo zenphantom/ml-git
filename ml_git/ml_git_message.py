@@ -17,7 +17,11 @@ output_messages = {
     'INFO_REMOVE_REMOTE': 'Removing remote repository [%s] from [%s].',
     'INFO_ADD_STORE': 'Add store [%s://%s] with creds from profile [%s]',
     'INFO_ADD_STORE_WITHOUT_PROFILE': 'Add store [%s://%s]',
-    'INFO_INITIALIZED_PROJECT': 'Initialized empty ml-git repository in %s',
+    'INFO_INITIALIZING_RESET': 'Initializing reset [%s] [%s] of commit. ',
+    'INFO_STARTING_GC': 'Starting the garbage collector for %s',
+    'INFO_REMOVED_FILES': 'A total of %s files have been removed from %s',
+    'INFO_RECLAIMED_SPACE': 'Total reclaimed space %s.',
+    'INFO_ENTITY_DELETED': 'Entity %s was deleted',
 
     'ERROR_WITHOUT_TAG_FOR_THIS_ENTITY': 'No entity with that name was found.',
     'ERROR_MULTIPLES_ENTITIES_WITH_SAME_NAME': 'You have more than one entity with the same name. Use one of the following tags to perform the checkout:\n',
@@ -32,6 +36,7 @@ output_messages = {
     'ERROR_AWS_KEY_NOT_EXIST': 'The AWS Access Key Id you provided does not exist in our records.',
     'ERROR_BUCKET_DOES_NOT_EXIST': 'This bucket does not exist -- [%s]',
     'ERROR_INVALID_ENTITY_TYPE': 'The entity type informed is invalid.',
+    'ERROR_INVALID_STATUS_DIRECTORY': 'The directory informed is invalid.',
 
     'WARN_HAS_CONFIGURED_REMOTE': 'YOU ALREADY HAS A CONFIGURED REMOTE. All data stored in this repository will be sent to the new one on the first push.',
 }

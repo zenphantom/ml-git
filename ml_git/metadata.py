@@ -6,8 +6,8 @@ SPDX-License-Identifier: GPL-2.0-only
 import os
 import shutil
 
+import humanize
 from halo import Halo
-from hurry.filesize import alternative, size
 
 from ml_git import log
 from ml_git._metadata import MetadataManager
@@ -158,7 +158,7 @@ class Metadata(MetadataManager):
         amount, workspace_size = self._get_amount_and_size_of_workspace_files(full_metadata_path, ws_path)
         # saves metadata and commit
         metadata[self.__repo_type]['manifest']['files'] = MANIFEST_FILE
-        metadata[self.__repo_type]['manifest']['size'] = size(workspace_size, system=alternative)
+        metadata[self.__repo_type]['manifest']['size'] = humanize.naturalsize(workspace_size)
         metadata[self.__repo_type]['manifest']['amount'] = amount
         store = metadata[self.__repo_type]['manifest']['store']
         # Add metadata specific to labels ML entity type

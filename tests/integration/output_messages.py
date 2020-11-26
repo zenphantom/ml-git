@@ -63,7 +63,7 @@ messages = [
     'No current tag for [%s]. commit first',  # 55
     'ML %s\n|-- computer-vision\n|   |-- images\n|   |   |-- %s-ex\n',  # 56
     '-- %s : %s-ex --\ncategories:\n- computer-vision\n- images\nmanifest:\n  amount: 5\n  '
-    'files: MANIFEST.yaml\n  size: 14 KB\n  store: s3h://mlgit\nmutability: strict\nname: %s-ex\nversion: %s\n\n',  # 57
+    'files: MANIFEST.yaml\n  size: 14.5 kB\n  store: s3h://mlgit\nmutability: strict\nname: %s-ex\nversion: %s\n\n',  # 57
     '%d missing descriptor files. Consider using the --thorough option.',  # 58
     '%d missing descriptor files. Download:',  # 59
     'Corruption detected for chunk [%s]',  # 60
