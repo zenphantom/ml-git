@@ -24,12 +24,12 @@ create_new_github_repository()
                  REPO_NAME=${INPUT_REPO_NAME}
               fi
               OUTPUT_FILE=log_${ENTITY_TYPE}_repository
-              HTTP_CODE=$(curl -s -o ../../${OUTPUT_FILE} -w "%{http_code}" -H "Authorization: token ${GITHUB_TOKEN}" ${GIT_API}${REPO_OWNER} -d "{\"name\": \"${REPONAME:-${REPO_NAME}}\"}")
+              HTTP_CODE=$(curl -s -o ../../${OUTPUT_FILE} -w "%{http_code}" -H "Authorization: token ${GITHUB_TOKEN}" ${GITHUB_API_URL}${REPO_OWNER} -d "{\"name\": \"${REPONAME:-${REPO_NAME}}\"}")
               if [[ HTTP_CODE -ne 201 ]]; then
                  echo "Could not create the repository, please see ${OUTPUT_FILE} for more information."
                  clear_workspace_and_exit
               else
-                 REPO_LINK=${GIT_BASE}/${USERNAME}/${REPO_NAME}
+                 REPO_LINK=${GITHUB_BASE_URL}/${USERNAME}/${REPO_NAME}
                  echo "Repository creation done. Go to ${REPO_LINK} to see."
                  echo "${ENTITY_TYPE}:" >> config.yaml
                  echo "  git: ${REPO_LINK}" >> config.yaml
@@ -106,15 +106,15 @@ push_config_repository()
      REPO_NAME=${INPUT_REPO_NAME}
    fi
    OUTPUT_FILE=log_clone_repository
-   HTTP_CODE=$(curl -s -o ../../$OUTPUT_FILE -w "%{http_code}" -H "Authorization: token ${GITHUB_TOKEN}" ${GIT_API}${REPO_OWNER} -d "{\"name\": \"${REPONAME:-$REPO_NAME}\"}")
+   HTTP_CODE=$(curl -s -o ../../$OUTPUT_FILE -w "%{http_code}" -H "Authorization: token ${GITHUB_TOKEN}" ${GITHUB_API_URL}${REPO_OWNER} -d "{\"name\": \"${REPONAME:-$REPO_NAME}\"}")
    if [[ HTTP_CODE -ne 201 ]]; then
       echo "Could not create the repository, please see $OUTPUT_FILE for more information."
       clear_workspace_and_exit
    else
-      GIT_REPOSITORY_URL="https://${USERNAME}:${GITHUB_TOKEN}@${GIT_BASE//'https://'}/${ORGANIZATION_NAME}/${REPO_NAME}.git"
-      git remote add origin ${GIT_REPOSITORY_URL}
+      GITHUB_REPOSITORY_URL="https://${USERNAME}:${GITHUB_TOKEN}@${GITHUB_BASE_URL//'https://'}/${ORGANIZATION_NAME}/${REPO_NAME}.git"
+      git remote add origin ${GITHUB_REPOSITORY_URL}
       git push --set-upstream origin main
-      REPO_LINK=${GIT_BASE}/${USERNAME}/${REPO_NAME}
+      REPO_LINK=${GITHUB_BASE_URL}/${USERNAME}/${REPO_NAME}
       echo "Repository creation done. Go to $REPO_LINK to see."
    fi
 }
@@ -127,7 +127,7 @@ clear_workspace_and_exit(){
 
 project_information(){
    read -p "What is your github username? " USERNAME
-   read -p "Link to repository manager [default:https://github.com]: " GIT_BASE
+   read -p "If you are working with github enterprise, type the enterprise url, if not press enter to continue [default:https://github.com]: " GITHUB_BASE_URL
    read -p "What is your project name? " PROJECT_NAME
    read -p "What is your organization name? [default: will create in the user account] " ORGANIZATION_NAME
    if [ -z "$ORGANIZATION_NAME" ]
@@ -137,12 +137,12 @@ project_information(){
    else
       REPO_OWNER="/orgs/${ORGANIZATION_NAME}/repos"
    fi
-   if [ -z "$GIT_BASE" ]
+   if [ -z "$GITHUB_BASE_URL" ]
    then
-      GIT_API="https://api.github.com"
-      GIT_BASE="https://github.com"
+      GITHUB_API_URL="https://api.github.com"
+      GITHUB_BASE_URL="https://github.com"
    else
-      GIT_API=${GIT_BASE}/api/v3
+      GITHUB_API_URL=${GITHUB_BASE_URL}/api/v3
    fi
 }
 ############################## END SUBROUTINES #################################
@@ -164,6 +164,8 @@ create_new_bucket_wizard
 
 echo -e "\n## CREATE REPOSITORY WITH CONFIGURATIONS ##"
 push_config_repository
+echo -e "\nIf you want to start an ml-git project with these settings you can use:\n\tml-git clone $REPO_LINK"
+
 clear_workspace_and_exit
 
 ################################## END MAIN ####################################

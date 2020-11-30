@@ -2,7 +2,7 @@
 
 ## About
 
-As mentioned in [ml-git internals]() the design concept about ml-git is to decouple the ML entities metadata management from the actual data such that there are 2 main layers in the tool:
+As mentioned in [ml-git internals](../../docs/mlgit_internals.md) the design concept about ml-git is to decouple the ML entities metadata management from the actual data such that there are 2 main layers in the tool:
 
 1. the metadata management: There are for each ML entities managed under ml-git, the user needs to define a small specification file. These files are then managed by a git repository to retrieve the different versions.
 2. the data store management: To store data from managed artifacts.
@@ -17,7 +17,7 @@ To use this script you must have configured it in your environment:
 - Github Access Token: You must create a personal access token to use instead of a password with a command line or with an API. 
  See [github documentation](https://docs.github.com/pt/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token) to learn how to configure a token.
 
-    ```Note:```: As this script uses the github API, it is necessary that you store the token in the environment variable.
+    `Note:` As this script uses the github API, it is necessary that you store the token in ```GITHUB_TOKEN``` environment variable.
 
  
 If you are setting up a bucket of s3 type:

@@ -25,6 +25,13 @@ ECHO.
 ECHO ## CREATE REPOSITORY WITH CONFIGURATIONS ##
 CALL:PUSH_CONFIG_REPOSITORY
 
+ECHO.
+ECHO If you want to start an ml-git project with these settings you can use:
+ECHO.
+ECHO ml-git clone %REPO_LINK%
+
+echo -e "\nIf you want to start an ml-git project with these settings you can use:\n\tml-git clone $REPO_LINK"
+
 GOTO :END
 :::::::::::::::::::::::::::::::::::::: END MAIN ::::::::::::::::::::::::::::::::::::::
 
@@ -37,7 +44,8 @@ GOTO :END
    CD ./.ml-git
    ECHO. 2>config.yaml
    SET /p USERNAME="What is your github username? "
-   SET /p GIT_BASE="Link to repository manager [default:https://github.com]: "
+   SET /p GITHUB_BASE_URL="If you are working with github enterprise, type the enterprise url, if not press enter to continue [default:https://github.com]: "
+   SET /p GITHUB_BASE_URL="Link to repository manager [default:https://github.com]: "
    SET /p PROJECT_NAME="What is your project name? "
    SET /p ORGANIZATION_NAME="What is your organization name? [default: will create in the user account] "
    IF ["%ORGANIZATION_NAME%"]==[""] (
@@ -46,11 +54,11 @@ GOTO :END
    ) ELSE (
       SET REPO_OWNER=/orgs/%ORGANIZATION_NAME%/repos
    )
-   IF ["%GIT_BASE%"]==[""] (
-      SET GIT_API=https://api.github.com
-      SET GIT_BASE=https://github.com
+   IF ["%GITHUB_BASE_URL%"]==[""] (
+      SET GITHUB_API_URL=https://api.github.com
+      SET GITHUB_BASE_URL=https://github.com
    ) ELSE (
-      SET GIT_API=%GIT_BASE%/api/v3
+      SET GITHUB_API_URL=%GITHUB_BASE_URL%/api/v3
    )
    EXIT /B 0
 
@@ -68,9 +76,9 @@ GOTO :END
          SET REPO_NAME=%INPUT_REPO_NAME%
       )
       SET OUTPUT_FILE=log_%ENTITY_TYPE%_repository
-      curl -H "Authorization: token %GITHUB_TOKEN%" %GIT_API%%REPO_OWNER% -d "{\"name\": \"%REPO_NAME%\"}"
+      curl -H "Authorization: token %GITHUB_TOKEN%" %GITHUB_API_URL%%REPO_OWNER% -d "{\"name\": \"%REPO_NAME%\"}"
       ECHO Repository creation done. Go to %REPO_LINK% to see.
-      SET REPO_LINK=%GIT_BASE%/%USERNAME%/%REPO_NAME%
+      SET REPO_LINK=%GITHUB_BASE_URL%/%USERNAME%/%REPO_NAME%
       ECHO %ENTITY_TYPE%: >> config.yaml
       ECHO   git: %REPO_LINK% >> config.yaml
    ) ELSE (
@@ -138,12 +146,12 @@ GOTO :END
    )
    git add config.yaml
    git commit -m "Initial commit with .ml-git configured"
-   curl -H "Authorization: token %GITHUB_TOKEN%" %GIT_API%%REPO_OWNER% -d "{\"name\": \"%REPO_NAME%\"}"
+   curl -H "Authorization: token %GITHUB_TOKEN%" %GITHUB_API_URL%%REPO_OWNER% -d "{\"name\": \"%REPO_NAME%\"}"
    SET str=%str:(Video)=%
-   SET GIT_REPOSITORY_URL=https://%USERNAME%:%GITHUB_TOKEN%@%GIT_BASE:https://=%/%ORGANIZATION_NAME%/%REPO_NAME%.git"
-   git remote add origin %GIT_REPOSITORY_URL%
+   SET GITHUB_REPOSITORY_URL=https://%USERNAME%:%GITHUB_TOKEN%@%GITHUB_BASE_URL:https://=%/%ORGANIZATION_NAME%/%REPO_NAME%.git"
+   git remote add origin %GITHUB_REPOSITORY_URL%
    git push --set-upstream origin main
-   SET REPO_LINK=%GIT_BASE%/%USERNAME%/%REPO_NAME%
+   SET REPO_LINK=%GITHUB_BASE_URL%/%USERNAME%/%REPO_NAME%
    ECHO Repository creation done. Go to %REPO_LINK% to see.
    EXIT /B 0
 
