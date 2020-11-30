@@ -30,8 +30,6 @@ ECHO If you want to start an ml-git project with these settings you can use:
 ECHO.
 ECHO ml-git clone %REPO_LINK%
 
-echo -e "\nIf you want to start an ml-git project with these settings you can use:\n\tml-git clone $REPO_LINK"
-
 GOTO :END
 :::::::::::::::::::::::::::::::::::::: END MAIN ::::::::::::::::::::::::::::::::::::::
 
@@ -45,7 +43,6 @@ GOTO :END
    ECHO. 2>config.yaml
    SET /p USERNAME="What is your github username? "
    SET /p GITHUB_BASE_URL="If you are working with github enterprise, type the enterprise url, if not press enter to continue [default:https://github.com]: "
-   SET /p GITHUB_BASE_URL="Link to repository manager [default:https://github.com]: "
    SET /p PROJECT_NAME="What is your project name? "
    SET /p ORGANIZATION_NAME="What is your organization name? [default: will create in the user account] "
    IF ["%ORGANIZATION_NAME%"]==[""] (
