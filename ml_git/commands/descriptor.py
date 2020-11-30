@@ -168,7 +168,8 @@ commands = [
         'groups': [entity.dataset, entity.model, entity.labels],
 
         'arguments': {
-            'ml-entity-name': {}
+            'ml-entity-name': {},
+            'status_directory': {'required': False, 'default': ''}
         },
 
         'options': {

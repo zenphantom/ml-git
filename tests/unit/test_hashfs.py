@@ -10,7 +10,8 @@ import unittest
 import pytest
 
 from ml_git.file_system.hashfs import MultihashFS, HashFS
-from ml_git.file_system.index import MultihashIndex, Objects
+from ml_git.file_system.index import MultihashIndex
+from ml_git.file_system.objects import Objects
 
 chunks256 = {
     'zdj7Wena1SoxPakkmaBTq1853qqKFwo1gDMWLB4SJjREsuGTC',

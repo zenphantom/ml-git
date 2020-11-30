@@ -10,11 +10,12 @@ import tempfile
 import unittest
 from unittest.mock import Mock
 
+import humanize
 import pytest
 
 from ml_git.utils import json_load, yaml_load, yaml_save, RootPathException, get_root_path, change_mask_for_routine, \
     ensure_path_exists, yaml_load_str, get_yaml_str, run_function_per_group, unzip_files_in_directory, \
-    remove_from_workspace, group_files_by_path
+    remove_from_workspace, group_files_by_path, remove_other_files, remove_unnecessary_files
 
 
 @pytest.mark.usefixtures('tmp_dir', 'switch_to_test_dir', 'yaml_str_sample', 'yaml_obj_sample')
@@ -142,12 +143,17 @@ class UtilsTestCases(unittest.TestCase):
 
     def test_remove_from_workspace(self):
         img = 'image.jpg'
-        file = os.path.join(self.tmp_dir, img)
-        with open(file, 'w'):
+        data_path = os.path.join(self.tmp_dir, 'data')
+        ensure_path_exists(data_path)
+        file1 = os.path.join(self.tmp_dir, img)
+        file2 = os.path.join(data_path, img)
+        with open(file1, 'w'), open(file2, 'w'):
             pass
-        self.assertTrue(os.path.exists(file))
+        self.assertTrue(os.path.exists(file1))
+        self.assertTrue(os.path.exists(file2))
         remove_from_workspace({img}, self.tmp_dir, 'dataex')
-        self.assertFalse(os.path.exists(file))
+        self.assertFalse(os.path.exists(file1))
+        self.assertFalse(os.path.exists(file2))
 
     def test_group_files_by_path(self):
         files = ['images1/example.jpg', 'images1/example2.jpg', 'example-x.jpg', 'images2/example3.jpg']
@@ -162,3 +168,32 @@ class UtilsTestCases(unittest.TestCase):
         self.assertTrue(len(group_files[images_one]) == 2)
         self.assertTrue(len(group_files[images_two]) == 1)
         self.assertTrue(len(group_files[images_three]) == 1)
+
+    def test_remove_unnecessary_files(self):
+        data_path = os.path.join(self.tmp_dir, 'data')
+        os.mkdir(data_path)
+        file1 = os.path.join(data_path, 'image1.jpg')
+        file2 = os.path.join(data_path, 'image2.jpg')
+        with open(os.path.join(file1), 'wt') as file:
+            file.write('0' * 2048)
+        with open(os.path.join(file2), 'wt') as file:
+            file.write('1' * 2048)
+
+        self.assertTrue(os.path.exists(file1))
+        self.assertTrue(os.path.exists(file2))
+        total_count, total_reclaimed_space = remove_unnecessary_files(['image1.jpg'], self.tmp_dir)
+        expected_deleted_files = 58
+        self.assertEqual(total_count, expected_deleted_files)
+        expected_reclaimed_space = humanize.naturalsize(12860387)
+        self.assertEqual(humanize.naturalsize(total_reclaimed_space), expected_reclaimed_space)
+
+    def test_remove_other_files(self):
+        file1 = os.path.join(self.tmp_dir, 'image1.jpg')
+        file2 = os.path.join(self.tmp_dir, 'image2.jpg')
+        with open(file1, 'w'), open(file2, 'w'):
+            pass
+        self.assertTrue(os.path.exists(file1))
+        self.assertTrue(os.path.exists(file2))
+        remove_other_files(['image1.jpg'], self.tmp_dir)
+        self.assertTrue(os.path.exists(file1))
+        self.assertFalse(os.path.exists(file2))

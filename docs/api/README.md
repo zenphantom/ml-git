@@ -4,26 +4,25 @@
 # <a name="methods"> Methods available in the API </a> #
 
 <details>
-<summary><code> clone </code></summary>
+<summary><code> add </code></summary>
 <br>
 
 ```python
-def clone(repository_url, folder=None, track=False):
- """This command will clone minimal configuration files from repository-url with valid .ml-git/config.yaml,
-    then initialize the metadata according to configurations.
+def add(entity_type, entity_name, bumpversion=False, fsck=False, file_path=[]):
+    """This command will add all the files under the directory into the ml-git index/staging area.
 
     Example:
-        clone('https://git@github.com/mlgit-repository')
+        add('dataset', 'dataset-ex', bumpversion=True)
 
     Args:
-        repository_url (str): The git repository that will be cloned.
-        folder (str, optional): Directory that can be created to execute the clone command. [Default: current path]
-        track (bool, optional): Set if the tracking of the cloned repository should be kept. [Default: False]
-
+        entity_type (str): The type of an ML entity. (dataset, labels or model)
+        entity_name (str): The name of the ML entity you want to add the files.
+        bumpversion (bool, optional): Increment the entity version number when adding more files [default: False].
+        fsck (bool, optional): Run fsck after command execution [default: False].
+        file_path (list, optional): List of files that must be added by the command [default: all files].
     """
 ```
 </details>
-
 
 <details>
 <summary><code> checkout </code></summary>
@@ -58,23 +57,24 @@ def checkout(entity, tag, sampling=None, retries=2, force=False, dataset=False, 
 ```
 </details>
 
+
 <details>
-<summary><code> add </code></summary>
+<summary><code> clone </code></summary>
 <br>
 
 ```python
-def add(entity_type, entity_name, bumpversion=False, fsck=False, file_path=[]):
-    """This command will add all the files under the directory into the ml-git index/staging area.
+def clone(repository_url, folder=None, track=False):
+ """This command will clone minimal configuration files from repository-url with valid .ml-git/config.yaml,
+    then initialize the metadata according to configurations.
 
     Example:
-        add('dataset', 'dataset-ex', bumpversion=True)
+        clone('https://git@github.com/mlgit-repository')
 
     Args:
-        entity_type (str): The type of an ML entity. (dataset, labels or model)
-        entity_name (str): The name of the ML entity you want to add the files.
-        bumpversion (bool, optional): Increment the entity version number when adding more files [default: False].
-        fsck (bool, optional): Run fsck after command execution [default: False].
-        file_path (list, optional): List of files that must be added by the command [default: all files].
+        repository_url (str): The git repository that will be cloned.
+        folder (str, optional): Directory that can be created to execute the clone command. [Default: current path]
+        track (bool, optional): Set if the tracking of the cloned repository should be kept. [Default: False]
+
     """
 ```
 </details>
@@ -101,28 +101,6 @@ def commit(entity, ml_entity_name, commit_message=None, related_dataset=None, re
 ```
 </details>
 
-
-<details>
-<summary><code> push </code></summary>
-<br>
-
-```python
-def push(entity, entity_name,  retries=2, clear_on_fail=False):
-    """This command allows pushing the data of a specific version of an ML entity.
-
-        Example:
-            push('dataset', 'dataset-ex')
-
-        Args:
-            entity (str): The type of an ML entity. (dataset, labels or model).
-            entity_name (str): An ml-git entity name to identify a ML entity.
-            retries (int, optional): Number of retries to upload the files to the storage [default: 2].
-            clear_on_fail (bool, optional): Remove the files from the store in case of failure during the push operation [default: False].
-         """
-```
-</details>
-
-
 <details>
 <summary><code> create </code></summary>
 <br>
@@ -146,6 +124,86 @@ def create(entity, entity_name, categories, mutability, **kwargs):
             import_url (str, optional): Import data from a google drive url.
             credentials_path (str, optional): Directory of credentials.json.
             unzip (bool, optional): Unzip imported zipped files [default: False].
+    """
+```
+</details>
+
+
+
+<details>
+<summary><code> init </code></summary>
+<br>
+
+```python
+def init(entity):
+    """This command will start the ml-git entity.
+
+        Examples:
+            init('repository')
+            init('dataset')
+
+        Args:
+            entity (str): The type of entity that will be initialized. (repository, dataset, labels or model).
+    """
+```
+</details>
+
+<details>
+<summary><code> push </code></summary>
+<br>
+
+```python
+def push(entity, entity_name,  retries=2, clear_on_fail=False):
+    """This command allows pushing the data of a specific version of an ML entity.
+
+        Example:
+            push('dataset', 'dataset-ex')
+
+        Args:
+            entity (str): The type of an ML entity. (dataset, labels or model).
+            entity_name (str): An ml-git entity name to identify a ML entity.
+            retries (int, optional): Number of retries to upload the files to the storage [default: 2].
+            clear_on_fail (bool, optional): Remove the files from the store in case of failure during the push operation [default: False].
+         """
+```
+</details>
+
+<details>
+<summary><code> remote add </code></summary>
+<br>
+
+```python
+def remote_add(entity, remote_url, global_configuration=False):
+    """This command will add a remote to store the metadata from this ml-git project.
+
+        Examples:
+            remote_add('dataset', 'https://git@github.com/mlgit-datasets')
+
+        Args:
+            entity (str): The type of an ML entity. (repository, dataset, labels or model).
+            remote_url(str): URL of an existing remote git repository.
+            global_configuration (bool, optional): Use this option to set configuration at global level [default: False].
+    """
+```
+</details>
+
+<details>
+<summary><code> store add </code></summary>
+<br>
+
+```python
+def store_add(bucket_name, bucket_type=StoreType.S3H.value, credentials=None, global_configuration=False, endpoint_url=None):
+    """This command will add a store to the ml-git project.
+
+        Examples:
+            store_add('my-bucket', type='s3h')
+
+        Args:
+            bucket_name (str): The name of the bucket in the storage.
+            bucket_type (str, optional): Store type (s3h, azureblobh or gdriveh) [default: s3h].
+            credentials (str, optional): Name of the profile that stores the credentials or the path to the credentials.
+            global_configuration (bool, optional): Use this option to set configuration at global level [default: False].
+            endpoint_url (str, optional): Store endpoint url.
     """
 ```
 </details>
