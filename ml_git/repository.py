@@ -37,7 +37,7 @@ from ml_git.utils import yaml_load, ensure_path_exists, get_root_path, get_path_
 class Repository(object):
     def __init__(self, config, repo_type='dataset'):
 
-        self._valid_entity_type(repo_type)
+        self._validate_entity_type(repo_type)
         self.__config = config
         self.__repo_type = repo_type
 
@@ -170,7 +170,7 @@ class Repository(object):
         if run_fsck:
             self.fsck()
 
-    def _valid_entity_type(self, repo_type):
+    def _validate_entity_type(self, repo_type):
         another_valid_types = ['repository', 'project']
         type_list = EntityType.to_list() + another_valid_types
 
