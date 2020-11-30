@@ -1,6 +1,6 @@
 # ml-git Data Specialization Plugins
 
-The ml-git plugin is an interface that aims to promote data specialization through a contract with a plugin that will do extra operations in some commands, allowing that the users to develop their own plugins to better handle the data type of your choice for each entity.
+Data specialization plugins are resources that can be added to ml-git providing specific processing and metadata collection for specific data formats. This document aims to provide instructions on how data specialization plugins can be developed for ml-git, defining interface methods that must be implemented to provide the necessary functionalities for processing these data.
 
 ## Plugin contracts
 
@@ -8,7 +8,7 @@ The ml-git plugin is an interface that aims to promote data specialization throu
 <summary><code> add_metadata </code></summary>
 </br>
 
-This method is responsible for processing or gathering information about the versioned data and inserting it into the specification file, if the plugin is installed and properly configured, this signature will be triggered before the metadata is committed. 
+This method is responsible for processing or gathering information about the versioned data and inserting it into the specification file. If the plugin is installed and properly configured, this signature will be triggered before the metadata is committed. 
 
 *Definition:*
 
@@ -83,7 +83,7 @@ cd plugin-project-name
 pip3 install --user .
 ```
 
-In an entity of your preference change the spec file like below: 
+For an entity of your preference, change the spec file like below: 
 
 *(ex: dataset/dataset-ex/dataset-ex.spec)*
 ```yaml
