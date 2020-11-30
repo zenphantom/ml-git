@@ -18,7 +18,8 @@ from ruamel.yaml import YAML
 from ml_git.constants import StoreType, GLOBAL_ML_GIT_CONFIG, Mutability
 from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_INIT, MLGIT_REMOTE_ADD, MLGIT_ENTITY_INIT, MLGIT_ADD, \
-    MLGIT_STORE_ADD_WITH_TYPE, MLGIT_REMOTE_ADD_GLOBAL, MLGIT_STORE_ADD, MLGIT_STORE_ADD_WITHOUT_CREDENTIALS
+    MLGIT_STORE_ADD_WITH_TYPE, MLGIT_REMOTE_ADD_GLOBAL, MLGIT_STORE_ADD, MLGIT_STORE_ADD_WITHOUT_CREDENTIALS, \
+    MLGIT_COMMIT, MLGIT_PUSH
 from tests.integration.output_messages import messages
 
 PATH_TEST = os.path.join(os.getcwd(), 'tests', 'integration', '.test_env')
@@ -304,3 +305,11 @@ def change_git_in_config(ml_git_dir, git_url, entity='dataset'):
     with open(os.path.join(ml_git_dir, 'config.yaml'), 'w') as config_file:
         yaml_processor.dump(config, config_file)
     clear(os.path.join(ml_git_dir, entity, 'metadata', '.git'))
+
+
+def populate_entity_with_new_data(self, entity, bumpversion='--bumpversion', version=''):
+    self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ADD % (entity, entity + '-ex', bumpversion)))
+    self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_COMMIT % (entity, entity + '-ex', version)))
+    head_path = os.path.join(self.tmp_dir, ML_GIT_DIR, entity, 'refs', entity + '-ex', 'HEAD')
+    self.assertTrue(os.path.exists(head_path))
+    self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_PUSH % (entity, entity + '-ex')))
