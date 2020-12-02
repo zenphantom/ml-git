@@ -14,7 +14,7 @@ COPY .\scripts\build\compile\windows\uninstall.ps1 dist\ml-git
 set datetimef=%date:~-4%%date:~3,2%%date:~0,2%
 echo BUILD_NUMBER=%datetimef%>build/version.info
 
-for /f "delims== tokens=1,2" %%G in (%cd%/version.info) do set %%G=%%H
+for /f "delims== tokens=1,2" %%G in (%cd%/ml_git/version.info) do set %%G=%%H
 set BUILD_VERSION=%MAJOR_VERSION%.%MINOR_VERSION%.%PATCH_VERSION%
 
 set BUILD_NAME=%BUILD_VERSION%-%datetimef%
