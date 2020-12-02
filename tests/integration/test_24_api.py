@@ -413,3 +413,26 @@ class APIAcceptanceTests(unittest.TestCase):
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_26_init_model(self):
         self._initialize_entity('model')
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
+    def test_27_create_with_invalid_entity(self):
+        try:
+            entity_type = 'dataset_invalid'
+            store_type = StoreType.S3H.value
+            self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'] % self.tmp_dir, check_output(MLGIT_INIT))
+            api.create('dataset_invalid', 'dataset-ex', categories=['computer-vision', 'images'], mutability='strict')
+            self.check_created_folders(entity_type, store_type)
+            self.assertTrue(False)
+        except Exception as e:
+            self.assertIn(output_messages['ERROR_INVALID_ENTITY_TYPE'], str(e))
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
+    def test_28_checkout_tag_with_invalid_entity(self):
+        try:
+            self.set_up_test()
+            data_path = api.checkout('dataset_invalid', self.dataset_tag)
+            self.assertEqual(self.data_path, data_path)
+            self.check_metadata()
+            self.assertTrue(False)
+        except Exception as e:
+            self.assertIn(output_messages['ERROR_INVALID_ENTITY_TYPE'], str(e))
