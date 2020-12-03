@@ -193,8 +193,9 @@ Options:
   --category TEXT                 Artifact's category name.  [required]
   --mutability [strict|flexible|mutable]
                                   Mutability type.  [required]
-  --store-type [s3h|azureblobh|gdriveh]
-                                  Data store type [default: s3h].
+  --store-type, --storage-type [s3h|azureblobh|gdriveh]
+                                  Data storage type [default: s3h].
+                                  [DEPRECATED:--store-type]
   --version-number, --version INTEGER RANGE
                                   Number of artifact version.
                                   [DEPRECATED:--version-number]
@@ -216,12 +217,12 @@ Options:
 Examples:
  - To create an entity with s3 as store and importing files from a path of your computer:
 ```
-ml-git dataset create imagenet8 --store-type=s3h --category=computer-vision --category=images --version=0 --import='/path/to/dataset' --mutability=strict
+ml-git dataset create imagenet8 --storage-type=s3h --category=computer-vision --category=images --version=0 --import='/path/to/dataset' --mutability=strict
 ```
 
 - To create an entity with s3 as store and importing files from a google drive URL:
 ```
-ml-git dataset create imagenet8 --store-type=s3h --category=computer-vision --category=images --import-url='gdrive.url' --credentials-path='/path/to/gdrive/credentials' --mutability=strict --unzip
+ml-git dataset create imagenet8 --storage-type=s3h --category=computer-vision --category=images --import-url='gdrive.url' --credentials-path='/path/to/gdrive/credentials' --mutability=strict --unzip
 ```
 
 </details>
@@ -335,8 +336,10 @@ Options:
                       [default: 2].
   --path TEXT         Bucket folder path.
   --object TEXT       Filename in bucket.
-  --store-type        Store type (s3 or gdrive) [default: s3].
-  --endpoint-url      Store endpoint url.
+  --store-type, --storage-type [s3|gdrive]
+                                  Data storage type [default: s3h].
+                                  [DEPRECATED:--store-type]
+  --endpoint-url      Storage endpoint url.
   --help              Show this message and exit.
 ```
 

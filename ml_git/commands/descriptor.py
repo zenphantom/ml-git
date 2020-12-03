@@ -352,8 +352,11 @@ commands = [
             '--retry': {'default': 2, 'help': help_msg.RETRY_OPTION},
             '--path': {'default': None, 'help': help_msg.PATH_OPTION},
             '--object': {'default': None, 'help': help_msg.OBJECT_OPTION},
-            '--store-type': {'default': 's3', 'help': help_msg.STORE_TYPE,
-                             'type': click.Choice(['s3', 'gdrive'])},
+            ('--store-type', '--storage-type'): {
+                'default': 's3', 'help': help_msg.STORE_TYPE,
+                'type': click.Choice(['s3', 'gdrive']),
+                'cls': DeprecatedOption, 'deprecated': ['--store-type'], 'preferred': '--storage-type'
+            },
             '--endpoint-url': {'default': '', 'help': help_msg.ENDPOINT_URL},
         },
 
@@ -443,8 +446,11 @@ commands = [
         'options': {
             '--category': {'required': True, 'multiple': True, 'help': help_msg.CATEGORY_OPTION},
             '--mutability': {'required': True, 'type': click.Choice(Mutability.list()), 'help': help_msg.MUTABILITY},
-            '--store-type': {'type': click.Choice(['s3h', 'azureblobh', 'gdriveh']),
-                             'help': help_msg.STORE_TYPE, 'default': 's3h'},
+            ('--store-type', '--storage-type'): {
+                'type': click.Choice(['s3h', 'azureblobh', 'gdriveh']),
+                'cls': DeprecatedOption, 'deprecated': ['--store-type'], 'preferred': '--storage-type',
+                'help': help_msg.STORE_TYPE, 'default': 's3h'
+            },
             ('--version-number', '--version'): {'help': help_msg.VERSION_NUMBER, 'default': 1,
                                                 'cls': DeprecatedOption, 'deprecated': ['--version-number'], 'preferred':'--version'},
             '--import': {'help': help_msg.IMPORT_OPTION,
@@ -521,7 +527,7 @@ commands = [
                        'type': click.Choice(['s3h', 's3', 'azureblobh', 'gdriveh'],
                                             case_sensitive=True),
                        'help': help_msg.STORAGE_TYPE},
-            '--endpoint-url': {'help': help_msg.STORAGE_ENDPOINT_URL},
+            '--endpoint-url': {'help': help_msg.ENDPOINT_URL},
             ('--global', '-g'): {'is_flag': True, 'default': False, 'help': help_msg.GLOBAL_OPTION},
         },
 
