@@ -850,21 +850,21 @@ $ ml-git repository remote dataset del
 </details>
 
 <details>
-<summary><code> ml-git repository store add </code></summary>
+<summary><code> ml-git repository store add </code> (DEPRECATED)</summary>
 <br>
 
 ```
 Usage: ml-git repository store add [OPTIONS] BUCKET_NAME
 
-  Add a store BUCKET_NAME to ml-git
+  Add a storage BUCKET_NAME to ml-git
 
 Options:
-  --credentials TEXT              Profile name for store credentials
+  --credentials TEXT              Profile name for storage credentials
   --region TEXT                   Aws region name for S3 bucket
   --type [s3h|s3|azureblobh|gdriveh]
-                                  Store type (s3h, s3, azureblobh, gdriveh
+                                  Storage type (s3h, s3, azureblobh, gdriveh
                                   ...) [default: s3h]
-  --endpoint-url TEXT             Store endpoint url
+  --endpoint-url TEXT             Storage endpoint url
   -g, --global                    Use this option to set configuration at
                                   global level
   --verbose                       Debug mode
@@ -875,12 +875,14 @@ Example:
 $ ml-git repository store add minio --endpoint-url=<minio-endpoint-url>
 ```
 
-Use this command to add or delete a data store to a ml-git project.
+Use this command to add or delete a data storage to a ml-git project.
+
+**Note: Command deprecated, use storage instead store.**
 
 </details>
 
 <details>
-<summary><code> ml-git repository store del </code></summary>
+<summary><code> ml-git repository store del </code>(DEPRECATED)</summary>
 <br>
 
 ```
@@ -897,6 +899,60 @@ Options:
 Example:
 ```
 $ ml-git repository store del minio
+```
+
+**Note: Command deprecated, use storage instead store.**
+
+</details>
+
+<details>
+<summary><code> ml-git repository storage add </code></summary>
+<br>
+
+```
+Usage: ml-git repository storage add [OPTIONS] BUCKET_NAME
+
+  Add a storage BUCKET_NAME to ml-git
+
+Options:
+  --credentials TEXT              Profile name for storage credentials
+  --region TEXT                   Aws region name for S3 bucket
+  --type [s3h|s3|azureblobh|gdriveh]
+                                  Storage type (s3h, s3, azureblobh, gdriveh
+                                  ...) [default: s3h]
+  --endpoint-url TEXT             Storage endpoint url
+  -g, --global                    Use this option to set configuration at
+                                  global level
+  --verbose                       Debug mode
+```
+
+Example:
+```
+$ ml-git repository storage add minio --endpoint-url=<minio-endpoint-url>
+```
+
+Use this command to add or delete a data storage to a ml-git project.
+
+</details>
+
+<details>
+<summary><code> ml-git repository storage del </code></summary>
+<br>
+
+```
+Usage: ml-git repository storage del [OPTIONS] BUCKET_NAME
+
+  Delete a storage BUCKET_NAME from ml-git
+
+Options:
+  --type [s3h|s3|azureblobh|gdriveh]  Storage type (s3h, s3, azureblobh, gdriveh ...) [default:
+                              s3h]
+  --help                      Show this message and exit.
+```
+
+Example:
+```
+$ ml-git repository storage del minio
 ```
 
 </details>
