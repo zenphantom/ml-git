@@ -7,7 +7,7 @@ import copy
 
 import click
 
-from ml_git.commands import entity, help_msg
+from ml_git.commands import entity, help_msg, store, storage
 from ml_git.commands.custom_options import MutuallyExclusiveOption, OptionRequiredIf, DeprecatedOption, \
     DeprecatedOptionsCommand
 from ml_git.commands.utils import set_verbose_mode
@@ -501,7 +501,56 @@ commands = [
 
         'help': 'This command shows ml-entity-name\'s commit information like author, date, commit message.'
 
-    }
+    },
+
+    {
+        'name': 'add',
+
+        'callback': store.store_add,
+
+        'groups': [store.store, storage.storage],
+
+        'arguments': {
+            'bucket-name': {},
+        },
+
+        'options': {
+            '--credentials': {'help': help_msg.STORAGE_CREDENTIALS},
+            '--region': {'help': help_msg.STORAGE_REGION},
+            '--type': {'default': 's3h',
+                       'type': click.Choice(['s3h', 's3', 'azureblobh', 'gdriveh'],
+                                            case_sensitive=True),
+                       'help': help_msg.STORAGE_TYPE},
+            '--endpoint-url': {'help': help_msg.STORAGE_ENDPOINT_URL},
+            ('--global', '-g'): {'is_flag': True, 'default': False, 'help': help_msg.GLOBAL_OPTION},
+        },
+
+        'help': 'Add a storage BUCKET_NAME to ml-git'
+
+    },
+
+    {
+        'name': 'del',
+
+        'callback': store.store_del,
+
+        'groups': [store.store, storage.storage],
+
+        'arguments': {
+            'bucket-name': {},
+        },
+
+        'options': {
+            '--type': {'default': 's3h',
+                       'type': click.Choice(['s3h', 's3', 'azureblobh', 'gdriveh'],
+                                            case_sensitive=True),
+                       'help': help_msg.STORAGE_TYPE},
+            ('--global', '-g'): {'is_flag': True, 'default': False, 'help': help_msg.GLOBAL_OPTION},
+        },
+
+        'help': 'Delete a storage BUCKET_NAME from ml-git.'
+
+    },
 
 ]
 
