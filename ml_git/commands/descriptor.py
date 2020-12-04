@@ -353,7 +353,7 @@ commands = [
             '--path': {'default': None, 'help': help_msg.PATH_OPTION},
             '--object': {'default': None, 'help': help_msg.OBJECT_OPTION},
             ('--store-type', '--storage-type'): {
-                'default': 's3', 'help': help_msg.STORE_TYPE,
+                'default': 's3', 'help': help_msg.STORAGE_TYPE,
                 'type': click.Choice(['s3', 'gdrive']),
                 'cls': DeprecatedOption, 'deprecated': ['--store-type'], 'preferred': '--storage-type'
             },
@@ -449,7 +449,7 @@ commands = [
             ('--store-type', '--storage-type'): {
                 'type': click.Choice(['s3h', 'azureblobh', 'gdriveh']),
                 'cls': DeprecatedOption, 'deprecated': ['--store-type'], 'preferred': '--storage-type',
-                'help': help_msg.STORE_TYPE, 'default': 's3h'
+                'help': help_msg.STORAGE_TYPE, 'default': 's3h'
             },
             ('--version-number', '--version'): {'help': help_msg.VERSION_NUMBER, 'default': 1,
                                                 'cls': DeprecatedOption, 'deprecated': ['--version-number'], 'preferred':'--version'},
@@ -512,7 +512,7 @@ commands = [
     {
         'name': 'add',
 
-        'callback': store.store_add,
+        'callback': storage.storage_add,
 
         'groups': [store.store, storage.storage],
 
@@ -538,7 +538,7 @@ commands = [
     {
         'name': 'del',
 
-        'callback': store.store_del,
+        'callback': storage.storage_del,
 
         'groups': [store.store, storage.storage],
 

@@ -45,7 +45,7 @@ PARANOID_OPTION = 'Adds an additional step that will download all ' \
                   'IPLD and its associated IPLD links to verify the content by ' \
                   'computing the multihash of all these.'
 CATEGORY_OPTION = 'Artifact\'s category name.'
-STORE_TYPE = 'Data storage type [default: s3h].'
+STORAGE_TYPE = 'Data storage type [default: s3h].'
 VERSION_NUMBER = 'Number of artifact version.'
 IMPORT_OPTION = 'Path to be imported to the project.'
 WIZARD_CONFIG = 'If specified, ask interactive questions. at console for git & store configurations.'

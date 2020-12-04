@@ -875,7 +875,7 @@ Example:
 $ ml-git repository store add minio --endpoint-url=<minio-endpoint-url>
 ```
 
-Use this command to add or delete a data storage to a ml-git project.
+Use this command to add a data storage to a ml-git project.
 
 **Note: Command deprecated, use storage instead store.**
 
@@ -931,7 +931,7 @@ Example:
 $ ml-git repository storage add minio --endpoint-url=<minio-endpoint-url>
 ```
 
-Use this command to add or delete a data storage to a ml-git project.
+Use this command to add a data storage to a ml-git project.
 
 </details>
 
