@@ -21,7 +21,7 @@ def check_deprecated_command(context):
     group_name = context.parent.command.name
     deprecated_group = 'store'
     if group_name == deprecated_group:
-        print('[WARNING]: Deprecated command, take a look at commands documentation.')
+        print('[WARNING]: Deprecated command, use \'storage\' instead.')
 
 
 def storage_add(context, **kwargs):

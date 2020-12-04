@@ -215,12 +215,12 @@ Options:
 ```
 
 Examples:
- - To create an entity with s3 as store and importing files from a path of your computer:
+ - To create an entity with s3 as storage and importing files from a path of your computer:
 ```
 ml-git dataset create imagenet8 --storage-type=s3h --category=computer-vision --category=images --version=0 --import='/path/to/dataset' --mutability=strict
 ```
 
-- To create an entity with s3 as store and importing files from a google drive URL:
+- To create an entity with s3 as storage and importing files from a google drive URL:
 ```
 ml-git dataset create imagenet8 --storage-type=s3h --category=computer-vision --category=images --import-url='gdrive.url' --credentials-path='/path/to/gdrive/credentials' --mutability=strict --unzip
 ```
@@ -856,7 +856,7 @@ $ ml-git repository remote dataset del
 ```
 Usage: ml-git repository store add [OPTIONS] BUCKET_NAME
 
-  Add a storage BUCKET_NAME to ml-git
+  [DEPRECATED]: Add a storage BUCKET_NAME to ml-git
 
 Options:
   --credentials TEXT              Profile name for storage credentials
@@ -888,7 +888,7 @@ Use this command to add a data storage to a ml-git project.
 ```
 Usage: ml-git repository store del [OPTIONS] BUCKET_NAME
 
-  Delete a store BUCKET_NAME from ml-git
+  [DEPRECATED]: Delete a store BUCKET_NAME from ml-git
 
 Options:
   --type [s3h|s3|azureblobh|gdriveh]  Store type (s3h, s3, azureblobh, gdriveh ...) [default:

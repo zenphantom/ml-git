@@ -514,7 +514,56 @@ commands = [
 
         'callback': storage.storage_add,
 
-        'groups': [store.store, storage.storage],
+        'groups': [store.store],
+
+        'arguments': {
+            'bucket-name': {},
+        },
+
+        'options': {
+            '--credentials': {'help': help_msg.STORAGE_CREDENTIALS},
+            '--region': {'help': help_msg.STORAGE_REGION},
+            '--type': {'default': 's3h',
+                       'type': click.Choice(['s3h', 's3', 'azureblobh', 'gdriveh'],
+                                            case_sensitive=True),
+                       'help': help_msg.STORAGE_TYPE},
+            '--endpoint-url': {'help': help_msg.ENDPOINT_URL},
+            ('--global', '-g'): {'is_flag': True, 'default': False, 'help': help_msg.GLOBAL_OPTION},
+        },
+
+        'help': '[DEPRECATED]: Add a storage BUCKET_NAME to ml-git'
+
+    },
+
+    {
+        'name': 'del',
+
+        'callback': storage.storage_del,
+
+        'groups': [store.store],
+
+        'arguments': {
+            'bucket-name': {},
+        },
+
+        'options': {
+            '--type': {'default': 's3h',
+                       'type': click.Choice(['s3h', 's3', 'azureblobh', 'gdriveh'],
+                                            case_sensitive=True),
+                       'help': help_msg.STORAGE_TYPE},
+            ('--global', '-g'): {'is_flag': True, 'default': False, 'help': help_msg.GLOBAL_OPTION},
+        },
+
+        'help': '[DEPRECATED]: Delete a storage BUCKET_NAME from ml-git.'
+
+    },
+
+    {
+        'name': 'add',
+
+        'callback': storage.storage_add,
+
+        'groups': [storage.storage],
 
         'arguments': {
             'bucket-name': {},
@@ -540,7 +589,7 @@ commands = [
 
         'callback': storage.storage_del,
 
-        'groups': [store.store, storage.storage],
+        'groups': [storage.storage],
 
         'arguments': {
             'bucket-name': {},
