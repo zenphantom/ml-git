@@ -6,7 +6,6 @@ SPDX-License-Identifier: GPL-2.0-only
 from click_didyoumean import DYMGroup
 
 from ml_git import admin
-from ml_git.commands import help_msg
 from ml_git.commands.repository import repository
 
 
