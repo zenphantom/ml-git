@@ -78,19 +78,15 @@ class MetadataRepo(object):
             sha = self.get_default_branch()
         repo.checkout(sha)
 
-    def _get_symbolic_ref(self):
-        repo = Repo(self.__path)
-        for ref in repo.remotes.origin.refs:
-            if ref.remote_head == 'HEAD':
-                return ref.reference
-        return None
-
     def get_default_branch(self):
-        reference = self._get_symbolic_ref()
-        if reference is None:
-            return Repo(self.__path).active_branch.name
-        branch_name = reference.name.split('/')[-1]
-        return branch_name
+        repo = Repo(self.__path)
+        try:
+            return repo.active_branch.name
+        except TypeError:
+            format_output = '--format=%(refname:short)'
+            iterate_limit = '--count=1'
+            pattern = 'refs/heads'
+            return repo.git.for_each_ref([format_output, iterate_limit, pattern])
 
     def update(self):
         log.info('Pull [%s]' % self.__path, class_name=METADATA_MANAGER_CLASS_NAME)
