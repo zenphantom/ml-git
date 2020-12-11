@@ -2,7 +2,7 @@
 © Copyright 2020 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
-
+import io
 import os
 import re
 import time
@@ -16,7 +16,7 @@ from ml_git.constants import METADATA_MANAGER_CLASS_NAME, HEAD_1, RGX_ADDED_FILE
     RGX_AMOUNT_FILES, TAG, AUTHOR, EMAIL, DATE, MESSAGE, ADDED, SIZE, AMOUNT, DELETED, SPEC_EXTENSION
 from ml_git.manifest import Manifest
 from ml_git.ml_git_message import output_messages
-from ml_git.utils import get_root_path, ensure_path_exists, yaml_load, RootPathException, get_yaml_str
+from ml_git.utils import get_root_path, ensure_path_exists, yaml_load, RootPathException, get_yaml_str, yaml_load_str
 
 
 class MetadataRepo(object):
@@ -340,7 +340,8 @@ class MetadataRepo(object):
     def __sort_tag_by_date(self, elem):
         return elem.commit.authored_date
 
-    def get_log_info(self, spec, fullstat=False):
+    def get_log_info(self, spec, new_info=None, fullstat=False):
+
         tags = self.list_tags(spec, True)
         formatted = ''
         if len(tags) == 0:
@@ -350,8 +351,42 @@ class MetadataRepo(object):
 
         for tag in tags:
             formatted += '\n' + self.get_formatted_log_info(tag, fullstat)
+            if new_info:
+                value = next(new_info, '')
+                formatted += value
 
         return formatted
+
+    @staticmethod
+    def _get_spec_content_from_ref(ref, spec_path):
+        entity_spec = ref.tree / spec_path
+        return io.BytesIO(entity_spec.data_stream.read())
+
+    @staticmethod
+    def _parse_tag_to_path(tag):
+        sep = '__'
+        tag_parts = tag.split(sep)
+        entity_name = tag_parts[-2] + SPEC_EXTENSION
+        spec_path = '/'.join(tag_parts[:-1])
+        complete_spec_path = '{}/{}'.format(spec_path, entity_name)
+        return complete_spec_path
+
+    def get_specs_to_compare(self, spec, entity):
+        spec_manifest_key = 'manifest'
+        tags = self.list_tags(spec, True)
+
+        for tag in tags:
+            path = self._parse_tag_to_path(tag.name)
+            current_ref = tag.commit
+            parents = current_ref.parents
+            base_spec = {entity: {spec_manifest_key: {}}}
+
+            if parents:
+                base_ref = parents[0]
+                base_spec = yaml_load_str(self._get_spec_content_from_ref(base_ref, path))
+
+            current_spec = yaml_load_str(self._get_spec_content_from_ref(current_ref, path))
+            yield current_spec[entity][spec_manifest_key], base_spec[entity][spec_manifest_key]
 
     def get_formatted_log_info(self, tag, fullstat):
         commit = tag.commit

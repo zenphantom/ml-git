@@ -26,6 +26,8 @@ from ml_git.file_system.objects import Objects
 from ml_git.manifest import Manifest
 from ml_git.metadata import Metadata, MetadataManager
 from ml_git.ml_git_message import output_messages
+from ml_git.plugin_interface.data_plugin_constants import COMPARE_SPECS
+from ml_git.plugin_interface.plugin_especialization import PluginCaller
 from ml_git.refs import Refs
 from ml_git.spec import spec_parse, search_spec_file, increment_version_in_spec, get_entity_tag, update_store_spec, \
     validate_bucket_name, set_version_in_spec
@@ -1031,6 +1033,17 @@ class Repository(object):
 
         self._checkout_ref()
 
+    def _log_compare_spec_from_versions(self, spec, metadata):
+
+        refs_path = get_refs_path(self.__config, self.__repo_type)
+        ref = Refs(refs_path, spec, self.__repo_type)
+        tag, _ = ref.branch()
+        categories_path = get_path_with_categories(tag)
+        path, spec_file = search_spec_file(self.__repo_type, spec, categories_path)
+        spec_content = yaml_load(os.path.join(path, spec_file))
+        plugin_caller = PluginCaller(spec_content[self.__repo_type]['manifest'])
+        return plugin_caller.call(COMPARE_SPECS, metadata.get_specs_to_compare(spec, self.__repo_type))
+
     def log(self, spec, stat=False, fullstat=False):
 
         try:
@@ -1038,12 +1051,12 @@ class Repository(object):
             metadata_path = get_metadata_path(self.__config, repo_type)
             metadata = Metadata(spec, metadata_path, self.__config, repo_type)
             index_path = get_index_path(self.__config, repo_type)
-
-            log_info = metadata.get_log_info(spec, fullstat)
-
+            new_log_info = self._log_compare_spec_from_versions(spec, metadata)
+            log_info = metadata.get_log_info(spec, new_log_info, fullstat)
         except Exception as e:
             log.error(e, class_name=REPOSITORY_CLASS_NAME)
             return
+
         fidx = FullIndex(spec, index_path)
         if stat or fullstat:
             workspace_size = fidx.get_total_size()

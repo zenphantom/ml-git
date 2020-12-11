@@ -24,6 +24,23 @@ def add_metadata(work_space_path, metadata):
 ```
 </details>
 
+<details>
+<summary><code> compare_metadata </code></summary>
+</br>
+
+Responsible for displaying a formatted output containing, the number of rows and columns of the versioned tabular data,  and the amount of insertions or deletions between each version.
+
+*Definition:*
+
+```python
+def compare_metadata(specs_to_compare):
+    """
+    Args:
+        specs_to_compare (Iterator[dict]): List that contain current spec file and antecesor to be compared for each version.
+    """
+```
+</details>
+
 **Note:**
 The plugin doesn't need to implement all methods defined in the plugin contract.
 
