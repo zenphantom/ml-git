@@ -51,6 +51,7 @@ STORE_LOG = 'store.log'
 SPEC_EXTENSION = '.spec'
 MANIFEST_FILE = 'MANIFEST.yaml'
 INDEX_FILE = 'INDEX.yaml'
+DEFAULT_BRANCH_FOR_EMPTY_REPOSITORY = 'master'
 
 
 class Mutability(Enum):
