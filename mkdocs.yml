@@ -1,0 +1,45 @@
+site_name: ML Git
+nav:
+  - Home:
+    - Introduction: index.md
+    - Creating Your First Project: first_project.md
+    - Docker Environment: downloadable_environment.md
+    - Storages:
+      - Configurations: storage_configurations.md
+      - Azure: azure_configurations.md
+      - Google Drive: gdrive_configurations.md
+      - S3: s3_configurations.md
+      - MinIO: s3_configurations.md
+    - Working With Tabular Data: tabular_data/tabular_data.md
+  - Architecture:
+    - Internals: mlgit_internals.md
+    - Cache and Objects: centralized_cache_and_objects.md
+  - Features:
+    - Commands: mlgit_commands.md
+    - Mutability Helper: mutability_helper.md
+    - Plugins: plugins.md
+    - QS Checkout: qs_checkout.md
+    - QS Configure Repository: qs_configure_repository.md
+    - Resources Initialization: resources_initialization.md
+  - Api:
+    - Methods: api/README.md
+    - Quick Start: api/quick_start.md
+  - Developer Info:
+    - developer_info.md
+  
+theme:
+  name: "material"
+  # logo: img/small_icon.png
+  # favicon: img/fav_icon.png
+  palette:
+    primary: light blue
+  features:
+    - navigation.tabs
+markdown_extensions:
+  - md_in_html
+  - toc:
+     permalink: true
+
+plugins:
+  - search # necessary for search to work
+  - git-revision-date-localized
