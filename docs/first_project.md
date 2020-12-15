@@ -1,21 +1,27 @@
 # Your 1st ML artefacts under ml-git management #
 
 We will divide this quick howto into 6 main sections:
+
 1. [ml-git repository configuration / intialization](#initial-config)   
    
     - This section explains how to initialize and configure a repository for ml-git, considering the scenarios of the store be an S3 or a MinIO.
+
 2. [uploading a dataset](#upload-dataset)
    
     - Having a repository initialized, this section explains how to create and upload a dataset to the store.
+
 3. [adding data to a dataset](#change-dataset)
    
     - This section explains how to add new data to an entity already versioned by ml-git.
+
 4. [uploading labels associated to a dataset](#upload-labels)
    
     - This section describes how to upload a set of labels by associating the dataset to which these labels refer.
+
 5. [downloading a dataset](#download-dataset)
    
     - This section describes how to download a versioned data set using ml-git.
+    
 6. [checking data integrity](#checking-integrity)
    
     - This section explains how to check the integrity of the metadata repository.
@@ -151,6 +157,7 @@ dataset:
 ```
 
 There are 5 main items in the spec file:
+
 1. __name__: it's the name of the dataset
 2. __version__: the version should be an integer, incremented each time there is new version pushed into ml-git.  You can use the --bumpversion argument to do the increment automatically for you when you add more files to a dataset.
 3. __categories__ : describes a tree structure to characterize the dataset category. That information is used by ml-git to create a directory structure in the git repository managing the metadata.

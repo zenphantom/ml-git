@@ -32,6 +32,12 @@ jobs:
           find: \.md
           replace: ""
           include: "docs/index.md"
+      - name: Remove 'docs/' from links - step 3
+        uses: jacobtomlinson/gha-find-replace@master
+        with:
+          find: README
+          replace: ""
+          include: "docs/index.md"
       - name: Setup Python
         uses: actions/setup-python@v1
         with:
