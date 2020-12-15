@@ -13,7 +13,8 @@ from halo import Halo
 from ml_git import log
 from ml_git.config import get_metadata_path
 from ml_git.constants import METADATA_MANAGER_CLASS_NAME, HEAD_1, RGX_ADDED_FILES, RGX_DELETED_FILES, RGX_SIZE_FILES, \
-    RGX_AMOUNT_FILES, TAG, AUTHOR, EMAIL, DATE, MESSAGE, ADDED, SIZE, AMOUNT, DELETED, SPEC_EXTENSION
+    RGX_AMOUNT_FILES, TAG, AUTHOR, EMAIL, DATE, MESSAGE, ADDED, SIZE, AMOUNT, DELETED, SPEC_EXTENSION, \
+    DEFAULT_BRANCH_FOR_EMPTY_REPOSITORY
 from ml_git.manifest import Manifest
 from ml_git.ml_git_message import output_messages
 from ml_git.utils import get_root_path, ensure_path_exists, yaml_load, RootPathException, get_yaml_str, yaml_load_str
@@ -82,15 +83,27 @@ class MetadataRepo(object):
         repo = Repo(self.__path)
         for ref in repo.remotes.origin.refs:
             if ref.remote_head == 'HEAD':
-                return ref.reference
+                return ref.reference.name.replace('origin/', '')
         return None
 
+    def _get_local_branch(self):
+        repo = Repo(self.__path)
+        format_output = '--format=%(refname:short)'
+        iterate_limit = '--count=1'
+        pattern = 'refs/heads'
+        sort = '--sort=-*authordate'
+        return repo.git.for_each_ref([format_output, pattern, sort, iterate_limit])
+
     def get_default_branch(self):
-        reference = self._get_symbolic_ref()
-        if reference is None:
-            return Repo(self.__path).active_branch.name
-        branch_name = reference.name.split('/')[-1]
-        return branch_name
+        remote_branch_name = self._get_symbolic_ref()
+        local_branch_name = self._get_local_branch()
+
+        if remote_branch_name:
+            return remote_branch_name
+        elif local_branch_name:
+            return local_branch_name
+
+        return DEFAULT_BRANCH_FOR_EMPTY_REPOSITORY
 
     def update(self):
         log.info('Pull [%s]' % self.__path, class_name=METADATA_MANAGER_CLASS_NAME)
