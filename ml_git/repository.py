@@ -1034,7 +1034,6 @@ class Repository(object):
         self._checkout_ref()
 
     def _log_compare_spec_from_versions(self, spec, metadata):
-
         refs_path = get_refs_path(self.__config, self.__repo_type)
         ref = Refs(refs_path, spec, self.__repo_type)
         tag, _ = ref.branch()
@@ -1052,7 +1051,7 @@ class Repository(object):
             metadata = Metadata(spec, metadata_path, self.__config, repo_type)
             index_path = get_index_path(self.__config, repo_type)
             specialized_data_compared = self._log_compare_spec_from_versions(spec, metadata)
-            log_info = metadata.get_log_info(spec, specialized_data_compared, fullstat)
+            log_info = metadata.get_log_info(spec, fullstat, specialized_data_compared)
         except Exception as e:
             log.error(e, class_name=REPOSITORY_CLASS_NAME)
             return

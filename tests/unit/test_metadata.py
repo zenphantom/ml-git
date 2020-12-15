@@ -191,13 +191,6 @@ class MetadataTestCases(unittest.TestCase):
         clear(m.path)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_test_dir')
-    def test_parse_tag_to_path(self):
-        m = Metadata(spec, index_path, config, repotype)
-        tag_path = m._parse_tag_to_path('images__dataset_ex__1')
-        path = 'images/dataset_ex/dataset_ex.spec'
-        self.assertEqual(tag_path, path)
-
-    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_test_dir')
     def test_get_spec_content_from_ref(self):
         mdpath = os.path.join(self.test_dir, 'mdata', repotype, 'metadata')
         specpath = 'dataset-ex'
