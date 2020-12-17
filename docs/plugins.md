@@ -38,7 +38,7 @@ If the plugin is installed and configured correctly, this signature will be trig
 def compare_metadata(specs_to_compare):
     """
     Args:
-        specs_to_compare (Iterator[dict]): List that contain current spec file and antecesor to be compared for each version.
+        specs_to_compare (Iterator[dict]): List containing current spec file and predecessors to be compared for each version.
     """
 ```
 </details>
