@@ -7,8 +7,10 @@ import os
 import shutil
 import tempfile
 
-from ml_git import log
+from ml_git import log, admin
+from ml_git.admin import init_mlgit
 from ml_git.config import config_load
+from ml_git.constants import StoreType, EntityType
 from ml_git.repository import Repository
 from ml_git.log import init_logger
 
@@ -165,3 +167,91 @@ def push(entity, entity_name,  retries=2, clear_on_fail=False):
 
     repo = Repository(config_load(), entity)
     repo.push(entity_name, retries, clear_on_fail)
+
+
+def create(entity, entity_name, categories, mutability, **kwargs):
+    """This command will create the workspace structure with data and spec file for an entity and set the store configurations.
+
+        Example:
+            create('dataset', 'dataset-ex', categories=['computer-vision', 'images'], mutability='strict')
+
+        Args:
+            entity (str): The type of an ML entity. (dataset, labels or model).
+            entity_name (str): An ml-git entity name to identify a ML entity.
+            categories (list): Artifact's category name.
+            mutability (str): Mutability type. The mutability options are strict, flexible and mutable.
+            store_type (str, optional): Data store type [default: s3h].
+            version (int, optional): Number of retries to upload the files to the storage [default: 2].
+            import_path (str, optional): Path to be imported to the project.
+            bucket_name (str, optional): Bucket name.
+            import_url (str, optional): Import data from a google drive url.
+            credentials_path (str, optional): Directory of credentials.json.
+            unzip (bool, optional): Unzip imported zipped files [default: False].
+    """
+
+    args = {'artifact_name': entity_name, 'category': categories, 'mutability': mutability,
+            'version_number': kwargs.get('version', 1), 'import': kwargs.get('import_path', None),
+            'store_type':  kwargs.get('store_type', StoreType.S3H.value),
+            'bucket_name': kwargs.get('bucket_name', None), 'unzip': kwargs.get('unzip', False),
+            'import_url': kwargs.get('import_url', None), 'credentials_path': kwargs.get('credentials_path', None),
+            'wizard_config': False}
+
+    repo = Repository(config_load(), entity)
+    repo.create(args)
+
+
+def init(entity):
+    """This command will start the ml-git entity.
+
+        Examples:
+            init('repository')
+            init('dataset')
+
+        Args:
+            entity (str): The type of entity that will be initialized (repository, dataset, labels or model).
+    """
+
+    if entity == 'repository':
+        init_mlgit()
+    elif entity in EntityType.to_list():
+        repo = Repository(config_load(), entity)
+        repo.init()
+    else:
+        log.error('The type of entity entered is invalid. Valid types are: [repository, dataset, labels or model]')
+
+
+def store_add(bucket_name, bucket_type=StoreType.S3H.value, credentials=None, global_configuration=False, endpoint_url=None):
+    """This command will add a store to the ml-git project.
+
+        Examples:
+            store_add('my-bucket', type='s3h')
+
+        Args:
+            bucket_name (str): The name of the bucket in the storage.
+            bucket_type (str, optional): Store type (s3h, azureblobh or gdriveh) [default: s3h].
+            credentials (str, optional): Name of the profile that stores the credentials or the path to the credentials.
+            global_configuration (bool, optional): Use this option to set configuration at global level [default: False].
+            endpoint_url (str, optional): Store endpoint url.
+    """
+
+    if bucket_type not in StoreType.to_list():
+        log.error('Aqui2')
+        return
+
+    admin.store_add(bucket_type, bucket_name, credentials, global_configuration, endpoint_url)
+
+
+def remote_add(entity, remote_url, global_configuration=False):
+    """This command will add a remote to store the metadata from this ml-git project.
+
+        Examples:
+            remote_add('dataset', 'https://git@github.com/mlgit-datasets')
+
+        Args:
+            entity (str): The type of an ML entity. (repository, dataset, labels or model).
+            remote_url(str): URL of an existing remote git repository.
+            global_configuration (bool, optional): Use this option to set configuration at global level [default: False].
+    """
+
+    repo = Repository(config_load(), entity)
+    repo.repo_remote_add(entity, remote_url, global_configuration)

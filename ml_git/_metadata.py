@@ -13,7 +13,8 @@ from halo import Halo
 from ml_git import log
 from ml_git.config import get_metadata_path
 from ml_git.constants import METADATA_MANAGER_CLASS_NAME, HEAD_1, RGX_ADDED_FILES, RGX_DELETED_FILES, RGX_SIZE_FILES, \
-    RGX_AMOUNT_FILES, TAG, AUTHOR, EMAIL, DATE, MESSAGE, ADDED, SIZE, AMOUNT, DELETED, SPEC_EXTENSION
+    RGX_AMOUNT_FILES, TAG, AUTHOR, EMAIL, DATE, MESSAGE, ADDED, SIZE, AMOUNT, DELETED, SPEC_EXTENSION, \
+    DEFAULT_BRANCH_FOR_EMPTY_REPOSITORY
 from ml_git.manifest import Manifest
 from ml_git.ml_git_message import output_messages
 from ml_git.utils import get_root_path, ensure_path_exists, yaml_load, RootPathException, get_yaml_str
@@ -72,9 +73,37 @@ class MetadataRepo(object):
             return False
         return True
 
-    def checkout(self, sha):
+    def checkout(self, sha=None):
         repo = Git(self.__path)
+        if sha is None:
+            sha = self.get_default_branch()
         repo.checkout(sha)
+
+    def _get_symbolic_ref(self):
+        repo = Repo(self.__path)
+        for ref in repo.remotes.origin.refs:
+            if ref.remote_head == 'HEAD':
+                return ref.reference.name.replace('origin/', '')
+        return None
+
+    def _get_local_branch(self):
+        repo = Repo(self.__path)
+        format_output = '--format=%(refname:short)'
+        iterate_limit = '--count=1'
+        pattern = 'refs/heads'
+        sort = '--sort=-*authordate'
+        return repo.git.for_each_ref([format_output, pattern, sort, iterate_limit])
+
+    def get_default_branch(self):
+        remote_branch_name = self._get_symbolic_ref()
+        local_branch_name = self._get_local_branch()
+
+        if remote_branch_name:
+            return remote_branch_name
+        elif local_branch_name:
+            return local_branch_name
+
+        return DEFAULT_BRANCH_FOR_EMPTY_REPOSITORY
 
     def update(self):
         log.info('Pull [%s]' % self.__path, class_name=METADATA_MANAGER_CLASS_NAME)
@@ -297,9 +326,22 @@ class MetadataRepo(object):
             return Manifest(path)
         return None
 
-    def remove_deleted_files_meta_manifest(self, manifest, deleted_files):
+    @staticmethod
+    def remove_deleted_files_meta_manifest(manifest, deleted_files):
         if manifest is not None:
             for file in deleted_files:
+                manifest.rm_file(file)
+            manifest.save()
+
+    @staticmethod
+    def remove_files_added_after_base_tag(manifest, ws_path):
+        files_added = []
+        if manifest is not None:
+            for key, value in manifest.get_yaml().items():
+                for key_value in value:
+                    if not os.path.exists(os.path.join(ws_path, key_value)):
+                        files_added.append(key_value)
+            for file in files_added:
                 manifest.rm_file(file)
             manifest.save()
 

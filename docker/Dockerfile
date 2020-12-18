@@ -19,6 +19,7 @@ RUN apt-get install gcc g++ git && \
     chmod +x ../init.sh && \
     sed -i -e 's/\r//g'  ../init.sh && \
     mkdir $HOME/.aws && \
+    mkdir /data/faces_bucket && \
     echo -e "[default]\naws_access_key_id = fake_access_key\naws_secret_access_key = fake_secret_key" > $HOME/.aws/credentials && \
     pip install -e .
 

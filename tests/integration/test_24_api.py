@@ -9,12 +9,14 @@ import unittest
 import pytest
 
 from ml_git import api
-from ml_git.constants import Mutability
-from tests.integration.helper import ML_GIT_DIR, CLONE_FOLDER, check_output, init_repository, create_git_clone_repo, \
-    clear, yaml_processor
+from ml_git.constants import Mutability, StoreType
+from ml_git.ml_git_message import output_messages
+from tests.integration.commands import MLGIT_INIT
+from tests.integration.helper import ML_GIT_DIR, check_output, init_repository, create_git_clone_repo, \
+    clear, yaml_processor, create_zip_file, CLONE_FOLDER, GIT_PATH, BUCKET_NAME, PROFILE, STORE_TYPE
 
 
-@pytest.mark.usefixtures('tmp_dir')
+@pytest.mark.usefixtures('tmp_dir', 'aws_session')
 class APIAcceptanceTests(unittest.TestCase):
 
     objects = os.path.join(ML_GIT_DIR, 'dataset', 'objects')
@@ -65,10 +67,9 @@ class APIAcceptanceTests(unittest.TestCase):
         self.create_file(workspace, 'file3', 'a')
         self.create_file(workspace, 'file4', 'b')
 
-        check_output('ml-git dataset add dataset-ex --bumpversion')
-        check_output('ml-git dataset commit dataset-ex')
-
-        check_output('ml-git dataset push dataset-ex')
+        api.add('dataset', 'dataset-ex', bumpversion=True)
+        api.commit('dataset', 'dataset-ex')
+        api.push('dataset', 'dataset-ex')
 
         self.assertTrue(os.path.exists(os.path.join(self.tmp_dir, self.metadata)))
 
@@ -276,3 +277,162 @@ class APIAcceptanceTests(unittest.TestCase):
         self.assertTrue(os.path.exists(HEAD))
 
         self.assertEqual('computer-vision__images__dataset-ex__2', spec['labels']['dataset']['tag'])
+
+    def check_created_folders(self, entity_type, store_type=StoreType.S3H.value, version=1, bucket_name='fake_store'):
+        folder_data = os.path.join(self.tmp_dir, entity_type, entity_type + '-ex', 'data')
+        spec = os.path.join(self.tmp_dir, entity_type, entity_type + '-ex', entity_type + '-ex.spec')
+        readme = os.path.join(self.tmp_dir, entity_type, entity_type + '-ex', 'README.md')
+        with open(spec, 'r') as s:
+            spec_file = yaml_processor.load(s)
+            self.assertEqual(spec_file[entity_type]['manifest']['store'], store_type + '://' + bucket_name)
+            self.assertEqual(spec_file[entity_type]['name'], entity_type + '-ex')
+            self.assertEqual(spec_file[entity_type]['version'], version)
+        with open(os.path.join(self.tmp_dir, ML_GIT_DIR, 'config.yaml'), 'r') as y:
+            config = yaml_processor.load(y)
+            self.assertIn(entity_type, config)
+
+        self.assertTrue(os.path.exists(folder_data))
+        self.assertTrue(os.path.exists(spec))
+        self.assertTrue(os.path.exists(readme))
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
+    def test_14_create_entity(self):
+        entity_type = 'dataset'
+        store_type = StoreType.S3H.value
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'] % self.tmp_dir, check_output(MLGIT_INIT))
+        api.create('dataset', 'dataset-ex', categories=['computer-vision', 'images'], mutability='strict')
+        self.check_created_folders(entity_type, store_type)
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
+    def test_15_create_entity_with_optional_arguments(self):
+        entity_type = 'dataset'
+        store_type = StoreType.AZUREBLOBH.value
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'] % self.tmp_dir, check_output(MLGIT_INIT))
+        api.create('dataset', 'dataset-ex', categories=['computer-vision', 'images'], version=5, store_type=store_type, bucket_name='test', mutability='strict')
+        self.check_created_folders(entity_type, store_type, version=5, bucket_name='test')
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
+    def test_16_create_entity_with_import(self):
+        entity_type = 'dataset'
+        IMPORT_PATH = 'src'
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'] % self.tmp_dir, check_output(MLGIT_INIT))
+        import_path = os.path.join(self.tmp_dir, IMPORT_PATH)
+        os.makedirs(import_path)
+        create_zip_file(IMPORT_PATH, 3)
+        self.assertTrue(os.path.exists(os.path.join(import_path, 'file.zip')))
+        api.create(entity_type, entity_type+'-ex', categories=['computer-vision', 'images'], unzip=True, import_path=import_path, mutability='strict')
+        self.check_created_folders(entity_type, StoreType.S3H.value)
+        folder_data = os.path.join(self.tmp_dir, entity_type, entity_type + '-ex', 'data', 'file')
+        self.assertTrue(os.path.exists(folder_data))
+        files = [f for f in os.listdir(folder_data)]
+        self.assertIn('file0.txt', files)
+        self.assertIn('file1.txt', files)
+        self.assertIn('file2.txt', files)
+        self.assertEqual(3, len(files))
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir')
+    def test_17_init_repository(self):
+        config = os.path.join(self.tmp_dir, ML_GIT_DIR, 'config.yaml')
+        self.assertFalse(os.path.exists(config))
+        api.init('repository')
+        self.assertTrue(os.path.exists(config))
+
+    def _add_remote(self, entity_type):
+        api.init('repository')
+        api.remote_add(entity_type, os.path.join(self.tmp_dir, GIT_PATH))
+        with open(os.path.join(self.tmp_dir, ML_GIT_DIR, 'config.yaml'), 'r') as c:
+            config = yaml_processor.load(c)
+            self.assertEqual(os.path.join(self.tmp_dir, GIT_PATH), config[entity_type]['git'])
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir')
+    def test_18_add_remote_dataset(self):
+        self._add_remote(entity_type='dataset')
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir')
+    def test_19_add_remote_laebls(self):
+        self._add_remote(entity_type='labels')
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir')
+    def test_20_add_remote_model(self):
+        self._add_remote(entity_type='model')
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir')
+    def test_21_add_store(self):
+        api.init('repository')
+        with open(os.path.join(self.tmp_dir, ML_GIT_DIR, 'config.yaml'), 'r') as c:
+            config = yaml_processor.load(c)
+            self.assertNotIn('s3h', config['store'])
+        api.store_add(bucket_name=BUCKET_NAME, credentials=PROFILE)
+        with open(os.path.join(self.tmp_dir, ML_GIT_DIR, 'config.yaml'), 'r') as c:
+            config = yaml_processor.load(c)
+            self.assertEqual(PROFILE, config['store']['s3h'][BUCKET_NAME]['aws-credentials']['profile'])
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir')
+    def test_22_add_store_azure_type(self):
+        bucket_type = 'azureblobh'
+        bucket_name = 'container_azure'
+        api.init('repository')
+        with open(os.path.join(self.tmp_dir, ML_GIT_DIR, 'config.yaml'), 'r') as c:
+            config = yaml_processor.load(c)
+            self.assertNotIn(bucket_type, config['store'])
+        api.store_add(bucket_name=bucket_name, bucket_type=bucket_type)
+        with open(os.path.join(self.tmp_dir, ML_GIT_DIR, 'config.yaml'), 'r') as c:
+            config = yaml_processor.load(c)
+            self.assertIn(bucket_name, config['store'][bucket_type])
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir')
+    def test_23_add_store_gdrive_type(self):
+        bucket_type = 'gdriveh'
+        bucket_name = 'my-drive'
+        profile = 'path-to-credentials'
+        api.init('repository')
+        with open(os.path.join(self.tmp_dir, ML_GIT_DIR, 'config.yaml'), 'r') as c:
+            config = yaml_processor.load(c)
+            self.assertNotIn(bucket_type, config['store'])
+        api.store_add(bucket_name=bucket_name, bucket_type=bucket_type, credentials=profile)
+        with open(os.path.join(self.tmp_dir, ML_GIT_DIR, 'config.yaml'), 'r') as c:
+            config = yaml_processor.load(c)
+            self.assertEqual(profile, config['store'][bucket_type][bucket_name]['credentials-path'])
+
+    def _initialize_entity(self, entity_type, git=GIT_PATH):
+        api.init('repository')
+        api.remote_add(entity_type, git)
+        api.store_add(bucket_type=STORE_TYPE, bucket_name=BUCKET_NAME, credentials=PROFILE)
+        api.init(entity_type)
+        metadata_path = os.path.join(self.tmp_dir, ML_GIT_DIR, entity_type, 'metadata')
+        self.assertTrue(os.path.exists(metadata_path))
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir')
+    def test_24_init_dataset(self):
+        self._initialize_entity('dataset')
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir')
+    def test_25_init_labels(self):
+        self._initialize_entity('labels')
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir')
+    def test_26_init_model(self):
+        self._initialize_entity('model')
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
+    def test_27_create_with_invalid_entity(self):
+        try:
+            entity_type = 'dataset_invalid'
+            store_type = StoreType.S3H.value
+            self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'] % self.tmp_dir, check_output(MLGIT_INIT))
+            api.create('dataset_invalid', 'dataset-ex', categories=['computer-vision', 'images'], mutability='strict')
+            self.check_created_folders(entity_type, store_type)
+            self.assertTrue(False)
+        except Exception as e:
+            self.assertIn(output_messages['ERROR_INVALID_ENTITY_TYPE'], str(e))
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
+    def test_28_checkout_tag_with_invalid_entity(self):
+        try:
+            self.set_up_test()
+            data_path = api.checkout('dataset_invalid', self.dataset_tag)
+            self.assertEqual(self.data_path, data_path)
+            self.check_metadata()
+            self.assertTrue(False)
+        except Exception as e:
+            self.assertIn(output_messages['ERROR_INVALID_ENTITY_TYPE'], str(e))

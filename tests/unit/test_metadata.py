@@ -176,3 +176,16 @@ class MetadataTestCases(unittest.TestCase):
 
         for url in Repo(m.path).remote().urls:
             self.assertEqual(url, '')
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_test_dir', 'change_branch_name')
+    def test_default_branch(self):
+        default_branch_for_empty_repo = 'master'
+        new_branch = 'main'
+        m = Metadata('', self.test_dir, config, repotype)
+        m.init()
+        self.assertTrue(m.check_exists())
+        self.assertEqual(m.get_default_branch(), default_branch_for_empty_repo)
+        self.change_branch(m.path, new_branch)
+        self.assertNotEqual(m.get_default_branch(), default_branch_for_empty_repo)
+        self.assertEqual(m.get_default_branch(), new_branch)
+        clear(m.path)

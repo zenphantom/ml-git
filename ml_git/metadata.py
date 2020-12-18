@@ -2,12 +2,11 @@
 © Copyright 2020 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
-
 import os
 import shutil
 
+import humanize
 from halo import Halo
-from hurry.filesize import alternative, size
 
 from ml_git import log
 from ml_git._metadata import MetadataManager
@@ -16,6 +15,8 @@ from ml_git.constants import METADATA_CLASS_NAME, LOCAL_REPOSITORY_CLASS_NAME, R
     SPEC_EXTENSION, MANIFEST_FILE
 from ml_git.manifest import Manifest
 from ml_git.ml_git_message import output_messages
+from ml_git.plugin_interface.data_plugin_constants import ADD_METADATA
+from ml_git.plugin_interface.plugin_especialization import PluginCaller
 from ml_git.refs import Refs
 from ml_git.utils import ensure_path_exists, yaml_save, yaml_load, clear, get_file_size, normalize_path
 
@@ -158,9 +159,13 @@ class Metadata(MetadataManager):
         amount, workspace_size = self._get_amount_and_size_of_workspace_files(full_metadata_path, ws_path)
         # saves metadata and commit
         metadata[self.__repo_type]['manifest']['files'] = MANIFEST_FILE
-        metadata[self.__repo_type]['manifest']['size'] = size(workspace_size, system=alternative)
+        metadata[self.__repo_type]['manifest']['size'] = humanize.naturalsize(workspace_size)
         metadata[self.__repo_type]['manifest']['amount'] = amount
         store = metadata[self.__repo_type]['manifest']['store']
+
+        manifest = metadata[self.__repo_type]['manifest']
+        PluginCaller(manifest).call(ADD_METADATA, ws_path, manifest)
+
         # Add metadata specific to labels ML entity type
         self._add_associate_entity_metadata(metadata, specs)
         self.__commit_spec(full_metadata_path, metadata)

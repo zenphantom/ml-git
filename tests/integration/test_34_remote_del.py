@@ -131,12 +131,11 @@ class RemoteDelAcceptanceTests(unittest.TestCase):
         self.assertIn(messages[17] % (metadata_path, os.path.join('computer-vision', 'images', entity_type + '-ex')),
                       check_output(MLGIT_COMMIT % (entity_type, entity_type + '-ex', '')))
 
-        HEAD = os.path.join(self.tmp_dir, ML_GIT_DIR, entity_type, 'refs', entity_type+'-ex', 'HEAD')
-        self.assertTrue(os.path.exists(HEAD))
+        head_file = os.path.join(self.tmp_dir, ML_GIT_DIR, entity_type, 'refs', entity_type+'-ex', 'HEAD')
+        self.assertTrue(os.path.exists(head_file))
 
         self._remote_del(entity_type)
 
         self.assertIn(output_messages['ERROR_REMOTE_NOT_FOUND'], check_output(MLGIT_PUSH % (entity_type, entity_type+'-ex')))
-        os.chdir(metadata_path)
         self.assertFalse(os.path.exists(
             os.path.join(MINIO_BUCKET_PATH, 'zdj7WWjGAAJ8gdky5FKcVLfd63aiRUGb8fkc8We2bvsp9WW12')))

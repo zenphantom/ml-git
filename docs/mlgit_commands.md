@@ -193,8 +193,9 @@ Options:
   --category TEXT                 Artifact's category name.  [required]
   --mutability [strict|flexible|mutable]
                                   Mutability type.  [required]
-  --store-type [s3h|azureblobh|gdriveh]
-                                  Data store type [default: s3h].
+  --store-type, --storage-type [s3h|azureblobh|gdriveh]
+                                  Data storage type [default: s3h].
+                                  [DEPRECATED:--store-type]
   --version-number, --version INTEGER RANGE
                                   Number of artifact version.
                                   [DEPRECATED:--version-number]
@@ -214,14 +215,14 @@ Options:
 ```
 
 Examples:
- - To create an entity with s3 as store and importing files from a path of your computer:
+ - To create an entity with s3 as storage and importing files from a path of your computer:
 ```
-ml-git dataset create imagenet8 --store-type=s3h --category=computer-vision --category=images --version=0 --import='/path/to/dataset' --mutability=strict
+ml-git dataset create imagenet8 --storage-type=s3h --category=computer-vision --category=images --version=0 --import='/path/to/dataset' --mutability=strict
 ```
 
-- To create an entity with s3 as store and importing files from a google drive URL:
+- To create an entity with s3 as storage and importing files from a google drive URL:
 ```
-ml-git dataset create imagenet8 --store-type=s3h --category=computer-vision --category=images --import-url='gdrive.url' --credentials-path='/path/to/gdrive/credentials' --mutability=strict --unzip
+ml-git dataset create imagenet8 --storage-type=s3h --category=computer-vision --category=images --import-url='gdrive.url' --credentials-path='/path/to/gdrive/credentials' --mutability=strict --unzip
 ```
 
 </details>
@@ -319,16 +320,6 @@ in the future, fsck should be able to fix some errors of detected corruption.
 </details>
 
 <details>
-<summary><code> ml-git &lt;ml-entity&gt; gc </code></summary>
-<br>
-
-```
-To Be Implemented
-```
-
-</details>
-
-<details>
 <summary><code> ml-git &lt;ml-entity&gt; import </code></summary>
 <br>
 
@@ -345,8 +336,10 @@ Options:
                       [default: 2].
   --path TEXT         Bucket folder path.
   --object TEXT       Filename in bucket.
-  --store-type        Store type (s3 or gdrive) [default: s3].
-  --endpoint-url      Store endpoint url.
+  --store-type, --storage-type [s3|gdrive]
+                                  Data storage type [default: s3h].
+                                  [DEPRECATED:--store-type]
+  --endpoint-url      Storage endpoint url.
   --help              Show this message and exit.
 ```
 
@@ -587,13 +580,14 @@ version: 1
 <br>
 
 ```
-Usage: ml-git dataset status [OPTIONS] ML_ENTITY_NAME
+Usage: ml-git dataset status [OPTIONS] ML_ENTITY_NAME [STATUS_DIRECTORY]
 
   Print the files that are tracked or not and the ones that are in the
   index/staging area.
 
 Options:
-  --help  Show this message and exit.
+  --full     Show all contents for each directory.
+  --verbose  Debug mode
 ```
 
 Example:
@@ -777,6 +771,23 @@ change the default configuration to adapt for her needs.
 </details>
 
 <details>
+<summary><code> ml-git repository gc </code></summary>
+<br>
+
+```
+Usage: ml-git repository gc [OPTIONS]
+
+  Cleanup unnecessary files and optimize the use of the disk space.
+
+Options:
+  --verbose  Debug mode
+```
+
+This command will remove unnecessary files contained in the cache and objects directories of the ml-git metadata (.ml-git).
+
+</details>
+
+<details>
 <summary><code> ml-git repository init </code></summary>
 <br>
 
@@ -839,43 +850,45 @@ $ ml-git repository remote dataset del
 </details>
 
 <details>
-<summary><code> ml-git repository store add </code></summary>
+<summary><code> ml-git repository store add </code> (DEPRECATED)</summary>
 <br>
 
 ```
 Usage: ml-git repository store add [OPTIONS] BUCKET_NAME
 
-  Add a store BUCKET_NAME to ml-git
+  [DEPRECATED]: Add a storage BUCKET_NAME to ml-git
 
 Options:
-  --credentials TEXT              Profile name for store credentials [default:
-                                  default]
-  --region TEXT                   Aws region name for S3 bucket [default: us-
-                                  east-1]
+  --credentials TEXT              Profile name for storage credentials
+  --region TEXT                   Aws region name for S3 bucket
   --type [s3h|s3|azureblobh|gdriveh]
-                                  Store type (s3h, s3, azureblobh, gdriveh
+                                  Storage type (s3h, s3, azureblobh, gdriveh
                                   ...) [default: s3h]
-  --endpoint-url TEXT             Store endpoint url
+  --endpoint-url TEXT             Storage endpoint url
+  -g, --global                    Use this option to set configuration at
+                                  global level
   --verbose                       Debug mode
 ```
 
 Example:
 ```
-$ ml-git repository store add minio --credentials=default --endpoint-url=<minio-endpoint-url>
+$ ml-git repository store add minio --endpoint-url=<minio-endpoint-url>
 ```
 
-Use this command to add or delete a data store to a ml-git project.
+Use this command to add a data storage to a ml-git project.
+
+**Note: Command deprecated, use storage instead store.**
 
 </details>
 
 <details>
-<summary><code> ml-git repository store del </code></summary>
+<summary><code> ml-git repository store del </code>(DEPRECATED)</summary>
 <br>
 
 ```
 Usage: ml-git repository store del [OPTIONS] BUCKET_NAME
 
-  Delete a store BUCKET_NAME from ml-git
+  [DEPRECATED]: Delete a store BUCKET_NAME from ml-git
 
 Options:
   --type [s3h|s3|azureblobh|gdriveh]  Store type (s3h, s3, azureblobh, gdriveh ...) [default:
@@ -886,6 +899,60 @@ Options:
 Example:
 ```
 $ ml-git repository store del minio
+```
+
+**Note: Command deprecated, use storage instead store.**
+
+</details>
+
+<details>
+<summary><code> ml-git repository storage add </code></summary>
+<br>
+
+```
+Usage: ml-git repository storage add [OPTIONS] BUCKET_NAME
+
+  Add a storage BUCKET_NAME to ml-git
+
+Options:
+  --credentials TEXT              Profile name for storage credentials
+  --region TEXT                   Aws region name for S3 bucket
+  --type [s3h|s3|azureblobh|gdriveh]
+                                  Storage type (s3h, s3, azureblobh, gdriveh
+                                  ...) [default: s3h]
+  --endpoint-url TEXT             Storage endpoint url
+  -g, --global                    Use this option to set configuration at
+                                  global level
+  --verbose                       Debug mode
+```
+
+Example:
+```
+$ ml-git repository storage add minio --endpoint-url=<minio-endpoint-url>
+```
+
+Use this command to add a data storage to a ml-git project.
+
+</details>
+
+<details>
+<summary><code> ml-git repository storage del </code></summary>
+<br>
+
+```
+Usage: ml-git repository storage del [OPTIONS] BUCKET_NAME
+
+  Delete a storage BUCKET_NAME from ml-git
+
+Options:
+  --type [s3h|s3|azureblobh|gdriveh]  Storage type (s3h, s3, azureblobh, gdriveh ...) [default:
+                              s3h]
+  --help                      Show this message and exit.
+```
+
+Example:
+```
+$ ml-git repository storage del minio
 ```
 
 </details>

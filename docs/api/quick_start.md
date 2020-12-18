@@ -181,3 +181,83 @@ api.push(entity, spec)
 output:
 
     files: 100%|##########| 24.0/24.0 [00:00<00:00, 34.3files/s]
+    
+
+## Create
+
+```python
+from ml_git import api
+
+entity = 'dataset'
+spec = 'dataset-ex'
+categories = ['computer-vision', 'images']
+mutability = 'strict'
+
+api.create(entity, spec, categories, mutability, import_path='/path/to/dataset', unzip=True, version=2)
+```
+
+output:
+
+    INFO - MLGit: Project Created.
+    
+## Init
+
+
+#### Repository
+
+```python
+from ml_git import api
+
+api.init('repository')
+```
+
+output:
+
+    INFO - Admin: Initialized empty ml-git repository in /home/user/Documentos/project/.ml-git
+    
+
+#### Entity
+
+```python
+from ml_git import api
+
+entity_type = 'dataset'
+
+api.init(entity_type)
+```
+
+output:
+
+    INFO - Metadata Manager: Metadata init [https://git@github.com/mlgit-datasets] @ [/home/user/Documentos/project/.ml-git/dataset/metadata]
+    
+## Remote add
+
+```python
+from ml_git import api
+
+entity_type = 'dataset'
+datasets_repository = 'https://git@github.com/mlgit-datasets'
+
+api.remote_add(entity_type, datasets_repository)
+```
+
+output:
+
+    INFO - Admin: Add remote repository [https://git@github.com/mlgit-datasets] for [dataset]
+    
+    
+## Store add
+
+```python
+from ml_git import api
+
+bucket_name = 'minio'
+bucket_type='s3h'
+endpoint_url = 'http://127.0.0.1:9000/'
+
+api.store_add(bucket_name=bucket_name,bucket_type=bucket_type, endpoint_url=endpoint_url)
+```
+
+output:
+
+    INFO - Admin: Add store [s3h://minio]
