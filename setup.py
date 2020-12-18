@@ -35,7 +35,7 @@ setup(
     version=get_version(),
     url='',
     license='GNU General Public License v2.0',
-    author="Sébastien Tandel",
+    author="Sebastien Tandel",
     description='ml-git: version control for ML artefacts',
     long_description='ml-git: a Distributed Version Control for ML artefacts',
     install_requires=install_requirements,
@@ -46,6 +46,8 @@ setup(
     keywords='version control, cloud storage, machine learning, datasets, labels, models',
     platforms='Any',
     zip_safe=True,
+    include_package_data=True,
+    package_data={'ml_git': ['version.info']},
     classifiers=[
         'Development Status :: 4 - Beta',
         'Operating System :: OS Independent',
