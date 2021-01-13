@@ -18,7 +18,7 @@ from ml_git import log
 from ml_git.config import get_index_path, get_objects_path, get_refs_path, get_index_metadata_path, \
     get_metadata_path, get_batch_size, get_push_threads_count
 from ml_git.constants import LOCAL_REPOSITORY_CLASS_NAME, STORE_FACTORY_CLASS_NAME, REPOSITORY_CLASS_NAME, \
-    Mutability, StoreType, SPEC_EXTENSION, MANIFEST_FILE, INDEX_FILE
+    Mutability, StoreType, SPEC_EXTENSION, MANIFEST_FILE, INDEX_FILE, EntityType
 from ml_git.file_system.cache import Cache
 from ml_git.file_system.hashfs import MultihashFS
 from ml_git.file_system.index import MultihashIndex, FullIndex, Status
@@ -31,11 +31,12 @@ from ml_git.spec import spec_parse, search_spec_file
 from ml_git.storages.store_utils import store_factory
 from ml_git.utils import yaml_load, ensure_path_exists, get_path_with_categories, convert_path, \
     normalize_path, posix_path, set_write_read, change_mask_for_routine, run_function_per_group
+DATASETS = EntityType.DATASETS.value
 
 
 class LocalRepository(MultihashFS):
 
-    def __init__(self, config, objects_path, repo_type='dataset', block_size=256 * 1024, levels=2):
+    def __init__(self, config, objects_path, repo_type=DATASETS, block_size=256 * 1024, levels=2):
         self.is_shared_objects = repo_type in config and 'objects_path' in config[repo_type]
         with change_mask_for_routine(self.is_shared_objects):
             super(LocalRepository, self).__init__(objects_path, block_size, levels)

@@ -7,8 +7,10 @@ import os
 
 from ml_git import log
 from ml_git import utils
-from ml_git.constants import ML_GIT_PROJECT_NAME, SPEC_EXTENSION
+from ml_git.constants import ML_GIT_PROJECT_NAME, SPEC_EXTENSION, EntityType
 from ml_git.utils import get_root_path, yaml_load
+
+DATASETS = EntityType.DATASETS.value
 
 
 class SearchSpecException(Exception):
@@ -61,7 +63,7 @@ def spec_parse(spec):
 """Increment the version number inside the given dataset specification file."""
 
 
-def incr_version(file, repotype='dataset'):
+def incr_version(file, repotype=DATASETS):
     spec_hash = utils.yaml_load(file)
     if is_valid_version(spec_hash, repotype):
         spec_hash[repotype]['version'] += 1
@@ -73,10 +75,10 @@ def incr_version(file, repotype='dataset'):
         return -1
 
 
-def get_version(file, repotype='dataset'):
+def get_version(file, repotype=DATASETS):
     spec_hash = utils.yaml_load(file)
     if is_valid_version(spec_hash, repotype):
-        return spec_hash['dataset']['version']
+        return spec_hash[DATASETS]['version']
     else:
         log.error('Invalid version, could not get.  File:\n     %s' % file, class_name=ML_GIT_PROJECT_NAME)
         return -1
@@ -85,7 +87,7 @@ def get_version(file, repotype='dataset'):
 """Validate the version inside the dataset specification file hash can be located and is an int."""
 
 
-def is_valid_version(the_hash, repotype='dataset'):
+def is_valid_version(the_hash, repotype=DATASETS):
     if the_hash is None or the_hash == {}:
         return False
     if repotype not in the_hash or 'version' not in the_hash[repotype]:
@@ -97,12 +99,12 @@ def is_valid_version(the_hash, repotype='dataset'):
     return True
 
 
-def get_spec_file_dir(entity_name, repotype='dataset'):
+def get_spec_file_dir(entity_name, repotype=DATASETS):
     dir1 = os.path.join(repotype, entity_name)
     return dir1
 
 
-def set_version_in_spec(version_number, spec_path, repotype='dataset'):
+def set_version_in_spec(version_number, spec_path, repotype=DATASETS):
     spec_hash = utils.yaml_load(spec_path)
     spec_hash[repotype]['version'] = version_number
     utils.yaml_save(spec_hash, spec_path)
@@ -112,7 +114,7 @@ def set_version_in_spec(version_number, spec_path, repotype='dataset'):
 """When --bumpversion is specified during 'dataset add', this increments the version number in the right place"""
 
 
-def increment_version_in_spec(entity_name, repotype='dataset'):
+def increment_version_in_spec(entity_name, repotype=DATASETS):
     # Primary location: dataset/<the_dataset>/<the_dataset>.spec
     # Location: .ml-git/dataset/index/metadata/<the_dataset>/<the_dataset>.spec is linked to the primary location
     if entity_name is None:

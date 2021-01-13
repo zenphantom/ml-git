@@ -3,14 +3,16 @@
 SPDX-License-Identifier: GPL-2.0-only
 """
 
-from ml_git.commands.utils import repositories, DATASET, MODEL, LABELS
-
-from ml_git.commands.general import mlgit
+import click
 from click_didyoumean import DYMGroup
 
+from ml_git.commands.general import mlgit
+from ml_git.commands.utils import repositories, LABELS, DATASETS, MODELS
 
-@mlgit.group(DATASET, help='Management of datasets within this ml-git repository.', cls=DYMGroup)
-def dataset():
+
+@mlgit.group(DATASETS, help='Management of datasets within this ml-git repository.', cls=DYMGroup)
+@click.pass_context
+def dataset(ctx):
     """
     Management of datasets within this ml-git repository.
     """
@@ -25,8 +27,9 @@ def dt_tag_group():
     pass
 
 
-@mlgit.group(MODEL, help='Management of models within this ml-git repository.', cls=DYMGroup)
-def model():
+@mlgit.group(MODELS, help='Management of models within this ml-git repository.', cls=DYMGroup)
+@click.pass_context
+def model(ctx):
     """
     Management of models within this ml-git repository.
     """
@@ -125,14 +128,14 @@ def commit(context, **kwargs):
     dataset_tag = None
     labels_tag = None
 
-    if repo_type == MODEL:
+    if repo_type == MODELS:
         dataset_tag = kwargs['dataset']
         labels_tag = kwargs['labels']
     elif repo_type == LABELS:
         dataset_tag = kwargs['dataset']
     tags = {}
     if dataset_tag is not None:
-        tags['dataset'] = dataset_tag
+        tags['datasets'] = dataset_tag
     if labels_tag is not None:
         tags['labels'] = labels_tag
 

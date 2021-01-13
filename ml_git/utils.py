@@ -8,8 +8,8 @@ import json
 import os
 import shutil
 import stat
-import zipfile
 import sys
+import zipfile
 from contextlib import contextmanager
 from pathlib import Path, PurePath, PurePosixPath
 from stat import S_IREAD, S_IRGRP, S_IROTH, S_IWUSR
@@ -18,6 +18,7 @@ from halo import Halo
 from ruamel.yaml import YAML
 from ruamel.yaml.compat import StringIO
 
+from ml_git import log
 from ml_git.constants import SPEC_EXTENSION, CONFIG_FILE
 from ml_git.pool import pool_factory
 
@@ -69,6 +70,21 @@ def yaml_load(file):
             hash = yaml_processor.load(y_file)
     except Exception:
         pass
+    if SPEC_EXTENSION in posix_path(file):
+        hash = check_spec_file(file, hash)
+    return hash
+
+
+def check_spec_file(file, hash):
+    modified = False
+    if 'dataset' in hash:
+        hash['datasets'] = hash.pop('dataset')
+        modified = True
+    if 'model' in hash:
+        hash['models'] = hash.pop('model')
+        modified = True
+    if modified:
+        yaml_save(hash, file)
     return hash
 
 
@@ -279,3 +295,50 @@ def remove_other_files(filenames, path):
                 os.unlink(file_path)
                 count += 1
     return reclaimed_space, count
+
+
+def check_metadata_directories():
+    try:
+        root_path = get_root_path()
+    except Exception as e:
+        if str(e) == 'You are not in an initialized ml-git repository.':
+            return
+        raise e
+
+    have_old_dataset_path = os.path.exists(os.path.join(root_path, 'dataset')) or os.path.exists(os.path.join(root_path, '.ml-git', 'dataset'))
+    have_old_model_path = os.path.exists(os.path.join(root_path, 'model')) or os.path.exists(os.path.join(root_path, '.ml-git', 'model'))
+
+    if have_old_dataset_path or have_old_model_path:
+        log.info('It was observed that the directories of this project follow the scheme of old versions of ml-git.\n' +
+                 '\tTo continue using this project it is necessary to update the directories.')
+        update_now = input('\tDo you want to update your project now? (Yes/No) ').lower()
+        if update_now in ['yes', 'y']:
+            if have_old_dataset_path:
+                update_directories_to_plural(root_path, 'dataset', 'datasets')
+            if have_old_model_path:
+                update_directories_to_plural(root_path, 'model', 'models')
+            change_keys_in_config(root_path)
+        else:
+            raise Exception('To continue using this project it is necessary to update it.')
+        log.info('Project updated successfully')
+
+
+def update_directories_to_plural(root_path, old_value, new_value):
+    data_path = os.path.join(root_path, old_value)
+    if os.path.exists(data_path):
+        set_write_read(data_path)
+        os.rename(data_path, os.path.join(root_path, new_value))
+    metadata_path = os.path.join(root_path, '.ml-git', old_value)
+    if os.path.exists(metadata_path):
+        set_write_read(metadata_path)
+        os.rename(metadata_path, os.path.join(root_path, '.ml-git', new_value))
+
+
+def change_keys_in_config(root_path):
+    file = os.path.join(root_path, '.ml-git', 'config.yaml')
+    conf = yaml_load(file)
+    if 'dataset' in conf:
+        conf['datasets'] = conf.pop('dataset')
+    if 'model' in conf:
+        conf['models'] = conf.pop('model')
+    yaml_save(conf, file)

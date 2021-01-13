@@ -22,6 +22,10 @@ output_messages = {
     'INFO_REMOVED_FILES': 'A total of %s files have been removed from %s',
     'INFO_RECLAIMED_SPACE': 'Total reclaimed space %s.',
     'INFO_ENTITY_DELETED': 'Entity %s was deleted',
+    'INFO_DIRECTORY_STRUCTURE_WRONG': 'It was observed that the directories of this project follow the scheme of old versions of ml-git.\n' +
+                                      '\tTo continue using this project it is necessary to update the directories. Ml-git can do this update on its own.',
+    'INFO_WANT_UPDATE_NOW': '\tDo you want to update your project now? (Yes/No) ',
+    'INFO_PROJECT_UPDATE_SUCCESSFULLY': 'Project updated successfully',
 
     'ERROR_WITHOUT_TAG_FOR_THIS_ENTITY': 'No entity with that name was found.',
     'ERROR_MULTIPLES_ENTITIES_WITH_SAME_NAME': 'You have more than one entity with the same name. Use one of the following tags to perform the checkout:\n',
@@ -35,8 +39,9 @@ output_messages = {
                                      'Your spec should look something like this:' + get_sample_spec_doc('some-bucket'),
     'ERROR_AWS_KEY_NOT_EXIST': 'The AWS Access Key Id you provided does not exist in our records.',
     'ERROR_BUCKET_DOES_NOT_EXIST': 'This bucket does not exist -- [%s]',
-    'ERROR_INVALID_ENTITY_TYPE': 'The entity type informed is invalid.',
+    'ERROR_INVALID_ENTITY_TYPE': 'Invalid entity type. Valid values are:',
     'ERROR_INVALID_STATUS_DIRECTORY': 'The directory informed is invalid.',
+    'ERROR_NEED_UPDATE_PROJECT': 'To continue using this project it is necessary to update it.',
 
     'WARN_HAS_CONFIGURED_REMOTE': 'YOU ALREADY HAS A CONFIGURED REMOTE. All data stored in this repository will be sent to the new one on the first push.',
 }
