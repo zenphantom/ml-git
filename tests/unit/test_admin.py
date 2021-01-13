@@ -36,20 +36,20 @@ class AdminTestCases(unittest.TestCase):
     def test_remote_add(self):
         remote_default = 'git_local_server.git'
         new_remote = 'git_local_server2.git'
-        dataset = 'dataset'
+        dataset = 'datasets'
         init_mlgit()
         remote_add(dataset, new_remote)
         self.assertTrue(os.path.isdir('.ml-git'))
         config = yaml_load('.ml-git/config.yaml')
-        self.assertEqual(config['dataset']['git'], new_remote)
+        self.assertEqual(config['datasets']['git'], new_remote)
         self.assertNotEqual(remote_default, new_remote)
         remote_add(dataset, '')
         config_ = yaml_load('.ml-git/config.yaml')
-        self.assertEqual(config_['dataset']['git'], '')
+        self.assertEqual(config_['datasets']['git'], '')
         remote_add(dataset, new_remote)
         self.assertTrue(os.path.isdir('.ml-git'))
         config__ = yaml_load('.ml-git/config.yaml')
-        self.assertEqual(config__['dataset']['git'], new_remote)
+        self.assertEqual(config__['datasets']['git'], new_remote)
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_store_add(self):
@@ -95,28 +95,28 @@ class AdminTestCases(unittest.TestCase):
     def test_remote_add_global_config(self):
         remote_default = 'git_local_server.git'
         new_remote = 'git_local_server2.git'
-        dataset = 'dataset'
+        datasets = 'datasets'
         init_mlgit()
         with mock.patch('pathlib.Path.home', return_value=self.tmp_dir):
-            remote_add(dataset, new_remote, global_conf=True)
+            remote_add(datasets, new_remote, global_conf=True)
 
         self.assertTrue(os.path.exists('.mlgitconfig'))
         config = yaml_load('.ml-git/config.yaml')
         config_global = yaml_load('.mlgitconfig')
-        self.assertEqual(config_global['dataset']['git'], new_remote)
-        self.assertNotEqual(config['dataset']['git'], remote_default)
+        self.assertEqual(config_global[datasets]['git'], new_remote)
+        self.assertNotEqual(config[datasets]['git'], remote_default)
 
         with mock.patch('pathlib.Path.home', return_value=self.tmp_dir):
-            remote_add(dataset, '', global_conf=True)
+            remote_add(datasets, '', global_conf=True)
 
         config_ = yaml_load('.mlgitconfig')
-        self.assertEqual(config_['dataset']['git'], '')
+        self.assertEqual(config_[datasets]['git'], '')
 
         with mock.patch('pathlib.Path.home', return_value=self.tmp_dir):
-            remote_add(dataset, new_remote, global_conf=True)
+            remote_add(datasets, new_remote, global_conf=True)
 
         config__ = yaml_load('.mlgitconfig')
-        self.assertEqual(config__['dataset']['git'], new_remote)
+        self.assertEqual(config__[datasets]['git'], new_remote)
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_store_add_global_config(self):
@@ -165,13 +165,13 @@ class AdminTestCases(unittest.TestCase):
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_remote_del(self):
         remote_default = 'git_local_server.git'
-        dataset = 'dataset'
+        datasets = 'datasets'
         init_mlgit()
         config = yaml_load('.ml-git/config.yaml')
-        self.assertEqual(config['dataset']['git'], '')
-        remote_add(dataset, remote_default)
+        self.assertEqual(config[datasets]['git'], '')
+        remote_add(datasets, remote_default)
         config = yaml_load('.ml-git/config.yaml')
-        self.assertEqual(config['dataset']['git'], remote_default)
-        remote_del(dataset)
+        self.assertEqual(config[datasets]['git'], remote_default)
+        remote_del(datasets)
         config_ = yaml_load('.ml-git/config.yaml')
-        self.assertEqual(config_['dataset']['git'], '')
+        self.assertEqual(config_[datasets]['git'], '')

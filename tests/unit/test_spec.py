@@ -24,10 +24,10 @@ class SpecTestCases(unittest.TestCase):
         file = os.path.join(testdir, 'sample.spec')
         spec_hash = yaml_load(file)
         yaml_save(spec_hash, tmpfile)
-        version = spec_hash['dataset']['version']
+        version = spec_hash['datasets']['version']
         incr_version(tmpfile)
         incremented_hash = yaml_load(tmpfile)
-        self.assertEqual(incremented_hash['dataset']['version'], version + 1)
+        self.assertEqual(incremented_hash['datasets']['version'], version + 1)
 
         incr_version('non-existent-file')
 
@@ -54,7 +54,7 @@ class SpecTestCases(unittest.TestCase):
     def test_search_spec_file(self):
         categories_path = ''
         specpath = 'dataset-ex'
-        spec_dir = os.path.join(self.tmp_dir, 'dataset')
+        spec_dir = os.path.join(self.tmp_dir, 'datasets')
         spec_dir_c = os.path.join(spec_dir, categories_path, specpath)
 
         os.mkdir(spec_dir)
@@ -92,7 +92,7 @@ class SpecTestCases(unittest.TestCase):
     def test_increment_version_in_dataset_spec(self):
         dataset = 'test_dataset'
         dir1 = get_spec_file_dir(dataset)
-        dir2 = os.path.join('.ml-git', 'dataset', 'index', 'metadata', dataset)  # Linked path to the original
+        dir2 = os.path.join('.ml-git', 'datasets', 'index', 'metadata', dataset)  # Linked path to the original
         os.makedirs(os.path.join(self.tmp_dir, dir1))
         os.makedirs(os.path.join(self.tmp_dir, dir2))
         file1 = os.path.join(self.tmp_dir, dir1, '%s.spec' % dataset)
@@ -110,7 +110,7 @@ class SpecTestCases(unittest.TestCase):
         yaml_save(spec, file1)
         os.link(file1, file2)
         self.assertTrue(increment_version_in_spec(
-            os.path.join(get_root_path(), self.tmp_dir, 'dataset', dataset, dataset + '.spec')))
+            os.path.join(get_root_path(), self.tmp_dir, 'datasets', dataset, dataset + '.spec')))
 
     def test_get_version(self):
         file = os.path.join(testdir, 'valid.spec')
@@ -119,18 +119,18 @@ class SpecTestCases(unittest.TestCase):
         self.assertTrue(get_version(file) < 0)
 
     def test_update_store_spec(self):
-        spec_path = os.path.join(os.getcwd(), os.sep.join(['dataset', 'dataex', 'dataex.spec']))
+        spec_path = os.path.join(os.getcwd(), os.sep.join(['datasets', 'dataex', 'dataex.spec']))
 
-        update_store_spec('dataset', 'dataex', 's3h', 'fakestore')
+        update_store_spec('datasets', 'dataex', 's3h', 'fakestore')
         spec1 = yaml_load(spec_path)
-        self.assertEqual(spec1['dataset']['manifest']['store'], 's3h://fakestore')
+        self.assertEqual(spec1['datasets']['manifest']['store'], 's3h://fakestore')
 
-        update_store_spec('dataset', 'dataex', 's3h', 'some-bucket-name')
+        update_store_spec('datasets', 'dataex', 's3h', 'some-bucket-name')
         spec2 = yaml_load(spec_path)
-        self.assertEqual(spec2['dataset']['manifest']['store'], 's3h://some-bucket-name')
+        self.assertEqual(spec2['datasets']['manifest']['store'], 's3h://some-bucket-name')
 
     def test_validate_bucket_name(self):
-        repo_type = 'dataset'
+        repo_type = 'datasets'
         config = yaml_load(os.path.join(os.getcwd(), '.ml-git', 'config.yaml'))
         spec_with_wrong_bucket_name = yaml_load(os.path.join(testdir, 'invalid4.spec'))
         self.assertFalse(validate_bucket_name(spec_with_wrong_bucket_name[repo_type], config))
@@ -150,6 +150,6 @@ class SpecTestCases(unittest.TestCase):
         file = os.path.join(testdir, 'sample.spec')
         spec_hash = yaml_load(file)
         yaml_save(spec_hash, tmpfile)
-        set_version_in_spec(3, tmpfile, 'dataset')
+        set_version_in_spec(3, tmpfile, 'datasets')
         spec_hash = yaml_load(tmpfile)
-        self.assertEqual(spec_hash['dataset']['version'], 3)
+        self.assertEqual(spec_hash['datasets']['version'], 3)

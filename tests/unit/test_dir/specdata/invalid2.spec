@@ -1,4 +1,4 @@
-dataset:
+datasets:
   categories:
   - weather
   manifest:

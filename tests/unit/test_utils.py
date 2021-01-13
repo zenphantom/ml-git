@@ -15,7 +15,8 @@ import pytest
 
 from ml_git.utils import json_load, yaml_load, yaml_save, RootPathException, get_root_path, change_mask_for_routine, \
     ensure_path_exists, yaml_load_str, get_yaml_str, run_function_per_group, unzip_files_in_directory, \
-    remove_from_workspace, group_files_by_path, remove_other_files, remove_unnecessary_files
+    remove_from_workspace, group_files_by_path, remove_other_files, remove_unnecessary_files, change_keys_in_config, \
+    update_directories_to_plural
 
 
 @pytest.mark.usefixtures('tmp_dir', 'switch_to_test_dir', 'yaml_str_sample', 'yaml_obj_sample')
@@ -24,9 +25,9 @@ class UtilsTestCases(unittest.TestCase):
         jsn = {}
         self.assertFalse(bool(jsn))
         jsn = json_load('./udata/data.json')
-        self.assertEqual(jsn['dataset']['categories'], 'imgs')
-        self.assertEqual(jsn['dataset']['name'], 'dataex')
-        self.assertEqual(jsn['dataset']['version'], 1)
+        self.assertEqual(jsn['datasets']['categories'], 'imgs')
+        self.assertEqual(jsn['datasets']['name'], 'dataex')
+        self.assertEqual(jsn['datasets']['version'], 1)
         self.assertTrue(bool(jsn))
 
     def test_yaml_load(self):
@@ -58,7 +59,7 @@ class UtilsTestCases(unittest.TestCase):
 
             yal = yaml_load(yaml_path)
 
-            temp_arr = yal['dataset']['git'].split('.')
+            temp_arr = yal['datasets']['git'].split('.')
             temp_arr.pop()
             temp_arr.pop()
             temp_arr.append(temp_var)
@@ -66,12 +67,12 @@ class UtilsTestCases(unittest.TestCase):
             # create new git variable
             new_git_var = '.'.join(temp_arr)
 
-            self.assertFalse(yal['dataset']['git'] == new_git_var)
+            self.assertFalse(yal['datasets']['git'] == new_git_var)
 
-            yal['dataset']['git'] = new_git_var
+            yal['datasets']['git'] = new_git_var
 
             yaml_save(yal, yaml_path)
-            self.assertTrue(yal['dataset']['git'] == new_git_var)
+            self.assertTrue(yal['datasets']['git'] == new_git_var)
 
     def test_get_root_path(self):
 
@@ -197,3 +198,42 @@ class UtilsTestCases(unittest.TestCase):
         remove_other_files(['image1.jpg'], self.tmp_dir)
         self.assertTrue(os.path.exists(file1))
         self.assertFalse(os.path.exists(file2))
+
+    def test_change_keys_in_config(self):
+        config = """
+        dataset:
+           git: fake_git_repository
+        labels:
+           git: fake_git_repository
+        model:
+           git: fake_git_repository
+        store:
+            s3:
+                mlgit-datasets:
+                    aws-credentials:
+                        profile: mlgit
+                    region: us-east-1
+        """
+        config_path = os.path.join(self.tmp_dir, '.ml-git', 'config.yaml')
+        os.makedirs(os.path.join(self.tmp_dir, '.ml-git'), exist_ok=True)
+        with open(config_path, 'w') as config_yaml:
+            config_yaml.write(config)
+        change_keys_in_config(self.tmp_dir)
+        conf = yaml_load(config_path)
+        self.assertNotIn('dataset', conf)
+        self.assertIn('datasets', conf)
+        self.assertNotIn('model', conf)
+        self.assertIn('models', conf)
+
+    def test_update_directories_to_plural(self):
+        data_path = os.path.join(self.tmp_dir, 'dataset')
+        metadata_path = os.path.join(self.tmp_dir, '.ml-git', 'dataset')
+        os.makedirs(data_path, exist_ok=True)
+        os.makedirs(metadata_path, exist_ok=True)
+        update_directories_to_plural(self.tmp_dir, 'dataset', 'datasets')
+        self.assertFalse(os.path.exists(data_path))
+        self.assertFalse(os.path.exists(metadata_path))
+        data_path = os.path.join(self.tmp_dir, 'datasets')
+        metadata_path = os.path.join(self.tmp_dir, '.ml-git', 'datasets')
+        self.assertTrue(os.path.exists(data_path))
+        self.assertTrue(os.path.exists(metadata_path))

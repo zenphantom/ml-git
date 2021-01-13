@@ -33,13 +33,13 @@ config = {
     'mlgit_path': './mdata',
     'mlgit_conf': 'config.yaml',
 
-    'dataset': {
+    'datasets': {
         'git': os.path.join(os.getcwd(), 'git_local_server.git'),
     },
     'labels': {
         'git': os.path.join(os.getcwd(), 'git_local_server.git'),
     },
-    'model': {
+    'models': {
         'git': os.path.join(os.getcwd(), 'git_local_server.git'),
     },
 
@@ -56,10 +56,10 @@ config = {
     'verbose': 'info',
 }
 
-repotype = 'dataset'
+repotype = 'datasets'
 
 metadata_config = {
-    'dataset': {
+    'datasets': {
         'categories': 'images',
         'manifest': {
             'files': 'MANIFEST.yaml',
@@ -148,9 +148,9 @@ class MetadataTestCases(unittest.TestCase):
             'mlgit_path': './mdata',
             'mlgit_conf': 'config.yaml',
             'verbose': 'info',
-            'dataset': {'git': '', },
+            'datasets': {'git': '', },
             'labels': {'git': '', },
-            'model': {'git': '', }, }
+            'models': {'git': '', }, }
 
         m = Metadata('', self.test_dir, config, repotype)
         m.clone_config_repo()
@@ -159,7 +159,7 @@ class MetadataTestCases(unittest.TestCase):
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_test_dir')
     def test_blank_remote_url(self):
         config_cp = deepcopy(config)
-        config_cp['dataset']['git'] = ''
+        config_cp['datasets']['git'] = ''
         m = Metadata(spec, self.test_dir, config_cp, repotype)
         self.assertRaises(GitError, m.validate_blank_remote_url)
         clear(m.path)
