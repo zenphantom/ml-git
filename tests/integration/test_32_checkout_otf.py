@@ -14,7 +14,7 @@ from tests.integration.commands import MLGIT_INIT, MLGIT_STORE_ADD, MLGIT_COMMIT
     MLGIT_CHECKOUT, MLGIT_ENTITY_INIT
 from tests.integration.helper import check_output, BUCKET_NAME, PROFILE, ERROR_MESSAGE, init_repository, add_file, \
     ML_GIT_DIR, clear, GLOBAL_CONFIG_PATH, delete_global_config, \
-    configure_global
+    configure_global, DATASETS, DATASET_NAME
 from tests.integration.output_messages import messages
 
 
@@ -22,7 +22,7 @@ from tests.integration.output_messages import messages
 class APIAcceptanceTests(unittest.TestCase):
 
     def set_up_checkout(self, entity):
-        configure_global(self, 'dataset')
+        configure_global(self, DATASETS)
         init_repository(entity, self)
         add_file(self, entity, '', 'new')
         workspace = os.path.join(self.tmp_dir, entity)
@@ -32,10 +32,10 @@ class APIAcceptanceTests(unittest.TestCase):
         clear(workspace)
 
     def check_metadata(self):
-        objects = os.path.join(self.tmp_dir, ML_GIT_DIR, 'dataset', 'objects')
-        refs = os.path.join(self.tmp_dir, ML_GIT_DIR, 'dataset', 'refs')
-        cache = os.path.join(self.tmp_dir, ML_GIT_DIR, 'dataset', 'cache')
-        spec_file = os.path.join(self.tmp_dir, 'dataset', 'computer-vision', 'images', 'dataset-ex', 'dataset-ex.spec')
+        objects = os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'objects')
+        refs = os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'refs')
+        cache = os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'cache')
+        spec_file = os.path.join(self.tmp_dir, DATASETS, 'computer-vision', 'images', DATASET_NAME, 'datasets-ex.spec')
 
         self.assertTrue(os.path.exists(objects))
         self.assertTrue(os.path.exists(refs))
@@ -54,35 +54,35 @@ class APIAcceptanceTests(unittest.TestCase):
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     @mock.patch.dict(os.environ, {'HOME': GLOBAL_CONFIG_PATH})
     def test_01_checkout_with_otf_option(self):
-        self.set_up_checkout('dataset')
-        self.assertIn(messages[0], check_output(MLGIT_CHECKOUT % ('dataset', 'computer-vision__images__dataset-ex__1')))
+        self.set_up_checkout(DATASETS)
+        self.assertIn(messages[0], check_output(MLGIT_CHECKOUT % (DATASETS, 'computer-vision__images__datasets-ex__1')))
         self.check_metadata()
-        self.check_amount_of_files('dataset', 6)
+        self.check_amount_of_files(DATASETS, 6)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     @mock.patch.dict(os.environ, {'HOME': GLOBAL_CONFIG_PATH})
     def test_02_checkout_with_otf_in_already_initialized_repository(self):
-        self.set_up_checkout('dataset')
+        self.set_up_checkout(DATASETS)
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_INIT))
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_STORE_ADD % (BUCKET_NAME, PROFILE)))
-        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ENTITY_INIT % 'dataset'))
-        self.assertNotIn(messages[98], check_output(MLGIT_CHECKOUT % ('dataset', 'computer-vision__images__dataset-ex__1')))
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ENTITY_INIT % DATASETS))
+        self.assertNotIn(messages[98], check_output(MLGIT_CHECKOUT % (DATASETS, 'computer-vision__images__datasets-ex__1')))
         self.check_metadata()
-        self.check_amount_of_files('dataset', 6)
+        self.check_amount_of_files(DATASETS, 6)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     @mock.patch.dict(os.environ, {'HOME': GLOBAL_CONFIG_PATH})
     def test_03_checkout_with_otf_fail(self):
-        self.set_up_checkout('dataset')
-        self.assertIn(messages[98], check_output(MLGIT_CHECKOUT % ('dataset', 'computer-vision__images__dataset-ex__2')))
-        entity_dir = os.path.join(self.tmp_dir, 'dataset', 'computer-vision', 'images', 'dataset-ex')
+        self.set_up_checkout(DATASETS)
+        self.assertIn(messages[98], check_output(MLGIT_CHECKOUT % (DATASETS, 'computer-vision__images__datasets-ex__2')))
+        entity_dir = os.path.join(self.tmp_dir, DATASETS, 'computer-vision', 'images', DATASET_NAME)
         self.assertFalse(os.path.exists(entity_dir))
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     @mock.patch.dict(os.environ, {'HOME': GLOBAL_CONFIG_PATH})
     def test_04_checkout_with_otf_without_global(self):
-        self.set_up_checkout('dataset')
+        self.set_up_checkout(DATASETS)
         delete_global_config()
-        self.assertIn(messages[99], check_output(MLGIT_CHECKOUT % ('dataset', 'computer-vision__images__dataset-ex__2')))
-        entity_dir = os.path.join(self.tmp_dir, 'dataset', 'computer-vision', 'images', 'dataset-ex')
+        self.assertIn(messages[99], check_output(MLGIT_CHECKOUT % (DATASETS, 'computer-vision__images__datasets-ex__2')))
+        entity_dir = os.path.join(self.tmp_dir, DATASETS, 'computer-vision', 'images', DATASET_NAME)
         self.assertFalse(os.path.exists(entity_dir))

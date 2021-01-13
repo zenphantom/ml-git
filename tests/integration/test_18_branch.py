@@ -10,7 +10,7 @@ import unittest
 import pytest
 
 from tests.integration.commands import MLGIT_COMMIT, MLGIT_BRANCH
-from tests.integration.helper import ML_GIT_DIR
+from tests.integration.helper import ML_GIT_DIR, DATASETS, LABELS, MODELS
 from tests.integration.helper import check_output, init_repository, add_file
 from tests.integration.output_messages import messages
 
@@ -32,12 +32,12 @@ class BranchAcceptanceTests(unittest.TestCase):
 
     @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
     def test_01_branch_dataset(self):
-        self._branch_entity('dataset')
+        self._branch_entity(DATASETS)
 
     @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
     def test_02_branch_labels(self):
-        self._branch_entity('labels')
+        self._branch_entity(LABELS)
 
     @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
     def test_03_branch_model(self):
-        self._branch_entity('model')
+        self._branch_entity(MODELS)

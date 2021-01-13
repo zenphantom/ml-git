@@ -10,7 +10,7 @@ import pytest
 
 from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_COMMIT, MLGIT_UPDATE, MLGIT_PUSH, MLGIT_REPOSITORY_UPDATE, MLGIT_INIT
-from tests.integration.helper import ML_GIT_DIR, init_repository, add_file, ERROR_MESSAGE
+from tests.integration.helper import ML_GIT_DIR, init_repository, add_file, ERROR_MESSAGE, DATASETS, MODELS, LABELS
 from tests.integration.helper import check_output
 from tests.integration.output_messages import messages
 
@@ -38,31 +38,31 @@ class UpdateAcceptanceTests(unittest.TestCase):
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_01_update_dataset(self):
-        self._setup_update_entity('dataset')
-        self._check_update_entity('dataset')
+        self._setup_update_entity(DATASETS)
+        self._check_update_entity(DATASETS)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_02_update_model(self):
-        self._setup_update_entity('model')
-        self._check_update_entity('model')
+        self._setup_update_entity(MODELS)
+        self._check_update_entity(MODELS)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_03_update_labels(self):
-        self._setup_update_entity('labels')
-        self._check_update_entity('labels')
+        self._setup_update_entity(LABELS)
+        self._check_update_entity(LABELS)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_04_update_with_git_error(self):
-        init_repository('dataset', self)
-        self.assertTrue(messages[105], check_output(MLGIT_UPDATE % 'dataset'))
+        init_repository(DATASETS, self)
+        self.assertTrue(messages[105], check_output(MLGIT_UPDATE % DATASETS))
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_05_update_all_entities(self):
-        self._setup_update_entity('dataset')
-        self._setup_update_entity('labels')
-        self._setup_update_entity('model')
+        self._setup_update_entity(DATASETS)
+        self._setup_update_entity(LABELS)
+        self._setup_update_entity(MODELS)
         response = check_output(MLGIT_REPOSITORY_UPDATE)
-        self._check_update_output(response, 'dataset', 'model', 'labels')
+        self._check_update_output(response, DATASETS, MODELS, LABELS)
         self.assertNotIn(ERROR_MESSAGE, response)
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
@@ -73,9 +73,8 @@ class UpdateAcceptanceTests(unittest.TestCase):
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_07_update_some_entities(self):
-        self._setup_update_entity('dataset')
-        self._setup_update_entity('model')
+        self._setup_update_entity(DATASETS)
+        self._setup_update_entity(MODELS)
         response = check_output(MLGIT_REPOSITORY_UPDATE)
-        self._check_update_output(response, 'dataset', 'model')
-        self.assertNotIn(messages[37] % os.path.join(self.tmp_dir, ML_GIT_DIR, 'labels', 'metadata'),
-                         response)
+        self._check_update_output(response, DATASETS, MODELS)
+        self.assertNotIn(messages[37] % os.path.join(self.tmp_dir, ML_GIT_DIR, LABELS, 'metadata'), response)

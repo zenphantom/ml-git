@@ -18,7 +18,7 @@ messages = [
     'ERROR - Repository: Unable to find remote repository. Add the remote first.',  # 11
     'INFO - Admin: Add remote repository [%s] for [model]',  # 12
     'INFO - Repository: %s adding path',  # 13
-    'INFO - Repository: model adding path',  # 14
+    'INFO - Repository: models adding path',  # 14
     'INFO - Repository: labels adding path',  # 15
     'ERROR - Repository: The entity name passed is wrong. Please check again',  # 16
     'INFO - Metadata Manager: Commit repo[%s] --- file[%s]',  # 17
