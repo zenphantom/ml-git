@@ -8,18 +8,19 @@ from click_didyoumean import DYMGroup
 
 from ml_git.commands.general import mlgit
 from ml_git.commands.utils import repositories, LABELS, DATASETS, MODELS
+from ml_git.constants import EntityType
 
 
 @mlgit.group(DATASETS, help='Management of datasets within this ml-git repository.', cls=DYMGroup)
 @click.pass_context
-def dataset(ctx):
+def datasets(ctx):
     """
     Management of datasets within this ml-git repository.
     """
     pass
 
 
-@dataset.group('tag', help='Management of tags for this entity.', cls=DYMGroup)
+@datasets.group('tag', help='Management of tags for this entity.', cls=DYMGroup)
 def dt_tag_group():
     """
     Management of tags for this entity.
@@ -29,14 +30,14 @@ def dt_tag_group():
 
 @mlgit.group(MODELS, help='Management of models within this ml-git repository.', cls=DYMGroup)
 @click.pass_context
-def model(ctx):
+def models(ctx):
     """
     Management of models within this ml-git repository.
     """
     pass
 
 
-@model.group('tag', help='Management of tags for this entity.', cls=DYMGroup)
+@models.group('tag', help='Management of tags for this entity.', cls=DYMGroup)
 def md_tag_group():
     """
     Management of tags for this entity.
@@ -135,9 +136,9 @@ def commit(context, **kwargs):
         dataset_tag = kwargs['dataset']
     tags = {}
     if dataset_tag is not None:
-        tags['datasets'] = dataset_tag
+        tags[EntityType.DATASETS.value] = dataset_tag
     if labels_tag is not None:
-        tags['labels'] = labels_tag
+        tags[EntityType.LABELS.value] = labels_tag
 
     repositories[repo_type].commit(entity_name, tags, version_number, run_fsck, msg)
 

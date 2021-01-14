@@ -31,12 +31,11 @@ from ml_git.spec import spec_parse, search_spec_file
 from ml_git.storages.store_utils import store_factory
 from ml_git.utils import yaml_load, ensure_path_exists, get_path_with_categories, convert_path, \
     normalize_path, posix_path, set_write_read, change_mask_for_routine, run_function_per_group
-DATASETS = EntityType.DATASETS.value
 
 
 class LocalRepository(MultihashFS):
 
-    def __init__(self, config, objects_path, repo_type=DATASETS, block_size=256 * 1024, levels=2):
+    def __init__(self, config, objects_path, repo_type=EntityType.DATASETS.value, block_size=256 * 1024, levels=2):
         self.is_shared_objects = repo_type in config and 'objects_path' in config[repo_type]
         with change_mask_for_routine(self.is_shared_objects):
             super(LocalRepository, self).__init__(objects_path, block_size, levels)

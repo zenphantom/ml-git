@@ -20,13 +20,13 @@ mlgit_config = {
     'mlgit_path': '.ml-git',
     'mlgit_conf': 'config.yaml',
 
-    'datasets': {
+    EntityType.DATASETS.value: {
         'git': '',
     },
-    'models': {
+    EntityType.MODELS.value: {
         'git': '',
     },
-    'labels': {
+    EntityType.LABELS.value: {
         'git': '',
     },
 
@@ -128,9 +128,9 @@ def mlgit_config_save(mlgit_file=__get_conf_filepath()):
         return
 
     config = {
-        'datasets': mlgit_config['datasets'],
-        'models': mlgit_config['models'],
-        'labels': mlgit_config['labels'],
+        EntityType.DATASETS.value: mlgit_config[EntityType.DATASETS.value],
+        EntityType.MODELS.value: mlgit_config[EntityType.MODELS.value],
+        EntityType.LABELS.value: mlgit_config[EntityType.LABELS.value],
         'store': mlgit_config['store'],
         'batch_size': mlgit_config['batch_size']
     }
@@ -143,9 +143,9 @@ def save_global_config_in_local(mlgit_file=__get_conf_filepath()):
     merge_local_with_global_config()
 
     config = {
-        'datasets': mlgit_config['datasets'],
-        'models': mlgit_config['models'],
-        'labels': mlgit_config['labels'],
+        EntityType.DATASETS.value: mlgit_config[EntityType.DATASETS.value],
+        EntityType.MODELS.value: mlgit_config[EntityType.MODELS.value],
+        EntityType.LABELS.value: mlgit_config[EntityType.LABELS.value],
         'store': mlgit_config['store'],
         'batch_size': mlgit_config['batch_size']
     }
@@ -164,13 +164,13 @@ def repo_config(repo):
     return mlgit_config['repos'][repo]
 
 
-def get_index_path(config, type='datasets'):
+def get_index_path(config, type=EntityType.DATASETS.value):
     root_path = get_root_path()
     default = os.path.join(root_path, config['mlgit_path'], type, 'index')
     return getOrElse(config[type], 'index_path', default)
 
 
-def get_index_metadata_path(config, type='datasets'):
+def get_index_metadata_path(config, type=EntityType.DATASETS.value):
     default = os.path.join(get_index_path(config, type), 'metadata')
     return getOrElse(config[type], 'index_metadata_path', default)
 
@@ -187,13 +187,13 @@ def get_batch_size(config):
     return batch_size
 
 
-def get_objects_path(config, type='datasets'):
+def get_objects_path(config, type=EntityType.DATASETS.value):
     root_path = get_root_path()
     default = os.path.join(root_path, config['mlgit_path'], type, 'objects')
     return getOrElse(config[type], 'objects_path', default)
 
 
-def get_cache_path(config, type='datasets'):
+def get_cache_path(config, type=EntityType.DATASETS.value):
     root_path = get_root_path()
     default = os.path.join(root_path, config['mlgit_path'], type, 'cache')
     return getOrElse(config[type], 'cache_path', default)
@@ -205,7 +205,7 @@ def get_metadata_path(config, type=EntityType.DATASETS.value):
     return getOrElse(config[type], 'metadata_path', default)
 
 
-def get_refs_path(config, type='datasets'):
+def get_refs_path(config, type=EntityType.DATASETS.value):
     root_path = get_root_path()
     default = os.path.join(root_path, config['mlgit_path'], type, 'refs')
     return getOrElse(config[type], 'refs_path', default)
@@ -251,7 +251,7 @@ def validate_bucket_config(the_bucket_hash, store_type=StoreType.S3H.value):
     return True
 
 
-def get_sample_spec_doc(bucket, repotype='datasets'):
+def get_sample_spec_doc(bucket, repotype=EntityType.DATASETS.value):
     doc = '''
       %s:
         categories:
@@ -267,12 +267,12 @@ def get_sample_spec_doc(bucket, repotype='datasets'):
     return doc
 
 
-def get_sample_spec(bucket, repotype='datasets'):
+def get_sample_spec(bucket, repotype=EntityType.DATASETS.value):
     c = yaml_load_str(get_sample_spec_doc(bucket, repotype))
     return c
 
 
-def validate_spec_hash(the_hash, repotype='datasets'):
+def validate_spec_hash(the_hash, repotype=EntityType.DATASETS.value):
     if the_hash in [None, {}]:
         return False
 

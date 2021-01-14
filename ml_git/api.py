@@ -11,8 +11,7 @@ from ml_git import admin
 from ml_git import log
 from ml_git.admin import init_mlgit
 from ml_git.config import config_load
-from ml_git.constants import EntityType
-from ml_git.constants import StoreType
+from ml_git.constants import EntityType, StoreType
 from ml_git.log import init_logger
 from ml_git.repository import Repository
 
@@ -20,9 +19,9 @@ init_logger()
 
 
 def get_repository_instance(repo_type):
-    entity_types = [entity.value for entity in EntityType]
-    if repo_type not in entity_types and repo_type != 'project':
-        raise RuntimeError('Invalid entity type. Valid values are: %s' % entity_types)
+    project_repo_type = 'project'
+    if repo_type not in EntityType.to_list() and repo_type != project_repo_type:
+        raise RuntimeError('Invalid entity type. Valid values are: %s' % EntityType.to_list())
     return Repository(config_load(), repo_type)
 
 

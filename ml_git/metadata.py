@@ -182,9 +182,8 @@ class Metadata(MetadataManager):
             r = Refs(refs_path, d_spec, dataset)
             tag, sha = r.head()
             if tag is not None:
-                log.info(
-                    'Associate datasets [%s]-[%s] to the %s.' % (d_spec, tag, self.__repo_type),
-                    class_name=LOCAL_REPOSITORY_CLASS_NAME)
+                log.info(output_messages['INFO_ASSOCIATE_DATASETS'] % (d_spec, tag, self.__repo_type),
+                         class_name=LOCAL_REPOSITORY_CLASS_NAME)
                 metadata[self.__repo_type][dataset] = {}
                 metadata[self.__repo_type][dataset]['tag'] = tag
                 metadata[self.__repo_type][dataset]['sha'] = sha

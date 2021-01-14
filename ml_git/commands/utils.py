@@ -14,7 +14,7 @@ MODELS = EntityType.MODELS.value
 PROJECT = 'project'
 
 
-def init_repository(entity_type='datasets'):
+def init_repository(entity_type=DATASETS):
     return Repository(config_load(), entity_type)
 
 

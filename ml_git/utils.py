@@ -19,8 +19,12 @@ from ruamel.yaml import YAML
 from ruamel.yaml.compat import StringIO
 
 from ml_git import log
-from ml_git.constants import SPEC_EXTENSION, CONFIG_FILE
+from ml_git.constants import SPEC_EXTENSION, CONFIG_FILE, EntityType, ROOT_FILE_NAME
+from ml_git.ml_git_message import output_messages
 from ml_git.pool import pool_factory
+
+OLD_DATASETS_KEY = 'dataset'
+OLD_MODELS_KEY = 'model'
 
 
 class RootPathException(Exception):
@@ -77,11 +81,11 @@ def yaml_load(file):
 
 def check_spec_file(file, hash):
     modified = False
-    if 'dataset' in hash:
-        hash['datasets'] = hash.pop('dataset')
+    if OLD_DATASETS_KEY in hash:
+        hash[EntityType.DATASETS.value] = hash.pop(OLD_DATASETS_KEY)
         modified = True
-    if 'model' in hash:
-        hash['models'] = hash.pop('model')
+    if OLD_MODELS_KEY in hash:
+        hash[EntityType.MODELS.value] = hash.pop(OLD_MODELS_KEY)
         modified = True
     if modified:
         yaml_save(hash, file)
@@ -300,27 +304,24 @@ def remove_other_files(filenames, path):
 def check_metadata_directories():
     try:
         root_path = get_root_path()
-    except Exception as e:
-        if str(e) == 'You are not in an initialized ml-git repository.':
-            return
-        raise e
+    except RootPathException:
+        return
 
-    have_old_dataset_path = os.path.exists(os.path.join(root_path, 'dataset')) or os.path.exists(os.path.join(root_path, '.ml-git', 'dataset'))
-    have_old_model_path = os.path.exists(os.path.join(root_path, 'model')) or os.path.exists(os.path.join(root_path, '.ml-git', 'model'))
+    have_old_dataset_path = os.path.exists(os.path.join(root_path, OLD_DATASETS_KEY)) or os.path.exists(os.path.join(root_path, ROOT_FILE_NAME, OLD_DATASETS_KEY))
+    have_old_model_path = os.path.exists(os.path.join(root_path, OLD_MODELS_KEY)) or os.path.exists(os.path.join(root_path, ROOT_FILE_NAME, OLD_MODELS_KEY))
 
     if have_old_dataset_path or have_old_model_path:
-        log.info('It was observed that the directories of this project follow the scheme of old versions of ml-git.\n' +
-                 '\tTo continue using this project it is necessary to update the directories.')
-        update_now = input('\tDo you want to update your project now? (Yes/No) ').lower()
+        log.info(output_messages['INFO_UPDATE_THE_PROJECT'])
+        update_now = input(output_messages['INFO_AKS_IF_WANT_UPDATE_PROJECT']).lower()
         if update_now in ['yes', 'y']:
             if have_old_dataset_path:
-                update_directories_to_plural(root_path, 'dataset', 'datasets')
+                update_directories_to_plural(root_path, OLD_DATASETS_KEY, EntityType.DATASETS.value)
             if have_old_model_path:
-                update_directories_to_plural(root_path, 'model', 'models')
+                update_directories_to_plural(root_path, OLD_MODELS_KEY, EntityType.MODELS.value)
             change_keys_in_config(root_path)
         else:
-            raise Exception('To continue using this project it is necessary to update it.')
-        log.info('Project updated successfully')
+            raise Exception(output_messages['ERROR_PROJECT_NEED_BE_UPDATED'])
+        log.info(output_messages['INFO_PROJECT_UPDATE_SUCCESSFULLY'])
 
 
 def update_directories_to_plural(root_path, old_value, new_value):
@@ -328,17 +329,17 @@ def update_directories_to_plural(root_path, old_value, new_value):
     if os.path.exists(data_path):
         set_write_read(data_path)
         os.rename(data_path, os.path.join(root_path, new_value))
-    metadata_path = os.path.join(root_path, '.ml-git', old_value)
+    metadata_path = os.path.join(root_path, ROOT_FILE_NAME, old_value)
     if os.path.exists(metadata_path):
         set_write_read(metadata_path)
-        os.rename(metadata_path, os.path.join(root_path, '.ml-git', new_value))
+        os.rename(metadata_path, os.path.join(root_path, ROOT_FILE_NAME, new_value))
 
 
 def change_keys_in_config(root_path):
-    file = os.path.join(root_path, '.ml-git', 'config.yaml')
+    file = os.path.join(root_path, ROOT_FILE_NAME, 'config.yaml')
     conf = yaml_load(file)
-    if 'dataset' in conf:
-        conf['datasets'] = conf.pop('dataset')
-    if 'model' in conf:
-        conf['models'] = conf.pop('model')
+    if OLD_DATASETS_KEY in conf:
+        conf[EntityType.DATASETS.value] = conf.pop(OLD_DATASETS_KEY)
+    if OLD_MODELS_KEY in conf:
+        conf[EntityType.MODELS.value] = conf.pop(OLD_MODELS_KEY)
     yaml_save(conf, file)
