@@ -12,7 +12,7 @@ import pytest
 from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_CHECKOUT, MLGIT_PUSH, MLGIT_COMMIT, MLGIT_ADD
 from tests.integration.helper import ML_GIT_DIR, MLGIT_ENTITY_INIT, ERROR_MESSAGE, \
-    add_file, GIT_PATH, check_output, clear, init_repository, DATASETS, DATASET_NAME
+    add_file, GIT_PATH, check_output, clear, init_repository, DATASETS, DATASET_NAME, DATASET_TAG
 
 
 @pytest.mark.usefixtures('tmp_dir', 'aws_session')
@@ -104,7 +104,7 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_04_checkout_with_version_number(self):
         self.set_up_checkout(DATASETS)
-        self.assertIn(output_messages['INFO_CHECKOUT_TAG'] % 'computer-vision__images__datasets-ex__1',
+        self.assertIn(output_messages['INFO_CHECKOUT_TAG'] % DATASET_TAG,
                       check_output(MLGIT_CHECKOUT % (DATASETS, 'datasets-ex --version=1')))
         file = os.path.join(self.tmp_dir, DATASETS, 'computer-vision', 'images', DATASET_NAME, 'newfile0')
         self.check_metadata()
@@ -114,7 +114,7 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_05_checkout_with_wrong_version_number(self):
         self.set_up_checkout(DATASETS)
-        self.assertIn(output_messages['ERROR_WRONG_VERSION_NUMBER_TO_CHECKOUT'] % ('computer-vision__images__datasets-ex__1'),
+        self.assertIn(output_messages['ERROR_WRONG_VERSION_NUMBER_TO_CHECKOUT'] % (DATASET_TAG),
                       check_output(MLGIT_CHECKOUT % (DATASETS, 'datasets-ex --version=10')))
         file = os.path.join(self.tmp_dir, DATASETS, 'computer-vision', 'images', DATASET_NAME, 'newfile0')
         self.assertFalse(os.path.exists(file))

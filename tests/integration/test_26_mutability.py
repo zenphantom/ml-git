@@ -9,7 +9,7 @@ import unittest
 import pytest
 
 from tests.integration.commands import MLGIT_ADD, MLGIT_COMMIT, MLGIT_PUSH, MLGIT_UPDATE, MLGIT_CHECKOUT
-from tests.integration.helper import ML_GIT_DIR, create_spec, create_file, DATASETS, MODELS, LABELS
+from tests.integration.helper import ML_GIT_DIR, create_spec, create_file, DATASETS, MODELS, LABELS, DATASET_TAG
 from tests.integration.helper import check_output, clear, init_repository, ERROR_MESSAGE, yaml_processor
 from tests.integration.output_messages import messages
 
@@ -35,7 +35,7 @@ class MutabilityAcceptanceTests(unittest.TestCase):
         clear(workspace)
         clear(os.path.join(self.tmp_dir, entity_type))
 
-    def _checkout_entity(self, entity_type, tag='computer-vision__images__datasets-ex__1'):
+    def _checkout_entity(self, entity_type, tag=DATASET_TAG):
         init_repository(entity_type, self)
         self.assertIn(messages[20] % (os.path.join(self.tmp_dir, ML_GIT_DIR, entity_type, 'metadata')),
                       check_output(MLGIT_UPDATE % entity_type))

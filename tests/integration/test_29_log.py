@@ -10,7 +10,7 @@ import pytest
 
 from tests.integration.commands import MLGIT_ADD, MLGIT_COMMIT, MLGIT_LOG
 from tests.integration.helper import ML_GIT_DIR, add_file, create_spec, delete_file, ERROR_MESSAGE, DATASETS, \
-    DATASET_NAME
+    DATASET_NAME, DATASET_TAG
 from tests.integration.helper import check_output, init_repository
 from tests.integration.output_messages import messages
 
@@ -18,7 +18,6 @@ from tests.integration.output_messages import messages
 @pytest.mark.usefixtures('tmp_dir')
 class LogTests(unittest.TestCase):
     COMMIT_MESSAGE = 'test_message'
-    TAG = 'computer-vision__images__datasets-ex__1'
 
     def setUp_test(self):
         init_repository(DATASETS, self)
@@ -32,7 +31,7 @@ class LogTests(unittest.TestCase):
     def test_01_log(self):
         self.setUp_test()
         output = check_output(MLGIT_LOG % (DATASETS, DATASET_NAME, ''))
-        self.assertIn(messages[77] % self.TAG, output)
+        self.assertIn(messages[77] % DATASET_TAG, output)
         self.assertIn(messages[78] % self.COMMIT_MESSAGE, output)
         self.assertNotIn(messages[79] % 0, output)
         self.assertNotIn(messages[80] % 0, output)

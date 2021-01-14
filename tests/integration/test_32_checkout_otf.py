@@ -14,7 +14,7 @@ from tests.integration.commands import MLGIT_INIT, MLGIT_STORE_ADD, MLGIT_COMMIT
     MLGIT_CHECKOUT, MLGIT_ENTITY_INIT
 from tests.integration.helper import check_output, BUCKET_NAME, PROFILE, ERROR_MESSAGE, init_repository, add_file, \
     ML_GIT_DIR, clear, GLOBAL_CONFIG_PATH, delete_global_config, \
-    configure_global, DATASETS, DATASET_NAME
+    configure_global, DATASETS, DATASET_NAME, DATASET_TAG
 from tests.integration.output_messages import messages
 
 
@@ -55,7 +55,7 @@ class APIAcceptanceTests(unittest.TestCase):
     @mock.patch.dict(os.environ, {'HOME': GLOBAL_CONFIG_PATH})
     def test_01_checkout_with_otf_option(self):
         self.set_up_checkout(DATASETS)
-        self.assertIn(messages[0], check_output(MLGIT_CHECKOUT % (DATASETS, 'computer-vision__images__datasets-ex__1')))
+        self.assertIn(messages[0], check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG)))
         self.check_metadata()
         self.check_amount_of_files(DATASETS, 6)
 
@@ -66,7 +66,7 @@ class APIAcceptanceTests(unittest.TestCase):
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_INIT))
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_STORE_ADD % (BUCKET_NAME, PROFILE)))
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ENTITY_INIT % DATASETS))
-        self.assertNotIn(messages[98], check_output(MLGIT_CHECKOUT % (DATASETS, 'computer-vision__images__datasets-ex__1')))
+        self.assertNotIn(messages[98], check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG)))
         self.check_metadata()
         self.check_amount_of_files(DATASETS, 6)
 

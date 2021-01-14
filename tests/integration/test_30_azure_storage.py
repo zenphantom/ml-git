@@ -12,7 +12,7 @@ from azure.storage.blob import BlobServiceClient, ContainerClient
 
 from tests.integration.commands import MLGIT_INIT, MLGIT_REMOTE_ADD, MLGIT_ENTITY_INIT, MLGIT_COMMIT, MLGIT_PUSH, \
     MLGIT_CHECKOUT
-from tests.integration.helper import ML_GIT_DIR, ERROR_MESSAGE, DATASETS, DATASET_NAME
+from tests.integration.helper import ML_GIT_DIR, ERROR_MESSAGE, DATASETS, DATASET_NAME, DATASET_TAG
 from tests.integration.helper import check_output, clear, GIT_PATH, create_spec, add_file
 from tests.integration.output_messages import messages
 
@@ -104,7 +104,7 @@ class AzureAcceptanceTests(unittest.TestCase):
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ENTITY_INIT % self.repo_type))
         self.assertEqual(os.getenv('AZURE_STORAGE_CONNECTION_STRING'), self.dev_store_account_)
         self.assertNotIn(ERROR_MESSAGE,
-                         check_output(MLGIT_CHECKOUT % (self.repo_type, 'computer-vision__images__datasets-ex__1')))
+                         check_output(MLGIT_CHECKOUT % (self.repo_type, DATASET_TAG)))
         ws_path = os.path.join(self.tmp_dir, DATASETS, 'computer-vision', 'images', DATASET_NAME)
 
         self.assertTrue(os.path.isfile(os.path.join(ws_path, 'newfile0')))

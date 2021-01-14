@@ -9,7 +9,7 @@ import unittest
 import pytest
 
 from tests.integration.commands import MLGIT_ADD, MLGIT_COMMIT, MLGIT_PUSH, MLGIT_UPDATE, MLGIT_CHECKOUT
-from tests.integration.helper import ML_GIT_DIR, ERROR_MESSAGE, DATASETS, DATASET_NAME
+from tests.integration.helper import ML_GIT_DIR, ERROR_MESSAGE, DATASETS, DATASET_NAME, DATASET_TAG
 from tests.integration.helper import check_output, clear, init_repository, create_spec, create_file, yaml_processor
 from tests.integration.output_messages import messages
 
@@ -38,7 +38,7 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
         self._push_files(entity_type, '')
         self._clear_path()
 
-    def _checkout_entity(self, entity_type, tag='computer-vision__images__datasets-ex__1', bare=True):
+    def _checkout_entity(self, entity_type, tag=DATASET_TAG, bare=True):
         init_repository(entity_type, self)
         self.assertIn(messages[20] % (os.path.join(self.tmp_dir, ML_GIT_DIR, entity_type, 'metadata')),
                       check_output(MLGIT_UPDATE % entity_type))

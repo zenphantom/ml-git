@@ -10,7 +10,7 @@ from stat import S_IWUSR, S_IREAD
 import pytest
 
 from tests.integration.commands import MLGIT_COMMIT, MLGIT_PUSH, MLGIT_ENTITY_INIT, MLGIT_STATUS, MLGIT_ADD, MLGIT_CHECKOUT
-from tests.integration.helper import ML_GIT_DIR, GIT_PATH, ERROR_MESSAGE, DATASETS, DATASET_NAME
+from tests.integration.helper import ML_GIT_DIR, GIT_PATH, ERROR_MESSAGE, DATASETS, DATASET_NAME, DATASET_TAG
 from tests.integration.helper import check_output, clear, init_repository, add_file, create_file
 from tests.integration.output_messages import messages
 
@@ -69,16 +69,14 @@ class StatusAcceptanceTests(unittest.TestCase):
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_04_status_after_checkout_in_dataset(self):
         self.set_up_checkout(DATASETS)
-        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_CHECKOUT % (DATASETS,
-                                                                       'computer-vision__images__datasets-ex__1')))
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG)))
         self.assertRegex(check_output(MLGIT_STATUS % (DATASETS, DATASET_NAME)),
                          r'Changes to be committed:\s+Untracked files')
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_05_status_after_delete_file(self):
         self.set_up_checkout(DATASETS)
-        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_CHECKOUT % (DATASETS,
-                                                                       'computer-vision__images__datasets-ex__1')))
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG)))
         new_file_path = os.path.join(self.tmp_dir, DATASETS, 'computer-vision', 'images', DATASET_NAME, 'newfile4')
         os.chmod(new_file_path, S_IWUSR | S_IREAD)
         os.remove(new_file_path)
@@ -88,8 +86,7 @@ class StatusAcceptanceTests(unittest.TestCase):
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_06_status_after_rename_file(self):
         self.set_up_checkout(DATASETS)
-        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_CHECKOUT % (DATASETS,
-                                                                       'computer-vision__images__datasets-ex__1')))
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG)))
         old_file = os.path.join(self.tmp_dir, DATASETS, 'computer-vision', 'images', DATASET_NAME, 'newfile4')
         new_file = os.path.join(self.tmp_dir, DATASETS, 'computer-vision', 'images', DATASET_NAME, 'file4_renamed')
         os.rename(old_file, new_file)
@@ -99,8 +96,7 @@ class StatusAcceptanceTests(unittest.TestCase):
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_07_status_corrupted_files(self):
         self.set_up_checkout(DATASETS)
-        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_CHECKOUT % (DATASETS,
-                                                                       'computer-vision__images__datasets-ex__1')))
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG)))
         corrupted_file = os.path.join(self.tmp_dir, DATASETS, 'computer-vision', 'images', DATASET_NAME, 'newfile4')
 
         os.chmod(corrupted_file, S_IWUSR | S_IREAD)

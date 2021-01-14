@@ -40,6 +40,7 @@ GLOBAL_CONFIG_PATH = os.path.join(os.getcwd(), 'tests', 'integration', 'globalco
 
 DATASETS = EntityType.DATASETS.value
 DATASET_NAME = 'datasets-ex'
+DATASET_TAG = 'computer-vision__images__datasets-ex__1'
 MODELS = EntityType.MODELS.value
 LABELS = EntityType.LABELS.value
 
@@ -160,7 +161,7 @@ def add_file(self, entity, bumpversion, name=None, artifact_name=None, file_cont
         z.write(str(file_content * 100))
     # Create assert do ml-git add
     if entity == DATASETS:
-        self.assertIn(messages[13] % 'datasets', check_output(MLGIT_ADD % (entity, artifact_name, bumpversion)))
+        self.assertIn(messages[13] % DATASETS, check_output(MLGIT_ADD % (entity, artifact_name, bumpversion)))
     elif entity == MODELS:
         self.assertIn(messages[14], check_output(MLGIT_ADD % (entity, artifact_name, bumpversion)))
     else:
@@ -201,7 +202,7 @@ def clean_git():
 
 def create_git_clone_repo(git_dir, tmp_dir, git_path=GIT_PATH):
     config = {
-        'datasets': {
+        DATASETS: {
             'git': os.path.join(tmp_dir, git_path),
         },
         'store': {

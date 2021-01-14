@@ -15,7 +15,7 @@ from tests.integration.helper import ML_GIT_DIR, MLGIT_INIT, MLGIT_REMOTE_ADD, M
     recursive_write_read, ERROR_MESSAGE, \
     add_file, GIT_PATH, check_output, clear, init_repository, BUCKET_NAME, PROFILE, edit_config_yaml, \
     create_spec, set_write_read, STORE_TYPE, create_file, populate_entity_with_new_data, DATASETS, DATASET_NAME, MODELS, \
-    LABELS
+    LABELS, DATASET_TAG
 from tests.integration.output_messages import messages
 
 
@@ -62,7 +62,7 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
     def test_01_checkout_tag(self):
         self.set_up_checkout(DATASETS)
         number_of_files_in_workspace = 6
-        check_output(MLGIT_CHECKOUT % (DATASETS, 'computer-vision__images__datasets-ex__1'))
+        check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG))
         file = os.path.join(self.tmp_dir, DATASETS, 'computer-vision', 'images', DATASET_NAME, 'newfile0')
         self.check_metadata()
         self.check_amount_of_files(DATASETS, number_of_files_in_workspace, sampling=False)
@@ -83,8 +83,7 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
     def test_02_checkout_with_group_sample(self):
         self.set_up_checkout(DATASETS)
         number_of_files_in_workspace = 3
-        check_output(MLGIT_CHECKOUT % (DATASETS, 'computer-vision__images__datasets-ex__1 --sample-type=group '
-                                                 '--sampling=2:4 --seed=5'))
+        check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG + ' --sample-type=group --sampling=2:4 --seed=5'))
         self.check_metadata()
         self.check_amount_of_files(DATASETS, number_of_files_in_workspace)
         self.assertTrue(self.check_sampling_flag(DATASETS))
@@ -93,7 +92,7 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
     def test_03_group_sample_with_amount_parameter_greater_than_group_size(self):
         self.set_up_checkout(DATASETS)
         number_of_files_in_workspace = 0
-        self.assertIn(messages[21], check_output(MLGIT_CHECKOUT % (DATASETS, 'computer-vision__images__datasets-ex__1')
+        self.assertIn(messages[21], check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG)
                                                  + ' --sample-type=group --sampling=4:2 --seed=5'))
         self.check_amount_of_files(DATASETS, number_of_files_in_workspace)
 
@@ -101,7 +100,7 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
     def test_04_group_sample_with_amount_parameter_equal_to_group_size(self):
         self.set_up_checkout(DATASETS)
         number_of_files_in_workspace = 0
-        self.assertIn(messages[21], check_output(MLGIT_CHECKOUT % (DATASETS, 'computer-vision__images__datasets-ex__1')
+        self.assertIn(messages[21], check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG)
                                                  + ' --sample-type=group --sampling=2:2 --seed=5'))
         self.check_amount_of_files(DATASETS, number_of_files_in_workspace)
 
@@ -109,7 +108,7 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
     def test_05_group_sample_with_group_size_parameter_greater_than_list_size(self):
         self.set_up_checkout(DATASETS)
         number_of_files_in_workspace = 0
-        self.assertIn(messages[22], check_output(MLGIT_CHECKOUT % (DATASETS, 'computer-vision__images__datasets-ex__1')
+        self.assertIn(messages[22], check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG)
                                                  + ' --sample-type=group --sampling=2:30 --seed=5'))
         self.check_amount_of_files(DATASETS, number_of_files_in_workspace)
 
@@ -117,7 +116,7 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
     def test_06_group_sample_with_group_size_parameter_less_than_zero(self):
         self.set_up_checkout(DATASETS)
         number_of_files_in_workspace = 0
-        self.assertIn(messages[41], check_output(MLGIT_CHECKOUT % (DATASETS, 'computer-vision__images__datasets-ex__1')
+        self.assertIn(messages[41], check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG)
                                                  + ' --sample-type=group --sampling=-2:3 --seed=5'))
         self.check_amount_of_files(DATASETS, number_of_files_in_workspace)
 
@@ -125,7 +124,7 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
     def test_07_checkout_with_range_sample(self):
         self.set_up_checkout(DATASETS)
         number_of_files_in_workspace = 3
-        self.assertIn('', check_output(MLGIT_CHECKOUT % (DATASETS, 'computer-vision__images__datasets-ex__1')
+        self.assertIn('', check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG)
                                        + ' --sample-type=range --sampling=2:4:1'))
         self.check_metadata()
         self.check_amount_of_files(DATASETS, number_of_files_in_workspace)
@@ -134,7 +133,7 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
     def test_08_range_sample_with_start_parameter_greater_than_stop(self):
         self.set_up_checkout(DATASETS)
         number_of_files_in_workspace = 0
-        self.assertIn(messages[23], check_output(MLGIT_CHECKOUT % (DATASETS, 'computer-vision__images__datasets-ex__1')
+        self.assertIn(messages[23], check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG)
                                                  + ' --sample-type=range --sampling=4:2:1'))
         self.check_amount_of_files(DATASETS, number_of_files_in_workspace)
 
@@ -142,7 +141,7 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
     def test_09_range_sample_with_start_parameter_less_than_zero(self):
         self.set_up_checkout(DATASETS)
         number_of_files_in_workspace = 0
-        self.assertIn(messages[23], check_output(MLGIT_CHECKOUT % (DATASETS, 'computer-vision__images__datasets-ex__1')
+        self.assertIn(messages[23], check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG)
                                                  + ' --sample-type=range --sampling=3:2:1'))
         self.check_amount_of_files(DATASETS, number_of_files_in_workspace)
 
@@ -150,7 +149,7 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
     def test_10_range_sample_with_step_parameter_greater_than_stop_parameter(self):
         self.set_up_checkout(DATASETS)
         number_of_files_in_workspace = 0
-        self.assertIn(messages[26], check_output(MLGIT_CHECKOUT % (DATASETS, 'computer-vision__images__datasets-ex__1')
+        self.assertIn(messages[26], check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG)
                                                  + ' --sample-type=range --sampling=1:3:4'))
         self.check_amount_of_files(DATASETS, number_of_files_in_workspace)
 
@@ -158,7 +157,7 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
     def test_11_range_sample_with_start_parameter_equal_to_stop(self):
         self.set_up_checkout(DATASETS)
         number_of_files_in_workspace = 0
-        self.assertIn(messages[23], check_output(MLGIT_CHECKOUT % (DATASETS, 'computer-vision__images__datasets-ex__1')
+        self.assertIn(messages[23], check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG)
                                                  + ' --sample-type=range --sampling=2:2:1'))
         self.check_amount_of_files(DATASETS, number_of_files_in_workspace)
 
@@ -166,7 +165,7 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
     def test_12_range_sample_with_stop_parameter_greater_than_file_list_size(self):
         self.set_up_checkout(DATASETS)
         number_of_files_in_workspace = 0
-        self.assertIn(messages[24], check_output(MLGIT_CHECKOUT % (DATASETS, 'computer-vision__images__datasets-ex__1')
+        self.assertIn(messages[24], check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG)
                                                  + ' --sample-type=range --sampling=2:30:1'))
         self.check_amount_of_files(DATASETS, number_of_files_in_workspace)
 
@@ -175,7 +174,7 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
         self.set_up_checkout(DATASETS)
         number_of_files_in_workspace = 4
 
-        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_CHECKOUT % (DATASETS, 'computer-vision__images__datasets-ex__1')
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG)
                                                      + ' --sample-type=random --sampling=2:3 --seed=3'))
         self.check_amount_of_files(DATASETS, number_of_files_in_workspace)
 
@@ -184,7 +183,7 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
         self.set_up_checkout(DATASETS)
         number_of_files_in_workspace = 0
 
-        self.assertIn(messages[30], check_output(MLGIT_CHECKOUT % (DATASETS, 'computer-vision__images__datasets-ex__1')
+        self.assertIn(messages[30], check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG)
                                                  + ' --sample-type=random --sampling=2:2 --seed=3'))
         self.check_amount_of_files(DATASETS, number_of_files_in_workspace)
 
@@ -193,7 +192,7 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
         self.set_up_checkout(DATASETS)
         number_of_files_in_workspace = 0
 
-        self.assertIn(messages[30], check_output(MLGIT_CHECKOUT % (DATASETS, 'computer-vision__images__datasets-ex__1')
+        self.assertIn(messages[30], check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG)
                                                  + ' --sample-type=random --sampling=4:2 --seed=3'))
         self.check_amount_of_files(DATASETS, number_of_files_in_workspace)
 
@@ -202,7 +201,7 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
         self.set_up_checkout(DATASETS)
         number_of_files_in_workspace = 0
 
-        self.assertIn(messages[31], check_output(MLGIT_CHECKOUT % (DATASETS, 'computer-vision__images__datasets-ex__1')
+        self.assertIn(messages[31], check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG)
                                                  + ' --sample-type=random --sampling=2:10 --seed=3'))
         self.check_amount_of_files(DATASETS, number_of_files_in_workspace)
 
@@ -211,7 +210,7 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
         self.set_up_checkout(DATASETS)
         number_of_files_in_workspace = 0
 
-        self.assertIn(messages[29], check_output(MLGIT_CHECKOUT % (DATASETS, 'computer-vision__images__datasets-ex__1')
+        self.assertIn(messages[29], check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG)
                                                  + ' --sample-type=random --sampling=2:0 --seed=3'))
         self.check_amount_of_files(DATASETS, number_of_files_in_workspace)
 
@@ -220,7 +219,7 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
         self.set_up_checkout(DATASETS)
         number_of_files_in_workspace = 0
 
-        self.assertIn(messages[28], check_output(MLGIT_CHECKOUT % (DATASETS, 'computer-vision__images__datasets-ex__1')
+        self.assertIn(messages[28], check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG)
                                                  + ' --sample-type=group --sampling=1:0 --seed=5'))
         self.check_amount_of_files(DATASETS, number_of_files_in_workspace)
 
@@ -229,7 +228,7 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
         self.set_up_checkout(DATASETS)
         number_of_files_in_workspace = 0
 
-        self.assertIn(messages[43], check_output(MLGIT_CHECKOUT % (DATASETS, 'computer-vision__images__datasets-ex__1')
+        self.assertIn(messages[43], check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG)
                                                  + ' --sample-type=group --sampling=0:1 --seed=5'))
         self.check_amount_of_files(DATASETS, number_of_files_in_workspace)
 
@@ -336,7 +335,7 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
     def test_23_add_after_checkout_with_sample(self):
         self.set_up_checkout(DATASETS)
         number_of_files_in_workspace = 4
-        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_CHECKOUT % (DATASETS, 'computer-vision__images__datasets-ex__1')
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG)
                                                      + ' --sample-type=random --sampling=2:3 --seed=3'))
         self.check_amount_of_files(DATASETS, number_of_files_in_workspace)
         workspace = os.path.join(self.tmp_dir, DATASETS, 'computer-vision', 'images', DATASET_NAME)
@@ -348,12 +347,12 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
         entity = DATASETS
         self.set_up_checkout(entity)
         number_of_files_in_workspace = 4
-        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_CHECKOUT % (entity, 'computer-vision__images__datasets-ex__1')))
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_CHECKOUT % (entity, DATASET_TAG)))
         workspace = os.path.join(self.tmp_dir, entity, 'computer-vision', 'images', entity+'-ex')
         create_file(workspace, 'new_file', '0', file_path='')
         populate_entity_with_new_data(self, entity)
 
-        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_CHECKOUT % (DATASETS, 'computer-vision__images__datasets-ex__1')
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG)
                                                      + ' --sample-type=random --sampling=2:3 --seed=3'))
         self.check_amount_of_files(DATASETS, number_of_files_in_workspace)
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_CHECKOUT % (DATASETS, 'computer-vision__images__datasets-ex__2')))
@@ -363,7 +362,7 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
     def test_25_checkout_tag_with_main_branch(self):
         self.set_up_checkout(DATASETS)
         number_of_files_in_workspace = 6
-        check_output(MLGIT_CHECKOUT % (DATASETS, 'computer-vision__images__datasets-ex__1'))
+        check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG))
         file = os.path.join(self.tmp_dir, DATASETS, 'computer-vision', 'images', DATASET_NAME, 'newfile0')
         self.check_metadata()
         self.check_amount_of_files(DATASETS, number_of_files_in_workspace, sampling=False)
@@ -374,12 +373,12 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
         entity = DATASETS
         self.set_up_checkout(entity)
 
-        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_CHECKOUT % (entity, 'computer-vision__images__datasets-ex__1')))
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_CHECKOUT % (entity, DATASET_TAG)))
         workspace = os.path.join(self.tmp_dir, entity, 'computer-vision', 'images', entity+'-ex')
         create_file(workspace, 'newfile5', '0', file_path='')
         populate_entity_with_new_data(self, entity)
 
-        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_CHECKOUT % (DATASETS, 'computer-vision__images__datasets-ex__1')))
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG)))
         expected_files_in_tag_1 = 6
         self.check_amount_of_files(entity, expected_files_in_tag_1, sampling=False)
         create_file(workspace, 'newfile6', '0', file_path='')
