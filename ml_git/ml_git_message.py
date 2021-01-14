@@ -22,6 +22,7 @@ output_messages = {
     'INFO_REMOVED_FILES': 'A total of %s files have been removed from %s',
     'INFO_RECLAIMED_SPACE': 'Total reclaimed space %s.',
     'INFO_ENTITY_DELETED': 'Entity %s was deleted',
+    'INFO_PUT_STORED': 'Put - stored [%s] in bucket [%s] with key [%s]-[%s]',
 
     'ERROR_WITHOUT_TAG_FOR_THIS_ENTITY': 'No entity with that name was found.',
     'ERROR_MULTIPLES_ENTITIES_WITH_SAME_NAME': 'You have more than one entity with the same name. Use one of the following tags to perform the checkout:\n',

@@ -20,6 +20,7 @@ POOL_CLASS_NAME = 'Pool'
 REFS_CLASS_NAME = 'Refs'
 REPOSITORY_CLASS_NAME = 'Repository'
 ML_GIT_PROJECT_NAME = 'Ml-git Project'
+SFTPSTORE_NAME = 'SFtpStore'
 S3STORE_NAME = 'S3Store'
 AZURE_STORE_NAME = 'AzureStore'
 S3_MULTI_HASH_STORE_NAME = 'S3MultihashStore'
@@ -71,6 +72,7 @@ class StoreType(Enum):
     AZUREBLOBH = 'azureblobh'
     GDRIVEH = 'gdriveh'
     GDRIVE = 'gdrive'
+    SFTPH = 'sftph'
 
     @staticmethod
     def to_list():

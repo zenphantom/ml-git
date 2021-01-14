@@ -11,12 +11,14 @@ from ml_git.constants import STORE_FACTORY_CLASS_NAME, StoreType
 from ml_git.storages.azure_store import AzureMultihashStore
 from ml_git.storages.google_drive_store import GoogleDriveMultihashStore, GoogleDriveStore
 from ml_git.storages.s3store import S3Store, S3MultihashStore
+from ml_git.storages.sftp_store import SFtpStore
 
 
 def store_factory(config, store_string):
     stores = {StoreType.S3.value: S3Store, StoreType.S3H.value: S3MultihashStore,
               StoreType.AZUREBLOBH.value: AzureMultihashStore, StoreType.GDRIVEH.value: GoogleDriveMultihashStore,
-              StoreType.GDRIVE.value: GoogleDriveStore}
+              StoreType.GDRIVE.value: GoogleDriveStore,
+              StoreType.SFTPH.value: SFtpStore}
     sp = store_string.split('/')
     config_bucket_name, bucket_name = None, None
 

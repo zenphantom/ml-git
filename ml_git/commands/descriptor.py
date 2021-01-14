@@ -447,7 +447,7 @@ commands = [
             '--category': {'required': True, 'multiple': True, 'help': help_msg.CATEGORY_OPTION},
             '--mutability': {'required': True, 'type': click.Choice(Mutability.list()), 'help': help_msg.MUTABILITY},
             ('--store-type', '--storage-type'): {
-                'type': click.Choice(['s3h', 'azureblobh', 'gdriveh']),
+                'type': click.Choice(['s3h', 'azureblobh', 'gdriveh', 'sftph']),
                 'cls': DeprecatedOption, 'deprecated': ['--store-type'], 'preferred': '--storage-type',
                 'help': help_msg.STORAGE_TYPE, 'default': 's3h'
             },
@@ -528,6 +528,8 @@ commands = [
                                             case_sensitive=True),
                        'help': help_msg.STORAGE_TYPE},
             '--endpoint-url': {'help': help_msg.ENDPOINT_URL},
+            '--username': {'help': help_msg.USERNAME},
+            '--ssh-key': {'help': help_msg.SSH_KEY},
             ('--global', '-g'): {'is_flag': True, 'default': False, 'help': help_msg.GLOBAL_OPTION},
         },
 
@@ -573,10 +575,12 @@ commands = [
             '--credentials': {'help': help_msg.STORAGE_CREDENTIALS},
             '--region': {'help': help_msg.STORAGE_REGION},
             '--type': {'default': 's3h',
-                       'type': click.Choice(['s3h', 's3', 'azureblobh', 'gdriveh'],
+                       'type': click.Choice(['s3h', 's3', 'azureblobh', 'gdriveh', 'sftph'],
                                             case_sensitive=True),
                        'help': help_msg.STORAGE_TYPE},
             '--endpoint-url': {'help': help_msg.ENDPOINT_URL},
+            '--username': {'help': help_msg.USERNAME},
+            '--ssh-key': {'help': help_msg.SSH_KEY},
             ('--global', '-g'): {'is_flag': True, 'default': False, 'help': help_msg.GLOBAL_OPTION},
         },
 
