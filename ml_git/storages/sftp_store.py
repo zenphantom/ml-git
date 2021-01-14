@@ -28,7 +28,7 @@ class SFtpStore(Store):
         ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
         user_key = paramiko.RSAKey.from_private_key_file(self._key)
-        ssh_client.connect(self._host, port=22, username=self._username, password="saosao", pkey=user_key)
+        ssh_client.connect(self._host, port=22, username=self._username, pkey=user_key)
 
         open_session = ssh_client.get_transport().open_session()
         paramiko.agent.AgentRequestHandler(open_session)
@@ -68,7 +68,7 @@ class SFtpStore(Store):
         bucket = self._bucket
 
         with open(file_path, 'rb') as text_file:
-            self._store.put(file_path, bucket + '/' + os.path.basename(text_file.name))
+            self._store.put(file_path, os.path.join(self._bucket, os.path.basename(text_file.name)))
 
         version = None
 
@@ -101,25 +101,25 @@ class SFtpStore(Store):
 
     def get_object(self, key_path):
         try:
-            self._store.chdir(self._bucket + '/' + key_path)
+            self._store.chdir(os.path.join(self._bucket, key_path))
             raise RuntimeError('Object [%s] not found' % key_path)
         except IOError:
-            res = self._store.open(self._bucket + '/' + key_path)
+            res = self._store.open(os.path.join(self._bucket, key_path))
             return res.read(res.stat().st_size)
 
     def _get(self, file, key_path, version=None):
         try:
-            self._store.chdir(self._bucket + '/' + key_path)
+            self._store.chdir(os.path.join(self._bucket, key_path))
             raise RuntimeError('Object [%s] not found' % key_path)
         except IOError:
-            res = self._store.open(self._bucket + '/' + key_path)
+            res = self._store.open(os.path.join(self._bucket, key_path))
             return res.read(res.stat().st_size)
 
     def delete(self, file_path, reference):
-        self._store.remove(self._bucket + '/' + file_path)
+        self._store.remove(os.path.join(self._bucket, file_path))
 
         return True
 
     def list_files_from_path(self, path):
-        files = self._store.listdir(self._bucket + '/' + path)
+        files = self._store.listdir(os.path.join(self._bucket, path))
         return list(filter(lambda item: item[-1] != '/', files))
