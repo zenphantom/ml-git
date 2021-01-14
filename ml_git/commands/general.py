@@ -4,17 +4,17 @@ SPDX-License-Identifier: GPL-2.0-only
 """
 
 import click
+from click_didyoumean import DYMGroup
 from click_plugins import with_plugins
 from pkg_resources import iter_entry_points
 
-from ml_git.commands.custom_group import CustomMultiGroup
 from ml_git.commands.utils import repositories, PROJECT, set_verbose_mode
 from ml_git.utils import check_metadata_directories
 from ml_git.version import get_version
 
 
 @with_plugins(iter_entry_points('mlgit.plugins'))
-@click.group(cls=CustomMultiGroup)
+@click.group(cls=DYMGroup)
 @click.version_option(version=get_version(),  message='%(prog)s %(version)s')
 @click.help_option(hidden=True)
 def mlgit():

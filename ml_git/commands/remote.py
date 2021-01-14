@@ -6,12 +6,11 @@ SPDX-License-Identifier: GPL-2.0-only
 import click
 from click_didyoumean import DYMGroup
 
-from ml_git.commands.custom_group import CustomMultiGroup
 from ml_git.commands.repository import repository
 from ml_git.commands.utils import LABELS, repositories, set_verbose_mode, DATASETS, MODELS
 
 
-@repository.group('remote', help='Configure remote ml-git metadata repositories.', cls=CustomMultiGroup)
+@repository.group('remote', help='Configure remote ml-git metadata repositories.', cls=DYMGroup)
 def repo_remote():
     """
     Configure remote ml-git metadata repositories.
