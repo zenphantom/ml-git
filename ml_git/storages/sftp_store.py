@@ -12,6 +12,8 @@ from ml_git.storages.store import Store
 
 import paramiko
 
+from ml_git.utils import posix_path
+
 
 class SFtpStore(Store):
     def __init__(self, bucket_name, bucket):
@@ -43,61 +45,24 @@ class SFtpStore(Store):
             error_msg = output_messages['ERROR_BUCKET_DOES_NOT_EXIST'] % self._bucket
             log.error(error_msg, class_name=SFTPSTORE_NAME)
             return False
-
         return True
 
-    def create_bucket_name(self, bucket_prefix):
-        import uuid
-        # The generated bucket name must be between 3 and 63 chars long
-        return ''.join([bucket_prefix, str(uuid.uuid4())])
-
-    def create_bucket(self, bucket_prefix):
-        bucket_name = self.create_bucket_name(bucket_prefix)
-
-        try:
-            self._store.chdir(bucket_name)
-        except IOError:
-            self._store.mkdir(bucket_name)
-
-    def _to_uri(self, keyfile, version=None):
-        if version is not None:
-            return keyfile + '?version=' + version
-        return keyfile
-
     def put(self, key_path, file_path):
-        bucket = self._bucket
-
-        with open(file_path, 'rb') as text_file:
-            self._store.put(file_path, os.path.join(self._bucket, os.path.basename(text_file.name)))
-
+        self._store.put(file_path, posix_path(os.path.join(self._bucket, key_path)))
         version = None
-
-        log.info(output_messages['INFO_PUT_STORED'] % (file_path, bucket, key_path, version),
-                 class_name=SFTPSTORE_NAME)
-        return self._to_uri(key_path, version)
+        log.debug(output_messages['INFO_PUT_STORED'] % (file_path, self._bucket, key_path, version), class_name=SFTPSTORE_NAME)
+        return key_path
 
     def put_object(self, file_path, obj):
         self._store.putfo(obj, file_path)
 
-    @staticmethod
-    def _to_file(uri):
-        sp = uri.split('?')
-        if len(sp) < 2:
-            return uri, None
-
-        key = sp[0]
-        v = 'version='
-        remain = ''.join(sp[1:])
-        vremain = remain[:len(v)]
-        if vremain != v:
-            return uri, None
-
-        version = remain[len(v):]
-        return key, version
-
     def get(self, file_path, reference):
-        key, version = self._to_file(reference)
-        return self._get(file_path, key, version=version)
+        try:
+            self._store.get(posix_path(os.path.join(self._bucket, reference)), file_path)
+            return True
+        except Exception:
+            log.error('Object [%s] not found' % reference, class_name=SFTPSTORE_NAME)
+            return False
 
     def get_object(self, key_path):
         try:
@@ -107,17 +72,8 @@ class SFtpStore(Store):
             res = self._store.open(os.path.join(self._bucket, key_path))
             return res.read(res.stat().st_size)
 
-    def _get(self, file, key_path, version=None):
-        try:
-            self._store.chdir(os.path.join(self._bucket, key_path))
-            raise RuntimeError('Object [%s] not found' % key_path)
-        except IOError:
-            res = self._store.open(os.path.join(self._bucket, key_path))
-            return res.read(res.stat().st_size)
-
     def delete(self, file_path, reference):
         self._store.remove(os.path.join(self._bucket, file_path))
-
         return True
 
     def list_files_from_path(self, path):
