@@ -233,7 +233,7 @@ def store_add(bucket_name, bucket_type=StoreType.S3H.value, credentials=None, gl
             global_configuration (bool, optional): Use this option to set configuration at global level [default: False].
             endpoint_url (str, optional): Store endpoint url.
             username (str, optional): The username for the sftp login.
-            ssh_key (str, optional): SSH key path.
+            ssh_key (str, optional): Full path for the private key file.
     """
 
     if bucket_type not in StoreType.to_list():
