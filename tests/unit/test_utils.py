@@ -13,6 +13,7 @@ from unittest.mock import Mock
 import humanize
 import pytest
 
+from ml_git.constants import EntityType, ROOT_FILE_NAME
 from ml_git.utils import json_load, yaml_load, yaml_save, RootPathException, get_root_path, change_mask_for_routine, \
     ensure_path_exists, yaml_load_str, get_yaml_str, run_function_per_group, unzip_files_in_directory, \
     remove_from_workspace, group_files_by_path, remove_other_files, remove_unnecessary_files, change_keys_in_config, \
@@ -25,9 +26,9 @@ class UtilsTestCases(unittest.TestCase):
         jsn = {}
         self.assertFalse(bool(jsn))
         jsn = json_load('./udata/data.json')
-        self.assertEqual(jsn['datasets']['categories'], 'imgs')
-        self.assertEqual(jsn['datasets']['name'], 'dataex')
-        self.assertEqual(jsn['datasets']['version'], 1)
+        self.assertEqual(jsn[EntityType.DATASETS.value]['categories'], 'imgs')
+        self.assertEqual(jsn[EntityType.DATASETS.value]['name'], 'dataex')
+        self.assertEqual(jsn[EntityType.DATASETS.value]['version'], 1)
         self.assertTrue(bool(jsn))
 
     def test_yaml_load(self):
@@ -59,7 +60,7 @@ class UtilsTestCases(unittest.TestCase):
 
             yal = yaml_load(yaml_path)
 
-            temp_arr = yal['datasets']['git'].split('.')
+            temp_arr = yal[EntityType.DATASETS.value]['git'].split('.')
             temp_arr.pop()
             temp_arr.pop()
             temp_arr.append(temp_var)
@@ -69,10 +70,10 @@ class UtilsTestCases(unittest.TestCase):
 
             self.assertFalse(yal['datasets']['git'] == new_git_var)
 
-            yal['datasets']['git'] = new_git_var
+            yal[EntityType.DATASETS.value]['git'] = new_git_var
 
             yaml_save(yal, yaml_path)
-            self.assertTrue(yal['datasets']['git'] == new_git_var)
+            self.assertTrue(yal[EntityType.DATASETS.value]['git'] == new_git_var)
 
     def test_get_root_path(self):
 
@@ -214,26 +215,29 @@ class UtilsTestCases(unittest.TestCase):
                         profile: mlgit
                     region: us-east-1
         """
-        config_path = os.path.join(self.tmp_dir, '.ml-git', 'config.yaml')
-        os.makedirs(os.path.join(self.tmp_dir, '.ml-git'), exist_ok=True)
+        config_path = os.path.join(self.tmp_dir, ROOT_FILE_NAME, 'config.yaml')
+        os.makedirs(os.path.join(self.tmp_dir, ROOT_FILE_NAME), exist_ok=True)
         with open(config_path, 'w') as config_yaml:
             config_yaml.write(config)
         change_keys_in_config(self.tmp_dir)
         conf = yaml_load(config_path)
-        self.assertNotIn('dataset', conf)
-        self.assertIn('datasets', conf)
-        self.assertNotIn('model', conf)
-        self.assertIn('models', conf)
+        old_dataset_key = 'dataset'
+        old_model_key = 'model'
+        self.assertNotIn(old_dataset_key, conf)
+        self.assertIn(EntityType.DATASETS.value, conf)
+        self.assertNotIn(old_model_key, conf)
+        self.assertIn(EntityType.MODELS.value, conf)
 
     def test_update_directories_to_plural(self):
-        data_path = os.path.join(self.tmp_dir, 'dataset')
-        metadata_path = os.path.join(self.tmp_dir, '.ml-git', 'dataset')
+        old_dataset_key = 'dataset'
+        data_path = os.path.join(self.tmp_dir, old_dataset_key)
+        metadata_path = os.path.join(self.tmp_dir, ROOT_FILE_NAME, old_dataset_key)
         os.makedirs(data_path, exist_ok=True)
         os.makedirs(metadata_path, exist_ok=True)
-        update_directories_to_plural(self.tmp_dir, 'dataset', 'datasets')
+        update_directories_to_plural(self.tmp_dir, old_dataset_key, EntityType.DATASETS.value)
         self.assertFalse(os.path.exists(data_path))
         self.assertFalse(os.path.exists(metadata_path))
-        data_path = os.path.join(self.tmp_dir, 'datasets')
-        metadata_path = os.path.join(self.tmp_dir, '.ml-git', 'datasets')
+        data_path = os.path.join(self.tmp_dir, EntityType.DATASETS.value)
+        metadata_path = os.path.join(self.tmp_dir, ROOT_FILE_NAME, EntityType.DATASETS.value)
         self.assertTrue(os.path.exists(data_path))
         self.assertTrue(os.path.exists(metadata_path))

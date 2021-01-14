@@ -12,6 +12,7 @@ from unittest import mock
 import pytest
 
 from ml_git.admin import init_mlgit, remote_add, store_add, clone_config_repository, store_del, remote_del
+from ml_git.constants import EntityType
 from ml_git.utils import yaml_load
 
 
@@ -36,20 +37,20 @@ class AdminTestCases(unittest.TestCase):
     def test_remote_add(self):
         remote_default = 'git_local_server.git'
         new_remote = 'git_local_server2.git'
-        dataset = 'datasets'
+        dataset = EntityType.DATASETS.value
         init_mlgit()
         remote_add(dataset, new_remote)
         self.assertTrue(os.path.isdir('.ml-git'))
         config = yaml_load('.ml-git/config.yaml')
-        self.assertEqual(config['datasets']['git'], new_remote)
+        self.assertEqual(config[dataset]['git'], new_remote)
         self.assertNotEqual(remote_default, new_remote)
         remote_add(dataset, '')
         config_ = yaml_load('.ml-git/config.yaml')
-        self.assertEqual(config_['datasets']['git'], '')
+        self.assertEqual(config_[dataset]['git'], '')
         remote_add(dataset, new_remote)
         self.assertTrue(os.path.isdir('.ml-git'))
         config__ = yaml_load('.ml-git/config.yaml')
-        self.assertEqual(config__['datasets']['git'], new_remote)
+        self.assertEqual(config__[dataset]['git'], new_remote)
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_store_add(self):
@@ -95,7 +96,7 @@ class AdminTestCases(unittest.TestCase):
     def test_remote_add_global_config(self):
         remote_default = 'git_local_server.git'
         new_remote = 'git_local_server2.git'
-        datasets = 'datasets'
+        datasets = EntityType.DATASETS.value
         init_mlgit()
         with mock.patch('pathlib.Path.home', return_value=self.tmp_dir):
             remote_add(datasets, new_remote, global_conf=True)
@@ -165,7 +166,7 @@ class AdminTestCases(unittest.TestCase):
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_remote_del(self):
         remote_default = 'git_local_server.git'
-        datasets = 'datasets'
+        datasets = EntityType.DATASETS.value
         init_mlgit()
         config = yaml_load('.ml-git/config.yaml')
         self.assertEqual(config[datasets]['git'], '')

@@ -12,6 +12,7 @@ from unittest import mock
 import pytest
 from git import GitError, Repo
 
+from ml_git.constants import EntityType
 from ml_git.metadata import Metadata
 from ml_git.repository import Repository
 from ml_git.utils import clear
@@ -33,13 +34,13 @@ config = {
     'mlgit_path': './mdata',
     'mlgit_conf': 'config.yaml',
 
-    'datasets': {
+    EntityType.DATASETS.value: {
         'git': os.path.join(os.getcwd(), 'git_local_server.git'),
     },
-    'labels': {
+    EntityType.LABELS.value: {
         'git': os.path.join(os.getcwd(), 'git_local_server.git'),
     },
-    'models': {
+    EntityType.MODELS.value: {
         'git': os.path.join(os.getcwd(), 'git_local_server.git'),
     },
 
@@ -56,10 +57,10 @@ config = {
     'verbose': 'info',
 }
 
-repotype = 'datasets'
+repotype = EntityType.DATASETS.value
 
 metadata_config = {
-    'datasets': {
+    repotype: {
         'categories': 'images',
         'manifest': {
             'files': 'MANIFEST.yaml',
@@ -148,9 +149,9 @@ class MetadataTestCases(unittest.TestCase):
             'mlgit_path': './mdata',
             'mlgit_conf': 'config.yaml',
             'verbose': 'info',
-            'datasets': {'git': '', },
-            'labels': {'git': '', },
-            'models': {'git': '', }, }
+            EntityType.DATASETS.value: {'git': '', },
+            EntityType.LABELS.value: {'git': '', },
+            EntityType.MODELS.value: {'git': '', }, }
 
         m = Metadata('', self.test_dir, config, repotype)
         m.clone_config_repo()
@@ -159,7 +160,7 @@ class MetadataTestCases(unittest.TestCase):
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_test_dir')
     def test_blank_remote_url(self):
         config_cp = deepcopy(config)
-        config_cp['datasets']['git'] = ''
+        config_cp[EntityType.DATASETS.value]['git'] = ''
         m = Metadata(spec, self.test_dir, config_cp, repotype)
         self.assertRaises(GitError, m.validate_blank_remote_url)
         clear(m.path)
