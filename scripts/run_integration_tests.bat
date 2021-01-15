@@ -46,7 +46,7 @@ mcr.microsoft.com/azure-storage/azurite azurite-blob --blobHost 0.0.0.0
 
 START docker run --name=sftp -v "%INTEGRATION_TESTS_BASE_PATH%\fake_ssh_key\id_rsa.pub":/home/mlgit_user/.ssh/keys/id_rsa.pub:ro ^
 -v "%PATH_TEST%\sftp\mlgit":/home/mlgit_user/mlgit ^
--p 22:22 -d atmoz/sftp ^
+-p 9922:22 -d atmoz/sftp ^
 mlgit_user::1001:::mlgit
 
 pipenv install --ignore-pipfile --dev

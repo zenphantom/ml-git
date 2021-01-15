@@ -93,7 +93,7 @@ def valid_store_type(store_type):
     return True
 
 
-def store_add(store_type, bucket, credentials_profile, global_conf=False, endpoint_url=None, username=None, private_key=None):
+def store_add(store_type, bucket, credentials_profile, global_conf=False, endpoint_url=None, sftp_configs=None):
     if not valid_store_type(store_type):
         return
 
@@ -127,8 +127,9 @@ def store_add(store_type, bucket, credentials_profile, global_conf=False, endpoi
         conf['store'][store_type][bucket]['credentials-path'] = credentials_profile
     elif store_type in [StoreType.SFTPH.value]:
         conf['store'][store_type][bucket]['endpoint-url'] = endpoint_url
-        conf['store'][store_type][bucket]['username'] = username
-        conf['store'][store_type][bucket]['private-key'] = private_key
+        conf['store'][store_type][bucket]['username'] = sftp_configs['username']
+        conf['store'][store_type][bucket]['private-key'] = sftp_configs['private_key']
+        conf['store'][store_type][bucket]['port'] = sftp_configs['port']
     yaml_save(conf, file)
 
 

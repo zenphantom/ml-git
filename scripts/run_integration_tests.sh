@@ -71,6 +71,7 @@ rm -rf $PATH_TEST
 mkdir -p $PATH_TEST/data/mlgit
 mkdir $PATH_TEST/test_permission
 mkdir -p $PATH_TEST/sftp/mlgit
+chmod -R 777 $PATH_TEST/sftp/mlgit
 chmod -w $PATH_TEST/test_permission
 
 docker run -p 9000:9000 --name minio1 \
@@ -86,7 +87,7 @@ mcr.microsoft.com/azure-storage/azurite azurite-blob --blobHost 0.0.0.0 &
 
 docker run --name=sftp -v $INTEGRATION_TESTS_BASE_PATH/fake_ssh_key/id_rsa.pub:/home/mlgit_user/.ssh/keys/id_rsa.pub:ro \
 -v $PATH_TEST/sftp/mlgit:/home/mlgit_user/mlgit \
--p 22:22 -d atmoz/sftp \
+-p 9922:22 -d atmoz/sftp \
 mlgit_user::1001:::mlgit
 
 sleep 10s

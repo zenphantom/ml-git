@@ -18,7 +18,7 @@ from tests.integration.output_messages import messages
 
 
 @pytest.mark.usefixtures('tmp_dir', 'start_local_git_server', 'switch_to_tmp_dir')
-class AzureAcceptanceTests(unittest.TestCase):
+class SFTPAcceptanceTests(unittest.TestCase):
     repo_type = 'dataset'
     store_type = 'sftph'
     bucket = 'mlgit'
@@ -34,7 +34,8 @@ class AzureAcceptanceTests(unittest.TestCase):
                       check_output(MLGIT_REMOTE_ADD % (self.repo_type, GIT_PATH)))
         self.assertIn(messages[87] % (self.store_type, self.bucket),
                       check_output('ml-git repository store add %s --type=%s' %
-                                   ('mlgit --type=sftph --username=mlgit_user --endpoint-url=127.0.0.1 --ssh-key=' + FAKE_SSH_KEY_PATH, self.store_type)))
+                                   ('mlgit --username=mlgit_user '
+                                    '--endpoint-url=127.0.0.1 --port=9922 --private-key=' + FAKE_SSH_KEY_PATH, self.store_type)))
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ENTITY_INIT % 'dataset'))
 
         if create_know_file:
@@ -62,7 +63,8 @@ class AzureAcceptanceTests(unittest.TestCase):
         self.assertIn(messages[2] % (GIT_PATH, self.repo_type), check_output(MLGIT_REMOTE_ADD % (self.repo_type, GIT_PATH)))
         self.assertIn(messages[87] % (self.store_type, self.bucket),
                       check_output('ml-git repository store add %s --type=%s' %
-                                   ('mlgit --type=sftph --username=mlgit_user --endpoint-url=127.0.0.1 --ssh-key=' + FAKE_SSH_KEY_PATH, self.store_type)))
+                                   ('mlgit --username=mlgit_user '
+                                    '--endpoint-url=127.0.0.1 --port=9922 --private-key=' + FAKE_SSH_KEY_PATH, self.store_type)))
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ENTITY_INIT % self.repo_type))
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
@@ -98,7 +100,8 @@ class AzureAcceptanceTests(unittest.TestCase):
                       check_output(MLGIT_REMOTE_ADD % (self.repo_type, GIT_PATH)))
         self.assertIn(messages[87] % (self.store_type, wrong_bucket),
                       check_output('ml-git repository storage add %s --type=%s' %
-                                   (wrong_bucket, self.store_type + ' --username=mlgit_user --endpoint-url=127.0.0.1 --ssh-key=' + FAKE_SSH_KEY_PATH)))
+                                   (wrong_bucket, self.store_type + ' --username=mlgit_user '
+                                                                    '--port=9922 --endpoint-url=127.0.0.1 --private-key=' + FAKE_SSH_KEY_PATH)))
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ENTITY_INIT % self.repo_type))
 
         self.assertNotIn(ERROR_MESSAGE, check_output(
@@ -124,16 +127,3 @@ class AzureAcceptanceTests(unittest.TestCase):
         number_of_files_in_bucket = 0
         self.check_amount_of_files(number_of_files_in_bucket)
         self.assertIn(ERROR_MESSAGE, check_output(MLGIT_PUSH % (self.repo_type, self.dataset_name + ' --clearonfail')))
-
-    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
-    def test_06_checkout_with_object_not_found(self):
-        self.set_up_push(create_know_file=True)
-        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_PUSH % (self.repo_type, self.dataset_name)))
-        clear(self.workspace)
-        clear(os.path.join(ML_GIT_DIR, self.repo_type))
-        object_name = 'zdj7Wi996ViPiddvDGvzjBBACZzw6YfPujBCaPHunVoyiTUCj'
-        clear(os.path.join(SFTP_BUCKET_PATH, object_name))
-
-        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ENTITY_INIT % self.repo_type))
-        self.assertIn(output_messages['ERROR_OBJECT_NOT_FOUND'] % object_name,
-                      check_output(MLGIT_CHECKOUT % (self.repo_type, self.dataset_name)))
