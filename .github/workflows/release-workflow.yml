@@ -2,9 +2,9 @@ name: MLGit-Release
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
 
 jobs:
   build-linux:
@@ -39,7 +39,7 @@ jobs:
           echo -ne $(cat version.info | grep MINOR_VERSION | cut -d"=" -f2). >> BUILD_UBUNTU_FILE
           echo -ne $(cat version.info | grep PATCH_VERSION | cut -d"=" -f2) >> BUILD_UBUNTU_FILE
           BUILD_VERSION="$( cat BUILD_UBUNTU_FILE )"
-          echo '::set-env name=BUILD_NAME::'${BUILD_VERSION}
+          echo 'BUILD_NAME='${BUILD_VERSION} >> $GITHUB_ENV
 
       - name: Release Build
         uses: actions/upload-artifact@v2
@@ -83,7 +83,7 @@ jobs:
           echo -ne $(cat version.info | grep MINOR_VERSION | cut -d"=" -f2). >> BUILD_WINDOWS_FILE
           echo -ne $(cat version.info | grep PATCH_VERSION | cut -d"=" -f2) >> BUILD_WINDOWS_FILE
           BUILD_VERSION="$( cat BUILD_WINDOWS_FILE )"
-          echo '::set-env name=BUILD_NAME::'${BUILD_VERSION}
+          echo 'BUILD_NAME='${BUILD_VERSION} >> $GITHUB_ENV
         shell: bash
 
       - name: Release Build
