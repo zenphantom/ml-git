@@ -19,7 +19,7 @@ class SFtpStore(Store):
     def __init__(self, bucket_name, bucket):
         self._store_type = StoreType.SFTPH
         self._username = bucket['username']
-        self._key = bucket['ssh-key']
+        self._private_key = bucket['private-key']
         self._host = get_key('endpoint-url', bucket)
 
         self._bucket = bucket_name
@@ -29,8 +29,8 @@ class SFtpStore(Store):
         ssh_client = paramiko.SSHClient()
         ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-        user_key = paramiko.RSAKey.from_private_key_file(self._key)
-        ssh_client.connect(self._host, port=22, username=self._username, pkey=user_key)
+        user_private_key = paramiko.RSAKey.from_private_key_file(self._private_key)
+        ssh_client.connect(self._host, port=22, username=self._username, pkey=user_private_key)
 
         open_session = ssh_client.get_transport().open_session()
         paramiko.agent.AgentRequestHandler(open_session)

@@ -27,7 +27,7 @@ def check_deprecated_command(context):
 def storage_add(context, **kwargs):
     check_deprecated_command(context)
     admin.store_add(kwargs['type'], kwargs['bucket_name'], kwargs['credentials'],
-                    kwargs['global'], kwargs['endpoint_url'], kwargs['username'], kwargs['ssh_key'])
+                    kwargs['global'], kwargs['endpoint_url'], kwargs['username'], kwargs['private_key'])
 
 
 def storage_del(context, **kwargs):

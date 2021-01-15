@@ -529,7 +529,7 @@ commands = [
                        'help': help_msg.STORAGE_TYPE},
             '--endpoint-url': {'help': help_msg.ENDPOINT_URL},
             '--username': {'help': help_msg.USERNAME},
-            '--ssh-key': {'help': help_msg.SSH_KEY},
+            '--private-key': {'help': help_msg.PRIVATE_KEY},
             ('--global', '-g'): {'is_flag': True, 'default': False, 'help': help_msg.GLOBAL_OPTION},
         },
 
@@ -580,7 +580,7 @@ commands = [
                        'help': help_msg.STORAGE_TYPE},
             '--endpoint-url': {'help': help_msg.ENDPOINT_URL},
             '--username': {'help': help_msg.USERNAME},
-            '--ssh-key': {'help': help_msg.SSH_KEY},
+            '--private-key': {'help': help_msg.PRIVATE_KEY},
             ('--global', '-g'): {'is_flag': True, 'default': False, 'help': help_msg.GLOBAL_OPTION},
         },
 
