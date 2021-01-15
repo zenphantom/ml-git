@@ -14,7 +14,7 @@ from git import GitError, Repo
 
 from ml_git.metadata import Metadata
 from ml_git.repository import Repository
-from ml_git.utils import clear
+from ml_git.utils import clear, yaml_load_str, yaml_load
 from ml_git.utils import yaml_save, ensure_path_exists
 
 files_mock = {'zdj7Wm99FQsJ7a4udnx36ZQNTy7h4Pao3XmRSfjo4sAbt9g74': {'1.jpg'},
@@ -189,3 +189,38 @@ class MetadataTestCases(unittest.TestCase):
         self.assertNotEqual(m.get_default_branch(), default_branch_for_empty_repo)
         self.assertEqual(m.get_default_branch(), new_branch)
         clear(m.path)
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_test_dir')
+    def test_get_spec_content_from_ref(self):
+        mdpath = os.path.join(self.test_dir, 'mdata', repotype, 'metadata')
+        specpath = 'dataset-ex'
+        m = Metadata(specpath, self.test_dir, config, repotype)
+        m.init()
+        ensure_path_exists(os.path.join(mdpath, specpath))
+        spec_metadata_path = os.path.join(mdpath, specpath) + '/dataset-ex.spec'
+        shutil.copy('hdata/dataset-ex.spec', spec_metadata_path)
+
+        sha = m.commit(spec_metadata_path, specpath)
+        tag = m.tag_add(sha)
+        path = 'dataset-ex/dataset-ex.spec'
+        content = yaml_load_str(m._get_spec_content_from_ref(tag.commit, path))
+        spec_file = yaml_load(spec_metadata_path)
+        self.assertEqual(content, spec_file)
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_test_dir')
+    def test_get_specs_to_compare(self):
+        mdpath = os.path.join(self.test_dir, 'mdata', repotype, 'metadata')
+        specpath = 'dataset-ex'
+        m = Metadata(specpath, self.test_dir, config, repotype)
+        m.init()
+        ensure_path_exists(os.path.join(mdpath, specpath))
+        spec_metadata_path = os.path.join(mdpath, specpath) + '/dataset-ex.spec'
+        shutil.copy('hdata/dataset-ex.spec', spec_metadata_path)
+
+        sha = m.commit(spec_metadata_path, specpath)
+        m.tag_add(sha)
+        specs = m.get_specs_to_compare(specpath, repotype)
+        spec_file = yaml_load(spec_metadata_path)
+        for c, v in specs:
+            self.assertEqual(c, spec_file[repotype]['manifest'])
+            self.assertIsNotNone(v, {repotype: {'manifest': {}}})
