@@ -4,15 +4,14 @@ SPDX-License-Identifier: GPL-2.0-only
 """
 
 import os
+
+import paramiko
+
 from ml_git import log
 from ml_git.config import get_key
 from ml_git.constants import SFTPSTORE_NAME, StoreType
 from ml_git.ml_git_message import output_messages
 from ml_git.storages.store import Store
-
-import paramiko
-
-from ml_git.utils import posix_path
 
 
 class SFtpStore(Store):
