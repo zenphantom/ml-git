@@ -6,3 +6,4 @@ For now, ml-git supports three types of storage (S3, MinIO or Azure). You can fi
 2. [MinIO](s3_configurations.md)
 3. [Azure](azure_configurations.md)
 4. [Google Drive](gdrive_configurations.md)
+4. [SFTP](sftp_configurations.md)
