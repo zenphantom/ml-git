@@ -65,10 +65,12 @@ MINIO_ACCESS_KEY=fake_access_key
 MINIO_SECRET_KEY=fake_secret_key
 docker stop minio1 && docker rm minio1 && rm -rf $PATH_TEST
 docker stop azure && docker rm azure
+docker stop sftp && docker rm sftp
 
 rm -rf $PATH_TEST
 mkdir -p $PATH_TEST/data/mlgit
 mkdir $PATH_TEST/test_permission
+mkdir -p $PATH_TEST/sftp/mlgit
 chmod -w $PATH_TEST/test_permission
 
 docker run -p 9000:9000 --name minio1 \
@@ -81,6 +83,11 @@ minio/minio server /data &
 docker run -p 10000:10000 --name azure \
 -v $PATH_TEST/data:/data  \
 mcr.microsoft.com/azure-storage/azurite azurite-blob --blobHost 0.0.0.0 &
+
+docker run --name=sftp -v $INTEGRATION_TESTS_BASE_PATH/fake_ssh_key/id_rsa.pub:/home/mlgit_user/.ssh/keys/id_rsa.pub:ro \
+-v $PATH_TEST/sftp/mlgit:/home/mlgit_user/mlgit \
+-p 22:22 -d atmoz/sftp \
+mlgit_user::1001:::mlgit
 
 sleep 10s
 
@@ -103,3 +110,4 @@ pipenv run pytest \
 chmod +w $PATH_TEST
 docker stop minio1 && docker rm minio1 && rm -rf $PATH_TEST
 docker stop azure && docker rm azure
+docker stop sftp && docker rm sftp

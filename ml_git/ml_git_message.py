@@ -38,6 +38,7 @@ output_messages = {
     'ERROR_BUCKET_DOES_NOT_EXIST': 'This bucket does not exist -- [%s]',
     'ERROR_INVALID_ENTITY_TYPE': 'The entity type informed is invalid.',
     'ERROR_INVALID_STATUS_DIRECTORY': 'The directory informed is invalid.',
+    'ERROR_OBJECT_NOT_FOUND': 'Object [%s] not found',
 
     'WARN_HAS_CONFIGURED_REMOTE': 'YOU ALREADY HAS A CONFIGURED REMOTE. All data stored in this repository will be sent to the new one on the first push.',
 }

@@ -524,7 +524,7 @@ commands = [
             '--credentials': {'help': help_msg.STORAGE_CREDENTIALS},
             '--region': {'help': help_msg.STORAGE_REGION},
             '--type': {'default': 's3h',
-                       'type': click.Choice(['s3h', 's3', 'azureblobh', 'gdriveh'],
+                       'type': click.Choice(['s3h', 's3', 'azureblobh', 'gdriveh', 'sftph'],
                                             case_sensitive=True),
                        'help': help_msg.STORAGE_TYPE},
             '--endpoint-url': {'help': help_msg.ENDPOINT_URL},
@@ -550,7 +550,7 @@ commands = [
 
         'options': {
             '--type': {'default': 's3h',
-                       'type': click.Choice(['s3h', 's3', 'azureblobh', 'gdriveh'],
+                       'type': click.Choice(['s3h', 's3', 'azureblobh', 'gdriveh', 'sftph'],
                                             case_sensitive=True),
                        'help': help_msg.STORAGE_TYPE},
             ('--global', '-g'): {'is_flag': True, 'default': False, 'help': help_msg.GLOBAL_OPTION},
