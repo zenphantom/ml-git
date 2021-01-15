@@ -327,11 +327,9 @@ def check_metadata_directories():
 def update_directories_to_plural(root_path, old_value, new_value):
     data_path = os.path.join(root_path, old_value)
     if os.path.exists(data_path):
-        set_write_read(data_path)
         os.rename(data_path, os.path.join(root_path, new_value))
     metadata_path = os.path.join(root_path, ROOT_FILE_NAME, old_value)
     if os.path.exists(metadata_path):
-        set_write_read(metadata_path)
         os.rename(metadata_path, os.path.join(root_path, ROOT_FILE_NAME, new_value))
 
 
