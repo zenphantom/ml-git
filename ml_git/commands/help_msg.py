@@ -39,7 +39,7 @@ PATH_OPTION = 'Storage folder path.'
 OBJECT_OPTION = 'Filename in storage.'
 ENDPOINT_URL = 'Storage endpoint url.'
 USERNAME = 'The username for the sftp login.'
-SSH_KEY = 'SSH key path.'
+SSH_KEY = 'Full path for the private key file.'
 AWS_CREDENTIALS = 'Profile of AWS credentials [default: default].'
 THOROUGH_OPTION = 'Try to download the IPLD if it is not present in the local repository to verify' \
                   ' the existence of all contained IPLD links associated.'
