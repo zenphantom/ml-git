@@ -53,24 +53,13 @@ class SFtpStore(Store):
         log.debug(output_messages['INFO_PUT_STORED'] % (file_path, self._bucket, key_path, version), class_name=SFTPSTORE_NAME)
         return key_path
 
-    def put_object(self, file_path, obj):
-        self._store.putfo(obj, file_path)
-
     def get(self, file_path, reference):
         try:
             self._store.get(posix_path(os.path.join(self._bucket, reference)), file_path)
             return True
         except Exception:
-            log.error('Object [%s] not found' % reference, class_name=SFTPSTORE_NAME)
+            log.error(output_messages['ERROR_OBJECT_NOT_FOUND'] % reference, class_name=SFTPSTORE_NAME)
             return False
-
-    def get_object(self, key_path):
-        try:
-            self._store.chdir(os.path.join(self._bucket, key_path))
-            raise RuntimeError('Object [%s] not found' % key_path)
-        except IOError:
-            res = self._store.open(os.path.join(self._bucket, key_path))
-            return res.read(res.stat().st_size)
 
     def delete(self, file_path, reference):
         self._store.remove(os.path.join(self._bucket, file_path))
