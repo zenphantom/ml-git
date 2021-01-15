@@ -123,20 +123,19 @@ For that reason, it is interesting to avoid downloading the full dataset if it's
 
 ### <a>Commands</a>:
 
-<details>
-
+<details markdown="1">
 <summary> <code>ml-git --help</code> </summary>
 Display help information about ml-git commands. 
 <br>
 </details>
 
-<details>
+<details markdown="1">
 <summary> <code>ml-git --version</code> </summary>
 Show version passed as parameter in click function.
 <br>
 </details>
 
-<details>
+<details markdown="1">
 <summary> <code>ml-git &lt;ml-entity&gt; add</code> </summary>
 
 ml-git add search for metadata (.spec file) inside ml-git index corresponding to ml-entity-name (mandatory use):
@@ -244,7 +243,7 @@ data/2.jpg:
 
 </details>
 
-<details>
+<details markdown="1">
 <summary> <code>ml-git &lt;ml-entity&gt; branch</code> </summary>
 
 Search for **HEAD** file in:
@@ -273,7 +272,7 @@ computer-vision__images__imagenet8__1: 00da0d518914cfaeb765633f68ade09a5d80b252
 
 </details>
 
-<details>
+<details markdown="1">
 <summary> <code>ml-git &lt;ml-entity&gt; checkout</code> </summary>
 
 ```
@@ -354,7 +353,7 @@ Let's assume that we have a dataset that contains 12 files.
 
 </details>
 
-<details>
+<details markdown="1">
 <summary> <code>ml-git &lt;ml-entity&gt; commit </code></summary>
 
 Firstly commit verifies ml-git tag existence, then updates status file in ``.ml-git/<ml-entity>/index/metadata/<ml-entity-name>/INDEX.yaml`` and merge the metadata ``.ml-git/<ml-entity>/index/metadata/<ml-entity-name>/MAFINEST.yaml`` with ``.ml-git/<ml-entity>/metadata/<ml-entity-name>/MAFINEST.yaml``.
@@ -473,7 +472,7 @@ ml-git_project/
 
 </details>
 
-<details>
+<details markdown="1">
 <summary> <code>ml-git &lt;ml-entity&gt; create </code></summary>
 
 ```
@@ -510,7 +509,7 @@ In addition, you can use the ```--unzip``` option to unzip the files imported.
 
 </details>
 
-<details>
+<details markdown="1">
 <summary> <code>ml-git &lt;ml-entity&gt; export</code> </summary>
 
 This command allows you to export files from one store (S3|MinIO) to another (S3|MinIO).
@@ -523,7 +522,7 @@ Initially, it checks if the user is in an initialized ml-git project. With the `
 
 </details>
 
-<details>
+<details markdown="1">
 <summary> <code>ml-git &lt;ml-entity&gt; fetch</code> </summary>
 
 ```
@@ -541,7 +540,7 @@ ml-git_project/
 ```
 </details>
 
-<details>
+<details markdown="1">
 <summary> <code>ml-git &lt;ml-entity&gt; fsck </code></summary>
 <br>
 
@@ -561,7 +560,7 @@ Applies SHA2 to content of objects , uses multihash to generate the CID, and com
 
 </details>
 
-<details>
+<details markdown="1">
 <summary> <code>ml-git &lt;ml-entity&gt; import</code> </summary>
 This command allows you to download a file or directory from the S3 bucket.
 
@@ -573,7 +572,7 @@ Initially checks if the user is in an initialized ml-git project. With the --cre
 
 </details>
 
-<details>
+<details markdown="1">
 <summary> <code>ml-git &lt;ml-entity&gt; init</code> </summary>
 
 When ml-git init is executed, it will read **.ml-git/config.yaml** to get the git repository url. ml-git will create directory .ml-git/**\<ml-entity\>/metadata** if doesn't exists and **clone** the repository into it.
@@ -590,7 +589,7 @@ ml-git_project/
 
 </details>
 
-<details>
+<details markdown="1">
 <summary> <code>ml-git &lt;ml-entity&gt; list </code></summary>
 
 That command will list all \<ml-entity\> under management in the ml-git repository. To do this, ml-git goes through the metadata directory to identify the structure of categories and entities that are under management.
@@ -617,7 +616,7 @@ ML dataset
 
 </details>
 
-<details>
+<details markdown="1">
 <summary> <code>ml-git &lt;ml-entity&gt; push</code> </summary>
 
 ```
@@ -657,7 +656,7 @@ After the upload process, ml-git executes **git push** from local repository **.
 
 </details>
 
-<details>
+<details markdown="1">
 <summary> <code>ml-git &lt;ml-entity&gt; remote-fsck </code></summary>
 
 Starting point of a remote fsck is to identify all the IPLD files contained in the MANIFEST file associated with the specified artefact spec (\<ml-artefact-name\>) and then executes the following steps:
@@ -683,7 +682,7 @@ Ml-git will try to download the IPLD if it is not present in the local repositor
 
 </details>
 
-<details>
+<details markdown="1">
 <summary> <code>ml-git &lt;ml-entity&gt; reset </code></summary>
 
 In ml-git project (as in git) we have three areas to manage and track the changes of the data.<br />
@@ -719,7 +718,7 @@ Depending how to commands are passed we manage this three areas accordingly.<br 
 The Default option is HEAD.
 </details>
 
-<details>
+<details markdown="1">
 <summary> <code>ml-git &lt;ml-entity&gt; show</code> </summary>
 
 Verify **tag** and **SHA-1** in HEAD:
@@ -756,7 +755,7 @@ After found all .spec files the command show each one contents, then execute git
 
 </details>
 
-<details>
+<details markdown="1">
 <summary> <code>ml-git &lt;ml-entity&gt; status </code></summary>
 
 Displays paths that have differences between the index file and the current
@@ -792,7 +791,7 @@ These files are located under the entities directory and listed if they have mor
 
 </details>
 
-<details>
+<details markdown="1">
 <summary> <code>ml-git &lt;ml-entity&gt; tag add</code></summary>
 
 ```
@@ -803,7 +802,7 @@ You can use this command to associate a tag to a commit.
 
 </details>
 
-<details>
+<details markdown="1">
 <summary> <code>ml-git &lt;ml-entity&gt; tag list </code></summary>
 
 This command lists the tags of an entity. To do this, it access the metadata of an entity to get the git repository and then executes git commands to list local tags.
@@ -821,7 +820,7 @@ ml-git_project/
 
 </details>
 
-<details>
+<details markdown="1">
 <summary> <code>ml-git &lt;ml-entity&gt; update </code></summary>
 Locate metadata directory where is git repository:
 
@@ -837,7 +836,7 @@ Then ml-git execute  "git pull" on "origin" to update all metadatas from remote 
 
 </details>
 
-<details>
+<details markdown="1">
 <summary> <code>ml-git &lt;ml-entity&gt; unlock </code></summary>
 <br>
 
@@ -848,7 +847,7 @@ You should only use this command for the flexible mutability option.
 
 </details>
 
-<details>
+<details markdown="1">
 <summary> <code>ml-git clone &lt;repository-url&gt;</code> </summary>
 
 The command clones the git repository which should contain a directory **.ml-git**, then initialize the metadata according to configurations. ml-git will create directory .ml-git/**[\<ml-entity\>](#ml_enitity)/metadata** if doesn't exists and **clone** the repository into it.
@@ -878,7 +877,7 @@ ml-git_project/
 
 </details>
 
-<details>
+<details markdown="1">
 <summary> <code>ml-git login</code> </summary>
 
 This command generates new Aws credentials in the __/.aws__ directory. 
@@ -887,14 +886,14 @@ Note:
 
 </details>
 
-<details>
+<details markdown="1">
 <summary> <code>ml-git repository config </code></summary>
 Command try to load the configurations from the file **.ml-git/config.yaml**. 
 
 If the file is found, it will show the configurations read from the file, if not it will show the default configurations in the project.
 </details>
 
-<details>
+<details markdown="1">
 <summary> <code>ml-git repository gc</code> </summary>
 <br>
 
@@ -919,7 +918,7 @@ ml-git_project/
 
 </details>
 
-<details>
+<details markdown="1">
 <summary> <code>ml-git repository init</code> </summary>
 
 ml-git repository init verify if the current directory has **.ml-git**, where configuration files goes, and if doesn't have it, ml-git will create the directory and save **config.yaml** inside, with the informations provided by a *dict* in project code. 
@@ -944,14 +943,14 @@ store:
 ```
 </details>
 
-<details>
+<details markdown="1">
 <summary> <code>ml-git repository remote &lt;ml-entity&gt; add </code></summary>
 
 This command load the configuration file **.ml-git/config.yaml** and change the attribute **git** to the **url** specified on arguments, then save it. This command require that you have executed ```ml-git init``` before.
 
 </details>
 
-<details>
+<details markdown="1">
 <summary> <code>ml-git repository remote &lt;ml-entity&gt; del</code> </summary>
 
 This command load the configuration file **.ml-git/config.yaml** and change the attribute **git** to empty, the save it.
@@ -966,7 +965,7 @@ ml-git_project/
 
 </details>
 
-<details>
+<details markdown="1">
 <summary> <code>ml-git repository store add </code></summary>
 
 ml-git store verify option [`[--type=<store-type>]`](#store-type),  then open existent file **.ml-git/config.yaml** and append the new storage.
@@ -975,7 +974,7 @@ You can use three types of storage (S3, MinIO, Azure or GDrive). See how configu
 
 </details>
 
-<details>
+<details markdown="1">
 
 <summary> <code>ml-git repository store del </code></summary>
 

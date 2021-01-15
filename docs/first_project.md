@@ -1,21 +1,27 @@
 # Your 1st ML artefacts under ml-git management #
 
 We will divide this quick howto into 6 main sections:
-1. [ml-git repository configuation / intialization](#initial-config)   
+
+1. [ml-git repository configuration / intialization](#initial-config)   
    
     - This section explains how to initialize and configure a repository for ml-git, considering the scenarios of the store be an S3 or a MinIO.
+
 2. [uploading a dataset](#upload-dataset)
    
     - Having a repository initialized, this section explains how to create and upload a dataset to the store.
+
 3. [adding data to a dataset](#change-dataset)
    
     - This section explains how to add new data to an entity already versioned by ml-git.
+
 4. [uploading labels associated to a dataset](#upload-labels)
    
     - This section describes how to upload a set of labels by associating the dataset to which these labels refer.
+
 5. [downloading a dataset](#download-dataset)
    
     - This section describes how to download a versioned data set using ml-git.
+    
 6. [checking data integrity](#checking-integrity)
    
     - This section explains how to check the integrity of the metadata repository.
@@ -26,7 +32,7 @@ At the end of each section there is a video to demonstrate the ml-git usage.
 ## <a name="initial-config"> Initial configuration of ml-git</a> ##
 
 Make sure you have created your own [git repository (more information)](#git_use) for dataset metadata and a S3 bucket or a MinIO server for the dataset actual data.
-If you haven't created it yet, you can use the [resources initialization script](../scripts/resources_initialization/README.md) which aims to facilitate the creation of resources (buckets and repositories).
+If you haven't created it yet, you can use the [resources initialization script](resources_initialization.md) which aims to facilitate the creation of resources (buckets and repositories).
 
 
 After that, create a ml-git project. To do this, use the following commands (note that 'mlgit-project' is the project name used as example):
@@ -92,7 +98,7 @@ The Ml-git uses git to versioning project's metadata. See bellow versioned metad
 *  **.spec**, is the specification file that contains informations like version number, artefact name, entity type (dataset, label, model), categories (tree struct that caracterize an entity).
 *  **MANIFEST.yaml**, is responsible to map artefact's files. The files are mapped by hashes, that are the references used to perform operations in local files, and download/upload operations in Stores (AWS|MinIO).
 
-You can find more information about metadata [here](docs/mlgit_internals.md).
+You can find more information about metadata [here](mlgit_internals.md).
 
 All configurations are stored in _.ml-git/config.yaml_ and you can look at configuration state at any time with the following command:
 ```
@@ -151,6 +157,7 @@ dataset:
 ```
 
 There are 5 main items in the spec file:
+
 1. __name__: it's the name of the dataset
 2. __version__: the version should be an integer, incremented each time there is new version pushed into ml-git.  You can use the --bumpversion argument to do the increment automatically for you when you add more files to a dataset.
 3. __categories__ : describes a tree structure to characterize the dataset category. That information is used by ml-git to create a directory structure in the git repository managing the metadata.

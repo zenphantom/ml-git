@@ -3,7 +3,7 @@
 
 # <a name="methods"> Methods available in the API </a> #
 
-<details>
+<details markdown="1">
 <summary><code> add </code></summary>
 <br>
 
@@ -24,7 +24,7 @@ def add(entity_type, entity_name, bumpversion=False, fsck=False, file_path=[]):
 ```
 </details>
 
-<details>
+<details markdown="1">
 <summary><code> checkout </code></summary>
 <br>
 
@@ -58,7 +58,7 @@ def checkout(entity, tag, sampling=None, retries=2, force=False, dataset=False, 
 </details>
 
 
-<details>
+<details markdown="1">
 <summary><code> clone </code></summary>
 <br>
 
@@ -80,7 +80,7 @@ def clone(repository_url, folder=None, track=False):
 </details>
 
 
-<details>
+<details markdown="1">
 <summary><code> commit </code></summary>
 <br>
 
@@ -101,7 +101,7 @@ def commit(entity, ml_entity_name, commit_message=None, related_dataset=None, re
 ```
 </details>
 
-<details>
+<details markdown="1">
 <summary><code> create </code></summary>
 <br>
 
@@ -130,7 +130,7 @@ def create(entity, entity_name, categories, mutability, **kwargs):
 
 
 
-<details>
+<details markdown="1">
 <summary><code> init </code></summary>
 <br>
 
@@ -148,7 +148,7 @@ def init(entity):
 ```
 </details>
 
-<details>
+<details markdown="1">
 <summary><code> push </code></summary>
 <br>
 
@@ -168,7 +168,7 @@ def push(entity, entity_name,  retries=2, clear_on_fail=False):
 ```
 </details>
 
-<details>
+<details markdown="1">
 <summary><code> remote add </code></summary>
 <br>
 
@@ -187,7 +187,7 @@ def remote_add(entity, remote_url, global_configuration=False):
 ```
 </details>
 
-<details>
+<details markdown="1">
 <summary><code> store add </code></summary>
 <br>
 
