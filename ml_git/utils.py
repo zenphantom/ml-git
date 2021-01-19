@@ -67,18 +67,6 @@ def json_load(file):
     return hash
 
 
-def yaml_load(file):
-    hash = {}
-    try:
-        with open(file) as y_file:
-            hash = yaml_processor.load(y_file)
-    except Exception:
-        pass
-    if SPEC_EXTENSION in posix_path(file):
-        hash = check_spec_file(file, hash)
-    return hash
-
-
 def check_spec_file(file, hash):
     modified = False
     if OLD_DATASETS_KEY in hash:
@@ -89,6 +77,18 @@ def check_spec_file(file, hash):
         modified = True
     if modified:
         yaml_save(hash, file)
+    return hash
+
+
+def yaml_load(file):
+    hash = {}
+    try:
+        with open(file) as y_file:
+            hash = yaml_processor.load(y_file)
+    except Exception:
+        pass
+    if SPEC_EXTENSION in posix_path(file):
+        hash = check_spec_file(file, hash)
     return hash
 
 
@@ -301,6 +301,25 @@ def remove_other_files(filenames, path):
     return reclaimed_space, count
 
 
+def change_keys_in_config(root_path):
+    file = os.path.join(root_path, ROOT_FILE_NAME, 'config.yaml')
+    conf = yaml_load(file)
+    if OLD_DATASETS_KEY in conf:
+        conf[EntityType.DATASETS.value] = conf.pop(OLD_DATASETS_KEY)
+    if OLD_MODELS_KEY in conf:
+        conf[EntityType.MODELS.value] = conf.pop(OLD_MODELS_KEY)
+    yaml_save(conf, file)
+
+
+def update_directories_to_plural(root_path, old_value, new_value):
+    data_path = os.path.join(root_path, old_value)
+    if os.path.exists(data_path):
+        os.rename(data_path, os.path.join(root_path, new_value))
+    metadata_path = os.path.join(root_path, ROOT_FILE_NAME, old_value)
+    if os.path.exists(metadata_path):
+        os.rename(metadata_path, os.path.join(root_path, ROOT_FILE_NAME, new_value))
+
+
 def check_metadata_directories():
     try:
         root_path = get_root_path()
@@ -322,22 +341,3 @@ def check_metadata_directories():
         else:
             raise Exception(output_messages['ERROR_PROJECT_NEED_BE_UPDATED'])
         log.info(output_messages['INFO_PROJECT_UPDATE_SUCCESSFULLY'])
-
-
-def update_directories_to_plural(root_path, old_value, new_value):
-    data_path = os.path.join(root_path, old_value)
-    if os.path.exists(data_path):
-        os.rename(data_path, os.path.join(root_path, new_value))
-    metadata_path = os.path.join(root_path, ROOT_FILE_NAME, old_value)
-    if os.path.exists(metadata_path):
-        os.rename(metadata_path, os.path.join(root_path, ROOT_FILE_NAME, new_value))
-
-
-def change_keys_in_config(root_path):
-    file = os.path.join(root_path, ROOT_FILE_NAME, 'config.yaml')
-    conf = yaml_load(file)
-    if OLD_DATASETS_KEY in conf:
-        conf[EntityType.DATASETS.value] = conf.pop(OLD_DATASETS_KEY)
-    if OLD_MODELS_KEY in conf:
-        conf[EntityType.MODELS.value] = conf.pop(OLD_MODELS_KEY)
-    yaml_save(conf, file)
