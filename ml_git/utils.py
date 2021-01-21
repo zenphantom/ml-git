@@ -8,8 +8,8 @@ import json
 import os
 import shutil
 import stat
-import zipfile
 import sys
+import zipfile
 from contextlib import contextmanager
 from pathlib import Path, PurePath, PurePosixPath
 from stat import S_IREAD, S_IRGRP, S_IROTH, S_IWUSR
@@ -18,8 +18,13 @@ from halo import Halo
 from ruamel.yaml import YAML
 from ruamel.yaml.compat import StringIO
 
-from ml_git.constants import SPEC_EXTENSION, CONFIG_FILE
+from ml_git import log
+from ml_git.constants import SPEC_EXTENSION, CONFIG_FILE, EntityType, ROOT_FILE_NAME
+from ml_git.ml_git_message import output_messages
 from ml_git.pool import pool_factory
+
+OLD_DATASETS_KEY = 'dataset'
+OLD_MODELS_KEY = 'model'
 
 
 class RootPathException(Exception):
@@ -62,6 +67,19 @@ def json_load(file):
     return hash
 
 
+def check_spec_file(file, hash):
+    modified = False
+    if OLD_DATASETS_KEY in hash:
+        hash[EntityType.DATASETS.value] = hash.pop(OLD_DATASETS_KEY)
+        modified = True
+    if OLD_MODELS_KEY in hash:
+        hash[EntityType.MODELS.value] = hash.pop(OLD_MODELS_KEY)
+        modified = True
+    if modified:
+        yaml_save(hash, file)
+    return hash
+
+
 def yaml_load(file):
     hash = {}
     try:
@@ -69,6 +87,8 @@ def yaml_load(file):
             hash = yaml_processor.load(y_file)
     except Exception:
         pass
+    if SPEC_EXTENSION in posix_path(file):
+        hash = check_spec_file(file, hash)
     return hash
 
 
@@ -279,3 +299,45 @@ def remove_other_files(filenames, path):
                 os.unlink(file_path)
                 count += 1
     return reclaimed_space, count
+
+
+def change_keys_in_config(root_path):
+    file = os.path.join(root_path, ROOT_FILE_NAME, 'config.yaml')
+    conf = yaml_load(file)
+    if OLD_DATASETS_KEY in conf:
+        conf[EntityType.DATASETS.value] = conf.pop(OLD_DATASETS_KEY)
+    if OLD_MODELS_KEY in conf:
+        conf[EntityType.MODELS.value] = conf.pop(OLD_MODELS_KEY)
+    yaml_save(conf, file)
+
+
+def update_directories_to_plural(root_path, old_value, new_value):
+    data_path = os.path.join(root_path, old_value)
+    if os.path.exists(data_path):
+        os.rename(data_path, os.path.join(root_path, new_value))
+    metadata_path = os.path.join(root_path, ROOT_FILE_NAME, old_value)
+    if os.path.exists(metadata_path):
+        os.rename(metadata_path, os.path.join(root_path, ROOT_FILE_NAME, new_value))
+
+
+def check_metadata_directories():
+    try:
+        root_path = get_root_path()
+    except RootPathException:
+        return
+
+    have_old_dataset_path = os.path.exists(os.path.join(root_path, OLD_DATASETS_KEY)) or os.path.exists(os.path.join(root_path, ROOT_FILE_NAME, OLD_DATASETS_KEY))
+    have_old_model_path = os.path.exists(os.path.join(root_path, OLD_MODELS_KEY)) or os.path.exists(os.path.join(root_path, ROOT_FILE_NAME, OLD_MODELS_KEY))
+
+    if have_old_dataset_path or have_old_model_path:
+        log.info(output_messages['INFO_UPDATE_THE_PROJECT'])
+        update_now = input(output_messages['INFO_AKS_IF_WANT_UPDATE_PROJECT']).lower()
+        if update_now in ['yes', 'y']:
+            if have_old_dataset_path:
+                update_directories_to_plural(root_path, OLD_DATASETS_KEY, EntityType.DATASETS.value)
+            if have_old_model_path:
+                update_directories_to_plural(root_path, OLD_MODELS_KEY, EntityType.MODELS.value)
+            change_keys_in_config(root_path)
+        else:
+            raise Exception(output_messages['ERROR_PROJECT_NEED_BE_UPDATED'])
+        log.info(output_messages['INFO_PROJECT_UPDATE_SUCCESSFULLY'])
