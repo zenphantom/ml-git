@@ -19,7 +19,6 @@ from ml_git.version import get_version
 @click.help_option(hidden=True)
 def mlgit():
     check_metadata_directories()
-    pass
 
 
 # Concrete ml-git Commands Implementation
