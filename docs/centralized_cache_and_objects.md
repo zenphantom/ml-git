@@ -69,7 +69,7 @@ labels:
 model:
   git: ''
   cache_path: 'Path directory created on step 1 for model entity'
-store:
+storage:
   s3:
     mlgit-datasets:
       aws-credentials:
@@ -133,7 +133,7 @@ labels:
 model:
   git: ''
   objects_path: 'Path directory created on step 1 for model entity'
-store:
+storage:
   s3:
     mlgit-datasets:
       aws-credentials:

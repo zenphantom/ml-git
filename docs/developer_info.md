@@ -14,7 +14,7 @@
    *  [Windows](https://docs.docker.com/docker-for-windows/install/)
    *  [Linux](https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-docker-engine---community-1)
 
-   The **Integration Tests** script starts a [MinIO](https://hub.docker.com/r/minio/minio) container on your local machine (port 9000) to be used as store during tests execution.
+   The **Integration Tests** script starts a [MinIO](https://hub.docker.com/r/minio/minio) container on your local machine (port 9000) to be used as storage during tests execution.
 
 2. [Optional] Install and configure Make to run tests easily:
    
@@ -129,7 +129,7 @@ To run google drive integration test you need to:
     }
     ```
 
-The Google Drive Integration Tests are set to **not** run by default (as they require extra setup, as mentioned earlier).  To include the integration tests for Google Drive store during an integration tests run, you should execute:
+The Google Drive Integration Tests are set to **not** run by default (as they require extra setup, as mentioned earlier).  To include the integration tests for Google Drive storage during an integration tests run, you should execute:
 
 ##### Using **Make**:
 

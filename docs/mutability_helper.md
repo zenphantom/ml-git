@@ -24,7 +24,7 @@ dataset:
     - images
   mutability: flexible
   manifest:
-    store: s3h://mlgit-datasets
+    storage: s3h://mlgit-datasets
   name: imagenet8
   version: 1
 ```

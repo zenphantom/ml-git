@@ -70,10 +70,10 @@ When you finish Enabling API step, you need to create your credentials and confi
 
 Create directory with name  of your preference and copy your credentials  file with name **credentials.json** inside the directory.
 
-Add store configurations example:
+Add storage configurations example:
 
 ```
-$ ml-git repository store add path-in-your-drive --type=gdriveh --credentials=/home/profile/.gdrive
+$ ml-git repository storage add path-in-your-drive --type=gdriveh --credentials=/home/profile/.gdrive
 ```
 
 After that initialize the metadata repository:
@@ -99,7 +99,7 @@ labels:
   git: ''
 model:
   git: ''
-store:
+storage:
   s3:
     mlgit-datasets:
       aws-credentials:

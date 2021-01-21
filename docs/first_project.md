@@ -3,10 +3,10 @@
 We will divide this quick howto into 6 main sections:
 1. [ml-git repository configuation / intialization](#initial-config)   
    
-    - This section explains how to initialize and configure a repository for ml-git, considering the scenarios of the store be an S3 or a MinIO.
+    - This section explains how to initialize and configure a repository for ml-git, considering the scenarios of the storage be an S3 or a MinIO.
 2. [uploading a dataset](#upload-dataset)
    
-    - Having a repository initialized, this section explains how to create and upload a dataset to the store.
+    - Having a repository initialized, this section explains how to create and upload a dataset to the storage.
 3. [adding data to a dataset](#change-dataset)
    
     - This section explains how to add new data to an entity already versioned by ml-git.
@@ -55,7 +55,7 @@ For a basic ml-git repository, you need to add a remote repository for metadata 
 
 ```
 $ ml-git repository remote dataset add git@github.com:example/your-mlgit-datasets.git
-$ ml-git repository store add mlgit-datasets --credentials=mlgit
+$ ml-git repository storage add mlgit-datasets --credentials=mlgit
 ```
 
 Last but not least, initialize the metadata repository.
@@ -72,7 +72,7 @@ For a basic ml-git repository, you need to add a remote repository for metadata 
 
 ```
 $ ml-git dataset remote add git@github.com:example/your-mlgit-datasets.git
-$ ml-git store add mlgit-datasets --credentials=mlgit --endpoint-url=<minio-endpoint-url>
+$ ml-git storage add mlgit-datasets --credentials=mlgit --endpoint-url=<minio-endpoint-url>
 ```
 
 After that initialize the metadata repository.
@@ -110,7 +110,7 @@ config:
  'object_path': '',
  'push_threads_count': 10,
  'refs_path': '',
- 'store': {'s3': {'mlgit-datasets': {'aws-credentials': {'profile': 'default'},
+ 'storage': {'s3': {'mlgit-datasets': {'aws-credentials': {'profile': 'default'},
                                      'region': 'us-east-1'}},
            's3h': {'mlgit-datasets': {'aws-credentials': {'profile': 'mlgit'},
                                       'endpoint-url': <minio-endpoint-url>,
@@ -119,13 +119,13 @@ config:
 ```
 ## <a name="upload-dataset">Uploading a dataset</a> ##
 
-To create and upload a dataset to a store, you must be in an already initialized project, if necessary read [section 1](#initial-config) to initialize and configure a project.
+To create and upload a dataset to a storage, you must be in an already initialized project, if necessary read [section 1](#initial-config) to initialize and configure a project.
 
 Ml-git expects any dataset to be specified under _dataset/_ directory of your project and it expects a specification file with the name of the dataset.
 To create this specification file for a new entity you must run the following command:
 
 ```
-$ ml-git dataset create imagenet8 --category=computer-vision --category=images --mutability=strict --store-type=s3h --bucket-name=mlgit-datasets --version=1 
+$ ml-git dataset create imagenet8 --category=computer-vision --category=images --mutability=strict --storage-type=s3h --bucket-name=mlgit-datasets --version=1 
 ```
 
 After that a file must have been created in dataset/imagenet8/imagenet8.spec and should look like this:
@@ -133,7 +133,7 @@ After that a file must have been created in dataset/imagenet8/imagenet8.spec and
 To create this specification file for a new entity you must run the following command:
 
 ```
-$ ml-git dataset create imagenet8 --category=computer-vision --category=images --store-type=s3h --bucket-name=mlgit-datasets --version=1 
+$ ml-git dataset create imagenet8 --category=computer-vision --category=images --storage-type=s3h --bucket-name=mlgit-datasets --version=1 
 ```
 
 After that a file must have been created in dataset/imagenet8/imagenet8.spec and should look like this:
@@ -144,7 +144,7 @@ dataset:
     - computer-vision
     - images
   manifest:
-    store: s3h://mlgit-datasets
+    storage: s3h://mlgit-datasets
   mutability: strict
   name: imagenet8
   version: 1
@@ -154,7 +154,7 @@ There are 5 main items in the spec file:
 1. __name__: it's the name of the dataset
 2. __version__: the version should be an integer, incremented each time there is new version pushed into ml-git.  You can use the --bumpversion argument to do the increment automatically for you when you add more files to a dataset.
 3. __categories__ : describes a tree structure to characterize the dataset category. That information is used by ml-git to create a directory structure in the git repository managing the metadata.
-4. __manifest__: describes the data store in which the data is actually stored. In this case a S3 bucket named _mlgit-datasets_. The AWS credential profile name and AWS region should be found in the ml-git config file.
+4. __manifest__: describes the data storage in which the data is actually stored. In this case a S3 bucket named _mlgit-datasets_. The AWS credential profile name and AWS region should be found in the ml-git config file.
 5. __mutability__: describes the mutability option that your project will have, choosing an option that can never be changed. The mutability options are "strict", "flexible" and "mutable". If you want to know more about each type of mutability and how it works, please take a look at [mutability documentation](mutability_helper.md).
 
 The items listed above are mandatory in the spec. An important point to note here is that if the user wishes, he can add new items that will be versioned with the spec. 
@@ -167,7 +167,7 @@ dataset:
     - images
   mutability: strict
   manifest:
-    store: s3h://mlgit-datasets
+    storage: s3h://mlgit-datasets
   name: imagenet8
   version: 1
   metadata:
@@ -261,7 +261,7 @@ After add the files, you need commit the metadata to the local repository. For t
 $ ml-git dataset commit imagenet8
 ```
 
-Last but not least, *ml-git dataset push* will update the remote metadata repository just after storing all actual data under management in the specified remote data store.
+Last but not least, *ml-git dataset push* will update the remote metadata repository just after storing all actual data under management in the specified remote data storage.
 
 ```
 $ ml-git dataset push imagenet8
@@ -290,7 +290,7 @@ ml-git dataset commit <yourdataset>
 ml-git dataset push <yourdataset>
 ```
 
-This will create a new version of your dataset but will only push the changes to your remote store (e.g. S3).
+This will create a new version of your dataset but will only push the changes to your remote storage (e.g. S3).
 
 **Adding data to a dataset:**
 
@@ -301,11 +301,11 @@ This will create a new version of your dataset but will only push the changes to
 To create and upload a labels associated to a dataset, you must be in an already initialized project, if necessary read [section 1](#initial-config) to initialize and configure a project.
 You will also need to have a dataset already versioned by ml-git in your repository, see [section 2](#upload-dataset).
 
-The first step is to configure your metadata & data repository/store.
+The first step is to configure your metadata & data repository/storage.
 
 ```
 $ ml-git repository remote labels add git@github.com:HPInc/hp-mlgit-labels.git
-$ ml-git repository store add mlgit-labels 
+$ ml-git repository storage add mlgit-labels 
 $ ml-git labels init
 ```
 
@@ -326,7 +326,7 @@ config:
  'model': {'git': ''},
  'object_path': '',
  'refs_path': '',
- 'store': {'s3': {'mlgit-datasets': {'aws-credentials': {'profile': 'default'},
+ 'storage': {'s3': {'mlgit-datasets': {'aws-credentials': {'profile': 'default'},
                                      'region': 'us-east-1'}},
            's3h': {'mlgit-datasets': {'aws-credentials': {'profile': 'default'},
                                       'endpoint-url': None,
@@ -340,7 +340,7 @@ config:
 Now, you can create your first labels set for say mscoco. ml-git expects any labels set to be specified under _labels/_ directory of your project and it expects a specification file with the name of the _labels_.
 
 ```
-$ ml-git labels create mscoco-captions --category=computer-vision --category=captions --mutability=mutable --store-type=s3h --bucket-name=mlgit-labels --version=1
+$ ml-git labels create mscoco-captions --category=computer-vision --category=captions --mutability=mutable --storage-type=s3h --bucket-name=mlgit-labels --version=1
 ```
 
 After create the entity, you can create the README.md to create a web page describing your labels set. Here below is the tree of caption labels for mscoco directory and file structure:
@@ -378,7 +378,7 @@ dataset:
   tag: computer-vision__images__mscoco__1
 manifest:
   files: MANIFEST.yaml
-  store: s3h://mlgit-datasets
+  storage: s3h://mlgit-datasets
 name: mscoco-captions
 version: 1
 ```
@@ -529,7 +529,7 @@ ml-git dataset commit <yourdataset>
 ml-git dataset push <yourdataset>
 ```
 
-This will create a new version of your dataset but will only push the changes to your remote store (e.g. S3).
+This will create a new version of your dataset but will only push the changes to your remote storage (e.g. S3).
 
 **Changing a dataset:**
 
