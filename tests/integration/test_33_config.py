@@ -20,7 +20,7 @@ class ConfigAcceptanceTests(unittest.TestCase):
                       "\n 'index_path': '',\n 'labels': {'git': ''},\n 'metadata_path': '',\n 'mlgit_conf': 'config.yaml'," \
                       "\n 'mlgit_path': '.ml-git',\n 'model': {'git': ''},\n 'object_path': ''," \
                       "\n 'push_threads_count': "+str(push_threads_count)+",\n 'refs_path': ''," \
-                      "\n 'store': {'s3': {'mlgit-datasets': {'aws-credentials': {'profile': 'default'}," \
+                      "\n 'storage': {'s3': {'mlgit-datasets': {'aws-credentials': {'profile': 'default'}," \
                       "\n                                     'region': 'us-east-1'}}},\n 'verbose': 'info'}"
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')

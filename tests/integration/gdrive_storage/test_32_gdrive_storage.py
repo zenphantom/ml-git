@@ -21,7 +21,7 @@ class GdrivePushFilesAcceptanceTests(unittest.TestCase):
     @pytest.mark.usefixtures('switch_to_tmp_dir_with_gdrive_credentials', 'start_local_git_server')
     def test_01_push_and_checkout(self):
         cpath = 'credentials-json'
-        init_repository('dataset', self, store_type='gdriveh', profile=cpath)
+        init_repository('dataset', self, storage_type='gdriveh', profile=cpath)
         add_file(self, 'dataset', '--bumpversion', 'new')
         metadata_path = os.path.join(self.tmp_dir, ML_GIT_DIR, 'dataset', 'metadata')
         self.assertIn(messages[17] % (metadata_path, os.path.join('computer-vision', 'images', 'dataset-ex')),
@@ -41,7 +41,7 @@ class GdrivePushFilesAcceptanceTests(unittest.TestCase):
         workspace = os.path.join(self.tmp_dir, 'dataset')
         clear(workspace)
         clear(os.path.join(self.tmp_dir, ML_GIT_DIR))
-        init_repository('dataset', self, store_type='gdriveh', profile=cpath)
+        init_repository('dataset', self, storage_type='gdriveh', profile=cpath)
 
         self.assertNotIn(ERROR_MESSAGE, check_output('ml-git dataset checkout %s' % tag))
 
@@ -64,14 +64,14 @@ class GdrivePushFilesAcceptanceTests(unittest.TestCase):
 
         file_path_b = os.path.join('dataset-ex', 'B')
         self.assertNotIn(ERROR_MESSAGE, check_output(
-            MLGIT_IMPORT % ('dataset', 'mlgit', 'dataset-ex') + ' --store-type=gdrive --object=B --credentials=' + CREDENTIALS_PATH))
+            MLGIT_IMPORT % ('dataset', 'mlgit', 'dataset-ex') + ' --storage-type=gdrive --object=B --credentials=' + CREDENTIALS_PATH))
 
         self.assertTrue(os.path.exists(file_path_b))
 
         file_path = os.path.join('dataset-ex', 'test-folder', 'A')
 
         self.assertNotIn(ERROR_MESSAGE, check_output(
-            MLGIT_IMPORT % ('dataset', 'mlgit', 'dataset-ex') + ' --store-type=gdrive --path=test-folder --credentials=' + cpath))
+            MLGIT_IMPORT % ('dataset', 'mlgit', 'dataset-ex') + ' --storage-type=gdrive --path=test-folder --credentials=' + cpath))
 
         self.assertTrue(os.path.exists(file_path))
 
@@ -80,20 +80,18 @@ class GdrivePushFilesAcceptanceTests(unittest.TestCase):
         self.assertIn(messages[0], check_output(MLGIT_INIT))
 
         self.assertIn(messages[38], check_output(MLGIT_CREATE % ('dataset', 'dataset-ex')
-                                                 + ' --category=imgs --bucket-name=test'
-                                                   ' --import-url=%s --credentials-path=%s '
+                                                 + ' --category=imgs --bucket-name=test --import-url=%s --credentials-path=%s '
                                                  % (self.gdrive_links['test-folder'], CREDENTIALS_PATH)
-                                                 + ' --mutability=%s' % Mutability.STRICT.value))
+                                                 + 'mutability=%s' % (Mutability.STRICT.value)))
 
         file_a_test_folder = os.path.join('dataset', 'dataset-ex', 'data', 'test-folder', 'A')
 
         self.assertTrue(os.path.exists(file_a_test_folder))
 
         self.assertIn(messages[38], check_output(MLGIT_CREATE % ('dataset', 'dataset-ex2')
-                                                 + ' --category=imgs --bucket-name=test'
-                                                   ' --import-url=%s --credentials-path=%s'
+                                                 + ' --category=imgs --bucket-name=test --import-url=%s --credentials-path=%s'
                                                  % (self.gdrive_links['B'], CREDENTIALS_PATH)
-                                                 + ' --mutability=%s' % Mutability.STRICT.value))
+                                                 + 'mutability=%s' % (Mutability.STRICT.value)))
 
         file_b = os.path.join('dataset', 'dataset-ex2', 'data', 'B')
 

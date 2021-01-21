@@ -11,7 +11,7 @@ messages = [
     'INFO - Admin: Add remote repository [%s] for [model]',  # 4
     'INFO - Admin: Changing remote from [%s]  to [%s] for  [dataset]',  # 5
     'ERROR - Admin: You are not in an initialized ml-git repository.',  # 6
-    'INFO - Admin: Add store [%s://%s] with creds from profile [%s]',  # 7
+    'INFO - Admin: Add storage [%s://%s] with creds from profile [%s]',  # 7
     'INFO - Metadata Manager: Metadata init [%s] @ [%s]',  # 8
     'ERROR - Repository: The path [%s] already exists and is not an empty directory.',  # 9
     'ERROR - Repository: Unable to find %s. Check the remote repository used.',  # 10
@@ -63,7 +63,7 @@ messages = [
     'No current tag for [%s]. commit first',  # 55
     'ML %s\n|-- computer-vision\n|   |-- images\n|   |   |-- %s-ex\n',  # 56
     '-- %s : %s-ex --\ncategories:\n- computer-vision\n- images\nmanifest:\n  amount: 5\n  '
-    'files: MANIFEST.yaml\n  size: 14.5 kB\n  store: s3h://mlgit\nmutability: strict\nname: %s-ex\nversion: %s\n\n',  # 57
+    'files: MANIFEST.yaml\n  size: 14.5 kB\n  storage: s3h://mlgit\nmutability: strict\nname: %s-ex\nversion: %s\n\n',  # 57
     '%d missing descriptor files. Consider using the --thorough option.',  # 58
     '%d missing descriptor files. Download:',  # 59
     'Corruption detected for chunk [%s]',  # 60
@@ -82,7 +82,7 @@ messages = [
     'File %s not found',  # 73
     'ERROR - Repository: Spec mutability cannot be changed.',  # 74
     'INFO - Repository: The spec does not have the \'mutability\' property set. Default: strict.',  # 75
-    'INFO - Admin: Removed store [s3h://%s] from configuration file.',  # 76
+    'INFO - Admin: Removed storage [s3h://%s] from configuration file.',  # 76
     'Tag: %s',  # 77
     'Message: %s',  # 78
     'Total of files: %d',  # 79
@@ -93,7 +93,7 @@ messages = [
     'Amount of files: %s',  # 84
     'The %s doesn\'t have been initialized.',  # 85
     'You don\'t have any entity being managed.',  # 86
-    'INFO - Admin: Add store [%s://%s]',  # 87
+    'INFO - Admin: Add storage [%s://%s]',  # 87
     'An entity with that name already exists.',  # 88
     'The argument `import` is mutually exclusive with argument',  # 89
     'The argument `credentials_path` is required if `import-url` is used.',  # 90

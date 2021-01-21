@@ -10,7 +10,7 @@ from unittest import mock
 
 import pytest
 
-from tests.integration.commands import MLGIT_INIT, MLGIT_STORE_ADD, MLGIT_COMMIT, MLGIT_PUSH, \
+from tests.integration.commands import MLGIT_INIT, MLGIT_STORAGE_ADD, MLGIT_COMMIT, MLGIT_PUSH, \
     MLGIT_CHECKOUT, MLGIT_ENTITY_INIT
 from tests.integration.helper import check_output, BUCKET_NAME, PROFILE, ERROR_MESSAGE, init_repository, add_file, \
     ML_GIT_DIR, clear, GLOBAL_CONFIG_PATH, delete_global_config, \
@@ -64,7 +64,7 @@ class APIAcceptanceTests(unittest.TestCase):
     def test_02_checkout_with_otf_in_already_initialized_repository(self):
         self.set_up_checkout('dataset')
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_INIT))
-        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_STORE_ADD % (BUCKET_NAME, PROFILE)))
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_STORAGE_ADD % (BUCKET_NAME, PROFILE)))
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ENTITY_INIT % 'dataset'))
         self.assertNotIn(messages[98], check_output(MLGIT_CHECKOUT % ('dataset', 'computer-vision__images__dataset-ex__1')))
         self.check_metadata()
