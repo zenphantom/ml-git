@@ -4,6 +4,6 @@ dataset:
   - images
   manifest:
     files: MANIFEST.yaml
-    store: s3h://ml-git-datasets
+    storage: s3h://ml-git-datasets
   name: dataset-ex
   version: 5

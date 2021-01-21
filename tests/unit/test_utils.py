@@ -12,10 +12,13 @@ from unittest.mock import Mock
 
 import humanize
 import pytest
+import yaml
 
+from ml_git.constants import EntityType, ROOT_FILE_NAME, OLD_STORAGE_KEY, STORAGE_KEY
 from ml_git.utils import json_load, yaml_load, yaml_save, RootPathException, get_root_path, change_mask_for_routine, \
     ensure_path_exists, yaml_load_str, get_yaml_str, run_function_per_group, unzip_files_in_directory, \
-    remove_from_workspace, group_files_by_path, remove_other_files, remove_unnecessary_files
+    remove_from_workspace, group_files_by_path, remove_other_files, remove_unnecessary_files, change_keys_in_config, \
+    update_directories_to_plural, validate_config_keys
 
 
 @pytest.mark.usefixtures('tmp_dir', 'switch_to_test_dir', 'yaml_str_sample', 'yaml_obj_sample')
@@ -24,9 +27,9 @@ class UtilsTestCases(unittest.TestCase):
         jsn = {}
         self.assertFalse(bool(jsn))
         jsn = json_load('./udata/data.json')
-        self.assertEqual(jsn['dataset']['categories'], 'imgs')
-        self.assertEqual(jsn['dataset']['name'], 'dataex')
-        self.assertEqual(jsn['dataset']['version'], 1)
+        self.assertEqual(jsn[EntityType.DATASETS.value]['categories'], 'imgs')
+        self.assertEqual(jsn[EntityType.DATASETS.value]['name'], 'dataex')
+        self.assertEqual(jsn[EntityType.DATASETS.value]['version'], 1)
         self.assertTrue(bool(jsn))
 
     def test_yaml_load(self):
@@ -58,7 +61,7 @@ class UtilsTestCases(unittest.TestCase):
 
             yal = yaml_load(yaml_path)
 
-            temp_arr = yal['dataset']['git'].split('.')
+            temp_arr = yal[EntityType.DATASETS.value]['git'].split('.')
             temp_arr.pop()
             temp_arr.pop()
             temp_arr.append(temp_var)
@@ -66,12 +69,12 @@ class UtilsTestCases(unittest.TestCase):
             # create new git variable
             new_git_var = '.'.join(temp_arr)
 
-            self.assertFalse(yal['dataset']['git'] == new_git_var)
+            self.assertFalse(yal['datasets']['git'] == new_git_var)
 
-            yal['dataset']['git'] = new_git_var
+            yal[EntityType.DATASETS.value]['git'] = new_git_var
 
             yaml_save(yal, yaml_path)
-            self.assertTrue(yal['dataset']['git'] == new_git_var)
+            self.assertTrue(yal[EntityType.DATASETS.value]['git'] == new_git_var)
 
     def test_get_root_path(self):
 
@@ -197,3 +200,66 @@ class UtilsTestCases(unittest.TestCase):
         remove_other_files(['image1.jpg'], self.tmp_dir)
         self.assertTrue(os.path.exists(file1))
         self.assertFalse(os.path.exists(file2))
+
+    def test_change_keys_in_config(self):
+        config = """
+        dataset:
+           git: fake_git_repository
+        labels:
+           git: fake_git_repository
+        model:
+           git: fake_git_repository
+        store:
+            s3:
+                mlgit-datasets:
+                    aws-credentials:
+                        profile: mlgit
+                    region: us-east-1
+        """
+        config_path = os.path.join(self.tmp_dir, ROOT_FILE_NAME, 'config.yaml')
+        os.makedirs(os.path.join(self.tmp_dir, ROOT_FILE_NAME), exist_ok=True)
+        with open(config_path, 'w') as config_yaml:
+            config_yaml.write(config)
+        change_keys_in_config(self.tmp_dir)
+        conf = yaml_load(config_path)
+        old_dataset_key = 'dataset'
+        old_model_key = 'model'
+        self.assertNotIn(old_dataset_key, conf)
+        self.assertIn(EntityType.DATASETS.value, conf)
+        self.assertNotIn(old_model_key, conf)
+        self.assertIn(EntityType.MODELS.value, conf)
+        self.assertNotIn(OLD_STORAGE_KEY, conf)
+        self.assertIn(STORAGE_KEY, conf)
+
+    def test_update_directories_to_plural(self):
+        old_dataset_key = 'dataset'
+        data_path = os.path.join(self.tmp_dir, old_dataset_key)
+        metadata_path = os.path.join(self.tmp_dir, ROOT_FILE_NAME, old_dataset_key)
+        os.makedirs(data_path, exist_ok=True)
+        os.makedirs(metadata_path, exist_ok=True)
+        update_directories_to_plural(self.tmp_dir, old_dataset_key, EntityType.DATASETS.value)
+        self.assertFalse(os.path.exists(data_path))
+        self.assertFalse(os.path.exists(metadata_path))
+        data_path = os.path.join(self.tmp_dir, EntityType.DATASETS.value)
+        metadata_path = os.path.join(self.tmp_dir, ROOT_FILE_NAME, EntityType.DATASETS.value)
+        self.assertTrue(os.path.exists(data_path))
+        self.assertTrue(os.path.exists(metadata_path))
+
+    def test_validate_config_keys(self):
+        config = """
+        %s:
+           git: fake_git_repository
+        %s:
+           git: fake_git_repository
+        %s:
+            s3:
+                mlgit-datasets:
+                    aws-credentials:
+                        profile: mlgit
+                    region: us-east-1
+        """
+        self.assertTrue(validate_config_keys(yaml.safe_load(config % ('datasets', 'models', 'storage'))))
+        self.assertFalse(validate_config_keys(yaml.safe_load(config % ('dataset', 'model', 'store'))))
+        self.assertFalse(validate_config_keys(yaml.safe_load(config % ('datasets', 'models', 'store'))))
+        self.assertFalse(validate_config_keys(yaml.safe_load(config % ('datasets', 'model', 'storage'))))
+        self.assertFalse(validate_config_keys(yaml.safe_load(config % ('dataset', 'models', 'storage'))))

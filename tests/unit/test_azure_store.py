@@ -9,7 +9,7 @@ from unittest import mock
 
 import pytest
 from azure.storage.blob import BlobServiceClient, BlobClient, StorageStreamDownloader
-from ml_git.storages.azure_store import AzureMultihashStore
+from ml_git.storages.azure_storage import AzureMultihashStorage
 from ml_git.utils import ensure_path_exists
 
 files_mock = {'zdj7Wm99FQsJ7a4udnx36ZQNTy7h4Pao3XmRSfjo4sAbt9g74': {'1.jpg'}}
@@ -51,18 +51,18 @@ def mock_readall(*args, **kwargs):
 
 @pytest.mark.usefixtures('md5_fixture', 'tmp_dir', 'switch_to_test_dir')
 class AzureStoreTestCases(unittest.TestCase):
-    azure_store = ''
+    azure_storage = ''
 
     @mock.patch('azure.storage.blob.BlobServiceClient.from_connection_string', side_effect=mock_create_connection)
     @mock.patch.dict(os.environ, {'AZURE_STORAGE_CONNECTION_STRING': dev_store_account_})
     def setUp(self, mock_create_connection):
-        self.azure_store = AzureMultihashStore(bucketname, bucket)
+        self.azure_storage = AzureMultihashStorage(bucketname, bucket)
         mock_create_connection.assert_called_with(dev_store_account_, connection_timeout=300)
         pass
 
     @mock.patch.dict(os.environ, {'AZURE_STORAGE_CONNECTION_STRING': dev_store_account_})
     def test_get_account(self):
-        connection_string = self.azure_store.get_account()
+        connection_string = self.azure_storage.get_account()
         self.assertEqual(connection_string, dev_store_account_)
 
     @mock.patch('azure.storage.blob.BlobServiceClient.get_blob_client', side_effect=mock_get_blob_client)
@@ -73,8 +73,8 @@ class AzureStoreTestCases(unittest.TestCase):
     def test_put(self, mock_upload_blob, mock_download_blob, mock_readall, mock_get_client):
         k = 'zdj7WjdojNAZN53Wf29rPssZamfbC6MVerzcGwd9tNciMpsQh'
         f = 'azure-test/think-hires.jpg'
-        self.assertEqual(self.azure_store.put(k, f), k)
-        self.assertTrue(self.azure_store.get(f, k))
+        self.assertEqual(self.azure_storage.put(k, f), k)
+        self.assertTrue(self.azure_storage.get(f, k))
         mock_upload_blob.assert_called()
         mock_get_client.assert_called_with(container=bucketname, blob=k)
         mock_download_blob.assert_called()
@@ -88,10 +88,10 @@ class AzureStoreTestCases(unittest.TestCase):
     def test_get(self, mock_upload_blob, mock_download_blob, mock_readall, mock_get_client):
         k = 'zdj7WjdojNAZN53Wf29rPssZamfbC6MVerzcGwd9tNciMpsQh'
         f = 'hdata/zdj7WjdojNAZN53Wf29rPssZamfbC6MVerzcGwd9tNciMpsQh'
-        self.assertEqual(self.azure_store.put(k, f), k)
-        self.assertTrue(self.azure_store.get(f, k))
+        self.assertEqual(self.azure_storage.put(k, f), k)
+        self.assertTrue(self.azure_storage.get(f, k))
         fpath = os.path.join(self.tmp_dir, 'azure.dat')
-        self.assertTrue(self.azure_store.get(fpath, k))
+        self.assertTrue(self.azure_storage.get(fpath, k))
         self.assertEqual(self.md5sum(fpath), self.md5sum(f))
         mock_get_client.assert_called_with(container=bucketname, blob=k)
         mock_download_blob.assert_called()
