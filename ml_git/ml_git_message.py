@@ -20,7 +20,7 @@ output_messages = {
     'DEBUG_REMOVE_REMOTE': 'Removing remote from local repository [%s]',
     'DEBUG_BUILDING_STORAGE_LOG': 'Building the storage.log with these added files',
     'DEBUG_OBJECT_ALREADY_IN_STORAGE': 'Object [%s] already in %s storage',
-    'DEBUG_STORE_AND_BUCKET': 'Store [%s] ; bucket [%s]',
+    'DEBUG_STORAGE_AND_BUCKET': 'Storage [%s] ; bucket [%s]',
     'DEBUG_CHECKSUM_VERIFIED': 'Checksum verified for chunk [%s]',
     'DEBUG_KEY_PATH_ALREADY_EXISTS': 'Key path [%s] already exists in drive path [%s].',
     'DEBUG_CONNECT_PROFILE_AND_REGION': 'Connect - profile [%s] ; region [%s]',
@@ -30,6 +30,9 @@ output_messages = {
     'DEBUG_FILE_NOT_IN_LOCAL_REPOSITORY': 'File [%s] not present in local repository',
     'DEBUG_CONTAINER_ALREADY_EXISTS': 'Container %s already exists',
     'DEBUG_AZURE_CLI_NOT_FIND': 'Azure cli configurations not find.',
+    'DEBUG_PUSH_BLOB_TO_STORAGE': 'LocalRepository: push blob [%s] to storage',
+    'DEBUG_DELETE_BLOB_FROM_STORAGE': 'Delete blob [%s] from storage',
+    'DEBUG_CHECK_IPLD': 'LocalRepository: check ipld [%s] in storage',
 
     'INFO_INITIALIZED_PROJECT': 'Initialized empty ml-git repository in %s',
     'INFO_ADD_REMOTE': 'Add remote repository [%s] for [%s]',
@@ -57,6 +60,8 @@ output_messages = {
 
     'INFO_AKS_IF_WANT_UPDATE_PROJECT': '\tDo you want to update your project now? (Yes/No) ',
     'INFO_FILE_STORED_IN_BUCKET': 'Put - stored [%s] in bucket [%s] with key [%s]-[%s]',
+    'INFO_PARANOID_MODE_ACTIVE': 'Paranoid mode is active - Downloading files: ',
+    'INFO_FIXING_CORRUPTED_FILES_IN_STORAGE': 'Fixing corrupted files in remote storage',
 
 
     'ERROR_WITHOUT_TAG_FOR_THIS_ENTITY': 'No entity with that name was found.',
@@ -83,9 +88,11 @@ output_messages = {
     'ERROR_AUTHETICATION_FAILED': 'Authentication failed',
     'ERROR_BUCKET_NOT_CONFIGURED': 'Put - bucket [%s] not configured with Versioning',
     'ERROR_AZURE_CREDENTIALS_NOT_FOUND': 'Azure credentials could not be found. See the ml-git documentation for how to configure.',
+    'ERROR_WITHOUT_STORAGE': 'No storage for [%s]',
 
     'WARN_HAS_CONFIGURED_REMOTE': 'YOU ALREADY HAS A CONFIGURED REMOTE. All data stored in this repository will be sent to the new one on the first push.',
     'WARN_STORAGE_NOT_IN_CONFIG': 'Storage [%s://%s] not found in configuration file.',
     'WARN_EXCPETION_CREATING_STORAGE': 'Exception creating storage -- Configuration not found for bucket [%s]. '
-                                       'The available buckets in config file for storage type [%s] are: %s'
+                                       'The available buckets in config file for storage type [%s] are: %s',
+    'WARN_REMOVING_FILES_DUE_TO_FAIL': 'Removing %s files from storage due to a fail during the push execution.'
 }

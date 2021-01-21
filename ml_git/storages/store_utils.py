@@ -26,7 +26,7 @@ def storage_factory(config, storage_string):
         storage_type = sp[0][:-1]
         bucket_name = sp[2]
         config_bucket_name = []
-        log.debug(output_messages['DEBUG_STORE_AND_BUCKET'] % (storage_type, bucket_name), class_name=STORAGE_FACTORY_CLASS_NAME)
+        log.debug(output_messages['DEBUG_STORAGE_AND_BUCKET'] % (storage_type, bucket_name), class_name=STORAGE_FACTORY_CLASS_NAME)
         for k in config[STORAGE_KEY][storage_type]:
             config_bucket_name.append(k)
         if bucket_name not in config_bucket_name:

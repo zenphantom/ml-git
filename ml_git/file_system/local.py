@@ -45,7 +45,7 @@ class LocalRepository(MultihashFS):
 
     def _pool_push(self, ctx, obj, obj_path):
         storage = ctx
-        log.debug('LocalRepository: push blob [%s] to storage' % obj, class_name=LOCAL_REPOSITORY_CLASS_NAME)
+        log.debug(output_messages['DEBUG_PUSH_BLOB_TO_STORAGE'] % obj, class_name=LOCAL_REPOSITORY_CLASS_NAME)
         ret = storage.file_store(obj, obj_path)
         return ret
 
@@ -68,7 +68,7 @@ class LocalRepository(MultihashFS):
         storage = storage_factory(self.__config, manifest[STORAGE_KEY])
 
         if storage is None:
-            log.error('No storage for [%s]' % (manifest[STORAGE_KEY]), class_name=STORAGE_FACTORY_CLASS_NAME)
+            log.error(output_messages['ERROR_WITHOUT_STORAGE'] % (manifest[STORAGE_KEY]), class_name=STORAGE_FACTORY_CLASS_NAME)
             return -2
 
         if not storage.bucket_exists():
@@ -106,20 +106,19 @@ class LocalRepository(MultihashFS):
 
     def _pool_delete(self, ctx, obj):
         storage = ctx
-        log.debug('Delete blob [%s] from storage' % obj, class_name=LOCAL_REPOSITORY_CLASS_NAME)
+        log.debug(output_messages['DEBUG_DELETE_BLOB_FROM_STORAGE'] % obj, class_name=LOCAL_REPOSITORY_CLASS_NAME)
         ret = storage.delete(obj)
         return ret
 
     def _delete(self, objs, spec_file, retry):
-        log.warn('Removing %s files from storage due to a fail during the push execution.' % len(objs),
-                 class_name=LOCAL_REPOSITORY_CLASS_NAME)
+        log.warn(output_messages['WARN_REMOVING_FILES_DUE_TO_FAIL'] % len(objs), class_name=LOCAL_REPOSITORY_CLASS_NAME)
         repo_type = self.__repo_type
 
         spec = yaml_load(spec_file)
         manifest = spec[repo_type]['manifest']
         storage = storage_factory(self.__config, manifest[STORAGE_KEY])
         if storage is None:
-            log.error('No storage for [%s]' % (manifest[STORAGE_KEY]), class_name=STORAGE_FACTORY_CLASS_NAME)
+            log.error(output_messages['ERROR_WITHOUT_STORAGE'] % (manifest[STORAGE_KEY]), class_name=STORAGE_FACTORY_CLASS_NAME)
             return -2
         self.__progress_bar = tqdm(total=len(objs), desc='files', unit='files', unit_scale=True, mininterval=1.0)
         wp = self._create_pool(self.__config, manifest[STORAGE_KEY], retry, len(objs))
@@ -451,7 +450,7 @@ class LocalRepository(MultihashFS):
 
     def _pool_remote_fsck_ipld(self, ctx, obj):
         storage = ctx
-        log.debug('LocalRepository: check ipld [%s] in storage' % obj, class_name=LOCAL_REPOSITORY_CLASS_NAME)
+        log.debug(output_messages['DEBUG_CHECK_IPLD'] % obj, class_name=LOCAL_REPOSITORY_CLASS_NAME)
         obj_path = self.get_keypath(obj)
         ret = storage.file_store(obj, obj_path)
         return ret
@@ -496,7 +495,7 @@ class LocalRepository(MultihashFS):
         del wp_file
 
     def _remote_fsck_paranoid(self, manifest, retries, lkeys, batch_size):
-        log.info('Paranoid mode is active - Downloading files: ', class_name=STORAGE_FACTORY_CLASS_NAME)
+        log.info(output_messages['INFO_PARANOID_MODE_ACTIVE'], class_name=STORAGE_FACTORY_CLASS_NAME)
         total_corrupted_files = 0
 
         for i in range(0, len(lkeys), batch_size):
@@ -510,7 +509,7 @@ class LocalRepository(MultihashFS):
                 len_corrupted_files = len(corrupted_files)
                 if len_corrupted_files > 0:
                     total_corrupted_files += len_corrupted_files
-                    log.info('Fixing corrupted files in remote storage', class_name=LOCAL_REPOSITORY_CLASS_NAME)
+                    log.info(output_messages['INFO_FIXING_CORRUPTED_FILES_IN_STORAGE'], class_name=LOCAL_REPOSITORY_CLASS_NAME)
                     self._delete_corrupted_files(corrupted_files, retries, manifest)
         log.info('Corrupted files: %d' % total_corrupted_files, class_name=LOCAL_REPOSITORY_CLASS_NAME)
 
@@ -584,7 +583,7 @@ class LocalRepository(MultihashFS):
 
         storage = storage_factory(self.__config, manifest[STORAGE_KEY])
         if storage is None:
-            log.error('No storage for [%s]' % (manifest[STORAGE_KEY]), class_name=LOCAL_REPOSITORY_CLASS_NAME)
+            log.error(output_messages['ERROR_WITHOUT_STORAGE'] % (manifest[STORAGE_KEY]), class_name=LOCAL_REPOSITORY_CLASS_NAME)
             return -2
 
         # TODO: is that the more efficient in case the list is very large?
@@ -909,14 +908,14 @@ class LocalRepository(MultihashFS):
         manifest = spec[self.__repo_type]['manifest']
         storage = storage_factory(self.__config, manifest[STORAGE_KEY])
         if storage is None:
-            log.error('No storage for [%s]' % (manifest[STORAGE_KEY]), class_name=LOCAL_REPOSITORY_CLASS_NAME)
+            log.error(output_messages['ERROR_WITHOUT_STORAGE'] % (manifest[STORAGE_KEY]), class_name=LOCAL_REPOSITORY_CLASS_NAME)
             return
         bucket_name = bucket['bucket_name']
         self.change_config_storage(bucket['profile'], bucket_name, region=bucket['region'], endpoint_url=bucket['endpoint'])
         storage_dst_type = 's3://{}'.format(bucket_name)
         storage_dst = storage_factory(self.__config, storage_dst_type)
         if storage_dst is None:
-            log.error('No storage for [%s]' % storage_dst_type, class_name=LOCAL_REPOSITORY_CLASS_NAME)
+            log.error(output_messages['ERROR_WITHOUT_STORAGE'] % storage_dst_type, class_name=LOCAL_REPOSITORY_CLASS_NAME)
             return
         manifest_file = MANIFEST_FILE
         manifest_path = os.path.join(metadata_path, categories_path, manifest_file)
