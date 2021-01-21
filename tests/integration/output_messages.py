@@ -102,7 +102,7 @@ messages = [
     'Error: no such option: --sample-type',  # 93
     'Could not initialize metadata for %s.',  # 94
     'You cannot add new data to an entity that is based on a checkout with the --sampling option.',  # 95
-    'Error: Invalid value for "--version": %s',  # 96
+    'Error: Invalid value for "--version-number" / "--version": %s',  # 96
     'Could not update metadata. Check your remote configuration.',  # 97
     'Initializing the project with global settings',  # 98
     'You are not in an initialized ml-git repository and do not have a global configuration.',  # 99
@@ -112,5 +112,5 @@ messages = [
     'Unable to connect to the Azure storage.',  # 103
     'Tag [%s] already exists in the ml-git repository.',  # 104
     'Could not update metadata. Check your remote configuration.',  # 105
-    'no such option: %s',  # 106
+    '\'%s\' has been deprecated, use \'%s\' instead',  # 106
 ]

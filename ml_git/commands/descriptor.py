@@ -448,7 +448,7 @@ commands = [
                 'cls': DeprecatedOption, 'deprecated': ['--store-type'], 'preferred': '--storage-type',
                 'help': help_msg.STORAGE_TYPE, 'default': 's3h'
             },
-            '--version': {'help': help_msg.VERSION_NUMBER, 'default': 1},
+            '--version': {'help': help_msg.SET_VERSION_NUMBER, 'default': 1},
             '--import': {'help': help_msg.IMPORT_OPTION,
                          'cls': MutuallyExclusiveOption, 'mutually_exclusive': ['import_url', 'credentials_path']},
             '--wizard-config': {'is_flag': True, 'help': help_msg.WIZARD_CONFIG},

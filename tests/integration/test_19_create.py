@@ -183,7 +183,7 @@ class CreateAcceptanceTests(unittest.TestCase):
         result = check_output(MLGIT_CREATE % (entity_type, entity_type + '-ex') + ' --category=imgs --store-type=s3h --bucket-name=minio'
                               + ' --version-number=1 --import="' + os.path.join(self.tmp_dir, IMPORT_PATH) + '"'
                               + ' --mutability=' + Mutability.STRICT.value)
-        self.assertIn(messages[106] % '--version-number', result)
+        self.assertIn(output_messages['ERROR_NO_SUCH_OPTION'] % '--version-number', result)
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_13_create_with_mutability_mutable(self):
