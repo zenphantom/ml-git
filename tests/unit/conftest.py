@@ -58,13 +58,13 @@ def write_config(git_path, path):
     config = """
     dataset:
     git: %s
-    storage:
+    %s:
         s3:
             mlgit-datasets:
                 aws-credentials:
                     profile: mlgit
                 region: us-east-1
-    """ % git_path
+    """ % (git_path, STORAGE_KEY)
 
     os.makedirs(path, exist_ok=True)
     with open(os.path.join(path, 'config.yaml'), 'w') as config_yaml:
@@ -119,13 +119,13 @@ def md5_fixture(request):
 @pytest.fixture
 def yaml_str_sample(request):
     doc = """\
-          storage:
+          %s:
             s3h:
               bucket_test:
                 aws-credentials:
                   profile: profile_test
                 region: region_test
-        """
+        """ % STORAGE_KEY
     request.cls.yaml_str_sample = textwrap.dedent(doc)
 
 

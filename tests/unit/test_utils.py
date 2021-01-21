@@ -209,13 +209,13 @@ class UtilsTestCases(unittest.TestCase):
            git: fake_git_repository
         model:
            git: fake_git_repository
-        store:
+        %s:
             s3:
                 mlgit-datasets:
                     aws-credentials:
                         profile: mlgit
                     region: us-east-1
-        """
+        """ % STORAGE_KEY
         config_path = os.path.join(self.tmp_dir, ROOT_FILE_NAME, 'config.yaml')
         os.makedirs(os.path.join(self.tmp_dir, ROOT_FILE_NAME), exist_ok=True)
         with open(config_path, 'w') as config_yaml:
