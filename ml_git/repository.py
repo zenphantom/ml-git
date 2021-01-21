@@ -965,7 +965,7 @@ class Repository(object):
     def create(self, kwargs):
         artifact_name = kwargs['artifact_name']
         categories = list(kwargs['category'])
-        version = int(kwargs['version_number'])
+        version = int(kwargs['version'])
         imported_dir = kwargs['import']
         store_type = kwargs['store_type']
         bucket_name = kwargs['bucket_name']

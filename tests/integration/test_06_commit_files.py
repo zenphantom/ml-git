@@ -79,9 +79,7 @@ class CommitFilesAcceptanceTests(unittest.TestCase):
 
         result = check_output(MLGIT_COMMIT % ('dataset', 'dataset' + '-ex', '--version-number=2'))
 
-        self.assertIn(messages[106] % ('--version-number', '--version'), result)
-        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, 'dataset', 'metadata'),
-                                      os.path.join('computer-vision', 'images', 'dataset' + '-ex')), result)
+        self.assertIn(messages[106] % '--version-number', result)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_06_commit_with_large_version_number(self):

@@ -154,9 +154,7 @@ Options:
                                   version.
   --tag TEXT                      Ml-git tag to identify a specific version of
                                   a ML entity.
-  --version-number, --version INTEGER RANGE
-                                  Set the number of artifact version.
-                                  [DEPRECATED:--version-number]
+  --version INTEGER RANGE         Set the number of artifact version.
   -m, --message TEXT              Use the provided <msg> as the commit
                                   message.
   --fsck TEXT                     Run fsck after command execution.
@@ -196,9 +194,7 @@ Options:
   --store-type, --storage-type [s3h|azureblobh|gdriveh]
                                   Data storage type [default: s3h].
                                   [DEPRECATED:--store-type]
-  --version-number, --version INTEGER RANGE
-                                  Number of artifact version.
-                                  [DEPRECATED:--version-number]
+  --version INTEGER RANGE         Number of artifact version.
   --import TEXT                   Path to be imported to the project. NOTE:
                                   Mutually exclusive with argument:
                                   credentials_path, import_url.
