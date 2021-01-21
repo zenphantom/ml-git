@@ -11,7 +11,7 @@ from ml_git import admin
 from ml_git import log
 from ml_git.admin import init_mlgit
 from ml_git.config import config_load
-from ml_git.constants import EntityType, StoreType
+from ml_git.constants import EntityType, StorageType
 from ml_git.log import init_logger
 from ml_git.repository import Repository
 
@@ -166,7 +166,7 @@ def push(entity, entity_name,  retries=2, clear_on_fail=False):
             entity (str): The type of an ML entity. (datasets, labels or models)
             entity_name (str): An ml-git entity name to identify a ML entity.
             retries (int, optional): Number of retries to upload the files to the storage [default: 2].
-            clear_on_fail (bool, optional): Remove the files from the store in case of failure during the push operation [default: False].
+            clear_on_fail (bool, optional): Remove the files from the storage in case of failure during the push operation [default: False].
     """
 
     repo = get_repository_instance(entity)
@@ -174,7 +174,7 @@ def push(entity, entity_name,  retries=2, clear_on_fail=False):
 
 
 def create(entity, entity_name, categories, mutability, **kwargs):
-    """This command will create the workspace structure with data and spec file for an entity and set the store configurations.
+    """This command will create the workspace structure with data and spec file for an entity and set the storage configurations.
 
         Example:
             create('datasets', 'dataset-ex', categories=['computer-vision', 'images'], mutability='strict')
@@ -184,7 +184,7 @@ def create(entity, entity_name, categories, mutability, **kwargs):
             entity_name (str): An ml-git entity name to identify a ML entity.
             categories (list): Artifact's category name.
             mutability (str): Mutability type. The mutability options are strict, flexible and mutable.
-            store_type (str, optional): Data store type [default: s3h].
+            storage_type (str, optional): Data storage type [default: s3h].
             version (int, optional): Number of retries to upload the files to the storage [default: 2].
             import_path (str, optional): Path to be imported to the project.
             bucket_name (str, optional): Bucket name.
@@ -195,7 +195,7 @@ def create(entity, entity_name, categories, mutability, **kwargs):
 
     args = {'artifact_name': entity_name, 'category': categories, 'mutability': mutability,
             'version_number': kwargs.get('version', 1), 'import': kwargs.get('import_path', None),
-            'store_type':  kwargs.get('store_type', StoreType.S3H.value),
+            'storage_type':  kwargs.get('storage_type', StorageType.S3H.value),
             'bucket_name': kwargs.get('bucket_name', None), 'unzip': kwargs.get('unzip', False),
             'import_url': kwargs.get('import_url', None), 'credentials_path': kwargs.get('credentials_path', None),
             'wizard_config': False}
@@ -224,25 +224,25 @@ def init(entity):
         log.error('The type of entity entered is invalid. Valid types are: [repository, dataset, labels or model]')
 
 
-def store_add(bucket_name, bucket_type=StoreType.S3H.value, credentials=None, global_configuration=False, endpoint_url=None):
-    """This command will add a store to the ml-git project.
+def storage_add(bucket_name, bucket_type=StorageType.S3H.value, credentials=None, global_configuration=False, endpoint_url=None):
+    """This command will add a storage to the ml-git project.
 
         Examples:
-            store_add('my-bucket', type='s3h')
+            storage_add('my-bucket', type='s3h')
 
         Args:
             bucket_name (str): The name of the bucket in the storage.
-            bucket_type (str, optional): Store type (s3h, azureblobh or gdriveh) [default: s3h].
+            bucket_type (str, optional): Storage type (s3h, azureblobh or gdriveh) [default: s3h].
             credentials (str, optional): Name of the profile that stores the credentials or the path to the credentials.
             global_configuration (bool, optional): Use this option to set configuration at global level [default: False].
-            endpoint_url (str, optional): Store endpoint url.
+            endpoint_url (str, optional): Storage endpoint url.
     """
 
-    if bucket_type not in StoreType.to_list():
+    if bucket_type not in StorageType.to_list():
         log.error('Aqui2')
         return
 
-    admin.store_add(bucket_type, bucket_name, credentials, global_configuration, endpoint_url)
+    admin.storage_add(bucket_type, bucket_name, credentials, global_configuration, endpoint_url)
 
 
 def remote_add(entity, remote_url, global_configuration=False):

@@ -10,8 +10,8 @@ from pathlib import Path
 from halo import Halo
 
 from ml_git import spec
-from ml_git.constants import FAKE_STORE, BATCH_SIZE_VALUE, BATCH_SIZE, StoreType, GLOBAL_ML_GIT_CONFIG, \
-    PUSH_THREADS_COUNT, SPEC_EXTENSION, EntityType
+from ml_git.constants import FAKE_STORAGE, BATCH_SIZE_VALUE, BATCH_SIZE, StorageType, GLOBAL_ML_GIT_CONFIG, \
+    PUSH_THREADS_COUNT, SPEC_EXTENSION, EntityType, STORAGE_KEY
 from ml_git.utils import getOrElse, yaml_load, yaml_save, get_root_path, yaml_load_str
 
 push_threads = os.cpu_count()*5
@@ -30,7 +30,7 @@ mlgit_config = {
         'git': '',
     },
 
-    'store': {
+    STORAGE_KEY: {
         's3': {
             'mlgit-datasets': {
                 'region': 'us-east-1',
@@ -131,7 +131,7 @@ def mlgit_config_save(mlgit_file=__get_conf_filepath()):
         EntityType.DATASETS.value: mlgit_config[EntityType.DATASETS.value],
         EntityType.MODELS.value: mlgit_config[EntityType.MODELS.value],
         EntityType.LABELS.value: mlgit_config[EntityType.LABELS.value],
-        'store': mlgit_config['store'],
+        STORAGE_KEY: mlgit_config[STORAGE_KEY],
         'batch_size': mlgit_config['batch_size']
     }
     return yaml_save(config, mlgit_file)
@@ -146,7 +146,7 @@ def save_global_config_in_local(mlgit_file=__get_conf_filepath()):
         EntityType.DATASETS.value: mlgit_config[EntityType.DATASETS.value],
         EntityType.MODELS.value: mlgit_config[EntityType.MODELS.value],
         EntityType.LABELS.value: mlgit_config[EntityType.LABELS.value],
-        'store': mlgit_config['store'],
+        STORAGE_KEY: mlgit_config[STORAGE_KEY],
         'batch_size': mlgit_config['batch_size']
     }
     return yaml_save(config, mlgit_file)
@@ -213,7 +213,7 @@ def get_refs_path(config, type=EntityType.DATASETS.value):
 
 def get_sample_config_spec(bucket, profile, region):
     doc = '''
-      store:
+      storage:
         s3h:
           %s:
             aws-credentials:
@@ -227,25 +227,25 @@ def get_sample_config_spec(bucket, profile, region):
 def validate_config_spec_hash(config):
     if not config:
         return False
-    if 'store' not in config:
+    if STORAGE_KEY not in config:
         return False
-    stores = valid_stores(config['store'])
-    if not stores:
+    storages = valid_storages(config[STORAGE_KEY])
+    if not storages:
         return False
-    for store in stores:
-        if not validate_bucket_config(config['store'][store], store):
+    for storage in storages:
+        if not validate_bucket_config(config[STORAGE_KEY][storage], storage):
             return False
     return True
 
 
-def validate_bucket_config(the_bucket_hash, store_type=StoreType.S3H.value):
+def validate_bucket_config(the_bucket_hash, storage_type=StorageType.S3H.value):
     for bucket in the_bucket_hash:
-        if store_type == StoreType.S3H.value:
+        if storage_type == StorageType.S3H.value:
             if 'aws-credentials' not in the_bucket_hash[bucket] or 'region' not in the_bucket_hash[bucket]:
                 return False
             if 'profile' not in the_bucket_hash[bucket]['aws-credentials']:
                 return False
-        elif store_type == StoreType.GDRIVEH.value:
+        elif storage_type == StorageType.GDRIVEH.value:
             if "credentials-path" not in the_bucket_hash[bucket]:
                 return False
     return True
@@ -260,7 +260,7 @@ def get_sample_spec_doc(bucket, repotype=EntityType.DATASETS.value):
         mutability: strict
         manifest:
           files: MANIFEST.yaml
-          store: s3h://%s
+          storage: s3h://%s
         name: %s-ex
         version: 5
     ''' % (repotype, bucket, repotype)
@@ -285,10 +285,10 @@ def validate_spec_hash(the_hash, repotype=EntityType.DATASETS.value):
     if the_hash[repotype]['categories'] == {}:
         return False
 
-    if 'store' not in the_hash[repotype]['manifest']:
+    if STORAGE_KEY not in the_hash[repotype]['manifest']:
         return False
 
-    if not validate_spec_string(the_hash[repotype]['manifest']['store']):
+    if not validate_spec_string(the_hash[repotype]['manifest'][STORAGE_KEY]):
         return False
 
     if 'name' not in the_hash[repotype]:
@@ -300,7 +300,7 @@ def validate_spec_hash(the_hash, repotype=EntityType.DATASETS.value):
     return True
 
 
-def create_workspace_tree_structure(repo_type, artifact_name, categories, store_type, bucket_name, version,
+def create_workspace_tree_structure(repo_type, artifact_name, categories, storage_type, bucket_name, version,
                                     imported_dir, mutability):
     # get root path to create directories and files
     path = get_root_path()
@@ -318,12 +318,12 @@ def create_workspace_tree_structure(repo_type, artifact_name, categories, store_
     readme_path = os.path.join(artifact_path, 'README.md')
     file_exists = os.path.isfile(spec_path)
 
-    store = '%s://%s' % (store_type, FAKE_STORE if bucket_name is None else bucket_name)
+    storage = '%s://%s' % (storage_type, FAKE_STORAGE if bucket_name is None else bucket_name)
     spec_structure = {
         repo_type: {
             'categories': categories,
             'manifest': {
-                'store': store
+                STORAGE_KEY: storage
             },
             'name': artifact_name,
             'mutability': mutability,
@@ -342,42 +342,42 @@ def create_workspace_tree_structure(repo_type, artifact_name, categories, store_
 
 
 def start_wizard_questions(repotype):
-    print('_ Current configured stores _')
+    print('_ Current configured storages _')
     print('   ')
-    store = config_load()['store']
+    storage = config_load()[STORAGE_KEY]
     count = 1
-    # temporary map with number as key and a array with store type and bucket as values
+    # temporary map with number as key and a array with storage type and bucket as values
     temp_map = {}
     # list the buckets to the user choose one
-    for store_type in store:
-        for key in store[store_type].keys():
-            print('%s - %s - %s' % (str(count), store_type, key))
-            temp_map[count] = [store_type, key]
+    for storage_type in storage:
+        for key in storage[storage_type].keys():
+            print('%s - %s - %s' % (str(count), storage_type, key))
+            temp_map[count] = [storage_type, key]
             count += 1
-    print('X - New Data Store')
+    print('X - New Data Storage')
     print('   ')
-    selected = input('_Which store do you want to use (a number or new data store)? _ ')
+    selected = input('_Which storage do you want to use (a number or new data storage)? _ ')
     profile = None
     endpoint = None
     git_repo = None
     config = mlgit_config_load()
     try:
-        int(selected)  # the user select one store from the list
-        has_new_store = False
-        # extract necessary info from the store in spec
-        store_type, bucket = extract_store_info_from_list(temp_map[int(selected)])
-    except Exception:  # the user select create a new data store
-        has_new_store = True
-        stores_types = [item.value for item in StoreType]
-        store_type = input('Please specify the store type ' + str(stores_types) + ': _ ').lower()
-        if store_type not in stores_types:
-            raise RuntimeError('Invalid store type.')
+        int(selected)  # the user select one storage from the list
+        has_new_storage = False
+        # extract necessary info from the storage in spec
+        storage_type, bucket = extract_storage_info_from_list(temp_map[int(selected)])
+    except Exception:  # the user select create a new data storage
+        has_new_storage = True
+        storages_types = [item.value for item in StorageType]
+        storage_type = input('Please specify the storage type ' + str(storages_types) + ': _ ').lower()
+        if storage_type not in storages_types:
+            raise RuntimeError('Invalid storage type.')
         bucket = input('Please specify the bucket name: _ ').lower()
-        if store_type in (StoreType.S3.value, StoreType.S3H.value):
+        if storage_type in (StorageType.S3.value, StorageType.S3H.value):
             profile = input('Please specify the credentials: _ ').lower()
             endpoint = input('If you are using S3 compatible storage (ex. minio), please specify the endpoint URL,'
                              ' otherwise press ENTER: _ ').lower()
-        elif store_type == StoreType.GDRIVEH.value:
+        elif storage_type == StorageType.GDRIVEH.value:
             profile = input('Please specify the credentials path: _ ').lower()
         git_repo = input('Please specify the git repository for ml-git %s metadata: _ ' % repotype).lower()
     if git_repo is None:
@@ -385,13 +385,13 @@ def start_wizard_questions(repotype):
             git_repo = config[repotype]['git']
         except Exception:
             git_repo = ''
-    return has_new_store, store_type, bucket, profile, endpoint, git_repo
+    return has_new_storage, storage_type, bucket, profile, endpoint, git_repo
 
 
-def extract_store_info_from_list(array):
-    store_type = array[0]
+def extract_storage_info_from_list(array):
+    storage_type = array[0]
     bucket = array[1]
-    return store_type, bucket
+    return storage_type, bucket
 
 
 @Halo(text='Importing files', spinner='dots')
@@ -399,14 +399,14 @@ def import_dir(src_dir, dst_dir):
     shutil.copytree(src_dir, dst_dir)
 
 
-def valid_stores(store):
-    stores = [store_type.value for store_type in StoreType if store_type.value in store]
-    return stores
+def valid_storages(storage):
+    storages = [storage_type.value for storage_type in StorageType if storage_type.value in storage]
+    return storages
 
 
 def validate_spec_string(spec_str):
-    for store in StoreType:
-        pattern = '%s://' % store.value
+    for storage in StorageType:
+        pattern = '%s://' % storage.value
         if spec_str.startswith(pattern):
             return True
     return False

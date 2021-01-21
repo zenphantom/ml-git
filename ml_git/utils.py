@@ -19,7 +19,7 @@ from ruamel.yaml import YAML
 from ruamel.yaml.compat import StringIO
 
 from ml_git import log
-from ml_git.constants import SPEC_EXTENSION, CONFIG_FILE, EntityType, ROOT_FILE_NAME
+from ml_git.constants import SPEC_EXTENSION, CONFIG_FILE, EntityType, ROOT_FILE_NAME, OLD_STORAGE_KEY, STORAGE_KEY
 from ml_git.ml_git_message import output_messages
 from ml_git.pool import pool_factory
 
@@ -68,15 +68,15 @@ def json_load(file):
 
 
 def check_spec_file(file, hash):
-    modified = False
     if OLD_DATASETS_KEY in hash:
         hash[EntityType.DATASETS.value] = hash.pop(OLD_DATASETS_KEY)
-        modified = True
     if OLD_MODELS_KEY in hash:
         hash[EntityType.MODELS.value] = hash.pop(OLD_MODELS_KEY)
-        modified = True
-    if modified:
-        yaml_save(hash, file)
+    entity_type = next(iter(hash))
+    manifest_values = hash[entity_type]['manifest']
+    if OLD_STORAGE_KEY in manifest_values:
+        manifest_values[STORAGE_KEY] = manifest_values.pop(OLD_STORAGE_KEY)
+    yaml_save(hash, file)
     return hash
 
 
@@ -308,6 +308,8 @@ def change_keys_in_config(root_path):
         conf[EntityType.DATASETS.value] = conf.pop(OLD_DATASETS_KEY)
     if OLD_MODELS_KEY in conf:
         conf[EntityType.MODELS.value] = conf.pop(OLD_MODELS_KEY)
+    if OLD_STORAGE_KEY in conf:
+        conf[STORAGE_KEY] = conf.pop(OLD_STORAGE_KEY)
     yaml_save(conf, file)
 
 
@@ -320,24 +322,39 @@ def update_directories_to_plural(root_path, old_value, new_value):
         os.rename(metadata_path, os.path.join(root_path, ROOT_FILE_NAME, new_value))
 
 
+def update_project(have_old_dataset_path, have_old_model_path, root_path):
+    log.info(output_messages['INFO_UPDATE_THE_PROJECT'])
+    update_now = input(output_messages['INFO_AKS_IF_WANT_UPDATE_PROJECT']).lower()
+    if update_now in ['yes', 'y']:
+        if have_old_dataset_path:
+            update_directories_to_plural(root_path, OLD_DATASETS_KEY, EntityType.DATASETS.value)
+        if have_old_model_path:
+            update_directories_to_plural(root_path, OLD_MODELS_KEY, EntityType.MODELS.value)
+        change_keys_in_config(root_path)
+    else:
+        raise Exception(output_messages['ERROR_PROJECT_NEED_BE_UPDATED'])
+
+
+def validate_config_keys(config):
+    old_keys = [OLD_DATASETS_KEY, OLD_MODELS_KEY, OLD_STORAGE_KEY]
+    if any(key in config for key in old_keys):
+        return False
+    return True
+
+
 def check_metadata_directories():
     try:
         root_path = get_root_path()
     except RootPathException:
         return
 
-    have_old_dataset_path = os.path.exists(os.path.join(root_path, OLD_DATASETS_KEY)) or os.path.exists(os.path.join(root_path, ROOT_FILE_NAME, OLD_DATASETS_KEY))
-    have_old_model_path = os.path.exists(os.path.join(root_path, OLD_MODELS_KEY)) or os.path.exists(os.path.join(root_path, ROOT_FILE_NAME, OLD_MODELS_KEY))
+    have_old_dataset_path = os.path.exists(os.path.join(root_path, OLD_DATASETS_KEY)) or os.path.exists(os.path.join(
+        root_path, ROOT_FILE_NAME, OLD_DATASETS_KEY))
+    have_old_model_path = os.path.exists(os.path.join(root_path, OLD_MODELS_KEY)) or os.path.exists(os.path.join(
+        root_path, ROOT_FILE_NAME, OLD_MODELS_KEY))
 
-    if have_old_dataset_path or have_old_model_path:
-        log.info(output_messages['INFO_UPDATE_THE_PROJECT'])
-        update_now = input(output_messages['INFO_AKS_IF_WANT_UPDATE_PROJECT']).lower()
-        if update_now in ['yes', 'y']:
-            if have_old_dataset_path:
-                update_directories_to_plural(root_path, OLD_DATASETS_KEY, EntityType.DATASETS.value)
-            if have_old_model_path:
-                update_directories_to_plural(root_path, OLD_MODELS_KEY, EntityType.MODELS.value)
-            change_keys_in_config(root_path)
-        else:
-            raise Exception(output_messages['ERROR_PROJECT_NEED_BE_UPDATED'])
+    file = os.path.join(root_path, ROOT_FILE_NAME, 'config.yaml')
+    config = yaml_load(file)
+    if have_old_dataset_path or have_old_model_path or not validate_config_keys(config):
+        update_project(have_old_dataset_path, have_old_model_path, root_path)
         log.info(output_messages['INFO_PROJECT_UPDATE_SUCCESSFULLY'])

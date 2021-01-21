@@ -7,7 +7,7 @@ import os
 
 from ml_git import log
 from ml_git import utils
-from ml_git.constants import ML_GIT_PROJECT_NAME, SPEC_EXTENSION, EntityType
+from ml_git.constants import ML_GIT_PROJECT_NAME, SPEC_EXTENSION, EntityType, STORAGE_KEY
 from ml_git.utils import get_root_path, yaml_load
 
 DATASETS = EntityType.DATASETS.value
@@ -148,7 +148,7 @@ def get_entity_tag(specpath, repotype, entity):
     return entity_tag
 
 
-def update_store_spec(repotype, artefact_name, store_type, bucket):
+def update_storage_spec(repotype, artefact_name, storage_type, bucket):
     path = None
     try:
         path = get_root_path()
@@ -157,13 +157,13 @@ def update_store_spec(repotype, artefact_name, store_type, bucket):
 
     spec_path = os.path.join(path, repotype, artefact_name, artefact_name + SPEC_EXTENSION)
     spec_hash = utils.yaml_load(spec_path)
-    spec_hash[repotype]['manifest']['store'] = store_type + '://' + bucket
+    spec_hash[repotype]['manifest'][STORAGE_KEY] = storage_type + '://' + bucket
     utils.yaml_save(spec_hash, spec_path)
     return
 
 
 def validate_bucket_name(spec, config):
-    values = spec['manifest']['store'].split('://')
+    values = spec['manifest'][STORAGE_KEY].split('://')
     len_info = 2
 
     if len(values) != len_info:
@@ -171,10 +171,10 @@ def validate_bucket_name(spec, config):
         return False
 
     bucket_name = values[1]
-    store_type = values[0]
-    store = config['store']
+    storage_type = values[0]
+    storage = config[STORAGE_KEY]
 
-    if store_type in store and bucket_name in store[store_type]:
+    if storage_type in storage and bucket_name in storage[storage_type]:
         return True
 
     log.error(
