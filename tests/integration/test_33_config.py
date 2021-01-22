@@ -16,9 +16,9 @@ from tests.integration.output_messages import messages
 class ConfigAcceptanceTests(unittest.TestCase):
     threads_per_core = 5
     push_threads_count = os.cpu_count() * threads_per_core
-    expected_result = "config:\n{'batch_size': 20,\n 'cache_path': '',\n 'dataset': {'git': ''}," \
+    expected_result = "config:\n{'batch_size': 20,\n 'cache_path': '',\n 'datasets': {'git': ''}," \
                       "\n 'index_path': '',\n 'labels': {'git': ''},\n 'metadata_path': '',\n 'mlgit_conf': 'config.yaml'," \
-                      "\n 'mlgit_path': '.ml-git',\n 'model': {'git': ''},\n 'object_path': ''," \
+                      "\n 'mlgit_path': '.ml-git',\n 'models': {'git': ''},\n 'object_path': ''," \
                       "\n 'push_threads_count': "+str(push_threads_count)+",\n 'refs_path': ''," \
                       "\n 'store': {'s3': {'mlgit-datasets': {'aws-credentials': {'profile': 'default'}," \
                       "\n                                     'region': 'us-east-1'}}},\n 'verbose': 'info'}"

@@ -4,23 +4,24 @@ SPDX-License-Identifier: GPL-2.0-only
 """
 
 from ml_git.config import config_load
+from ml_git.constants import EntityType
 from ml_git.log import set_level
 from ml_git.repository import Repository
 
-DATASET = 'dataset'
-LABELS = 'labels'
-MODEL = 'model'
+DATASETS = EntityType.DATASETS.value
+LABELS = EntityType.LABELS.value
+MODELS = EntityType.MODELS.value
 PROJECT = 'project'
 
 
-def init_repository(entity_type='dataset'):
+def init_repository(entity_type=DATASETS):
     return Repository(config_load(), entity_type)
 
 
 repositories = {
-    DATASET: init_repository(DATASET),
+    DATASETS: init_repository(DATASETS),
     LABELS: init_repository(LABELS),
-    MODEL: init_repository(MODEL),
+    MODELS: init_repository(MODELS),
     PROJECT: init_repository(PROJECT)
 }
 

@@ -9,7 +9,8 @@ import unittest
 import pytest
 
 from tests.integration.commands import MLGIT_PUSH, MLGIT_TAG_LIST, MLGIT_COMMIT
-from tests.integration.helper import check_output, init_repository, add_file, ML_GIT_DIR, create_spec
+from tests.integration.helper import check_output, init_repository, add_file, ML_GIT_DIR, create_spec, DATASETS, LABELS, \
+    MODELS
 from tests.integration.output_messages import messages
 
 
@@ -28,29 +29,29 @@ class ListTagAcceptanceTests(unittest.TestCase):
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_01_list_all_tag_dataset(self):
-        self._list_tag_entity('dataset')
+        self._list_tag_entity(DATASETS)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_02_list_all_tag_labels(self):
-        self._list_tag_entity('labels')
+        self._list_tag_entity(LABELS)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_03_list_all_tag_model(self):
-        self._list_tag_entity('model')
+        self._list_tag_entity(MODELS)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_04_list_tags_without_similar_tags(self):
-        self._list_tag_entity('dataset')
-        entity_type = 'dataset'
-        similar_entity = 'dataset-ex2'
-        workspace = os.path.join('dataset', similar_entity)
+        self._list_tag_entity(DATASETS)
+        entity_type = DATASETS
+        similar_entity = 'datasets-ex2'
+        workspace = os.path.join(DATASETS, similar_entity)
         os.makedirs(workspace, exist_ok=True)
-        create_spec(self, 'dataset', self.tmp_dir, artifact_name=similar_entity)
-        add_file(self, 'dataset', '--bumpversion', 'new', artifact_name=similar_entity)
-        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, 'dataset', 'metadata'),
+        create_spec(self, DATASETS, self.tmp_dir, artifact_name=similar_entity)
+        add_file(self, DATASETS, '--bumpversion', 'new', artifact_name=similar_entity)
+        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'metadata'),
                                       os.path.join('computer-vision', 'images', similar_entity)),
-                      check_output(MLGIT_COMMIT % ('dataset', similar_entity, '')))
-        check_output(MLGIT_PUSH % ('dataset', similar_entity))
+                      check_output(MLGIT_COMMIT % (DATASETS, similar_entity, '')))
+        check_output(MLGIT_PUSH % (DATASETS, similar_entity))
         self.assertNotIn(similar_entity,
                          check_output(MLGIT_TAG_LIST % (entity_type, entity_type + '-ex')))
         self.assertIn(similar_entity,

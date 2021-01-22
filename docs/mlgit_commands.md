@@ -8,15 +8,14 @@
 Usage: ml-git [OPTIONS] COMMAND [ARGS]...
 
 Options:
-  --help  Show this message and exit.
+  --version  Show the version and exit.
 
 Commands:
   clone       Clone a ml-git repository ML_GIT_REPOSITORY_URL
-  dataset     management of datasets within this ml-git repository
-  labels      management of labels sets within this ml-git repository
-  login       login command generates new Aws credential.
-  model       management of models within this ml-git repository
-  repository  Management of this ml-git repository
+  datasets    Management of datasets within this ml-git repository.
+  labels      Management of labels sets within this ml-git repository.
+  models      Management of models within this ml-git repository.
+  repository  Management of this ml-git repository.
 ```
 
 Example:
@@ -38,19 +37,19 @@ Displays the installed version of ml-git.
 <br>
 
 ```
-Usage: ml-git dataset add [OPTIONS] ML_ENTITY_NAME [FILE_PATH]...
+Usage: ml-git datasets add [OPTIONS] ML_ENTITY_NAME [FILE_PATH]...
 
-Add dataset change set ML_ENTITY_NAME to the local ml-git staging area.
+  Add datasets change set ML_ENTITY_NAME to the local ml-git staging area.
 
 Options:
---bumpversion  Increment the version number when adding more files.
---fsck         Run fsck after command execution.
---help         Show this message and exit.
+  --bumpversion  Increment the version number when adding more files.
+  --fsck         Run fsck after command execution.
+  --verbose      Debug mode
 ```
 
 Example:
 ```
-$ ml-git dataset add dataset-ex --bumpversion
+$ ml-git datasets add dataset-ex --bumpversion
 ```
 
 ml-git expects datasets to be managed under _dataset_ directory.
@@ -67,18 +66,18 @@ Internally, the _ml-git add_ will add all the files under the \<ml-entity\> dire
 <br>
 
 ```
-Usage: ml-git dataset branch [OPTIONS] ML_ENTITY_NAME
+Usage: ml-git datasets branch [OPTIONS] ML_ENTITY_NAME
 
   This command allows to check which tag is checked out in the ml-git
   workspace.
 
 Options:
-  --help  Show this message and exit.
+  --verbose  Debug mode
 ```
 
 Example:
 ```
-$ ml-git dataset branch imagenet8
+$ ml-git datasets branch imagenet8
 ('vision-computing__images__imagenet8__1', '48ba1e994a1e39e1b508bff4a3302a5c1bb9063e')
 ```
 
@@ -96,7 +95,7 @@ Both are the same representation. One is human-readable and is also used interna
 <br>
 
 ```
-Usage: ml-git model checkout [OPTIONS] ML_ENTITY_TAG|ML_ENTITY
+Usage: ml-git models checkout [OPTIONS] ML_ENTITY_TAG|ML_ENTITY
 
   Checkout the ML_ENTITY_TAG|ML_ENTITY of a model set into user workspace.
 
@@ -118,13 +117,12 @@ Options:
 
 Examples:
 ```
-$ ml-git dataset checkout computer-vision__images__faces__fddb__1
+$ ml-git datasets checkout computer-vision__images__faces__fddb__1
 ```
 or you can use the name of the entity directly and download the latest available tag
 ```
-$ ml-git dataset checkout fddb
+$ ml-git datasets checkout fddb
 ```
-
 
 
 Note:
@@ -142,7 +140,7 @@ Note:
 <br>
 
 ```
-Usage: ml-git model commit [OPTIONS] ML_ENTITY_NAME
+Usage: ml-git models commit [OPTIONS] ML_ENTITY_NAME
 
   Commit model change set of ML_ENTITY_NAME locally to this ml-git
   repository.
@@ -164,7 +162,7 @@ Options:
 
 Example:
 ```
-$ ml-git model commit model-ex --dataset=dataset-ex
+$ ml-git models commit model-ex --dataset=dataset-ex
 ```
 
 This command commits the index / staging area to the local repository. It is a 2-step operation in which 1) the actual data (blobs) is copied to the local repository, 2) committing the metadata to the git repository managing the metadata.
@@ -183,7 +181,7 @@ Same for ML model, one can specify which dataset and label set that have been us
 <br>
 
 ```
-Usage: ml-git dataset create [OPTIONS] ARTIFACT_NAME
+Usage: ml-git datasets create [OPTIONS] ARTIFACT_NAME
 
   This command will create the workspace structure with data and spec file
   for an entity and set the git and store configurations.
@@ -215,12 +213,12 @@ Options:
 Examples:
  - To create an entity with s3 as storage and importing files from a path of your computer:
 ```
-ml-git dataset create imagenet8 --storage-type=s3h --category=computer-vision --category=images --version=0 --import='/path/to/dataset' --mutability=strict
+ml-git datasets create imagenet8 --storage-type=s3h --category=computer-vision --category=images --version=0 --import='/path/to/dataset' --mutability=strict
 ```
 
 - To create an entity with s3 as storage and importing files from a google drive URL:
 ```
-ml-git dataset create imagenet8 --storage-type=s3h --category=computer-vision --category=images --import-url='gdrive.url' --credentials-path='/path/to/gdrive/credentials' --mutability=strict --unzip
+ml-git datasets create imagenet8 --storage-type=s3h --category=computer-vision --category=images --import-url='gdrive.url' --credentials-path='/path/to/gdrive/credentials' --mutability=strict --unzip
 ```
 
 </details>
@@ -230,7 +228,7 @@ ml-git dataset create imagenet8 --storage-type=s3h --category=computer-vision --
 <br>
 
 ```
-Usage: ml-git dataset export [OPTIONS] ML_ENTITY_TAG BUCKET_NAME
+Usage: ml-git datasets export [OPTIONS] ML_ENTITY_TAG BUCKET_NAME
 
   This command allows you to export files from one store (S3|MinIO) to
   another (S3|MinIO).
@@ -241,12 +239,12 @@ Options:
   --region TEXT       AWS region name [default: us-east-1].
   --retry INTEGER     Number of retries to upload or download the files from
                       the storage [default: 2].
-  --help              Show this message and exit.
+  --verbose           Debug mode
 ```
 
 Example:
 ```
-$ ml-git dataset export computer-vision__images__faces__fddb__1 minio
+$ ml-git datasets export computer-vision__images__faces__fddb__1 minio
 ```
 
 </details>
@@ -256,7 +254,7 @@ $ ml-git dataset export computer-vision__images__faces__fddb__1 minio
 <br>
 
 ```
-Usage: ml-git dataset fetch [OPTIONS] ML_ENTITY_TAG
+Usage: ml-git datasets fetch [OPTIONS] ML_ENTITY_TAG
 
   Allows you to download just the metadata files of an entity.
 
@@ -278,12 +276,12 @@ Options:
   --seed TEXT                     Seed to be used in random-based samplers.
   --retry INTEGER                 Number of retries to download the files from
                                   the storage [default: 2].
-  --help                          Show this message and exit.
+  --verbose                       Debug mode
 ```
 
 Example:
 ```
-ml-git dataset fetch computer-vision__images__faces__fddb__1
+ml-git datasets fetch computer-vision__images__faces__fddb__1
 ```
 
 </details>
@@ -293,17 +291,17 @@ ml-git dataset fetch computer-vision__images__faces__fddb__1
 <br>
 
 ```
-Usage: ml-git dataset fsck [OPTIONS]
+Usage: ml-git datasets fsck [OPTIONS]
 
-  Perform fsck on dataset in this ml-git repository.
+  Perform fsck on datasets in this ml-git repository.
 
 Options:
-  --help  Show this message and exit.
+  --verbose  Debug mode
 ```
 
 Example:
 ```
-$ ml-git dataset fsck
+$ ml-git datasets fsck
 ```
 
 This command will walk through the internal ml-git directories (index & local repository) and will check the integrity of all blobs under its management.
@@ -322,10 +320,10 @@ in the future, fsck should be able to fix some errors of detected corruption.
 <br>
 
 ```
-Usage: ml-git dataset import [OPTIONS] BUCKET_NAME ENTITY_DIR
+Usage: ml-git datasets import [OPTIONS] BUCKET_NAME ENTITY_DIR
 
-  This command allows you to download a file or directory from the S3 bucket or Gdrive
-to ENTITY_DIR.
+  This command allows you to download a file or directory from the S3 or
+  Gdrive to ENTITY_DIR.
 
 Options:
   --credentials TEXT  Profile of AWS credentials [default: default].
@@ -343,11 +341,11 @@ Options:
 
 Example:
 ```
-$ ml-git dataset import bucket-name dataset/computer-vision/imagenet8/data
+$ ml-git datasets import bucket-name dataset/computer-vision/imagenet8/data
 ```
 For google drive store:
 ```
-$ ml-git dataset import gdrive-folder --store-type=gdrive --object=file_to_download --credentials=credentials-path dataset/
+$ ml-git datasets import gdrive-folder --store-type=gdrive --object=file_to_download --credentials=credentials-path dataset/
 ```
 
 </details>
@@ -357,17 +355,17 @@ $ ml-git dataset import gdrive-folder --store-type=gdrive --object=file_to_downl
 <br>
 
 ```
-Usage: ml-git dataset init [OPTIONS]
+Usage: ml-git datasets init [OPTIONS]
 
-  Init a ml-git dataset repository.
+  Init a ml-git datasets repository.
 
 Options:
-  --help  Show this message and exit.
+  --verbose  Debug mode
 ```
 
 Example:
 ```
-$ ml-git dataset init
+$ ml-git datasets init
 ```
 
 This command is mandatory to be executed just after the addition of a remote metadata repository (_ml-git \<ml-entity\> remote add_).
@@ -380,17 +378,17 @@ It initializes the metadata by pulling all metadata to the local repository.
 <br>
 
 ```
-Usage: ml-git dataset list [OPTIONS]
+Usage: ml-git datasets list [OPTIONS]
 
-  List dataset managed under this ml-git repository.
+  List datasets managed under this ml-git repository.
 
 Options:
-  --help  Show this message and exit.
+  --verbose  Debug mode
 ```
 
 Example:
 ```
-$ ml-git dataset list
+$ ml-git datasets list
 ML dataset
 |-- computer-vision
 |   |-- images
@@ -407,7 +405,7 @@ ML dataset
 <br>
 
 ```
-Usage: ml-git dataset log [OPTIONS] ML_ENTITY_NAME
+Usage: ml-git datasets log [OPTIONS] ML_ENTITY_NAME
 
   This command shows ml-entity-name's commit information like author, date,
   commit message.
@@ -415,12 +413,12 @@ Usage: ml-git dataset log [OPTIONS] ML_ENTITY_NAME
 Options:
   --stat      Show amount of files and size of an ml-entity.
   --fullstat  Show added and deleted files.
-  --help      Show this message and exit.
+  --verbose   Debug mode
 ```
 
 Example:
 ```
-ml-git dataset log dataset-ex
+ml-git datasets log dataset-ex
 ```
 
 </details>
@@ -432,7 +430,7 @@ ml-git dataset log dataset-ex
 <br>
 
 ```
-Usage: ml-git dataset push [OPTIONS] ML_ENTITY_NAME
+Usage: ml-git datasets push [OPTIONS] ML_ENTITY_NAME
 
   Push local commits from ML_ENTITY_NAME to remote ml-git repository &
   store.
@@ -442,12 +440,12 @@ Options:
                    storage [default: 2].
   --clearonfail    Remove the files from the store in case of failure during
                    the push operation.
-  --help           Show this message and exit.
+  --verbose        Debug mode
 ```
 
 Example:
 ```
-ml-git dataset push dataset-ex
+ml-git datasets push dataset-ex
 ```
 
 This command will perform a 2-step operations:
@@ -461,7 +459,7 @@ This command will perform a 2-step operations:
 <br>
 
 ```
-Usage: ml-git dataset remote-fsck [OPTIONS] ML_ENTITY_NAME
+Usage: ml-git datasets remote-fsck [OPTIONS] ML_ENTITY_NAME
 
   This command will check and repair the remote by uploading lacking
   chunks/blobs.
@@ -475,12 +473,12 @@ Options:
                    the multihash of all these.
   --retry INTEGER  Number of retries to download the files from the storage
                    [default: 2].
-  --help           Show this message and exit.
+  --verbose        Debug mode
 ```
 
 Example:
 ```
-ml-git dataset remote-fsck dataset-ex
+ml-git datasets remote-fsck dataset-ex
 ```
 
 This ml-git command will basically try to:
@@ -496,7 +494,7 @@ This ml-git command will basically try to:
 <br>
 
 ```
-Usage: ml-git dataset reset [OPTIONS] ML_ENTITY_NAME
+Usage: ml-git datasets reset [OPTIONS] ML_ENTITY_NAME
 
   Reset ml-git state(s) of an ML_ENTITY_NAME
 
@@ -512,13 +510,13 @@ Options:
                              commit.
                              head~1:Will move the metadata to the last
                              commit.
-  --help                     Show this message and exit.
+  --verbose                  Debug mode
 ```
 
 Examples:
 
 ```
-ml-git reset --hard
+ml-git datasets reset dataset-ex --hard
 ```
 
 * Undo the committed changes.
@@ -526,7 +524,7 @@ ml-git reset --hard
 * Reset the workspace to fit with the current HEAD state.
 
 ```
-ml-git reset --mixed
+ml-git datasets reset dataset-ex --mixed
 ```
 if HEAD:
 * nothing happens.
@@ -535,7 +533,7 @@ else:
 * Undo the added/tracked files.
 
 ```
-ml-git reset --soft
+ml-git datasets reset dataset-ex --soft
 ```
 if HEAD:
 * nothing happens.
@@ -549,17 +547,17 @@ else:
 <br>
 
 ```
-Usage: ml-git dataset show [OPTIONS] ML_ENTITY_NAME
+Usage: ml-git datasets show [OPTIONS] ML_ENTITY_NAME
 
   Print the specification file of the entity.
 
 Options:
-  --help  Show this message and exit.
+  --verbose  Debug mode
 ```
 
 Example:
 ```
-$ ml-git dataset show dataset-ex
+$ ml-git datasets show dataset-ex
 -- dataset : imagenet8 --
 categories:
 - vision-computing
@@ -578,7 +576,7 @@ version: 1
 <br>
 
 ```
-Usage: ml-git dataset status [OPTIONS] ML_ENTITY_NAME [STATUS_DIRECTORY]
+Usage: ml-git datasets status [OPTIONS] ML_ENTITY_NAME [STATUS_DIRECTORY]
 
   Print the files that are tracked or not and the ones that are in the
   index/staging area.
@@ -590,7 +588,7 @@ Options:
 
 Example:
 ```
-$ ml-git dataset status dataset-ex
+$ ml-git datasets status dataset-ex
 ```
 
 </details>
@@ -600,17 +598,17 @@ $ ml-git dataset status dataset-ex
 <br>
 
 ```
-Usage: ml-git dataset tag add [OPTIONS] ML_ENTITY_NAME TAG
+Usage: ml-git datasets tag add [OPTIONS] ML_ENTITY_NAME TAG
 
   Use this command to associate a tag to a commit.
 
 Options:
-  --help  Show this message and exit.
+  --verbose  Debug mode
 ```
 
 Example:
 ```
-$ ml-git dataset tag add dataset-ex my_tag
+$ ml-git datasets tag add dataset-ex my_tag
 ```
 
 </details>
@@ -620,17 +618,17 @@ $ ml-git dataset tag add dataset-ex my_tag
 <br>
 
 ```
-Usage: ml-git dataset tag list [OPTIONS] ML_ENTITY_NAME
+Usage: ml-git datasets tag list [OPTIONS] ML_ENTITY_NAME
 
   List tags of ML_ENTITY_NAME from this ml-git repository.
 
 Options:
-  --help  Show this message and exit.
+  --verbose  Debug mode
 ```
 
 Example:
 ```
-$ ml-git dataset tag list dataset-ex
+$ ml-git datasets tag list dataset-ex
 ```
 
 </details>
@@ -640,17 +638,17 @@ $ ml-git dataset tag list dataset-ex
 <br>
 
 ```
-Usage: ml-git dataset update [OPTIONS]
+Usage: ml-git datasets update [OPTIONS]
 
   This command will update the metadata repository.
 
 Options:
-  --help  Show this message and exit.
+  --verbose  Debug mode
 ```
 
 Example:
 ```
-$ ml-git dataset update
+$ ml-git datasets update
 ```
 
 This command enables one to have the visibility of what has been shared since the last update (new ML entity, new versions).
@@ -661,18 +659,18 @@ This command enables one to have the visibility of what has been shared since th
 <br>
 
 ```
-Usage: ml-git dataset unlock [OPTIONS] ML_ENTITY_NAME FILE
+Usage: ml-git datasets unlock [OPTIONS] ML_ENTITY_NAME FILE
 
   This command add read and write permissions to file or directory. Note:
   You should only use this command for the flexible mutability option.
 
 Options:
-  --help  Show this message and exit.
+  --verbose  Debug mode
 ```
 
 Example:
 ```
-$ ml-git dataset unlock dataset-ex data/file1.txt
+$ ml-git datasets unlock dataset-ex data/file1.txt
 ```
 
 Note:
@@ -730,12 +728,6 @@ Options:
 Example:
 ```
 ml-git login
-```
-
-Note: 
-
-```
-
 ```
 
 </details>

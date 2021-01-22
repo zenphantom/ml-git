@@ -12,7 +12,8 @@ import pytest
 from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_COMMIT, MLGIT_PUSH, MLGIT_REPOSITORY_GC, MLGIT_CHECKOUT, MLGIT_ADD, \
     MLGIT_INIT, MLGIT_ENTITY_INIT
-from tests.integration.helper import init_repository, add_file, check_output, ERROR_MESSAGE, clear, ML_GIT_DIR
+from tests.integration.helper import init_repository, add_file, check_output, ERROR_MESSAGE, clear, ML_GIT_DIR, \
+    DATASETS, LABELS, MODELS, DATASET_NAME
 
 
 @pytest.mark.usefixtures('tmp_dir', 'aws_session')
@@ -52,7 +53,7 @@ class GcAcceptanceTests(unittest.TestCase):
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_01_gc_dataset_entity(self):
-        entity = 'dataset'
+        entity = DATASETS
         self.set_up_gc(entity)
         original_size, number_of_files = self._get_metadata_info()
         result = check_output(MLGIT_REPOSITORY_GC)
@@ -61,7 +62,7 @@ class GcAcceptanceTests(unittest.TestCase):
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_02_gc_labels_entity(self):
-        entity = 'labels'
+        entity = LABELS
         self.set_up_gc(entity)
         original_size, number_of_files = self._get_metadata_info()
         result = check_output(MLGIT_REPOSITORY_GC)
@@ -70,7 +71,7 @@ class GcAcceptanceTests(unittest.TestCase):
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_03_gc_model_entity(self):
-        entity = 'model'
+        entity = MODELS
         self.set_up_gc(entity)
         original_size, number_of_files = self._get_metadata_info()
         result = check_output(MLGIT_REPOSITORY_GC)
@@ -79,25 +80,25 @@ class GcAcceptanceTests(unittest.TestCase):
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_04_gc_repository(self):
-        self.set_up_gc('dataset')
-        self.set_up_gc('model')
-        self.set_up_gc('labels')
+        self.set_up_gc(DATASETS)
+        self.set_up_gc(MODELS)
+        self.set_up_gc(LABELS)
         original_size, number_of_files = self._get_metadata_info()
         result = check_output(MLGIT_REPOSITORY_GC)
-        self.assertIn(output_messages['INFO_STARTING_GC'] % 'labels', result)
-        self.assertIn(output_messages['INFO_STARTING_GC'] % 'model', result)
-        self._check_result(result, 'dataset', original_size, number_of_files,
+        self.assertIn(output_messages['INFO_STARTING_GC'] % LABELS, result)
+        self.assertIn(output_messages['INFO_STARTING_GC'] % MODELS, result)
+        self._check_result(result, DATASETS, original_size, number_of_files,
                            expected_removed_files=9, expected_reclaimed_space='6.4 kB')
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_05_gc_deleted_entity(self):
-        self.set_up_gc('dataset')
-        self.set_up_gc('labels')
+        self.set_up_gc(DATASETS)
+        self.set_up_gc(LABELS)
         original_size, number_of_files = self._get_metadata_info()
-        clear(os.path.join(self.tmp_dir, 'labels'))
+        clear(os.path.join(self.tmp_dir, LABELS))
         result = check_output(MLGIT_REPOSITORY_GC)
-        self.assertIn(output_messages['INFO_STARTING_GC'] % 'labels', result)
-        self._check_result(result, 'dataset', original_size, number_of_files,
+        self.assertIn(output_messages['INFO_STARTING_GC'] % LABELS, result)
+        self._check_result(result, DATASETS, original_size, number_of_files,
                            expected_removed_files=21, expected_reclaimed_space='33.7 kB')
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
@@ -107,13 +108,13 @@ class GcAcceptanceTests(unittest.TestCase):
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_07_gc_basic_flow(self):
-        entity = 'dataset'
+        entity = DATASETS
         self.set_up_gc(entity)
         original_size, number_of_files = self._get_metadata_info()
         result = check_output(MLGIT_REPOSITORY_GC)
         self._check_result(result, entity, original_size, number_of_files,
                            expected_removed_files=3, expected_reclaimed_space='2.1 kB')
-        file = os.path.join(self.tmp_dir, 'dataset', 'computer-vision', 'images', 'dataset-ex', 'file-after-gc')
+        file = os.path.join(self.tmp_dir, DATASETS, 'computer-vision', 'images', DATASET_NAME, 'file-after-gc')
         with open(file, 'wb') as z:
             z.write(b'1' * 1024)
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ADD % (entity, entity + '-ex', '')))

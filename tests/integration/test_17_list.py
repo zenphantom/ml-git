@@ -10,7 +10,7 @@ import pytest
 
 from tests.integration.commands import MLGIT_COMMIT, MLGIT_LIST, MLGIT_INIT, MLGIT_REMOTE_ADD, MLGIT_ENTITY_INIT
 from tests.integration.helper import check_output, init_repository, add_file, GIT_PATH, \
-    ERROR_MESSAGE, ML_GIT_DIR
+    ERROR_MESSAGE, ML_GIT_DIR, DATASETS, LABELS, MODELS
 from tests.integration.output_messages import messages
 
 
@@ -29,24 +29,24 @@ class ListAcceptanceTests(unittest.TestCase):
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_01_list_dataset(self):
-        self._list_entity('dataset')
+        self._list_entity(DATASETS)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_02_list_without_any_entity(self):
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_INIT))
-        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_REMOTE_ADD % ('dataset', GIT_PATH)))
-        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ENTITY_INIT % 'dataset'))
-        self.assertIn(messages[86], check_output(MLGIT_LIST % 'dataset'))
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_REMOTE_ADD % (DATASETS, GIT_PATH)))
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ENTITY_INIT % DATASETS))
+        self.assertIn(messages[86], check_output(MLGIT_LIST % DATASETS))
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_03_list_without_initialize(self):
         check_output(MLGIT_INIT)
-        self.assertIn(messages[85] % 'dataset', check_output(MLGIT_LIST % 'dataset'))
+        self.assertIn(messages[85] % DATASETS, check_output(MLGIT_LIST % DATASETS))
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_04_list_labels(self):
-        self._list_entity('labels')
+        self._list_entity(LABELS)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_05_list_model(self):
-        self._list_entity('model')
+        self._list_entity(MODELS)

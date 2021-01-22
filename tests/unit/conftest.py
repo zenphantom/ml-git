@@ -55,7 +55,7 @@ def switch_to_tmp_dir(tmp_path):
 
 def write_config(git_path, path):
     config = """
-    dataset:
+    datasets:
     git: %s
     store:
         s3:

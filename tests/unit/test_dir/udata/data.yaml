@@ -1,4 +1,4 @@
-dataset:
+datasets:
   git: https://github.com/ANYTHING.tmp21j9vqp2.git
 store:
   s3:

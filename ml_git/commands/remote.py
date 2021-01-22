@@ -7,7 +7,7 @@ import click
 from click_didyoumean import DYMGroup
 
 from ml_git.commands.repository import repository
-from ml_git.commands.utils import DATASET, LABELS, MODEL, repositories, set_verbose_mode
+from ml_git.commands.utils import LABELS, repositories, set_verbose_mode, DATASETS, MODELS
 
 
 @repository.group('remote', help='Configure remote ml-git metadata repositories.', cls=DYMGroup)
@@ -18,15 +18,16 @@ def repo_remote():
     pass
 
 
-@repo_remote.group('dataset', help='Manage remote ml-git dataset metadata repository.', cls=DYMGroup)
-def repo_remote_ds():
+@repo_remote.group(DATASETS, help='Manage remote ml-git datasets metadata repository.', cls=DYMGroup)
+@click.pass_context
+def repo_remote_ds(ctx):
     """
     Manage remote ml-git dataset metadata repository.
     """
     pass
 
 
-@repo_remote.group('labels', help='Manage remote ml-git labels metadata repository.', cls=DYMGroup)
+@repo_remote.group(LABELS, help='Manage remote ml-git labels metadata repository.', cls=DYMGroup)
 def repo_remote_lb():
     """
     Manage remote ml-git labels metadata repository.
@@ -34,8 +35,9 @@ def repo_remote_lb():
     pass
 
 
-@repo_remote.group('model', help='Manage remote ml-git model metadata repository.', cls=DYMGroup)
-def repo_remote_md():
+@repo_remote.group(MODELS, help='Manage remote ml-git models metadata repository.', cls=DYMGroup)
+@click.pass_context
+def repo_remote_md(ctx):
     """
     Manage remote ml-git model metadata repository.
     """
@@ -48,7 +50,7 @@ def repo_remote_md():
 @click.option('--verbose', is_flag=True, expose_value=False, callback=set_verbose_mode, help='Debug mode')
 @click.help_option(hidden=True)
 def repo_remote_ds_add(**kwargs):
-    repositories[DATASET].repo_remote_add(DATASET, kwargs['remote_url'], kwargs['global'])
+    repositories[DATASETS].repo_remote_add(DATASETS, kwargs['remote_url'], kwargs['global'])
 
 
 @repo_remote_lb.command('add', help='Add remote labels metadata REMOTE_URL to this ml-git repository')
@@ -66,7 +68,7 @@ def repo_remote_lb_add(**kwargs):
 @click.option('--verbose', is_flag=True, expose_value=False, callback=set_verbose_mode, help='Debug mode')
 @click.help_option(hidden=True)
 def repo_remote_md_add(**kwargs):
-    repositories[MODEL].repo_remote_add(MODEL, kwargs['remote_url'], kwargs['global'])
+    repositories[MODELS].repo_remote_add(MODELS, kwargs['remote_url'], kwargs['global'])
 
 
 @repo_remote_ds.command('del', help='Remove remote dataset metadata REMOTE_URL from this ml-git repository')
@@ -74,7 +76,7 @@ def repo_remote_md_add(**kwargs):
 @click.help_option(hidden=True)
 @click.option('--verbose', is_flag=True, expose_value=False, callback=set_verbose_mode, help='Debug mode')
 def repo_remote_ds_del(**kwargs):
-    repositories[DATASET].repo_remote_del(kwargs['global'])
+    repositories[DATASETS].repo_remote_del(kwargs['global'])
 
 
 @repo_remote_lb.command('del', help='Remove remote labels metadata REMOTE_URL from this ml-git repository')
@@ -90,4 +92,4 @@ def repo_remote_lb_del(**kwargs):
 @click.help_option(hidden=True)
 @click.option('--verbose', is_flag=True, expose_value=False, callback=set_verbose_mode, help='Debug mode')
 def repo_remote_md_del(**kwargs):
-    repositories[MODEL].repo_remote_del(kwargs['global'])
+    repositories[MODELS].repo_remote_del(kwargs['global'])
