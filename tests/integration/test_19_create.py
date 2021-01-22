@@ -52,7 +52,7 @@ class CreateAcceptanceTests(unittest.TestCase):
     def create_with_mutability(self, entity_type, mutability):
         self.assertIn(messages[0], check_output(MLGIT_INIT))
         self.assertIn(messages[38], check_output(MLGIT_CREATE % (entity_type, entity_type + '-ex')
-                                                 + ' --category=img --version-number=1 '
+                                                 + ' --category=img --version=1 '
                                                    '--credentials-path=test --mutability=' + mutability))
         spec = os.path.join(self.tmp_dir, 'dataset', 'dataset-ex', 'dataset-ex.spec')
         with open(spec, 'r') as s:
@@ -183,10 +183,7 @@ class CreateAcceptanceTests(unittest.TestCase):
         result = check_output(MLGIT_CREATE % (entity_type, entity_type + '-ex') + ' --category=imgs --store-type=s3h --bucket-name=minio'
                               + ' --version-number=1 --import="' + os.path.join(self.tmp_dir, IMPORT_PATH) + '"'
                               + ' --mutability=' + Mutability.STRICT.value)
-
-        self.assertIn(messages[106] % ('--version-number', '--version'), result)
-        self.assertIn(messages[38], result)
-        self.check_folders(entity_type, StoreType.S3H.value)
+        self.assertIn(output_messages['ERROR_NO_SUCH_OPTION'] % '--version-number', result)
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_13_create_with_mutability_mutable(self):
@@ -211,4 +208,4 @@ class CreateAcceptanceTests(unittest.TestCase):
         entity_type = 'dataset'
         self.assertIn(messages[0], check_output(MLGIT_INIT))
         self.assertIn(output_messages['ERROR_MISSING_MUTABILITY'], check_output(MLGIT_CREATE % (entity_type, entity_type + '-ex')
-                                                                                + ' --category=img --version-number=1'))
+                                                                                + ' --category=img --version=1'))
