@@ -64,14 +64,14 @@ $ ml-git --help
 Usage: ml-git [OPTIONS] COMMAND [ARGS]...
 
 Options:
-   --version  Show the version and exit.
+  --version  Show the version and exit.
 
 Commands:
-  clone       clone a ml-git repository ML_GIT_REPOSITORY_URL
-  dataset     management of datasets within this ml-git repository
-  labels      management of labels sets within this ml-git repository
-  model       management of models within this ml-git repository
-  repository  management of this ml-git repository
+  clone       Clone a ml-git repository ML_GIT_REPOSITORY_URL
+  datasets    Management of datasets within this ml-git repository.
+  labels      Management of labels sets within this ml-git repository.
+  models      Management of models within this ml-git repository.
+  repository  Management of this ml-git repository.
 ```
 
 ### Basic commands
@@ -108,7 +108,7 @@ $ ml-git clone https://github.com/user/ml_git_configuration_file_example.git --t
 This command will help you to start a new project, it creates your project artifact metadata:
 
 ```
-$ ml-git dataset create --category=computer-vision --category=images --bucket-name=your_bucket --import=../import-path --mutability=strict dataset-ex 
+$ ml-git datasets create --category=computer-vision --category=images --bucket-name=your_bucket --import=../import-path --mutability=strict dataset-ex 
 ```
 
 Demonstration video:
@@ -123,7 +123,7 @@ Demonstration video:
 Show changes in project workspace:
 
 ```
-$ ml-git dataset status dataset-ex
+$ ml-git datasets status dataset-ex
 ```
 
 Demonstration video:
@@ -138,19 +138,19 @@ Demonstration video:
 Add new files to index:
 
 ```
-$ ml-git dataset add dataset-ex
+$ ml-git datasets add dataset-ex
 ```
 
 To increment version:
 
 ```
-$ ml-git dataset add dataset-ex --bumpversion
+$ ml-git datasets add dataset-ex --bumpversion
 ```
 
 Add an specific file:
 
 ```
-$ ml-git dataset add dataset-ex data/file_name.ex
+$ ml-git datasets add dataset-ex data/file_name.ex
 ```
 
 Demonstration video:
@@ -164,7 +164,7 @@ Demonstration video:
 Consolidate added files in the index to repository:
 
 ```
-$ ml-git dataset commit dataset-ex
+$ ml-git datasets commit dataset-ex
 ```
 
 Demonstration video:
@@ -178,7 +178,7 @@ Demonstration video:
 Upload metadata to remote repository and send [chunks](docs/mlgit_internals.md) to store:
 
 ```
-$ ml-git dataset push dataset-ex
+$ ml-git datasets push dataset-ex
 ```
 
 Demonstration video:
@@ -192,7 +192,7 @@ Demonstration video:
 Change workspace and metadata to versioned ml-entity tag:
 
 ```
-$ ml-git dataset checkout computer-vision__images__dataset-ex__1
+$ ml-git datasets checkout computer-vision__images__dataset-ex__1
 ```
 
 Demonstration video:

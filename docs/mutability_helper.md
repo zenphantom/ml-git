@@ -13,12 +13,12 @@ You must define carefully because once mutability is defined, it cannot be chang
 
 Mutability is defined when creating a new entity. 
 
-With the command ```ml-git (dataset|label|model) create``` you must pass the mandatory attribute ```mutability``` to define the type of mutability for the created entity.
+With the command ```ml-git (datasets|labels|models) create``` you must pass the mandatory attribute ```mutability``` to define the type of mutability for the created entity.
 
 Your entity specification file (.spec) should look like this:
 
 ```
-dataset:
+datasets:
   categories:
     - computer-vision
     - images
@@ -29,7 +29,7 @@ dataset:
   version: 1
 ```
 
-If you create an entity without using the create command and without mutability, when trying to perform the ```ml-git (dataset|label|model) add``` the command will not be executed and you will be informed that you must define a mutability for that new entity.
+If you create an entity without using the create command and without mutability, when trying to perform the ```ml-git (datasets|labels|models) add``` the command will not be executed and you will be informed that you must define a mutability for that new entity.
 
 Note:
 ```
