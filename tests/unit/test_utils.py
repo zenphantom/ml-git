@@ -14,7 +14,7 @@ import humanize
 import pytest
 import yaml
 
-from ml_git.constants import EntityType, ROOT_FILE_NAME, OLD_STORAGE_KEY, STORAGE_KEY
+from ml_git.constants import EntityType, ROOT_FILE_NAME, V1_STORAGE_KEY, STORAGE_KEY
 from ml_git.utils import json_load, yaml_load, yaml_save, RootPathException, get_root_path, change_mask_for_routine, \
     ensure_path_exists, yaml_load_str, get_yaml_str, run_function_per_group, unzip_files_in_directory, \
     remove_from_workspace, group_files_by_path, remove_other_files, remove_unnecessary_files, change_keys_in_config, \
@@ -228,7 +228,7 @@ class UtilsTestCases(unittest.TestCase):
         self.assertIn(EntityType.DATASETS.value, conf)
         self.assertNotIn(old_model_key, conf)
         self.assertIn(EntityType.MODELS.value, conf)
-        self.assertNotIn(OLD_STORAGE_KEY, conf)
+        self.assertNotIn(V1_STORAGE_KEY, conf)
         self.assertIn(STORAGE_KEY, conf)
 
     def test_update_directories_to_plural(self):
