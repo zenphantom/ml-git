@@ -920,7 +920,7 @@ class LocalRepository(MultihashFS):
         manifest_file = MANIFEST_FILE
         manifest_path = os.path.join(metadata_path, categories_path, manifest_file)
         files = yaml_load(manifest_path)
-        log.info('Exporting tag [{}] from [{}] to [{}].'.format(tag, manifest[STORAGE_KEY], storage_dst_type),
+        log.info(output_messages['INFO_EXPORTING_TAG'] % (tag, manifest[STORAGE_KEY], storage_dst_type),
                  class_name=LOCAL_REPOSITORY_CLASS_NAME)
         wp_export_file = pool_factory(ctx_factory=lambda: storage, retry=retry, pb_elts=len(files), pb_desc='files')
 

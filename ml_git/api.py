@@ -239,7 +239,6 @@ def storage_add(bucket_name, bucket_type=StorageType.S3H.value, credentials=None
     """
 
     if bucket_type not in StorageType.to_list():
-        log.error('Aqui2')
         return
 
     admin.storage_add(bucket_type, bucket_name, credentials, global_configuration, endpoint_url)

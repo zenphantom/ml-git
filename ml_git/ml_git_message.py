@@ -62,6 +62,7 @@ output_messages = {
     'INFO_FILE_STORED_IN_BUCKET': 'Put - stored [%s] in bucket [%s] with key [%s]-[%s]',
     'INFO_PARANOID_MODE_ACTIVE': 'Paranoid mode is active - Downloading files: ',
     'INFO_FIXING_CORRUPTED_FILES_IN_STORAGE': 'Fixing corrupted files in remote storage',
+    'INFO_EXPORTING_TAG': 'Exporting tag [%s] from [%s] to [%s].',
 
 
     'ERROR_WITHOUT_TAG_FOR_THIS_ENTITY': 'No entity with that name was found.',

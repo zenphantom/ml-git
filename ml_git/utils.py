@@ -19,7 +19,7 @@ from ruamel.yaml import YAML
 from ruamel.yaml.compat import StringIO
 
 from ml_git import log
-from ml_git.constants import SPEC_EXTENSION, CONFIG_FILE, EntityType, ROOT_FILE_NAME, OLD_STORAGE_KEY, STORAGE_KEY
+from ml_git.constants import SPEC_EXTENSION, CONFIG_FILE, EntityType, ROOT_FILE_NAME, V1_STORAGE_KEY, STORAGE_KEY
 from ml_git.ml_git_message import output_messages
 from ml_git.pool import pool_factory
 
@@ -74,8 +74,8 @@ def check_spec_file(file, hash):
         hash[EntityType.MODELS.value] = hash.pop(OLD_MODELS_KEY)
     entity_type = next(iter(hash))
     manifest_values = hash[entity_type]['manifest']
-    if OLD_STORAGE_KEY in manifest_values:
-        manifest_values[STORAGE_KEY] = manifest_values.pop(OLD_STORAGE_KEY)
+    if V1_STORAGE_KEY in manifest_values:
+        manifest_values[STORAGE_KEY] = manifest_values.pop(V1_STORAGE_KEY)
     yaml_save(hash, file)
     return hash
 
@@ -308,8 +308,8 @@ def change_keys_in_config(root_path):
         conf[EntityType.DATASETS.value] = conf.pop(OLD_DATASETS_KEY)
     if OLD_MODELS_KEY in conf:
         conf[EntityType.MODELS.value] = conf.pop(OLD_MODELS_KEY)
-    if OLD_STORAGE_KEY in conf:
-        conf[STORAGE_KEY] = conf.pop(OLD_STORAGE_KEY)
+    if V1_STORAGE_KEY in conf:
+        conf[STORAGE_KEY] = conf.pop(V1_STORAGE_KEY)
     yaml_save(conf, file)
 
 
@@ -336,7 +336,7 @@ def update_project(have_old_dataset_path, have_old_model_path, root_path):
 
 
 def validate_config_keys(config):
-    old_keys = [OLD_DATASETS_KEY, OLD_MODELS_KEY, OLD_STORAGE_KEY]
+    old_keys = [OLD_DATASETS_KEY, OLD_MODELS_KEY, V1_STORAGE_KEY]
     if any(key in config for key in old_keys):
         return False
     return True
