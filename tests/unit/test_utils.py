@@ -14,7 +14,7 @@ import humanize
 import pytest
 import yaml
 
-from ml_git.constants import EntityType, ROOT_FILE_NAME, V1_STORAGE_KEY, STORAGE_KEY
+from ml_git.constants import EntityType, ROOT_FILE_NAME, V1_STORAGE_KEY, STORAGE_KEY, V1_DATASETS_KEY, V1_MODELS_KEY
 from ml_git.utils import json_load, yaml_load, yaml_save, RootPathException, get_root_path, change_mask_for_routine, \
     ensure_path_exists, yaml_load_str, get_yaml_str, run_function_per_group, unzip_files_in_directory, \
     remove_from_workspace, group_files_by_path, remove_other_files, remove_unnecessary_files, change_keys_in_config, \
@@ -222,22 +222,19 @@ class UtilsTestCases(unittest.TestCase):
             config_yaml.write(config)
         change_keys_in_config(self.tmp_dir)
         conf = yaml_load(config_path)
-        old_dataset_key = 'dataset'
-        old_model_key = 'model'
-        self.assertNotIn(old_dataset_key, conf)
+        self.assertNotIn(V1_DATASETS_KEY, conf)
         self.assertIn(EntityType.DATASETS.value, conf)
-        self.assertNotIn(old_model_key, conf)
+        self.assertNotIn(V1_MODELS_KEY, conf)
         self.assertIn(EntityType.MODELS.value, conf)
         self.assertNotIn(V1_STORAGE_KEY, conf)
         self.assertIn(STORAGE_KEY, conf)
 
     def test_update_directories_to_plural(self):
-        old_dataset_key = 'dataset'
-        data_path = os.path.join(self.tmp_dir, old_dataset_key)
-        metadata_path = os.path.join(self.tmp_dir, ROOT_FILE_NAME, old_dataset_key)
+        data_path = os.path.join(self.tmp_dir, V1_DATASETS_KEY)
+        metadata_path = os.path.join(self.tmp_dir, ROOT_FILE_NAME, V1_DATASETS_KEY)
         os.makedirs(data_path, exist_ok=True)
         os.makedirs(metadata_path, exist_ok=True)
-        update_directories_to_plural(self.tmp_dir, old_dataset_key, EntityType.DATASETS.value)
+        update_directories_to_plural(self.tmp_dir, V1_DATASETS_KEY, EntityType.DATASETS.value)
         self.assertFalse(os.path.exists(data_path))
         self.assertFalse(os.path.exists(metadata_path))
         data_path = os.path.join(self.tmp_dir, EntityType.DATASETS.value)
@@ -258,8 +255,8 @@ class UtilsTestCases(unittest.TestCase):
                         profile: mlgit
                     region: us-east-1
         """
-        self.assertTrue(validate_config_keys(yaml.safe_load(config % ('datasets', 'models', 'storage'))))
-        self.assertFalse(validate_config_keys(yaml.safe_load(config % ('dataset', 'model', 'store'))))
-        self.assertFalse(validate_config_keys(yaml.safe_load(config % ('datasets', 'models', 'store'))))
-        self.assertFalse(validate_config_keys(yaml.safe_load(config % ('datasets', 'model', 'storage'))))
-        self.assertFalse(validate_config_keys(yaml.safe_load(config % ('dataset', 'models', 'storage'))))
+        self.assertTrue(validate_config_keys(yaml.safe_load(config % (EntityType.DATASETS.value, EntityType.MODELS.value, STORAGE_KEY))))
+        self.assertFalse(validate_config_keys(yaml.safe_load(config % (V1_DATASETS_KEY, V1_MODELS_KEY, V1_STORAGE_KEY))))
+        self.assertFalse(validate_config_keys(yaml.safe_load(config % (EntityType.DATASETS.value, EntityType.MODELS.value, V1_STORAGE_KEY))))
+        self.assertFalse(validate_config_keys(yaml.safe_load(config % (EntityType.DATASETS.value, V1_MODELS_KEY, STORAGE_KEY))))
+        self.assertFalse(validate_config_keys(yaml.safe_load(config % (V1_DATASETS_KEY, EntityType.MODELS.value, STORAGE_KEY))))
