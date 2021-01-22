@@ -46,6 +46,7 @@ PARANOID_OPTION = 'Adds an additional step that will download all ' \
                   'computing the multihash of all these.'
 CATEGORY_OPTION = 'Artifact\'s category name.'
 STORAGE_TYPE = 'Data storage type [default: s3h].'
+VERSION_NUMBER = 'Number of artifact version.'
 IMPORT_OPTION = 'Path to be imported to the project.'
 WIZARD_CONFIG = 'If specified, ask interactive questions at console for git & storage configurations.'
 BUCKET_NAME = 'Bucket name'
