@@ -320,13 +320,13 @@ def update_directories_to_plural(root_path, old_value, new_value):
         os.rename(metadata_path, os.path.join(root_path, ROOT_FILE_NAME, new_value))
 
 
-def update_project(have_old_dataset_path, have_old_model_path, root_path):
+def update_project(v1_dataset_path_exists, v1_model_path_exists, root_path):
     log.info(output_messages['INFO_UPDATE_THE_PROJECT'])
     update_now = input(output_messages['INFO_AKS_IF_WANT_UPDATE_PROJECT']).lower()
     if update_now in ['yes', 'y']:
-        if have_old_dataset_path:
+        if v1_dataset_path_exists:
             update_directories_to_plural(root_path, V1_DATASETS_KEY, EntityType.DATASETS.value)
-        if have_old_model_path:
+        if v1_model_path_exists:
             update_directories_to_plural(root_path, V1_MODELS_KEY, EntityType.MODELS.value)
         change_keys_in_config(root_path)
     else:
@@ -334,8 +334,8 @@ def update_project(have_old_dataset_path, have_old_model_path, root_path):
 
 
 def validate_config_keys(config):
-    old_keys = [V1_DATASETS_KEY, V1_MODELS_KEY, V1_STORAGE_KEY]
-    if any(key in config for key in old_keys):
+    v1_keys = [V1_DATASETS_KEY, V1_MODELS_KEY, V1_STORAGE_KEY]
+    if any(key in config for key in v1_keys):
         return False
     return True
 
@@ -346,13 +346,13 @@ def check_metadata_directories():
     except RootPathException:
         return
 
-    have_old_dataset_path = os.path.exists(os.path.join(root_path, V1_DATASETS_KEY)) or os.path.exists(os.path.join(
+    v1_dataset_path_exists = os.path.exists(os.path.join(root_path, V1_DATASETS_KEY)) or os.path.exists(os.path.join(
         root_path, ROOT_FILE_NAME, V1_DATASETS_KEY))
-    have_old_model_path = os.path.exists(os.path.join(root_path, V1_MODELS_KEY)) or os.path.exists(os.path.join(
+    v1_model_path_exists = os.path.exists(os.path.join(root_path, V1_MODELS_KEY)) or os.path.exists(os.path.join(
         root_path, ROOT_FILE_NAME, V1_MODELS_KEY))
 
     file = os.path.join(root_path, ROOT_FILE_NAME, 'config.yaml')
     config = yaml_load(file)
-    if have_old_dataset_path or have_old_model_path or not validate_config_keys(config):
-        update_project(have_old_dataset_path, have_old_model_path, root_path)
+    if v1_dataset_path_exists or v1_model_path_exists or not validate_config_keys(config):
+        update_project(v1_dataset_path_exists, v1_model_path_exists, root_path)
         log.info(output_messages['INFO_PROJECT_UPDATE_SUCCESSFULLY'])
