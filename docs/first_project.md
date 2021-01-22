@@ -36,7 +36,7 @@ $ mkdir mlgit-project && cd mlgit-project (or clone an existing repo from Github
 $ ml-git repository init
 ```
 
-[![asciicast](https://asciinema.org/a/371025.svg)](https://asciinema.org/a/371025)
+[![asciicast](https://asciinema.org/a/385775.svg)](https://asciinema.org/a/385775)
 
 Now we need to configure our project with the remote configurations. This section is divided into two parts according to the storage: [Setting up a ml-git project with S3](#config-s3) and [Setting up a ml-git project with MinIO](#config-minio).
 
@@ -83,7 +83,7 @@ $ ml-git dataset init
 
 **Setting up ml-git project with MinIO:**
 
-[![asciicast](https://asciinema.org/a/371030.svg)](https://asciinema.org/a/371030)
+[![asciicast](https://asciinema.org/a/385777.svg)](https://asciinema.org/a/385777)
 
 #### <a name="git_use">Why ml-git uses git?</a> ####
 
@@ -271,7 +271,7 @@ As you can observe, ml-git follows very similar workflows as for git.
 
 **Uploading a dataset:**
 
-[![asciicast](https://asciinema.org/a/371028.svg)](https://asciinema.org/a/371028)
+[![asciicast](https://asciinema.org/a/385776.svg)](https://asciinema.org/a/385776)
 
 ## <a name="change-dataset"> Adding data to a dataset</a> ##
 
@@ -294,7 +294,7 @@ This will create a new version of your dataset but will only push the changes to
 
 **Adding data to a dataset:**
 
-[![asciicast](https://asciinema.org/a/371051.svg)](https://asciinema.org/a/371051)
+[![asciicast](https://asciinema.org/a/385785.svg)](https://asciinema.org/a/385785)
 
 ## <a name="upload-labels">Uploading labels associated to a dataset</a> ##
 
@@ -387,7 +387,7 @@ As you can see, there is a new section "_dataset_" that has been added by ml-git
 
 **Uploading labels related to a dataset:**
 
-[![asciicast](https://asciinema.org/a/371022.svg)](https://asciinema.org/a/371022)
+[![asciicast](https://asciinema.org/a/385774.svg)](https://asciinema.org/a/385774)
 
 ## <a name="download-dataset">Downloading a dataset</a> ##
 
@@ -486,7 +486,7 @@ computer-vision/
 
 **Downloading a dataset:**
 
-[![asciicast](https://asciinema.org/a/371053.svg)](https://asciinema.org/a/371053)
+[![asciicast](https://asciinema.org/a/385786.svg)](https://asciinema.org/a/385786)
 
 ## <a name="checking-integrity">Checking data integrity</a> ##
 
@@ -507,7 +507,7 @@ It will return the list of blobs that are corrupted.
 
 **Checking data integrity:**
 
-[![asciicast](https://asciinema.org/a/371040.svg)](https://asciinema.org/a/371040)
+[![asciicast](https://asciinema.org/a/385778.svg)](https://asciinema.org/a/385778)
 
 ## <a name="change-dataset">Changing a Dataset</a> ##
 
@@ -533,4 +533,4 @@ This will create a new version of your dataset but will only push the changes to
 
 **Changing a dataset:**
 
-[![asciicast](https://asciinema.org/a/371055.svg)](https://asciinema.org/a/371055)
+[![asciicast](https://asciinema.org/a/385787.svg)](https://asciinema.org/a/385787)
