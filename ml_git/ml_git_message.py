@@ -40,7 +40,7 @@ output_messages = {
     'INFO_PROJECT_UPDATE_SUCCESSFULLY': 'Project updated successfully',
     'INFO_ASSOCIATE_DATASETS': 'Associate datasets [%s]-[%s] to the %s.',
     'INFO_UPDATE_THE_PROJECT': 'It was observed that the directories of this project follow the scheme of old versions of ml-git.\n' +
-             '\tTo continue using this project it is necessary to update the directories.',
+                               '\tTo continue using this project it is necessary to update the directories.',
     'INFO_REMOVED_STORAGE': 'Removed storage [%s://%s] from configuration file.',
 
     'INFO_AKS_IF_WANT_UPDATE_PROJECT': '\tDo you want to update your project now? (Yes/No) ',
