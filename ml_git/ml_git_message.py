@@ -34,7 +34,7 @@ output_messages = {
     'INFO_REMOVED_FILES': 'A total of %s files have been removed from %s',
     'INFO_RECLAIMED_SPACE': 'Total reclaimed space %s.',
     'INFO_ENTITY_DELETED': 'Entity %s was deleted',
-    'INFO_DIRECTORY_STRUCTURE_WRONG': 'It was observed that the directories of this project follow the scheme of old versions of ml-git.\n' +
+    'INFO_DIRECTORY_STRUCTURE_WRONG': 'It was observed that the directories of this project follow the scheme of old versions of ml-git.\n'
                                       '\tTo continue using this project it is necessary to update the directories. Ml-git can do this update on its own.',
     'INFO_WANT_UPDATE_NOW': '\tDo you want to update your project now? (Yes/No) ',
     'INFO_PROJECT_UPDATE_SUCCESSFULLY': 'Project updated successfully',
