@@ -220,7 +220,8 @@ def init(entity):
         log.error('The type of entity entered is invalid. Valid types are: [repository, dataset, labels or model]')
 
 
-def store_add(bucket_name, bucket_type=StoreType.S3H.value, credentials=None, global_configuration=False, endpoint_url=None):
+def store_add(bucket_name, bucket_type=StoreType.S3H.value, credentials=None, global_configuration=False,
+              endpoint_url=None, username=None, private_key=None, port=22):
     """This command will add a store to the ml-git project.
 
         Examples:
@@ -232,13 +233,18 @@ def store_add(bucket_name, bucket_type=StoreType.S3H.value, credentials=None, gl
             credentials (str, optional): Name of the profile that stores the credentials or the path to the credentials.
             global_configuration (bool, optional): Use this option to set configuration at global level [default: False].
             endpoint_url (str, optional): Store endpoint url.
+            username (str, optional): The username for the sftp login.
+            private_key (str, optional): Full path for the private key file.
     """
 
     if bucket_type not in StoreType.to_list():
         log.error('Aqui2')
         return
 
-    admin.store_add(bucket_type, bucket_name, credentials, global_configuration, endpoint_url)
+    sftp_configs = {'username': username,
+                    'private_key': private_key,
+                    'port': port}
+    admin.store_add(bucket_type, bucket_name, credentials, global_configuration, endpoint_url, sftp_configs=sftp_configs)
 
 
 def remote_add(entity, remote_url, global_configuration=False):

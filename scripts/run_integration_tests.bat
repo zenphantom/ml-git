@@ -26,10 +26,12 @@ IF "%TESTS_TO_RUN%"=="" (
 
 docker stop minio1 && docker rm minio1
 docker stop azure && docker rm azure
+docker stop sftp && docker rm sftp
 RMDIR /S /Q %PATH_TEST%
 
 MKDIR "%PATH_TEST%/data/mlgit"
 MKDIR "%PATH_TEST%/test_permission"
+MKDIR "%PATH_TEST%/sftp/mlgit"
 ECHO y| CACLS "%PATH_TEST%/test_permission" /g "%USERNAME%":R
 
 START docker run -p 9000:9000 --name minio1 ^
@@ -41,6 +43,14 @@ minio/minio server /data
 START docker run -p 10000:10000 --name azure ^
 -v "%PATH_TEST%\data:/data"  ^
 mcr.microsoft.com/azure-storage/azurite azurite-blob --blobHost 0.0.0.0
+
+mkdir "%INTEGRATION_TESTS_BASE_PATH%\fake_ssh_key\"
+ssh-keygen -t rsa -N "" -b 4096 -f "%INTEGRATION_TESTS_BASE_PATH%\fake_ssh_key\test_key"
+
+START docker run --name=sftp -v "%INTEGRATION_TESTS_BASE_PATH%\fake_ssh_key\test_key.pub":/home/mlgit_user/.ssh/keys/test_key.pub:ro ^
+-v "%PATH_TEST%\sftp\mlgit":/home/mlgit_user/mlgit ^
+-p 9922:22 -d atmoz/sftp ^
+mlgit_user::1001:::mlgit
 
 pipenv install --ignore-pipfile --dev
 pipenv run pip freeze
@@ -60,6 +70,7 @@ pipenv run pytest ^
 
 docker stop minio1 && docker rm minio1
 docker stop azure && docker rm azure
+docker stop sftp && docker rm sftp
 
 ECHO y| CACLS "%PATH_TEST%" /g "%USERNAME%":F
 RMDIR /S /Q %PATH_TEST%

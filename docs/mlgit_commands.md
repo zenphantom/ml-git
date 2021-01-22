@@ -193,17 +193,18 @@ Options:
   --category TEXT                 Artifact's category name.  [required]
   --mutability [strict|flexible|mutable]
                                   Mutability type.  [required]
-  --store-type, --storage-type [s3h|azureblobh|gdriveh]
-                                  Data storage type [default: s3h].
-                                  [DEPRECATED:--store-type]
-  --version-number, --version INTEGER RANGE
+  --store-type, --storage-type [s3h|azureblobh|gdriveh|sftph]
+                                  Storage type (s3h, s3, azureblobh, gdriveh
+                                  ...) [default: s3h] [DEPRECATED:--store-
+                                  type]
+  --version-number, --version INTEGER
                                   Number of artifact version.
                                   [DEPRECATED:--version-number]
   --import TEXT                   Path to be imported to the project. NOTE:
                                   Mutually exclusive with argument:
-                                  credentials_path, import_url.
-  --wizard-config                 If specified, ask interactive questions. at
-                                  console for git & store configurations.
+                                  import_url, credentials_path.
+  --wizard-config                 If specified, ask interactive questions at
+                                  console for git & storage configurations.
   --bucket-name TEXT              Bucket name
   --import-url TEXT               Import data from a google drive url. NOTE:
                                   Mutually exclusive with argument: import.
@@ -861,10 +862,13 @@ Usage: ml-git repository store add [OPTIONS] BUCKET_NAME
 Options:
   --credentials TEXT              Profile name for storage credentials
   --region TEXT                   Aws region name for S3 bucket
-  --type [s3h|s3|azureblobh|gdriveh]
+  --type [s3h|s3|azureblobh|gdriveh|sftph]
                                   Storage type (s3h, s3, azureblobh, gdriveh
                                   ...) [default: s3h]
-  --endpoint-url TEXT             Storage endpoint url
+  --endpoint-url TEXT             Storage endpoint url.
+  --username TEXT                 The username for the sftp login.
+  --private-key TEXT              Full path for the private key file.
+  --port INTEGER                  SFTP port [default: 22].
   -g, --global                    Use this option to set configuration at
                                   global level
   --verbose                       Debug mode
@@ -917,10 +921,13 @@ Usage: ml-git repository storage add [OPTIONS] BUCKET_NAME
 Options:
   --credentials TEXT              Profile name for storage credentials
   --region TEXT                   Aws region name for S3 bucket
-  --type [s3h|s3|azureblobh|gdriveh]
+  --type [s3h|s3|azureblobh|gdriveh|sftph]
                                   Storage type (s3h, s3, azureblobh, gdriveh
                                   ...) [default: s3h]
-  --endpoint-url TEXT             Storage endpoint url
+  --endpoint-url TEXT             Storage endpoint url.
+  --username TEXT                 The username for the sftp login.
+  --private-key TEXT              Full path for the private key file.
+  --port INTEGER                  SFTP port [default: 22].
   -g, --global                    Use this option to set configuration at
                                   global level
   --verbose                       Debug mode
