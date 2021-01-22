@@ -51,7 +51,7 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
 
     def _create_new_tag(self, entity, file_name):
         add_file(self, entity, '', file_name)
-        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_COMMIT % (entity, entity + '-ex', '--version-number=2')))
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_COMMIT % (entity, entity + '-ex', '--version=2')))
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_PUSH % (entity, entity + '-ex')))
 
     def _clear_workspace(self, entity):

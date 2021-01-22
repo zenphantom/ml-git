@@ -24,6 +24,24 @@ def add_metadata(work_space_path, metadata):
 ```
 </details>
 
+<details>
+<summary><code> compare_metadata </code></summary>
+</br>
+
+This method is responsible for displaying a formatted output containing the comparison of the information that was added by the plugin in the specification file for each version of the entity.
+If the plugin is installed and configured correctly, this signature will be triggered during the execution of the ml-git log command.
+
+*Definition:*
+
+```python
+def compare_metadata(specs_to_compare):
+    """
+    Args:
+        specs_to_compare (Iterator[dict]): List containing current spec file and predecessors to be compared for each version.
+    """
+```
+</details>
+
 **Note:**
 The plugin doesn't need to implement all methods defined in the plugin contract.
 

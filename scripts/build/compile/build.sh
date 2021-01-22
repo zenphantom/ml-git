@@ -18,9 +18,9 @@ BUILD_NUMBER=$(date +%Y%m%d)
 echo BUILD_NUMBER=$BUILD_NUMBER>build/version.info
 
 PROJECT_ROOT=$(git rev-parse --show-toplevel)
-MAJOR_VERSION=$(cat "$PROJECT_ROOT/version.info" | grep MAJOR_VERSION | cut -d"=" -f2)
-MINOR_VERSION=$(cat "$PROJECT_ROOT/version.info" | grep MINOR_VERSION | cut -d"=" -f2)
-PATCH_VERSION=$(cat "$PROJECT_ROOT/version.info" | grep PATCH_VERSION | cut -d"=" -f2)
+MAJOR_VERSION=$(cat "$PROJECT_ROOT/ml_git/version.info" | grep MAJOR_VERSION | cut -d"=" -f2)
+MINOR_VERSION=$(cat "$PROJECT_ROOT/ml_git/version.info" | grep MINOR_VERSION | cut -d"=" -f2)
+PATCH_VERSION=$(cat "$PROJECT_ROOT/ml_git/version.info" | grep PATCH_VERSION | cut -d"=" -f2)
 
 BUILD_NAME="${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION}-$BUILD_NUMBER"
 

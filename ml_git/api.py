@@ -194,7 +194,7 @@ def create(entity, entity_name, categories, mutability, **kwargs):
     """
 
     args = {'artifact_name': entity_name, 'category': categories, 'mutability': mutability,
-            'version_number': kwargs.get('version', 1), 'import': kwargs.get('import_path', None),
+            'version': kwargs.get('version', 1), 'import': kwargs.get('import_path', None),
             'store_type':  kwargs.get('store_type', StoreType.S3H.value),
             'bucket_name': kwargs.get('bucket_name', None), 'unzip': kwargs.get('unzip', False),
             'import_url': kwargs.get('import_url', None), 'credentials_path': kwargs.get('credentials_path', None),

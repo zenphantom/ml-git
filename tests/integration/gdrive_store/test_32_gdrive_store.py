@@ -80,18 +80,20 @@ class GdrivePushFilesAcceptanceTests(unittest.TestCase):
         self.assertIn(messages[0], check_output(MLGIT_INIT))
 
         self.assertIn(messages[38], check_output(MLGIT_CREATE % (DATASETS, DATASET_NAME)
-                                                 + ' --category=imgs --bucket-name=test --import-url=%s --credentials-path=%s '
+                                                 + ' --category=imgs --bucket-name=test'
+                                                   ' --import-url=%s --credentials-path=%s '
                                                  % (self.gdrive_links['test-folder'], CREDENTIALS_PATH)
-                                                 + 'mutability=%s' % (Mutability.STRICT.value)))
+                                                 + ' --mutability=%s' % Mutability.STRICT.value))
 
         file_a_test_folder = os.path.join(DATASETS, DATASET_NAME, 'data', 'test-folder', 'A')
 
         self.assertTrue(os.path.exists(file_a_test_folder))
 
         self.assertIn(messages[38], check_output(MLGIT_CREATE % (DATASETS, 'datasets-ex2')
-                                                 + ' --category=imgs --bucket-name=test --import-url=%s --credentials-path=%s'
+                                                 + ' --category=imgs --bucket-name=test'
+                                                   ' --import-url=%s --credentials-path=%s'
                                                  % (self.gdrive_links['B'], CREDENTIALS_PATH)
-                                                 + 'mutability=%s' % (Mutability.STRICT.value)))
+                                                 + ' --mutability=%s' % Mutability.STRICT.value))
 
         file_b = os.path.join(DATASETS, 'datasets-ex2', 'data', 'B')
 

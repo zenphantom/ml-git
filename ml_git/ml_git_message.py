@@ -40,7 +40,7 @@ output_messages = {
     'INFO_PROJECT_UPDATE_SUCCESSFULLY': 'Project updated successfully',
     'INFO_ASSOCIATE_DATASETS': 'Associate datasets [%s]-[%s] to the %s.',
     'INFO_UPDATE_THE_PROJECT': 'It was observed that the directories of this project follow the scheme of old versions of ml-git.\n' +
-             '\tTo continue using this project it is necessary to update the directories.',
+                               '\tTo continue using this project it is necessary to update the directories.',
 
     'INFO_AKS_IF_WANT_UPDATE_PROJECT': '\tDo you want to update your project now? (Yes/No) ',
     'ERROR_WITHOUT_TAG_FOR_THIS_ENTITY': 'No entity with that name was found.',
@@ -57,6 +57,8 @@ output_messages = {
     'ERROR_BUCKET_DOES_NOT_EXIST': 'This bucket does not exist -- [%s]',
     'ERROR_INVALID_ENTITY_TYPE': 'Invalid entity type. Valid values are:',
     'ERROR_INVALID_STATUS_DIRECTORY': 'The directory informed is invalid.',
+    'ERROR_NO_SUCH_OPTION': 'no such option: %s',
+    'ERROR_INVALID_VALUE_FOR': 'Error: Invalid value for "%s": %s',
     'ERROR_NEED_UPDATE_PROJECT': 'To continue using this project it is necessary to update it.',
     'ERROR_PROJECT_NEED_BE_UPDATED': 'To continue using this project it is necessary to update it.',
 

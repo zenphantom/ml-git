@@ -8,6 +8,7 @@ import unittest
 
 import pytest
 
+from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_COMMIT, MLGIT_ADD
 from tests.integration.helper import check_output, add_file, ML_GIT_DIR, entity_init, create_spec, create_file, \
     init_repository, DATASETS, LABELS, MODELS, DATASET_NAME
@@ -57,10 +58,10 @@ class CommitFilesAcceptanceTests(unittest.TestCase):
         self.assertIn(messages[13] % DATASETS,
                       check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, "")))
 
-        self.assertIn(messages[96] % '-10',
+        self.assertIn(output_messages['ERROR_INVALID_VALUE_FOR'] % ('--version', '-10'),
                       check_output(MLGIT_COMMIT % (DATASETS, DATASET_NAME, ' --version=-10')))
 
-        self.assertIn(messages[96] % 'test',
+        self.assertIn(output_messages['ERROR_INVALID_VALUE_FOR'] % ('--version', 'test'),
                       check_output(MLGIT_COMMIT % (DATASETS, DATASET_NAME, '--version=test')))
 
         self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'metadata'),
@@ -79,19 +80,17 @@ class CommitFilesAcceptanceTests(unittest.TestCase):
 
         result = check_output(MLGIT_COMMIT % (DATASETS, DATASET_NAME, '--version-number=2'))
 
-        self.assertIn(messages[106] % ('--version-number', '--version'), result)
-        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'metadata'),
-                                      os.path.join('computer-vision', 'images', DATASET_NAME)), result)
+        self.assertIn(output_messages['ERROR_NO_SUCH_OPTION'] % '--version-number', result)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_06_commit_with_large_version_number(self):
         init_repository(DATASETS, self)
         create_spec(self, DATASETS, self.tmp_dir)
-        self.assertIn(messages[96] % '9999999999',
+        self.assertIn(output_messages['ERROR_INVALID_VALUE_FOR'] % ('--version', '9999999999'),
                       check_output(MLGIT_COMMIT % (DATASETS, DATASET_NAME, ' --version=9999999999')))
-        self.assertIn(messages[96] % '9999999999',
+        self.assertIn(output_messages['ERROR_INVALID_VALUE_FOR'] % ('--version', '9999999999'),
                       check_output(MLGIT_COMMIT % (MODELS, MODELS + '-ex', ' --version=9999999999')))
-        self.assertIn(messages[96] % '9999999999',
+        self.assertIn(output_messages['ERROR_INVALID_VALUE_FOR'] % ('--version', '9999999999'),
                       check_output(MLGIT_COMMIT % (LABELS, LABELS + '-ex', ' --version=9999999999')))
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
