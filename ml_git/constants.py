@@ -54,7 +54,8 @@ INDEX_FILE = 'INDEX.yaml'
 DEFAULT_BRANCH_FOR_EMPTY_REPOSITORY = 'master'
 V1_STORAGE_KEY = 'store'
 STORAGE_KEY = 'storage'
-
+V1_DATASETS_KEY = 'dataset'
+V1_MODELS_KEY = 'model'
 
 class Mutability(Enum):
     STRICT = 'strict'
