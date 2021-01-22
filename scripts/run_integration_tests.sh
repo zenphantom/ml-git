@@ -85,7 +85,7 @@ docker run -p 10000:10000 --name azure \
 -v $PATH_TEST/data:/data  \
 mcr.microsoft.com/azure-storage/azurite azurite-blob --blobHost 0.0.0.0 &
 
-mkdir %INTEGRATION_TESTS_BASE_PATH%/fake_ssh_key/
+mkdir $INTEGRATION_TESTS_BASE_PATH/fake_ssh_key/
 
 ssh-keygen -t rsa -N "" -b 4096 -f $INTEGRATION_TESTS_BASE_PATH/fake_ssh_key/test_key
 
