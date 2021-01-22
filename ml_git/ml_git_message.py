@@ -39,8 +39,8 @@ output_messages = {
     'INFO_WANT_UPDATE_NOW': '\tDo you want to update your project now? (Yes/No) ',
     'INFO_PROJECT_UPDATE_SUCCESSFULLY': 'Project updated successfully',
     'INFO_ASSOCIATE_DATASETS': 'Associate datasets [%s]-[%s] to the %s.',
-    'INFO_UPDATE_THE_PROJECT': 'It was observed that the directories of this project follow the scheme of old versions of ml-git.\n' +
-             '\tTo continue using this project it is necessary to update the directories.',
+    'INFO_UPDATE_THE_PROJECT': 'It was observed that the directories of this project follow the scheme of old versions of ml-git.\n'
+                               '\tTo continue using this project it is necessary to update the directories.',
 
     'INFO_AKS_IF_WANT_UPDATE_PROJECT': '\tDo you want to update your project now? (Yes/No) ',
     'ERROR_WITHOUT_TAG_FOR_THIS_ENTITY': 'No entity with that name was found.',

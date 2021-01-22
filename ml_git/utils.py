@@ -326,8 +326,10 @@ def check_metadata_directories():
     except RootPathException:
         return
 
-    have_old_dataset_path = os.path.exists(os.path.join(root_path, OLD_DATASETS_KEY)) or os.path.exists(os.path.join(root_path, ROOT_FILE_NAME, OLD_DATASETS_KEY))
-    have_old_model_path = os.path.exists(os.path.join(root_path, OLD_MODELS_KEY)) or os.path.exists(os.path.join(root_path, ROOT_FILE_NAME, OLD_MODELS_KEY))
+    have_old_dataset_path = os.path.exists(os.path.join(root_path, OLD_DATASETS_KEY)) or os.path.exists(
+        os.path.join(root_path, ROOT_FILE_NAME, OLD_DATASETS_KEY))
+    have_old_model_path = os.path.exists(os.path.join(root_path, OLD_MODELS_KEY)) or os.path.exists(
+        os.path.join(root_path, ROOT_FILE_NAME, OLD_MODELS_KEY))
 
     if have_old_dataset_path or have_old_model_path:
         log.info(output_messages['INFO_UPDATE_THE_PROJECT'])
