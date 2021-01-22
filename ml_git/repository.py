@@ -36,7 +36,7 @@ from ml_git.utils import yaml_load, ensure_path_exists, get_root_path, get_path_
 
 
 class Repository(object):
-    def __init__(self, config, repo_type='dataset'):
+    def __init__(self, config, repo_type=EntityType.DATASETS):
 
         self._validate_entity_type(repo_type)
         self.__config = config
@@ -103,17 +103,13 @@ class Repository(object):
                 log.error('You cannot add new data to an entity that is based on a checkout with the --sampling option.',
                           class_name=REPOSITORY_CLASS_NAME)
                 return
-
             if not mutability:
                 return
-
             if not check_mutability:
                 log.error('Spec mutability cannot be changed.', class_name=REPOSITORY_CLASS_NAME)
                 return
-
             if not self._has_new_data(repo, spec):
                 return None
-
             ref = Refs(refs_path, spec, repo_type)
             tag, sha = ref.branch()
 
@@ -658,7 +654,7 @@ class Repository(object):
         options['with_labels'] = False
         if dt_tag is not None:
             try:
-                self.__repo_type = 'dataset'
+                self.__repo_type = EntityType.DATASETS.value
                 m = Metadata('', metadata_path, self.__config, self.__repo_type)
                 log.info('Initializing related dataset download', class_name=REPOSITORY_CLASS_NAME)
                 if not m.check_exists():
@@ -811,9 +807,9 @@ class Repository(object):
         dataset_tag, labels_tag = None, None
         spec_path = os.path.join(metadata_path, categories_path, spec_name + '.spec')
         if dataset is True:
-            dataset_tag = get_entity_tag(spec_path, repo_type, 'dataset')
+            dataset_tag = get_entity_tag(spec_path, repo_type, EntityType.DATASETS.value)
         if labels is True:
-            labels_tag = get_entity_tag(spec_path, repo_type, 'labels')
+            labels_tag = get_entity_tag(spec_path, repo_type, EntityType.LABELS.value)
         return dataset_tag, labels_tag
 
     def reset(self, spec, reset_type, head):

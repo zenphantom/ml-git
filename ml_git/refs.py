@@ -2,15 +2,14 @@
 © Copyright 2020 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
-
 from ml_git.utils import ensure_path_exists, yaml_save, yaml_load
 from ml_git import log
-from ml_git.constants import REFS_CLASS_NAME
+from ml_git.constants import REFS_CLASS_NAME, EntityType
 import os
 
 
 class Refs(object):
-    def __init__(self, refspath, spec, repotype='dataset'):
+    def __init__(self, refspath, spec, repotype=EntityType.DATASETS.value):
         self._repotype = repotype
         self._spec = spec
         self._path = os.path.join(refspath, spec)

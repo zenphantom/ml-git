@@ -19,7 +19,7 @@ commands = [
         'name': 'init',
 
         'callback': entity.init,
-        'groups': [entity.dataset, entity.model, entity.labels],
+        'groups': [entity.datasets, entity.models, entity.labels],
 
         'help': 'Init a ml-git %s repository.'
 
@@ -29,7 +29,7 @@ commands = [
         'name': 'list',
 
         'callback': entity.list_entity,
-        'groups': [entity.dataset, entity.model, entity.labels],
+        'groups': [entity.datasets, entity.models, entity.labels],
 
         'help': 'List %s managed under this ml-git repository.'
 
@@ -39,7 +39,7 @@ commands = [
         'name': 'fsck',
 
         'callback': entity.fsck,
-        'groups': [entity.dataset, entity.model, entity.labels],
+        'groups': [entity.datasets, entity.models, entity.labels],
 
         'help': 'Perform fsck on %s in this ml-git repository.'
 
@@ -48,7 +48,7 @@ commands = [
     {
         'name': 'push',
         'callback': entity.push,
-        'groups': [entity.dataset, entity.model, entity.labels],
+        'groups': [entity.datasets, entity.models, entity.labels],
 
         'arguments': {
             'ml-entity-name': {},
@@ -66,7 +66,7 @@ commands = [
     {
         'name': 'checkout',
         'callback': entity.checkout,
-        'groups': [entity.dataset],
+        'groups': [entity.datasets],
 
         'options': {
             '--sample-type': {'type': click.Choice(['group', 'range', 'random'])},
@@ -116,7 +116,7 @@ commands = [
     {
         'name': 'checkout',
         'callback': entity.checkout,
-        'groups': [entity.model],
+        'groups': [entity.models],
         'options': {
             ('--with-labels', '-l'): {'is_flag': True, 'default': False, 'help': help_msg.ASSOCIATED_WITH_LABELS},
             ('--with-dataset', '-d'): {'is_flag': True, 'default': False, 'help': help_msg.ASSOCIATED_WITH_DATASET},
@@ -139,7 +139,7 @@ commands = [
     {
         'name': 'fetch',
         'callback': entity.fetch,
-        'groups': [entity.dataset, entity.model, entity.labels],
+        'groups': [entity.datasets, entity.models, entity.labels],
 
         'arguments': {
             'ml-entity-tag': {},
@@ -165,7 +165,7 @@ commands = [
         'name': 'status',
 
         'callback': entity.status,
-        'groups': [entity.dataset, entity.model, entity.labels],
+        'groups': [entity.datasets, entity.models, entity.labels],
 
         'arguments': {
             'ml-entity-name': {},
@@ -184,7 +184,7 @@ commands = [
         'name': 'show',
 
         'callback': entity.show,
-        'groups': [entity.dataset, entity.model, entity.labels],
+        'groups': [entity.datasets, entity.models, entity.labels],
 
         'arguments': {
             'ml-entity-name': {}
@@ -197,7 +197,7 @@ commands = [
     {
         'name': 'add',
         'callback': entity.add,
-        'groups': [entity.dataset, entity.model, entity.labels],
+        'groups': [entity.datasets, entity.models, entity.labels],
 
         'arguments': {
             'ml-entity-name': {},
@@ -216,7 +216,7 @@ commands = [
     {
         'name': 'commit',
         'callback': entity.commit,
-        'groups': [entity.dataset],
+        'groups': [entity.datasets],
 
         'arguments': {
             'ml-entity-name': {},
@@ -259,7 +259,7 @@ commands = [
     {
         'name': 'commit',
         'callback': entity.commit,
-        'groups': [entity.model],
+        'groups': [entity.models],
 
         'arguments': {
             'ml-entity-name': {},
@@ -315,7 +315,7 @@ commands = [
 
         'callback': entity.reset,
 
-        'groups': [entity.dataset, entity.model, entity.labels],
+        'groups': [entity.datasets, entity.models, entity.labels],
 
         'arguments': {
             'ml-entity-name': {},
@@ -338,7 +338,7 @@ commands = [
 
         'callback': entity.import_tag,
 
-        'groups': [entity.dataset, entity.model, entity.labels],
+        'groups': [entity.datasets, entity.models, entity.labels],
 
         'arguments': {
             'bucket-name': {'required': True},
@@ -369,7 +369,7 @@ commands = [
 
         'callback': entity.export_tag,
 
-        'groups': [entity.dataset, entity.model, entity.labels],
+        'groups': [entity.datasets, entity.models, entity.labels],
 
         'arguments': {
             'ml_entity_tag': {'required': True},
@@ -394,7 +394,7 @@ commands = [
 
         'callback': entity.update,
 
-        'groups': [entity.dataset, entity.model, entity.labels],
+        'groups': [entity.datasets, entity.models, entity.labels],
 
         'help': 'This command will update the metadata repository.'
 
@@ -405,7 +405,7 @@ commands = [
 
         'callback': entity.branch,
 
-        'groups': [entity.dataset, entity.model, entity.labels],
+        'groups': [entity.datasets, entity.models, entity.labels],
 
         'arguments': {
             'ml-entity-name': {}
@@ -420,7 +420,7 @@ commands = [
 
         'callback': entity.remote_fsck,
 
-        'groups': [entity.dataset, entity.model, entity.labels],
+        'groups': [entity.datasets, entity.models, entity.labels],
 
         'options': {
             '--thorough': {'is_flag': True, 'help': help_msg.THOROUGH_OPTION},
@@ -441,7 +441,7 @@ commands = [
 
         'callback': entity.create,
 
-        'groups': [entity.dataset, entity.model, entity.labels],
+        'groups': [entity.datasets, entity.models, entity.labels],
 
         'options': {
             '--category': {'required': True, 'multiple': True, 'help': help_msg.CATEGORY_OPTION},
@@ -478,7 +478,7 @@ commands = [
 
         'callback': entity.unlock,
 
-        'groups': [entity.dataset, entity.model, entity.labels],
+        'groups': [entity.datasets, entity.models, entity.labels],
 
         'arguments': {
             'ml-entity-name': {},
@@ -494,7 +494,7 @@ commands = [
 
         'callback': entity.log,
 
-        'groups': [entity.dataset, entity.model, entity.labels],
+        'groups': [entity.datasets, entity.models, entity.labels],
 
         'arguments': {
             'ml-entity-name': {},

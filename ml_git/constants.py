@@ -79,9 +79,9 @@ class StoreType(Enum):
 
 @unique
 class EntityType(Enum):
-    DATASET = 'dataset'
+    DATASETS = 'datasets'
     LABELS = 'labels'
-    MODEL = 'model'
+    MODELS = 'models'
 
     @staticmethod
     def to_list():

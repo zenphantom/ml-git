@@ -14,7 +14,7 @@ from ml_git import log
 from ml_git.config import get_metadata_path
 from ml_git.constants import METADATA_MANAGER_CLASS_NAME, HEAD_1, RGX_ADDED_FILES, RGX_DELETED_FILES, RGX_SIZE_FILES, \
     RGX_AMOUNT_FILES, TAG, AUTHOR, EMAIL, DATE, MESSAGE, ADDED, SIZE, AMOUNT, DELETED, SPEC_EXTENSION, \
-    DEFAULT_BRANCH_FOR_EMPTY_REPOSITORY
+    DEFAULT_BRANCH_FOR_EMPTY_REPOSITORY, EntityType
 from ml_git.manifest import Manifest
 from ml_git.ml_git_message import output_messages
 from ml_git.utils import get_root_path, ensure_path_exists, yaml_load, RootPathException, get_yaml_str
@@ -245,16 +245,16 @@ class MetadataRepo(object):
     def metadata_print(metadata_file, spec_name):
         md = yaml_load(metadata_file)
 
-        sections = ['dataset', 'model', 'labels']
+        sections = EntityType.to_list()
         for section in sections:
-            if section in ['model', 'dataset', 'labels']:
+            if section in EntityType.to_list():
                 try:
                     md[section]  # 'hack' to ensure we don't print something useless
                     # 'dataset' not present in 'model' and vice versa
                     print('-- %s : %s --' % (section, spec_name))
                 except Exception:
                     continue
-            elif section not in ['model', 'dataset', 'labels']:
+            elif section not in EntityType.to_list():
                 print('-- %s --' % (section))
             try:
                 print(get_yaml_str(md[section]))
@@ -292,7 +292,6 @@ class MetadataRepo(object):
 
     def show(self, spec):
         specs = self.metadata_spec_from_name(spec)
-
         for specpath in specs:
             self.metadata_print(specpath, spec)
 
@@ -427,7 +426,7 @@ class MetadataRepo(object):
 
 
 class MetadataManager(MetadataRepo):
-    def __init__(self, config, type='model'):
+    def __init__(self, config, type=EntityType.MODELS.value):
         self.path = get_metadata_path(config, type)
         self.git = config[type]['git']
 

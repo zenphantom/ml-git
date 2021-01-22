@@ -12,7 +12,7 @@ from ml_git import log
 from ml_git._metadata import MetadataManager
 from ml_git.config import get_refs_path, get_sample_spec_doc
 from ml_git.constants import METADATA_CLASS_NAME, LOCAL_REPOSITORY_CLASS_NAME, ROOT_FILE_NAME, Mutability, \
-    SPEC_EXTENSION, MANIFEST_FILE
+    SPEC_EXTENSION, MANIFEST_FILE, EntityType
 from ml_git.manifest import Manifest
 from ml_git.ml_git_message import output_messages
 from ml_git.plugin_interface.data_plugin_constants import ADD_METADATA
@@ -22,7 +22,7 @@ from ml_git.utils import ensure_path_exists, yaml_save, yaml_load, clear, get_fi
 
 
 class Metadata(MetadataManager):
-    def __init__(self, spec, metadata_path, config, repo_type='dataset'):
+    def __init__(self, spec, metadata_path, config, repo_type=EntityType.DATASETS.value):
         self.__repo_type = repo_type
         self._spec = spec
         self.__path = metadata_path
@@ -173,30 +173,32 @@ class Metadata(MetadataManager):
         return store
 
     def _add_associate_entity_metadata(self, metadata, specs):
-        if 'dataset' in specs and self.__repo_type in ['labels', 'model']:
-            d_spec = specs['dataset']
-            refs_path = get_refs_path(self.__config, 'dataset')
-            r = Refs(refs_path, d_spec, 'dataset')
+        dataset = EntityType.DATASETS.value
+        labels = EntityType.LABELS.value
+        model = EntityType.MODELS.value
+        if dataset in specs and self.__repo_type in [labels, model]:
+            d_spec = specs[dataset]
+            refs_path = get_refs_path(self.__config, dataset)
+            r = Refs(refs_path, d_spec, dataset)
             tag, sha = r.head()
             if tag is not None:
-                log.info(
-                    'Associate dataset [%s]-[%s] to the %s.' % (d_spec, tag, self.__repo_type),
-                    class_name=LOCAL_REPOSITORY_CLASS_NAME)
-                metadata[self.__repo_type]['dataset'] = {}
-                metadata[self.__repo_type]['dataset']['tag'] = tag
-                metadata[self.__repo_type]['dataset']['sha'] = sha
-        if 'labels' in specs and self.__repo_type in ['model']:
-            l_spec = specs['labels']
-            refs_path = get_refs_path(self.__config, 'labels')
-            r = Refs(refs_path, l_spec, 'labels')
+                log.info(output_messages['INFO_ASSOCIATE_DATASETS'] % (d_spec, tag, self.__repo_type),
+                         class_name=LOCAL_REPOSITORY_CLASS_NAME)
+                metadata[self.__repo_type][dataset] = {}
+                metadata[self.__repo_type][dataset]['tag'] = tag
+                metadata[self.__repo_type][dataset]['sha'] = sha
+        if labels in specs and self.__repo_type in [model]:
+            l_spec = specs[labels]
+            refs_path = get_refs_path(self.__config, labels)
+            r = Refs(refs_path, l_spec, labels)
             tag, sha = r.head()
             if tag is not None:
                 log.info(
                     'Associate labels [%s]-[%s] to the %s.' % (l_spec, tag, self.__repo_type),
                     class_name=LOCAL_REPOSITORY_CLASS_NAME)
-                metadata[self.__repo_type]['labels'] = {}
-                metadata[self.__repo_type]['labels']['tag'] = tag
-                metadata[self.__repo_type]['labels']['sha'] = sha
+                metadata[self.__repo_type][labels] = {}
+                metadata[self.__repo_type][labels]['tag'] = tag
+                metadata[self.__repo_type][labels]['sha'] = sha
 
     def _get_amount_and_size_of_workspace_files(self, full_metadata_path, ws_path):
         full_path = os.path.join(full_metadata_path, MANIFEST_FILE)
@@ -256,9 +258,12 @@ class Metadata(MetadataManager):
         return message
 
     def clone_config_repo(self):
-        dataset = self.__config['dataset']['git'] if 'dataset' in self.__config else ''
-        model = self.__config['model']['git'] if 'model' in self.__config else ''
-        labels = self.__config['labels']['git'] if 'labels' in self.__config else ''
+        DATASETS = EntityType.DATASETS.value
+        MODELS = EntityType.MODELS.value
+        LABELS = EntityType.LABELS.value
+        dataset = self.__config[DATASETS]['git'] if DATASETS in self.__config else ''
+        model = self.__config[MODELS]['git'] if MODELS in self.__config else ''
+        labels = self.__config[LABELS]['git'] if LABELS in self.__config else ''
 
         if not (dataset or model or labels):
             log.error('No repositories found, verify your configurations!', class_name=METADATA_CLASS_NAME)
@@ -266,11 +271,11 @@ class Metadata(MetadataManager):
             return
 
         if dataset:
-            self.initialize_metadata('dataset')
+            self.initialize_metadata(DATASETS)
         if model:
-            self.initialize_metadata('model')
+            self.initialize_metadata(MODELS)
         if labels:
-            self.initialize_metadata('labels')
+            self.initialize_metadata(LABELS)
 
         log.info('Successfully loaded configuration files!', class_name=METADATA_CLASS_NAME)
 

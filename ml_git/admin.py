@@ -31,7 +31,6 @@ def init_mlgit():
         return
     except Exception:
         pass
-
     try:
         os.mkdir('.ml-git')
     except PermissionError:
