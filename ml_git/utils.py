@@ -19,12 +19,10 @@ from ruamel.yaml import YAML
 from ruamel.yaml.compat import StringIO
 
 from ml_git import log
-from ml_git.constants import SPEC_EXTENSION, CONFIG_FILE, EntityType, ROOT_FILE_NAME
+from ml_git.constants import SPEC_EXTENSION, CONFIG_FILE, EntityType, ROOT_FILE_NAME, V1_STORAGE_KEY, STORAGE_KEY, \
+    V1_DATASETS_KEY, V1_MODELS_KEY
 from ml_git.ml_git_message import output_messages
 from ml_git.pool import pool_factory
-
-OLD_DATASETS_KEY = 'dataset'
-OLD_MODELS_KEY = 'model'
 
 
 class RootPathException(Exception):
@@ -68,15 +66,15 @@ def json_load(file):
 
 
 def check_spec_file(file, hash):
-    modified = False
-    if OLD_DATASETS_KEY in hash:
-        hash[EntityType.DATASETS.value] = hash.pop(OLD_DATASETS_KEY)
-        modified = True
-    if OLD_MODELS_KEY in hash:
-        hash[EntityType.MODELS.value] = hash.pop(OLD_MODELS_KEY)
-        modified = True
-    if modified:
-        yaml_save(hash, file)
+    if V1_DATASETS_KEY in hash:
+        hash[EntityType.DATASETS.value] = hash.pop(V1_DATASETS_KEY)
+    if V1_MODELS_KEY in hash:
+        hash[EntityType.MODELS.value] = hash.pop(V1_MODELS_KEY)
+    entity_type = next(iter(hash))
+    manifest_values = hash[entity_type]['manifest']
+    if V1_STORAGE_KEY in manifest_values:
+        manifest_values[STORAGE_KEY] = manifest_values.pop(V1_STORAGE_KEY)
+    yaml_save(hash, file)
     return hash
 
 
@@ -304,10 +302,12 @@ def remove_other_files(filenames, path):
 def change_keys_in_config(root_path):
     file = os.path.join(root_path, ROOT_FILE_NAME, 'config.yaml')
     conf = yaml_load(file)
-    if OLD_DATASETS_KEY in conf:
-        conf[EntityType.DATASETS.value] = conf.pop(OLD_DATASETS_KEY)
-    if OLD_MODELS_KEY in conf:
-        conf[EntityType.MODELS.value] = conf.pop(OLD_MODELS_KEY)
+    if V1_DATASETS_KEY in conf:
+        conf[EntityType.DATASETS.value] = conf.pop(V1_DATASETS_KEY)
+    if V1_MODELS_KEY in conf:
+        conf[EntityType.MODELS.value] = conf.pop(V1_MODELS_KEY)
+    if V1_STORAGE_KEY in conf:
+        conf[STORAGE_KEY] = conf.pop(V1_STORAGE_KEY)
     yaml_save(conf, file)
 
 
@@ -320,26 +320,39 @@ def update_directories_to_plural(root_path, old_value, new_value):
         os.rename(metadata_path, os.path.join(root_path, ROOT_FILE_NAME, new_value))
 
 
+def update_project(v1_dataset_path_exists, v1_model_path_exists, root_path):
+    log.info(output_messages['INFO_UPDATE_THE_PROJECT'])
+    update_now = input(output_messages['INFO_AKS_IF_WANT_UPDATE_PROJECT']).lower()
+    if update_now in ['yes', 'y']:
+        if v1_dataset_path_exists:
+            update_directories_to_plural(root_path, V1_DATASETS_KEY, EntityType.DATASETS.value)
+        if v1_model_path_exists:
+            update_directories_to_plural(root_path, V1_MODELS_KEY, EntityType.MODELS.value)
+        change_keys_in_config(root_path)
+    else:
+        raise Exception(output_messages['ERROR_PROJECT_NEED_BE_UPDATED'])
+
+
+def validate_config_keys(config):
+    v1_keys = [V1_DATASETS_KEY, V1_MODELS_KEY, V1_STORAGE_KEY]
+    if any(key in config for key in v1_keys):
+        return False
+    return True
+
+
 def check_metadata_directories():
     try:
         root_path = get_root_path()
     except RootPathException:
         return
 
-    have_old_dataset_path = os.path.exists(os.path.join(root_path, OLD_DATASETS_KEY)) or os.path.exists(
-        os.path.join(root_path, ROOT_FILE_NAME, OLD_DATASETS_KEY))
-    have_old_model_path = os.path.exists(os.path.join(root_path, OLD_MODELS_KEY)) or os.path.exists(
-        os.path.join(root_path, ROOT_FILE_NAME, OLD_MODELS_KEY))
+    v1_dataset_path_exists = os.path.exists(os.path.join(root_path, V1_DATASETS_KEY)) or os.path.exists(os.path.join(
+        root_path, ROOT_FILE_NAME, V1_DATASETS_KEY))
+    v1_model_path_exists = os.path.exists(os.path.join(root_path, V1_MODELS_KEY)) or os.path.exists(os.path.join(
+        root_path, ROOT_FILE_NAME, V1_MODELS_KEY))
 
-    if have_old_dataset_path or have_old_model_path:
-        log.info(output_messages['INFO_UPDATE_THE_PROJECT'])
-        update_now = input(output_messages['INFO_AKS_IF_WANT_UPDATE_PROJECT']).lower()
-        if update_now in ['yes', 'y']:
-            if have_old_dataset_path:
-                update_directories_to_plural(root_path, OLD_DATASETS_KEY, EntityType.DATASETS.value)
-            if have_old_model_path:
-                update_directories_to_plural(root_path, OLD_MODELS_KEY, EntityType.MODELS.value)
-            change_keys_in_config(root_path)
-        else:
-            raise Exception(output_messages['ERROR_PROJECT_NEED_BE_UPDATED'])
+    file = os.path.join(root_path, ROOT_FILE_NAME, 'config.yaml')
+    config = yaml_load(file)
+    if v1_dataset_path_exists or v1_model_path_exists or not validate_config_keys(config):
+        update_project(v1_dataset_path_exists, v1_model_path_exists, root_path)
         log.info(output_messages['INFO_PROJECT_UPDATE_SUCCESSFULLY'])

@@ -10,7 +10,7 @@ FSCK_OPTION = 'Run fsck after command execution.'
 TAG_OPTION = 'Ml-git tag to identify a specific version of a ML entity.'
 COMMIT_MSG = 'Use the provided <msg> as the commit message.'
 NOT_IMPLEMENTED = 'Not implemented yet'
-CLEAR_ON_FAIL = 'Remove the files from the store in case of failure during the push operation.'
+CLEAR_ON_FAIL = 'Remove the files from the storage in case of failure during the push operation.'
 SAMPLING_OPTION = 'group: <amount>:<group> The group sample option consists of '\
                   'amount and group used to download a sample.\n'\
                   'range: <start:stop:step> The range sample option consists of '\
@@ -32,8 +32,8 @@ RESET_MIXED = 'Revert the committed files and the staged files to \'Untracked Fi
 RESET_SOFT = 'Revert the committed files to \'Changes to be committed\'.'
 RESET_REFENCE = 'head:Will keep the metadata in the current commit.' \
                        '\nhead~1:Will move the metadata to the last commit.'
-CREDENTIALS_OPTION = 'Input your profile to an s3 store or your credentials' \
-                     ' path to a gdrive store.(eg, --credentials=path/to/.credentials'
+CREDENTIALS_OPTION = 'Input your profile to an s3 storage or your credentials' \
+                     ' path to a gdrive storage.(eg, --credentials=path/to/.credentials'
 REGION_OPTION = 'AWS region name [default: us-east-1].'
 PATH_OPTION = 'Storage folder path.'
 OBJECT_OPTION = 'Filename in storage.'

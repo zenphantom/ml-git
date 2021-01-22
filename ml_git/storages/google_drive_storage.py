@@ -16,19 +16,20 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload, MediaFileUpload
 
 from ml_git import log
-from ml_git.constants import GDRIVE_STORE
-from ml_git.storages.multihash_store import MultihashStore
-from ml_git.storages.store import Store
+from ml_git.constants import GDRIVE_STORAGE
+from ml_git.ml_git_message import output_messages
+from ml_git.storages.multihash_storage import MultihashStorage
+from ml_git.storages.storage import Storage
 from ml_git.utils import ensure_path_exists
 
 
-class GoogleDriveStore(Store):
+class GoogleDriveStorage(Storage):
 
     mime_type_folder = 'application/vnd.google-apps.folder'
 
     def __init__(self, drive_path, drive_config):
         self.credentials = None
-        self._store = None
+        self._storage = None
         self._drive_path = drive_path
         self._drive_path_id = None
         self._credentials_path = drive_config['credentials-path']
@@ -38,30 +39,30 @@ class GoogleDriveStore(Store):
     def connect(self):
         try:
             self.authenticate()
-            self._store = build('drive', 'v3', credentials=self.credentials)
+            self._storage = build('drive', 'v3', credentials=self.credentials)
         except Exception as e:
-            log.error(e, class_name=GDRIVE_STORE)
+            log.error(e, class_name=GDRIVE_STORAGE)
 
     def put(self, key_path, file_path):
 
         if not self.drive_path_id:
-            log.error('Drive path [%s] not found.' % self._drive_path, class_name=GDRIVE_STORE)
+            log.error(output_messages['ERROR_DRIVE_PATH_NOT_FOUND'] % self._drive_path, class_name=GDRIVE_STORAGE)
             return False
 
         if self.key_exists(key_path):
-            log.debug('Key path [%s] already exists in drive path [%s].' % (key_path, self._drive_path), class_name=GDRIVE_STORE)
+            log.debug(output_messages['DEBUG_KEY_PATH_ALREADY_EXISTS'] % (key_path, self._drive_path), class_name=GDRIVE_STORAGE)
             return True
 
         if not os.path.exists(file_path):
-            log.error('[%s] not found.' % file_path, class_name=GDRIVE_STORE)
+            log.error(output_messages['ERROR_NOT_FOUND'] % file_path, class_name=GDRIVE_STORAGE)
             return False
 
         file_metadata = {'name': key_path, 'parents': [self.drive_path_id]}
         try:
             media = MediaFileUpload(file_path, chunksize=-1, resumable=True)
-            self._store.files().create(body=file_metadata, media_body=media).execute()
+            self._storage.files().create(body=file_metadata, media_body=media).execute()
         except Exception:
-            raise RuntimeError('The file could not be uploaded: [%s]' % file_path, class_name=GDRIVE_STORE)
+            raise RuntimeError(output_messages['ERROR_FILE_COULD_NOT_BE_UPLOADED'] % file_path, class_name=GDRIVE_STORAGE)
 
         return True
 
@@ -69,7 +70,7 @@ class GoogleDriveStore(Store):
         file_info = self.get_file_info_by_name(reference)
 
         if not file_info:
-            log.error('[%s] not found.' % reference, class_name=GDRIVE_STORE)
+            log.error(output_messages['ERROR_NOT_FOUND'] % reference, class_name=GDRIVE_STORAGE)
             return False
 
         self.download_file(file_path, file_info)
@@ -77,13 +78,13 @@ class GoogleDriveStore(Store):
 
     def get_by_id(self, file_path, file_id):
         try:
-            file_info = self._store.files().get(fileId=file_id).execute()
+            file_info = self._storage.files().get(fileId=file_id).execute()
         except errors.HttpError as error:
-            log.error('%s' % error, class_name=GDRIVE_STORE)
+            log.error('%s' % error, class_name=GDRIVE_STORAGE)
             return False
 
         if not file_info:
-            log.error('[%s] not found.' % file_id, class_name=GDRIVE_STORE)
+            log.error(output_messages['ERROR_NOT_FOUND'] % file_id, class_name=GDRIVE_STORAGE)
             return False
 
         file_path = os.path.join(file_path, file_info.get('name'))
@@ -96,7 +97,7 @@ class GoogleDriveStore(Store):
             self.donwload_folder(file_path, file_info.get('id'))
             return
 
-        request = self._store.files().get_media(fileId=file_info.get('id'))
+        request = self._storage.files().get_media(fileId=file_info.get('id'))
 
         file_data = io.BytesIO()
         downloader = MediaIoBaseDownload(file_data, request)
@@ -114,8 +115,8 @@ class GoogleDriveStore(Store):
         page_token = None
 
         while True:
-            response = self._store.files().list(q=search_query, fields='nextPageToken, files(id, name, mimeType, trashed)',
-                                                pageToken=page_token).execute()
+            response = self._storage.files().list(q=search_query, fields='nextPageToken, files(id, name, mimeType, trashed)',
+                                                  pageToken=page_token).execute()
             files = response.get('files', [])
 
             if not files:
@@ -147,7 +148,7 @@ class GoogleDriveStore(Store):
                         os.path.join(self._credentials_path, 'credentials.json'), scopes)
                     self.credentials = flow.run_local_server(success_message='Google Drive Authentication successfully')
                 except KeyboardInterrupt:
-                    log.error('Authentication failed', class_name=GDRIVE_STORE)
+                    log.error(output_messages['ERROR_AUTHETICATION_FAILED'], class_name=GDRIVE_STORAGE)
                     return
 
             with open(token_path, 'wb') as token:
@@ -215,7 +216,7 @@ class GoogleDriveStore(Store):
         return None
 
 
-class GoogleDriveMultihashStore(GoogleDriveStore, MultihashStore):
+class GoogleDriveMultihashStorage(GoogleDriveStorage, MultihashStorage):
 
     def __init__(self, drive_path, drive_config):
         super().__init__(drive_path, drive_config)
@@ -224,10 +225,10 @@ class GoogleDriveMultihashStore(GoogleDriveStore, MultihashStore):
         file_info = self.get_file_info_by_name(reference)
 
         if not file_info:
-            log.error('[%s] not found.' % reference, class_name=GDRIVE_STORE)
+            log.error(output_messages['ERROR_NOT_FOUND'] % reference, class_name=GDRIVE_STORAGE)
             return False
 
-        request = self._store.files().get_media(fileId=file_info.get('id'))
+        request = self._storage.files().get_media(fileId=file_info.get('id'))
 
         file_data = io.BytesIO()
         downloader = MediaIoBaseDownload(file_data, request)

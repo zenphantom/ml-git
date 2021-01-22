@@ -9,7 +9,7 @@ from git import Repo, GitCommandError
 
 from ml_git import log
 from ml_git.config import mlgit_config_save, get_global_config_path
-from ml_git.constants import ROOT_FILE_NAME, CONFIG_FILE, ADMIN_CLASS_NAME, StoreType
+from ml_git.constants import ROOT_FILE_NAME, CONFIG_FILE, ADMIN_CLASS_NAME, StorageType, STORAGE_KEY
 from ml_git.ml_git_message import output_messages
 from ml_git.storages.store_utils import get_bucket_region
 from ml_git.utils import get_root_path
@@ -83,28 +83,27 @@ def remote_del(repo_type, global_conf=False):
         log.error(output_messages['ERROR_ENTITY_NOT_FOUND'] % repo_type, class_name=ADMIN_CLASS_NAME)
 
 
-def valid_store_type(store_type):
-    store_type_list = [store.value for store in StoreType]
-    if store_type not in store_type_list:
-        log.error('Unknown data store type [%s], choose one of these %s.' % (store_type, store_type_list),
+def valid_storage_type(storage_type):
+    storage_type_list = [storage.value for storage in StorageType]
+    if storage_type not in storage_type_list:
+        log.error(output_messages['ERROR_UNKNOWN_STORAGE_TYPE'] % (storage_type, storage_type_list),
                   class_name=ADMIN_CLASS_NAME)
         return False
     return True
 
 
-def store_add(store_type, bucket, credentials_profile, global_conf=False, endpoint_url=None):
-    if not valid_store_type(store_type):
+def storage_add(storage_type, bucket, credentials_profile, global_conf=False, endpoint_url=None):
+    if not valid_storage_type(storage_type):
         return
 
     try:
         region = get_bucket_region(bucket, credentials_profile)
     except Exception:
         region = None
-    if store_type not in (StoreType.S3H.value, StoreType.S3.value) or credentials_profile is None:
-        log.info('Add store [%s://%s]' % (store_type, bucket), class_name=ADMIN_CLASS_NAME)
+    if storage_type not in (StorageType.S3H.value, StorageType.S3.value) or credentials_profile is None:
+        log.info(output_messages['INFO_ADD_STORAGE_WITHOUT_PROFILE'] % (storage_type, bucket), class_name=ADMIN_CLASS_NAME)
     else:
-        log.info('Add store [%s://%s] with creds from profile [%s]' %
-                 (store_type, bucket, credentials_profile), class_name=ADMIN_CLASS_NAME)
+        log.info(output_messages['INFO_ADD_STORAGE'] % (storage_type, bucket, credentials_profile), class_name=ADMIN_CLASS_NAME)
     try:
         file = get_config_path(global_conf)
         conf = yaml_load(file)
@@ -112,23 +111,23 @@ def store_add(store_type, bucket, credentials_profile, global_conf=False, endpoi
         log.error(e, class_name=ADMIN_CLASS_NAME)
         return
 
-    if 'store' not in conf:
-        conf['store'] = {}
-    if store_type not in conf['store']:
-        conf['store'][store_type] = {}
-    conf['store'][store_type][bucket] = {}
-    if store_type in [StoreType.S3.value, StoreType.S3H.value]:
-        conf['store'][store_type][bucket]['aws-credentials'] = {}
-        conf['store'][store_type][bucket]['aws-credentials']['profile'] = credentials_profile
-        conf['store'][store_type][bucket]['region'] = region
-        conf['store'][store_type][bucket]['endpoint-url'] = endpoint_url
-    elif store_type in [StoreType.GDRIVEH.value]:
-        conf['store'][store_type][bucket]['credentials-path'] = credentials_profile
+    if STORAGE_KEY not in conf:
+        conf[STORAGE_KEY] = {}
+    if storage_type not in conf[STORAGE_KEY]:
+        conf[STORAGE_KEY][storage_type] = {}
+    conf[STORAGE_KEY][storage_type][bucket] = {}
+    if storage_type in [StorageType.S3.value, StorageType.S3H.value]:
+        conf[STORAGE_KEY][storage_type][bucket]['aws-credentials'] = {}
+        conf[STORAGE_KEY][storage_type][bucket]['aws-credentials']['profile'] = credentials_profile
+        conf[STORAGE_KEY][storage_type][bucket]['region'] = region
+        conf[STORAGE_KEY][storage_type][bucket]['endpoint-url'] = endpoint_url
+    elif storage_type in [StorageType.GDRIVEH.value]:
+        conf[STORAGE_KEY][storage_type][bucket]['credentials-path'] = credentials_profile
     yaml_save(conf, file)
 
 
-def store_del(store_type, bucket, global_conf=False):
-    if not valid_store_type(store_type):
+def storage_del(storage_type, bucket, global_conf=False):
+    if not valid_storage_type(storage_type):
         return
 
     try:
@@ -138,14 +137,14 @@ def store_del(store_type, bucket, global_conf=False):
         log.error(e, class_name=ADMIN_CLASS_NAME)
         return
 
-    store_exists = 'store' in conf and store_type in conf['store'] and bucket in conf['store'][store_type]
+    storage_exists = STORAGE_KEY in conf and storage_type in conf[STORAGE_KEY] and bucket in conf[STORAGE_KEY][storage_type]
 
-    if not store_exists:
-        log.warn('Store [%s://%s] not found in configuration file.' % (store_type, bucket), class_name=ADMIN_CLASS_NAME)
+    if not storage_exists:
+        log.warn(output_messages['WARN_STORAGE_NOT_IN_CONFIG'] % (storage_type, bucket), class_name=ADMIN_CLASS_NAME)
         return
 
-    del conf['store'][store_type][bucket]
-    log.info('Removed store [%s://%s] from configuration file.' % (store_type, bucket), class_name=ADMIN_CLASS_NAME)
+    del conf[STORAGE_KEY][storage_type][bucket]
+    log.info(output_messages['INFO_REMOVED_STORAGE'] % (storage_type, bucket), class_name=ADMIN_CLASS_NAME)
 
     yaml_save(conf, config_path)
 

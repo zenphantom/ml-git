@@ -11,13 +11,13 @@ from git import InvalidGitRepositoryError, GitError
 from halo import Halo
 
 from ml_git import log
-from ml_git.admin import remote_add, store_add, clone_config_repository, init_mlgit, remote_del
+from ml_git.admin import remote_add, storage_add, clone_config_repository, init_mlgit, remote_del
 from ml_git.config import get_index_path, get_objects_path, get_cache_path, get_metadata_path, get_refs_path, \
     validate_config_spec_hash, validate_spec_hash, get_sample_config_spec, get_sample_spec_doc, \
     get_index_metadata_path, create_workspace_tree_structure, start_wizard_questions, config_load, \
     get_global_config_path, save_global_config_in_local
-from ml_git.constants import REPOSITORY_CLASS_NAME, LOCAL_REPOSITORY_CLASS_NAME, HEAD, HEAD_1, Mutability, StoreType, \
-    RGX_TAG_FORMAT, EntityType, MANIFEST_FILE, SPEC_EXTENSION
+from ml_git.constants import REPOSITORY_CLASS_NAME, LOCAL_REPOSITORY_CLASS_NAME, HEAD, HEAD_1, Mutability, StorageType, \
+    RGX_TAG_FORMAT, EntityType, MANIFEST_FILE, SPEC_EXTENSION, STORAGE_KEY
 from ml_git.file_system.cache import Cache
 from ml_git.file_system.hashfs import MultihashFS
 from ml_git.file_system.index import MultihashIndex, Status, FullIndex
@@ -29,7 +29,7 @@ from ml_git.ml_git_message import output_messages
 from ml_git.plugin_interface.data_plugin_constants import COMPARE_SPECS
 from ml_git.plugin_interface.plugin_especialization import PluginCaller
 from ml_git.refs import Refs
-from ml_git.spec import spec_parse, search_spec_file, increment_version_in_spec, get_entity_tag, update_store_spec, \
+from ml_git.spec import spec_parse, search_spec_file, increment_version_in_spec, get_entity_tag, update_storage_spec, \
     validate_bucket_name, set_version_in_spec
 from ml_git.tag import UsrTag
 from ml_git.utils import yaml_load, ensure_path_exists, get_root_path, get_path_with_categories, \
@@ -464,7 +464,7 @@ class Repository(object):
             log.error(e, class_name=REPOSITORY_CLASS_NAME)
             return
 
-    '''push all data related to a ml-git repository to the LocalRepository git repository and data store'''
+    '''push all data related to a ml-git repository to the LocalRepository git repository and data storage'''
 
     def push(self, spec, retry=2, clear_on_fail=False):
         repo_type = self.__repo_type
@@ -675,7 +675,7 @@ class Repository(object):
             except Exception as e:
                 log.error('LocalRepository: [%s]' % e, class_name=REPOSITORY_CLASS_NAME)
 
-    '''Performs a fsck on remote store w.r.t. some specific ML artefact version'''
+    '''Performs a fsck on remote storage w.r.t. some specific ML artefact version'''
 
     def remote_fsck(self, spec, retries=2, thorough=False, paranoid=False):
         repo_type = self.__repo_type
@@ -876,7 +876,7 @@ class Repository(object):
             fidx.update_index_status(file_names, Status.a.name)
 
         else:  # --hard or --mixed
-            # remove hash from index/hashsh/store.log
+            # remove hash from index/hashsh/storage.log
             file_names.update(*idx_mf.values())
             objs = MultihashFS(index_path)
             for key_hash in hash_files:
@@ -900,9 +900,9 @@ class Repository(object):
 
         local = LocalRepository(self.__config, get_objects_path(self.__config, self.__repo_type), self.__repo_type)
         bucket_name = bucket['bucket_name']
-        store_type = bucket['store_type']
-        local.change_config_store(bucket['profile'], bucket_name, store_type, region=bucket['region'], endpoint_url=bucket['endpoint_url'])
-        local.import_files(object, path, root_dir, retry, '{}://{}'.format(store_type, bucket_name))
+        storage_type = bucket['storage_type']
+        local.change_config_storage(bucket['profile'], bucket_name, storage_type, region=bucket['region'], endpoint_url=bucket['endpoint_url'])
+        local.import_files(object, path, root_dir, retry, '{}://{}'.format(storage_type, bucket_name))
 
     def unlock_file(self, spec, file_path):
         repo_type = self.__repo_type
@@ -956,16 +956,16 @@ class Repository(object):
             log.error('You cannot use this command for this entity because mutability cannot be strict.',
                       class_name=REPOSITORY_CLASS_NAME)
 
-    def create_config_store(self, store_type, credentials_path):
+    def create_config_storage(self, storage_type, credentials_path):
         bucket = {'credentials-path': credentials_path}
-        self.__config['store'][store_type] = {store_type: bucket}
+        self.__config[STORAGE_KEY][storage_type] = {storage_type: bucket}
 
     def create(self, kwargs):
         artifact_name = kwargs['artifact_name']
         categories = list(kwargs['category'])
         version = int(kwargs['version_number'])
         imported_dir = kwargs['import']
-        store_type = kwargs['store_type']
+        storage_type = kwargs['storage_type']
         bucket_name = kwargs['bucket_name']
         start_wizard = kwargs['wizard_config']
         import_url = kwargs['import_url']
@@ -973,19 +973,19 @@ class Repository(object):
         credentials_path = kwargs['credentials_path']
         repo_type = self.__repo_type
         try:
-            create_workspace_tree_structure(repo_type, artifact_name, categories, store_type, bucket_name,
+            create_workspace_tree_structure(repo_type, artifact_name, categories, storage_type, bucket_name,
                                             version, imported_dir, kwargs['mutability'])
             if start_wizard:
-                has_new_store, store_type, bucket, profile, endpoint_url, git_repo = start_wizard_questions(repo_type)
-                if has_new_store:
-                    store_add(store_type, bucket, profile, endpoint_url)
-                update_store_spec(repo_type, artifact_name, store_type, bucket)
+                has_new_storage, storage_type, bucket, profile, endpoint_url, git_repo = start_wizard_questions(repo_type)
+                if has_new_storage:
+                    storage_add(storage_type, bucket, profile, endpoint_url)
+                update_storage_spec(repo_type, artifact_name, storage_type, bucket)
                 remote_add(repo_type, git_repo)
             if import_url:
-                self.create_config_store('gdrive', credentials_path)
+                self.create_config_storage('gdrive', credentials_path)
                 local = LocalRepository(self.__config, get_objects_path(self.__config, repo_type))
                 destine_path = os.path.join(repo_type, artifact_name, 'data')
-                local.import_file_from_url(destine_path, import_url, StoreType.GDRIVE.value)
+                local.import_file_from_url(destine_path, import_url, StorageType.GDRIVE.value)
             if unzip_file:
                 log.info('Unzipping files', CLASS_NAME=REPOSITORY_CLASS_NAME)
                 data_path = os.path.join(get_root_path(), repo_type, artifact_name, 'data')
@@ -1051,7 +1051,6 @@ class Repository(object):
         except Exception as e:
             log.error(e, class_name=REPOSITORY_CLASS_NAME)
             return
-
         fidx = FullIndex(spec, index_path)
         if stat or fullstat:
             workspace_size = fidx.get_total_size()

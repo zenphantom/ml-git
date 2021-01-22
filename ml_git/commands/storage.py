@@ -17,19 +17,10 @@ def storage():
     pass
 
 
-def check_deprecated_command(context):
-    group_name = context.parent.command.name
-    deprecated_group = 'store'
-    if group_name == deprecated_group:
-        print('[WARNING]: Deprecated command, use \'storage\' instead.')
-
-
 def storage_add(context, **kwargs):
-    check_deprecated_command(context)
-    admin.store_add(kwargs['type'], kwargs['bucket_name'], kwargs['credentials'],
-                    kwargs['global'], kwargs['endpoint_url'])
+    admin.storage_add(kwargs['type'], kwargs['bucket_name'], kwargs['credentials'],
+                      kwargs['global'], kwargs['endpoint_url'])
 
 
 def storage_del(context, **kwargs):
-    check_deprecated_command(context)
-    admin.store_del(kwargs['type'], kwargs['bucket_name'], kwargs['global'])
+    admin.storage_del(kwargs['type'], kwargs['bucket_name'], kwargs['global'])

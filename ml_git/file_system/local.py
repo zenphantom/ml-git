@@ -17,8 +17,8 @@ from tqdm import tqdm
 from ml_git import log
 from ml_git.config import get_index_path, get_objects_path, get_refs_path, get_index_metadata_path, \
     get_metadata_path, get_batch_size, get_push_threads_count
-from ml_git.constants import LOCAL_REPOSITORY_CLASS_NAME, STORE_FACTORY_CLASS_NAME, REPOSITORY_CLASS_NAME, \
-    Mutability, StoreType, SPEC_EXTENSION, MANIFEST_FILE, INDEX_FILE, EntityType
+from ml_git.constants import LOCAL_REPOSITORY_CLASS_NAME, STORAGE_FACTORY_CLASS_NAME, REPOSITORY_CLASS_NAME, \
+    Mutability, StorageType, SPEC_EXTENSION, MANIFEST_FILE, INDEX_FILE, EntityType, STORAGE_KEY
 from ml_git.file_system.cache import Cache
 from ml_git.file_system.hashfs import MultihashFS
 from ml_git.file_system.index import MultihashIndex, FullIndex, Status
@@ -28,7 +28,7 @@ from ml_git.pool import pool_factory, process_futures
 from ml_git.refs import Refs
 from ml_git.sample import SampleValidate
 from ml_git.spec import spec_parse, search_spec_file
-from ml_git.storages.store_utils import store_factory
+from ml_git.storages.store_utils import storage_factory
 from ml_git.utils import yaml_load, ensure_path_exists, get_path_with_categories, convert_path, \
     normalize_path, posix_path, set_write_read, change_mask_for_routine, run_function_per_group
 
@@ -44,14 +44,14 @@ class LocalRepository(MultihashFS):
         self.__progress_bar = None
 
     def _pool_push(self, ctx, obj, obj_path):
-        store = ctx
-        log.debug('LocalRepository: push blob [%s] to store' % obj, class_name=LOCAL_REPOSITORY_CLASS_NAME)
-        ret = store.file_store(obj, obj_path)
+        storage = ctx
+        log.debug(output_messages['DEBUG_PUSH_BLOB_TO_STORAGE'] % obj, class_name=LOCAL_REPOSITORY_CLASS_NAME)
+        ret = storage.file_store(obj, obj_path)
         return ret
 
-    def _create_pool(self, config, store_str, retry, pb_elts=None, pb_desc='blobs', nworkers=os.cpu_count()*5):
-        _store_factory = lambda: store_factory(config, store_str)  # noqa: E731
-        return pool_factory(ctx_factory=_store_factory, retry=retry, pb_elts=pb_elts, pb_desc=pb_desc, nworkers=nworkers)
+    def _create_pool(self, config, storage_str, retry, pb_elts=None, pb_desc='blobs', nworkers=os.cpu_count() * 5):
+        _storage_factory = lambda: storage_factory(config, storage_str)  # noqa: E731
+        return pool_factory(ctx_factory=_storage_factory, retry=retry, pb_elts=pb_elts, pb_desc=pb_desc, nworkers=nworkers)
 
     def push(self, object_path, spec_file, retry=2, clear_on_fail=False):
         repo_type = self.__repo_type
@@ -65,18 +65,18 @@ class LocalRepository(MultihashFS):
             log.info('No blobs to push at this time.', class_name=LOCAL_REPOSITORY_CLASS_NAME)
             return 0
 
-        store = store_factory(self.__config, manifest['store'])
+        storage = storage_factory(self.__config, manifest[STORAGE_KEY])
 
-        if store is None:
-            log.error('No store for [%s]' % (manifest['store']), class_name=STORE_FACTORY_CLASS_NAME)
+        if storage is None:
+            log.error(output_messages['ERROR_WITHOUT_STORAGE'] % (manifest[STORAGE_KEY]), class_name=STORAGE_FACTORY_CLASS_NAME)
             return -2
 
-        if not store.bucket_exists():
+        if not storage.bucket_exists():
             return -2
 
         nworkers = get_push_threads_count(self.__config)
 
-        wp = self._create_pool(self.__config, manifest['store'], retry, len(objs), 'files', nworkers)
+        wp = self._create_pool(self.__config, manifest[STORAGE_KEY], retry, len(objs), 'files', nworkers)
         for obj in objs:
             # Get obj from filesystem
             obj_path = self.get_keypath(obj)
@@ -105,24 +105,23 @@ class LocalRepository(MultihashFS):
         return 0 if not upload_errors else 1
 
     def _pool_delete(self, ctx, obj):
-        store = ctx
-        log.debug('Delete blob [%s] from store' % obj, class_name=LOCAL_REPOSITORY_CLASS_NAME)
-        ret = store.delete(obj)
+        storage = ctx
+        log.debug(output_messages['DEBUG_DELETE_BLOB_FROM_STORAGE'] % obj, class_name=LOCAL_REPOSITORY_CLASS_NAME)
+        ret = storage.delete(obj)
         return ret
 
     def _delete(self, objs, spec_file, retry):
-        log.warn('Removing %s files from store due to a fail during the push execution.' % len(objs),
-                 class_name=LOCAL_REPOSITORY_CLASS_NAME)
+        log.warn(output_messages['WARN_REMOVING_FILES_DUE_TO_FAIL'] % len(objs), class_name=LOCAL_REPOSITORY_CLASS_NAME)
         repo_type = self.__repo_type
 
         spec = yaml_load(spec_file)
         manifest = spec[repo_type]['manifest']
-        store = store_factory(self.__config, manifest['store'])
-        if store is None:
-            log.error('No store for [%s]' % (manifest['store']), class_name=STORE_FACTORY_CLASS_NAME)
+        storage = storage_factory(self.__config, manifest[STORAGE_KEY])
+        if storage is None:
+            log.error(output_messages['ERROR_WITHOUT_STORAGE'] % (manifest[STORAGE_KEY]), class_name=STORAGE_FACTORY_CLASS_NAME)
             return -2
         self.__progress_bar = tqdm(total=len(objs), desc='files', unit='files', unit_scale=True, mininterval=1.0)
-        wp = self._create_pool(self.__config, manifest['store'], retry, len(objs))
+        wp = self._create_pool(self.__config, manifest[STORAGE_KEY], retry, len(objs))
         for obj in objs:
             wp.submit(self._pool_delete, obj)
 
@@ -152,10 +151,10 @@ class LocalRepository(MultihashFS):
         return key
 
     def _fetch_ipld_remote(self, ctx, key, key_path):
-        store = ctx
+        storage = ctx
         ensure_path_exists(os.path.dirname(key_path))
         log.debug('Downloading ipld [%s]' % key, class_name=LOCAL_REPOSITORY_CLASS_NAME)
-        if store.get(key_path, key) is False:
+        if storage.get(key_path, key) is False:
             raise RuntimeError('Error download ipld [%s]' % key)
         return key
 
@@ -193,10 +192,10 @@ class LocalRepository(MultihashFS):
         return True
 
     def _fetch_blob_remote(self, ctx, key, key_path):
-        store = ctx
+        storage = ctx
         ensure_path_exists(os.path.dirname(key_path))
         log.debug('Downloading blob [%s]' % key, class_name=LOCAL_REPOSITORY_CLASS_NAME)
-        if store.get(key_path, key) is False:
+        if storage.get(key_path, key) is False:
             raise RuntimeError('error download blob [%s]' % key)
         return True
 
@@ -233,7 +232,7 @@ class LocalRepository(MultihashFS):
 
         categories_path, spec_name, _ = spec_parse(tag)
 
-        # retrieve specfile from metadata to get store
+        # retrieve specfile from metadata to get storage
         spec_path = os.path.join(metadata_path, categories_path, spec_name + SPEC_EXTENSION)
         spec = yaml_load(spec_path)
         if repo_type not in spec:
@@ -241,8 +240,8 @@ class LocalRepository(MultihashFS):
                       class_name=LOCAL_REPOSITORY_CLASS_NAME)
             return False
         manifest = spec[repo_type]['manifest']
-        store = store_factory(self.__config, manifest['store'])
-        if store is None:
+        storage = storage_factory(self.__config, manifest[STORAGE_KEY])
+        if storage is None:
             return False
 
         # retrieve manifest from metadata to get all files of version tag
@@ -255,12 +254,12 @@ class LocalRepository(MultihashFS):
             return True
 
         # creates 2 independent worker pools for IPLD files and another for data chunks/blobs.
-        # Indeed, IPLD files are 1st needed to get blobs to get from store.
+        # Indeed, IPLD files are 1st needed to get blobs to get from storage.
         # Concurrency comes from the download of
         #   1) multiple IPLD files at a time and
         #   2) multiple data chunks/blobs from multiple IPLD files at a time.
 
-        wp_ipld = self._create_pool(self.__config, manifest['store'], retries, len(files))
+        wp_ipld = self._create_pool(self.__config, manifest[STORAGE_KEY], retries, len(files))
         # TODO: is that the more efficient in case the list is very large?
         lkeys = list(files.keys())
         with change_mask_for_routine(self.is_shared_objects):
@@ -273,7 +272,7 @@ class LocalRepository(MultihashFS):
             wp_ipld.progress_bar_close()
             del wp_ipld
 
-            wp_blob = self._create_pool(self.__config, manifest['store'], retries, len(files), 'chunks')
+            wp_blob = self._create_pool(self.__config, manifest[STORAGE_KEY], retries, len(files), 'chunks')
 
             args['wp'] = wp_blob
             args['error_msg'] = 'Error to fetch blob -- [%s]'
@@ -450,10 +449,10 @@ class LocalRepository(MultihashFS):
              args['obj_files'][key]]
 
     def _pool_remote_fsck_ipld(self, ctx, obj):
-        store = ctx
-        log.debug('LocalRepository: check ipld [%s] in store' % obj, class_name=LOCAL_REPOSITORY_CLASS_NAME)
+        storage = ctx
+        log.debug(output_messages['DEBUG_CHECK_IPLD'] % obj, class_name=LOCAL_REPOSITORY_CLASS_NAME)
         obj_path = self.get_keypath(obj)
-        ret = store.file_store(obj, obj_path)
+        ret = storage.file_store(obj, obj_path)
         return ret
 
     def _pool_remote_fsck_blob(self, ctx, obj):
@@ -465,9 +464,9 @@ class LocalRepository(MultihashFS):
         links = self.load(obj)
         for olink in links['Links']:
             key = olink['Hash']
-            store = ctx
+            storage = ctx
             obj_path = self.get_keypath(key)
-            ret = store.file_store(key, obj_path)
+            ret = storage.file_store(key, obj_path)
             rets.append(ret)
         return rets
 
@@ -485,7 +484,7 @@ class LocalRepository(MultihashFS):
         return True
 
     def _work_pool_to_submit_file(self, manifest, retries, files, submit_function, *args):
-        wp_file = self._create_pool(self.__config, manifest['store'], retries, len(files), pb_desc='files')
+        wp_file = self._create_pool(self.__config, manifest[STORAGE_KEY], retries, len(files), pb_desc='files')
         submit_args = {
             'wp': wp_file,
             'args': args,
@@ -496,7 +495,7 @@ class LocalRepository(MultihashFS):
         del wp_file
 
     def _remote_fsck_paranoid(self, manifest, retries, lkeys, batch_size):
-        log.info('Paranoid mode is active - Downloading files: ', class_name=STORE_FACTORY_CLASS_NAME)
+        log.info(output_messages['INFO_PARANOID_MODE_ACTIVE'], class_name=STORAGE_FACTORY_CLASS_NAME)
         total_corrupted_files = 0
 
         for i in range(0, len(lkeys), batch_size):
@@ -510,7 +509,7 @@ class LocalRepository(MultihashFS):
                 len_corrupted_files = len(corrupted_files)
                 if len_corrupted_files > 0:
                     total_corrupted_files += len_corrupted_files
-                    log.info('Fixing corrupted files in remote store', class_name=LOCAL_REPOSITORY_CLASS_NAME)
+                    log.info(output_messages['INFO_FIXING_CORRUPTED_FILES_IN_STORAGE'], class_name=LOCAL_REPOSITORY_CLASS_NAME)
                     self._delete_corrupted_files(corrupted_files, retries, manifest)
         log.info('Corrupted files: %d' % total_corrupted_files, class_name=LOCAL_REPOSITORY_CLASS_NAME)
 
@@ -582,9 +581,9 @@ class LocalRepository(MultihashFS):
         manifest_path = os.path.join(metadata_path, categories_path, MANIFEST_FILE)
         obj_files = yaml_load(manifest_path)
 
-        store = store_factory(self.__config, manifest['store'])
-        if store is None:
-            log.error('No store for [%s]' % (manifest['store']), class_name=LOCAL_REPOSITORY_CLASS_NAME)
+        storage = storage_factory(self.__config, manifest[STORAGE_KEY])
+        if storage is None:
+            log.error(output_messages['ERROR_WITHOUT_STORAGE'] % (manifest[STORAGE_KEY]), class_name=LOCAL_REPOSITORY_CLASS_NAME)
             return -2
 
         # TODO: is that the more efficient in case the list is very large?
@@ -597,7 +596,7 @@ class LocalRepository(MultihashFS):
                 log.error(e, class_name=LOCAL_REPOSITORY_CLASS_NAME)
                 return
             self._remote_fsck_paranoid(manifest, retries, lkeys, batch_size)
-        wp_ipld = self._create_pool(self.__config, manifest['store'], retries, len(obj_files))
+        wp_ipld = self._create_pool(self.__config, manifest[STORAGE_KEY], retries, len(obj_files))
 
         submit_iplds_args = {'wp': wp_ipld}
         submit_iplds_args['ipld_unfixed'] = 0
@@ -620,7 +619,7 @@ class LocalRepository(MultihashFS):
                                      'ipld_missing'])) + ' missing descriptor files. Consider using the --thorough option.',
                          class_name=LOCAL_REPOSITORY_CLASS_NAME)
 
-        wp_blob = self._create_pool(self.__config, manifest['store'], retries, len(obj_files))
+        wp_blob = self._create_pool(self.__config, manifest[STORAGE_KEY], retries, len(obj_files))
         submit_blob_args = {'wp': wp_blob}
         submit_blob_args['blob'] = 0
         submit_blob_args['blob_fixed'] = 0
@@ -812,9 +811,9 @@ class LocalRepository(MultihashFS):
             bisect.insort(all_files, normalize_path(key))
         return new_files, deleted_files, all_files, corrupted_files
 
-    def import_files(self, file_object, path, directory, retry, store_string):
+    def import_files(self, file_object, path, directory, retry, storage_string):
         try:
-            self._import_files(path, os.path.join(self.__repo_type, directory), store_string, retry, file_object)
+            self._import_files(path, os.path.join(self.__repo_type, directory), storage_string, retry, file_object)
         except Exception as e:
             log.error('Fatal downloading error [%s]' % e, class_name=LOCAL_REPOSITORY_CLASS_NAME)
 
@@ -836,15 +835,15 @@ class LocalRepository(MultihashFS):
         if file_object:
             path = file_object
             obj = True
-        store = store_factory(self.__config, bucket)
+        storage = storage_factory(self.__config, bucket)
 
         if not obj:
-            files = store.list_files_from_path(path)
+            files = storage.list_files_from_path(path)
             if not len(files):
                 raise RuntimeError('Path %s not found' % path)
         else:
             files = [path]
-        wp = pool_factory(ctx_factory=lambda: store_factory(self.__config, bucket),
+        wp = pool_factory(ctx_factory=lambda: storage_factory(self.__config, bucket),
                           retry=retry, pb_elts=len(files), pb_desc='files')
         for file in files:
             wp.submit(self._import_path, file, directory)
@@ -873,17 +872,17 @@ class LocalRepository(MultihashFS):
         idx_yaml.update_index_unlock(file_path[len(path) + 1:])
         log.info('The permissions for %s have been changed.' % file, class_name=LOCAL_REPOSITORY_CLASS_NAME)
 
-    def change_config_store(self, profile, bucket_name, store_type=StoreType.S3.value, **kwargs):
+    def change_config_storage(self, profile, bucket_name, storage_type=StorageType.S3.value, **kwargs):
         bucket = dict()
-        if store_type in [StoreType.S3.value, StoreType.S3H.value]:
+        if storage_type in [StorageType.S3.value, StorageType.S3H.value]:
             bucket['region'] = kwargs['region']
             bucket['aws-credentials'] = {'profile': profile}
             endpoint = kwargs.get('endpoint_url', '')
             bucket['endpoint-url'] = endpoint
-        elif store_type == StoreType.GDRIVE.value:
+        elif storage_type == StorageType.GDRIVE.value:
             bucket['credentials-path'] = profile
 
-        self.__config['store'][store_type] = {bucket_name: bucket}
+        self.__config[STORAGE_KEY][storage_type] = {bucket_name: bucket}
 
     def export_file(self, lkeys, args):
         for key in lkeys:
@@ -907,26 +906,26 @@ class LocalRepository(MultihashFS):
             return
 
         manifest = spec[self.__repo_type]['manifest']
-        store = store_factory(self.__config, manifest['store'])
-        if store is None:
-            log.error('No store for [%s]' % (manifest['store']), class_name=LOCAL_REPOSITORY_CLASS_NAME)
+        storage = storage_factory(self.__config, manifest[STORAGE_KEY])
+        if storage is None:
+            log.error(output_messages['ERROR_WITHOUT_STORAGE'] % (manifest[STORAGE_KEY]), class_name=LOCAL_REPOSITORY_CLASS_NAME)
             return
         bucket_name = bucket['bucket_name']
-        self.change_config_store(bucket['profile'], bucket_name, region=bucket['region'], endpoint_url=bucket['endpoint'])
-        store_dst_type = 's3://{}'.format(bucket_name)
-        store_dst = store_factory(self.__config, store_dst_type)
-        if store_dst is None:
-            log.error('No store for [%s]' % store_dst_type, class_name=LOCAL_REPOSITORY_CLASS_NAME)
+        self.change_config_storage(bucket['profile'], bucket_name, region=bucket['region'], endpoint_url=bucket['endpoint'])
+        storage_dst_type = 's3://{}'.format(bucket_name)
+        storage_dst = storage_factory(self.__config, storage_dst_type)
+        if storage_dst is None:
+            log.error(output_messages['ERROR_WITHOUT_STORAGE'] % storage_dst_type, class_name=LOCAL_REPOSITORY_CLASS_NAME)
             return
         manifest_file = MANIFEST_FILE
         manifest_path = os.path.join(metadata_path, categories_path, manifest_file)
         files = yaml_load(manifest_path)
-        log.info('Exporting tag [{}] from [{}] to [{}].'.format(tag, manifest['store'], store_dst_type),
+        log.info(output_messages['INFO_EXPORTING_TAG'] % (tag, manifest[STORAGE_KEY], storage_dst_type),
                  class_name=LOCAL_REPOSITORY_CLASS_NAME)
-        wp_export_file = pool_factory(ctx_factory=lambda: store, retry=retry, pb_elts=len(files), pb_desc='files')
+        wp_export_file = pool_factory(ctx_factory=lambda: storage, retry=retry, pb_elts=len(files), pb_desc='files')
 
         lkeys = list(files.keys())
-        args = {'wp': wp_export_file, 'store_dst': store_dst, 'files': files}
+        args = {'wp': wp_export_file, 'store_dst': storage_dst, 'files': files}
         result = run_function_per_group(lkeys, 20, function=self.export_file, arguments=args)
         if not result:
             return
@@ -934,8 +933,8 @@ class LocalRepository(MultihashFS):
         del wp_export_file
 
     def _get_ipld(self, ctx, key):
-        store = ctx
-        ipld_bytes = store.get_object(key)
+        storage = ctx
+        ipld_bytes = storage.get_object(key)
         try:
             return json.loads(ipld_bytes)
         except Exception:
@@ -943,23 +942,23 @@ class LocalRepository(MultihashFS):
 
     @staticmethod
     def _mount_blobs(ctx, links):
-        store = ctx
+        storage = ctx
         file = b''
 
         for chunk in links['Links']:
             h = chunk['Hash']
-            obj = store.get_object(h)
+            obj = storage.get_object(h)
             if obj:
                 file += obj
             del obj
         return file
 
-    def _upload_file(self, ctx, store_dst, key, path_dst):
+    def _upload_file(self, ctx, storage_dst, key, path_dst):
         links = self._get_ipld(ctx, key)
         file = self._mount_blobs(ctx, links)
 
         for file_path in path_dst:
-            store_dst.put_object(file_path, file)
+            storage_dst.put_object(file_path, file)
         del file
 
     def _compare_spec(self, spec, spec_to_comp):
@@ -973,7 +972,7 @@ class LocalRepository(MultihashFS):
         entity_compare = compare[self.__repo_type]
         if entity['categories'] != entity_compare['categories']:
             return False
-        if entity['manifest']['store'] != entity_compare['manifest']['store']:
+        if entity['manifest'][STORAGE_KEY] != entity_compare['manifest'][STORAGE_KEY]:
             return False
         if entity['name'] != entity_compare['name']:
             return False
@@ -993,7 +992,7 @@ class LocalRepository(MultihashFS):
         return corrupted_files
 
     def _delete_corrupted_files(self, files, retry, manifest):
-        wp = self._create_pool(self.__config, manifest['store'], retry, len(files))
+        wp = self._create_pool(self.__config, manifest[STORAGE_KEY], retry, len(files))
         for file in files:
             if self._exists(file):
                 wp.submit(self._pool_delete, file)
@@ -1062,6 +1061,6 @@ class LocalRepository(MultihashFS):
             return ws_spec_mutability
         raise RuntimeError(output_messages['ERROR_SPEC_WITHOUT_MUTABILITY'])
 
-    def import_file_from_url(self, path_dst, url, store_type):
-        store = store_factory(self.__config, '{}://{}'.format(store_type, store_type))
-        store.import_file_from_url(path_dst, url)
+    def import_file_from_url(self, path_dst, url, storage_type):
+        storage = storage_factory(self.__config, '{}://{}'.format(storage_type, storage_type))
+        storage.import_file_from_url(path_dst, url)

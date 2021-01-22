@@ -14,19 +14,19 @@ ADMIN_CLASS_NAME = 'Admin'
 HASH_FS_CLASS_NAME = 'HashFS'
 LOCAL_REPOSITORY_CLASS_NAME = 'Local Repository'
 MULTI_HASH_CLASS_NAME = 'Multihash'
-STORE_FACTORY_CLASS_NAME = 'Store Factory'
+STORAGE_FACTORY_CLASS_NAME = 'StorageFactory'
 METADATA_CLASS_NAME = 'Metadata'
 POOL_CLASS_NAME = 'Pool'
 REFS_CLASS_NAME = 'Refs'
 REPOSITORY_CLASS_NAME = 'Repository'
 ML_GIT_PROJECT_NAME = 'Ml-git Project'
-S3STORE_NAME = 'S3Store'
-AZURE_STORE_NAME = 'AzureStore'
-S3_MULTI_HASH_STORE_NAME = 'S3MultihashStore'
-MULTI_HASH_STORE_NAME = 'MultihashStore'
+S3STORAGE_NAME = 'S3Storage'
+AZURE_STORAGE_NAME = 'AzureMultihashStorage'
+S3_MULTI_HASH_STORAGE_NAME = 'S3MultihashStorage'
+MULTI_HASH_STORAGE_NAME = 'MultihashStorage'
 HEAD = 'HEAD'
 HEAD_1 = 'HEAD~1'
-FAKE_STORE = 'fake_store'
+FAKE_STORAGE = 'fake_storage'
 FAKE_TYPE = 's3h'
 BATCH_SIZE = 'batch_size'
 PUSH_THREADS_COUNT = 'push_threads_count'
@@ -45,13 +45,17 @@ MESSAGE = 'Message'
 SIZE = 'Files size'
 AMOUNT = 'Amount of files'
 TAG = 'Tag'
-GDRIVE_STORE = 'GOOGLE_DRIVE_STORE'
+GDRIVE_STORAGE = 'GoogleDriveStorage'
 GLOBAL_ML_GIT_CONFIG = '.mlgitconfig'
-STORE_LOG = 'store.log'
+STORAGE_LOG = 'storage.log'
 SPEC_EXTENSION = '.spec'
 MANIFEST_FILE = 'MANIFEST.yaml'
 INDEX_FILE = 'INDEX.yaml'
 DEFAULT_BRANCH_FOR_EMPTY_REPOSITORY = 'master'
+V1_STORAGE_KEY = 'store'
+STORAGE_KEY = 'storage'
+V1_DATASETS_KEY = 'dataset'
+V1_MODELS_KEY = 'model'
 
 
 class Mutability(Enum):
@@ -65,7 +69,7 @@ class Mutability(Enum):
 
 
 @unique
-class StoreType(Enum):
+class StorageType(Enum):
     S3 = 's3'
     S3H = 's3h'
     AZUREBLOBH = 'azureblobh'
@@ -74,7 +78,7 @@ class StoreType(Enum):
 
     @staticmethod
     def to_list():
-        return [store.value for store in StoreType]
+        return [storage.value for storage in StorageType]
 
 
 @unique
