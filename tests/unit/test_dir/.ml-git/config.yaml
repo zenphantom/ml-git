@@ -1,4 +1,4 @@
-dataset:
+datasets:
   git: git_local_server.git
 store:
   s3:
