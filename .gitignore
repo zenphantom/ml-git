@@ -132,4 +132,5 @@ csr.pem
 /tests/unit/unit_tests_coverage.xml
 /tests/unit/unit_tests_coverage
 /tests/integration/credentials-json/*
+/tests/integration/fake_ssh_key/*
 ml_git.egg-info
