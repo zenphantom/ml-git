@@ -27,8 +27,8 @@ output_messages = {
     'INFO_COMMIT_REPO': 'Commit repo[%s] --- file[%s]',
     'INFO_CHANGING_REMOTE': 'Changing remote from [%s] to [%s] for [%s]',
     'INFO_REMOVE_REMOTE': 'Removing remote repository [%s] from [%s].',
-    'INFO_ADD_STORE': 'Add store [%s://%s] with creds from profile [%s]',
-    'INFO_ADD_STORE_WITHOUT_PROFILE': 'Add store [%s://%s]',
+    'INFO_ADD_STORAGE': 'Add storage [%s://%s] with creds from profile [%s]',
+    'INFO_ADD_STORAGE_WITHOUT_PROFILE': 'Add storage [%s://%s]',
     'INFO_INITIALIZING_RESET': 'Initializing reset [%s] [%s] of commit. ',
     'INFO_STARTING_GC': 'Starting the garbage collector for %s',
     'INFO_REMOVED_FILES': 'A total of %s files have been removed from %s',
@@ -41,6 +41,7 @@ output_messages = {
     'INFO_ASSOCIATE_DATASETS': 'Associate datasets [%s]-[%s] to the %s.',
     'INFO_UPDATE_THE_PROJECT': 'It was observed that the directories of this project follow the scheme of old versions of ml-git.\n' +
              '\tTo continue using this project it is necessary to update the directories.',
+    'INFO_REMOVED_STORAGE': 'Removed storage [%s://%s] from configuration file.',
 
     'INFO_AKS_IF_WANT_UPDATE_PROJECT': '\tDo you want to update your project now? (Yes/No) ',
     'ERROR_WITHOUT_TAG_FOR_THIS_ENTITY': 'No entity with that name was found.',

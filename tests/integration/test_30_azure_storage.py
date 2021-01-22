@@ -10,6 +10,7 @@ from unittest import mock
 import pytest
 from azure.storage.blob import BlobServiceClient, ContainerClient
 
+from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_INIT, MLGIT_REMOTE_ADD, MLGIT_ENTITY_INIT, MLGIT_COMMIT, MLGIT_PUSH, \
     MLGIT_CHECKOUT
 from tests.integration.helper import ML_GIT_DIR, ERROR_MESSAGE
@@ -34,7 +35,7 @@ class AzureAcceptanceTests(unittest.TestCase):
         self.assertIn(messages[0], check_output(MLGIT_INIT))
         self.assertIn(messages[2] % (GIT_PATH, self.repo_type),
                       check_output(MLGIT_REMOTE_ADD % (self.repo_type, GIT_PATH)))
-        self.assertIn(messages[87] % (self.storage_type, self.bucket),
+        self.assertIn(output_messages['INFO_ADD_STORAGE_WITHOUT_PROFILE'] % (self.storage_type, self.bucket),
                       check_output('ml-git repository storage add %s --type=%s' %
                                    (self.bucket, self.storage_type)))
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ENTITY_INIT % 'dataset'))
@@ -62,7 +63,7 @@ class AzureAcceptanceTests(unittest.TestCase):
         self.create_bucket(self.dev_store_account_, self.bucket)
         self.assertIn(messages[0], check_output(MLGIT_INIT))
         self.assertIn(messages[2] % (GIT_PATH, self.repo_type), check_output(MLGIT_REMOTE_ADD % (self.repo_type, GIT_PATH)))
-        self.assertIn(messages[87] % (self.storage_type, self.bucket),
+        self.assertIn(output_messages['INFO_ADD_STORAGE_WITHOUT_PROFILE'] % (self.storage_type, self.bucket),
                       check_output('ml-git repository storage add %s --type=%s' %
                                    (self.bucket, self.storage_type)))
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ENTITY_INIT % 'dataset'))
@@ -83,7 +84,7 @@ class AzureAcceptanceTests(unittest.TestCase):
         self.assertIn(messages[0], check_output(MLGIT_INIT))
         self.assertIn(messages[2] % (GIT_PATH, self.repo_type),
                       check_output(MLGIT_REMOTE_ADD % (self.repo_type, GIT_PATH)))
-        self.assertIn(messages[87] % (self.storage_type, self.bucket),
+        self.assertIn(output_messages['INFO_ADD_STORAGE_WITHOUT_PROFILE'] % (self.storage_type, self.bucket),
                       check_output('ml-git repository storage add %s --type=%s' %
                                    (self.bucket, self.storage_type)))
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ENTITY_INIT % 'dataset'))

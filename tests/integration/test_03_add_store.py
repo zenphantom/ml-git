@@ -22,7 +22,7 @@ class AddStoreAcceptanceTests(unittest.TestCase):
     def _add_storage(self):
         self.assertIn(messages[0], check_output(MLGIT_INIT))
         self.check_storage()
-        self.assertIn(messages[7] % (STORAGE_TYPE, BUCKET_NAME, PROFILE),
+        self.assertIn(output_messages['INFO_ADD_STORAGE'] % (STORAGE_TYPE, BUCKET_NAME, PROFILE),
                       check_output(MLGIT_STORAGE_ADD % (BUCKET_NAME, PROFILE)))
 
         with open(os.path.join(self.tmp_dir, ML_GIT_DIR, 'config.yaml'), 'r') as c:
@@ -30,7 +30,7 @@ class AddStoreAcceptanceTests(unittest.TestCase):
             self.assertEqual(PROFILE, config[STORAGE_KEY]['s3h'][BUCKET_NAME]['aws-credentials']['profile'])
 
     def _del_storage(self):
-        self.assertIn(messages[76] % (BUCKET_NAME),
+        self.assertIn(output_messages['INFO_REMOVED_STORAGE'] % BUCKET_NAME,
                       check_output(MLGIT_STORAGE_DEL % BUCKET_NAME))
         with open(os.path.join(self.tmp_dir, ML_GIT_DIR, 'config.yaml'), 'r') as c:
             config = yaml_processor.load(c)
@@ -48,7 +48,7 @@ class AddStoreAcceptanceTests(unittest.TestCase):
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_02_add_storage_twice(self):
         self._add_storage()
-        self.assertIn(messages[7] % (STORAGE_TYPE, BUCKET_NAME, PROFILE), check_output(
+        self.assertIn(output_messages['INFO_ADD_STORAGE'] % (STORAGE_TYPE, BUCKET_NAME, PROFILE), check_output(
             MLGIT_STORAGE_ADD % (BUCKET_NAME, PROFILE)))
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
@@ -59,7 +59,7 @@ class AddStoreAcceptanceTests(unittest.TestCase):
             self.assertNotIn('s3h', config[STORAGE_KEY])
 
         os.chdir(os.path.join(self.tmp_dir, ML_GIT_DIR))
-        self.assertIn(messages[7] % (STORAGE_TYPE, BUCKET_NAME, PROFILE),
+        self.assertIn(output_messages['INFO_ADD_STORAGE'] % (STORAGE_TYPE, BUCKET_NAME, PROFILE),
                       check_output(MLGIT_STORAGE_ADD % (BUCKET_NAME, PROFILE)))
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
@@ -101,9 +101,9 @@ class AddStoreAcceptanceTests(unittest.TestCase):
         self.assertIn(messages[0], check_output(MLGIT_INIT))
         result = check_output(MLGIT_STORAGE_ADD_WITH_TYPE % (bucket, profile, storage_type))
         if storage_type == STORAGE_TYPE:
-            self.assertIn(messages[7] % (storage_type, bucket, profile), result)
+            self.assertIn(output_messages['INFO_ADD_STORAGE'] % (storage_type, bucket, profile), result)
         else:
-            self.assertIn(messages[87] % (storage_type, bucket), result)
+            self.assertIn(output_messages['INFO_ADD_STORAGE_WITHOUT_PROFILE'] % (storage_type, bucket), result)
         with open(os.path.join(ML_GIT_DIR, 'config.yaml'), 'r') as c:
             config = yaml_processor.load(c)
         return config
@@ -113,7 +113,7 @@ class AddStoreAcceptanceTests(unittest.TestCase):
         self.assertIn(messages[0], check_output(MLGIT_INIT))
         self.check_storage()
         endpoint = 'minio.endpoint.url'
-        self.assertIn(messages[7] % (STORAGE_TYPE, BUCKET_NAME, PROFILE),
+        self.assertIn(output_messages['INFO_ADD_STORAGE'] % (STORAGE_TYPE, BUCKET_NAME, PROFILE),
                       check_output(MLGIT_STORAGE_ADD_WITH_ENDPOINT % (BUCKET_NAME, PROFILE, endpoint)))
 
         with open(os.path.join(self.tmp_dir, ML_GIT_DIR, 'config.yaml'), 'r') as c:
