@@ -7,7 +7,7 @@ storage:
         profile: mlgit
       region: us-east-1
   s3h:
-    s3h://br.edu.ufcg.virtus.hp.ml.gitml.test0:
+    s3h://some-bucket-name:
       aws-credentials:
         profile: mlgit
       region: us-east-1
