@@ -9,7 +9,7 @@ import unittest
 import pytest
 
 from tests.integration.commands import MLGIT_COMMIT, MLGIT_PUSH, MLGIT_TAG_ADD
-from tests.integration.helper import PATH_TEST, ML_GIT_DIR, create_file, ERROR_MESSAGE
+from tests.integration.helper import PATH_TEST, ML_GIT_DIR, create_file, ERROR_MESSAGE, DATASETS, DATASET_NAME
 from tests.integration.helper import check_output, init_repository, add_file
 from tests.integration.output_messages import messages
 
@@ -40,39 +40,39 @@ class TagAcceptanceTests(unittest.TestCase):
 
     @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
     def test_01_add_tag(self):
-        self._add_tag_entity('dataset')
+        self._add_tag_entity(DATASETS)
 
         tag_file = os.path.join(self.tmp_dir, 'local_git_server.git', 'refs', 'tags', 'test-tag')
         self.assertTrue(os.path.exists(tag_file))
 
     @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
     def test_02_add_tag_wrong_entity(self):
-        self.set_up_tag('dataset')
+        self.set_up_tag(DATASETS)
 
         self.assertIn(messages[55] % 'dataset-wrong', check_output(MLGIT_TAG_ADD
-                                                                   % ('dataset', 'dataset-wrong', 'test-tag')))
+                                                                   % (DATASETS, 'dataset-wrong', 'test-tag')))
 
     @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
     def test_03_add_tag_without_previous_commit(self):
-        self.set_up_tag('dataset')
+        self.set_up_tag(DATASETS)
 
-        self.assertIn(messages[48] % 'dataset-ex', check_output(MLGIT_TAG_ADD % ('dataset', 'dataset-ex', 'test-tag')))
+        self.assertIn(messages[48] % DATASET_NAME, check_output(MLGIT_TAG_ADD % (DATASETS, DATASET_NAME, 'test-tag')))
 
     @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
     def test_04_add_existing_tag(self):
-        self._add_tag_entity('dataset')
+        self._add_tag_entity(DATASETS)
 
-        create_file(os.path.join('dataset', 'dataset' + '-ex'), 'file2', '0', '')
+        create_file(os.path.join(DATASETS, DATASET_NAME), 'file2', '0', '')
 
         tag_file = os.path.join(self.tmp_dir, 'local_git_server.git', 'refs', 'tags', 'test-tag')
         self.assertTrue(os.path.exists(tag_file))
 
-        self.assertIn(messages[49] % 'test-tag', check_output(MLGIT_TAG_ADD % ('dataset', 'dataset-ex', 'test-tag')))
+        self.assertIn(messages[49] % 'test-tag', check_output(MLGIT_TAG_ADD % (DATASETS, DATASET_NAME, 'test-tag')))
 
     @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
     def test_05_add_tag_and_push(self):
-        self._add_tag_entity('dataset')
-        metadata_path = os.path.join(self.tmp_dir, ML_GIT_DIR, 'dataset', 'metadata')
+        self._add_tag_entity(DATASETS)
+        metadata_path = os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'metadata')
         os.chdir(metadata_path)
 
         self.assertTrue(os.path.exists(os.path.join(PATH_TEST, 'data', 'mlgit',

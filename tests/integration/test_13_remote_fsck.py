@@ -9,7 +9,7 @@ import unittest
 import pytest
 
 from tests.integration.commands import MLGIT_REMOTE_FSCK, MLGIT_PUSH, MLGIT_COMMIT
-from tests.integration.helper import ML_GIT_DIR, ERROR_MESSAGE, MLGIT_ADD
+from tests.integration.helper import ML_GIT_DIR, ERROR_MESSAGE, MLGIT_ADD, DATASETS, DATASET_NAME
 from tests.integration.helper import check_output, init_repository, MINIO_BUCKET_PATH
 from tests.integration.output_messages import messages
 
@@ -18,7 +18,7 @@ from tests.integration.output_messages import messages
 class RemoteFsckAcceptanceTests(unittest.TestCase):
     file = 'zdj7WWzF6t7MVbteB97N39oFQjP9TTYdHKgS2wetdFWuj1ZP1'
 
-    def setup_remote_fsck(self, entity='dataset'):
+    def setup_remote_fsck(self, entity=DATASETS):
         init_repository(entity, self)
 
         with open(os.path.join(entity, entity+'-ex', 'remote'), 'wt') as z:
@@ -29,7 +29,7 @@ class RemoteFsckAcceptanceTests(unittest.TestCase):
                                       os.path.join('computer-vision', 'images', entity+'-ex')),
                       check_output(MLGIT_COMMIT % (entity, entity+'-ex', '')))
 
-        HEAD = os.path.join(ML_GIT_DIR, entity, 'refs', 'dataset-ex', 'HEAD')
+        HEAD = os.path.join(ML_GIT_DIR, entity, 'refs', DATASET_NAME, 'HEAD')
         self.assertTrue(os.path.exists(HEAD))
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_PUSH % (entity, entity+'-ex')))
 
@@ -37,11 +37,11 @@ class RemoteFsckAcceptanceTests(unittest.TestCase):
     def test_01_remote_fsck(self):
         self.setup_remote_fsck()
         os.unlink(os.path.join(MINIO_BUCKET_PATH, 'zdj7Wi996ViPiddvDGvzjBBACZzw6YfPujBCaPHunVoyiTUCj'))
-        self.assertIn(messages[35] % (0, 1), check_output(MLGIT_REMOTE_FSCK % ('dataset', 'dataset-ex')))
+        self.assertIn(messages[35] % (0, 1), check_output(MLGIT_REMOTE_FSCK % (DATASETS, DATASET_NAME)))
         self.assertTrue(os.path.exists(os.path.join(MINIO_BUCKET_PATH, 'zdj7Wi996ViPiddvDGvzjBBACZzw6YfPujBCaPHunVoyiTUCj')))
 
     def _get_file_path(self):
-        hash_path = os.path.join(self.tmp_dir, ML_GIT_DIR, 'dataset', 'objects', 'hashfs')
+        hash_path = os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'objects', 'hashfs')
         file_path = ''
 
         for root, _, files in os.walk(hash_path):
@@ -59,11 +59,11 @@ class RemoteFsckAcceptanceTests(unittest.TestCase):
 
         os.remove(file_path)
 
-        self.assertIn(messages[58] % 1, check_output(MLGIT_REMOTE_FSCK % ('dataset', 'dataset-ex')))
+        self.assertIn(messages[58] % 1, check_output(MLGIT_REMOTE_FSCK % (DATASETS, DATASET_NAME)))
 
         self.assertFalse(os.path.exists(file_path))
 
-        self.assertIn(messages[59] % 1, check_output(MLGIT_REMOTE_FSCK % ('dataset', 'dataset-ex') + ' --thorough'))
+        self.assertIn(messages[59] % 1, check_output(MLGIT_REMOTE_FSCK % (DATASETS, DATASET_NAME) + ' --thorough'))
 
         self.assertTrue(os.path.exists(file_path))
 
@@ -77,10 +77,10 @@ class RemoteFsckAcceptanceTests(unittest.TestCase):
         with open(os.path.join(MINIO_BUCKET_PATH, self.file), 'wt') as z:
             z.write(str('1' * 10011))
 
-        output = check_output(MLGIT_REMOTE_FSCK % ('dataset', 'dataset-ex') + ' --paranoid')
+        output = check_output(MLGIT_REMOTE_FSCK % (DATASETS, DATASET_NAME) + ' --paranoid')
 
         self.assertIn(messages[60] % self.file, output)
         self.assertIn(messages[35] % (1, 0), output)
 
-        self.assertNotIn(messages[60], check_output(MLGIT_REMOTE_FSCK % ('dataset', 'dataset-ex') + ' --paranoid'))
+        self.assertNotIn(messages[60], check_output(MLGIT_REMOTE_FSCK % (DATASETS, DATASET_NAME) + ' --paranoid'))
         self.assertTrue(os.path.exists(os.path.join(MINIO_BUCKET_PATH, self.file)))

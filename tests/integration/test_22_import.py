@@ -10,7 +10,7 @@ import unittest
 import pytest
 
 from tests.integration.commands import MLGIT_IMPORT
-from tests.integration.helper import check_output, init_repository, PROFILE
+from tests.integration.helper import check_output, init_repository, PROFILE, DATASETS, DATASET_NAME
 from tests.integration.output_messages import messages
 
 
@@ -28,24 +28,24 @@ class ImportAcceptanceTests(unittest.TestCase):
 
     @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
     def test_01_import_with_wrong_credentials(self):
-        init_repository('dataset', self)
+        init_repository(DATASETS, self)
 
-        self.assertIn(messages[54], check_output(MLGIT_IMPORT % ('dataset', 'bucket', 'dataset-ex')
+        self.assertIn(messages[54], check_output(MLGIT_IMPORT % (DATASETS, 'bucket', DATASET_NAME)
                                                  + ' --credentials=personal2'))
-        self.check_amount_of_files('dataset', 1)
+        self.check_amount_of_files(DATASETS, 1)
 
     @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
     def test_02_import_with_wrong_bucket(self):
-        init_repository('dataset', self)
+        init_repository(DATASETS, self)
 
-        self.assertIn(messages[51], check_output(MLGIT_IMPORT % ('dataset', 'wrong-bucket', 'dataset-ex')
+        self.assertIn(messages[51], check_output(MLGIT_IMPORT % (DATASETS, 'wrong-bucket', DATASET_NAME)
                                                  + ' --object=test  --credentials='+PROFILE))
-        self.check_amount_of_files('dataset', 1)
+        self.check_amount_of_files(DATASETS, 1)
 
     @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
     def test_03_import_when_credentials_does_not_exist(self):
-        init_repository('dataset', self)
+        init_repository(DATASETS, self)
 
-        self.assertIn(messages[52] % 'anyone', check_output(MLGIT_IMPORT % ('dataset', 'bucket', 'dataset-ex')
+        self.assertIn(messages[52] % 'anyone', check_output(MLGIT_IMPORT % (DATASETS, 'bucket', DATASET_NAME)
                                                             + ' --credentials=anyone'))
-        self.check_amount_of_files('dataset', 1)
+        self.check_amount_of_files(DATASETS, 1)

@@ -9,7 +9,7 @@ import unittest
 import pytest
 
 from tests.integration.commands import MLGIT_ADD, MLGIT_COMMIT, MLGIT_PUSH, MLGIT_UPDATE, MLGIT_CHECKOUT
-from tests.integration.helper import ML_GIT_DIR, create_spec, create_file
+from tests.integration.helper import ML_GIT_DIR, create_spec, create_file, DATASETS, MODELS, LABELS, DATASET_TAG
 from tests.integration.helper import check_output, clear, init_repository, ERROR_MESSAGE, yaml_processor
 from tests.integration.output_messages import messages
 
@@ -35,7 +35,7 @@ class MutabilityAcceptanceTests(unittest.TestCase):
         clear(workspace)
         clear(os.path.join(self.tmp_dir, entity_type))
 
-    def _checkout_entity(self, entity_type, tag='computer-vision__images__dataset-ex__1'):
+    def _checkout_entity(self, entity_type, tag=DATASET_TAG):
         init_repository(entity_type, self)
         self.assertIn(messages[20] % (os.path.join(self.tmp_dir, ML_GIT_DIR, entity_type, 'metadata')),
                       check_output(MLGIT_UPDATE % entity_type))
@@ -56,7 +56,7 @@ class MutabilityAcceptanceTests(unittest.TestCase):
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_01_mutability_strict_push(self):
-        entity_type = 'dataset'
+        entity_type = DATASETS
         self._create_entity_with_mutability(entity_type, 'strict')
         self._checkout_entity(entity_type)
 
@@ -72,9 +72,9 @@ class MutabilityAcceptanceTests(unittest.TestCase):
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_02_mutability_flexible_push(self):
-        entity_type = 'model'
+        entity_type = MODELS
         self._create_entity_with_mutability(entity_type, 'flexible')
-        self._checkout_entity(entity_type, 'computer-vision__images__model-ex__1')
+        self._checkout_entity(entity_type, 'computer-vision__images__models-ex__1')
 
         spec_with_categories = os.path.join(self.tmp_dir, entity_type, 'computer-vision', 'images', entity_type + '-ex',
                                             entity_type + '-ex.spec')
@@ -88,7 +88,7 @@ class MutabilityAcceptanceTests(unittest.TestCase):
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_03_mutability_mutable_push(self):
-        entity_type = 'labels'
+        entity_type = LABELS
         self._create_entity_with_mutability(entity_type, 'mutable')
         self._checkout_entity(entity_type, 'computer-vision__images__labels-ex__1')
 

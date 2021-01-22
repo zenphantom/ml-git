@@ -11,7 +11,7 @@ import pytest
 
 from tests.integration.commands import MLGIT_INIT, MLGIT_REMOTE_ADD, MLGIT_STORE_ADD, MLGIT_ENTITY_INIT
 from tests.integration.helper import ML_GIT_DIR, GIT_PATH, \
-    GIT_WRONG_REP, BUCKET_NAME, PROFILE, STORE_TYPE, GLOBAL_CONFIG_PATH, delete_global_config
+    GIT_WRONG_REP, BUCKET_NAME, PROFILE, STORE_TYPE, GLOBAL_CONFIG_PATH, delete_global_config, DATASETS, LABELS, MODELS
 from tests.integration.helper import check_output
 from tests.integration.output_messages import messages
 
@@ -32,43 +32,43 @@ class InitEntityAcceptanceTests(unittest.TestCase):
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_01_initialize_dataset(self):
-        self.set_up_init('dataset', os.path.join(self.tmp_dir, GIT_PATH))
-        self._initialize_entity('dataset')
+        self.set_up_init(DATASETS, os.path.join(self.tmp_dir, GIT_PATH))
+        self._initialize_entity(DATASETS)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_02_initialize_dataset_twice_entity(self):
-        self.set_up_init('dataset', os.path.join(self.tmp_dir, GIT_PATH))
-        self._initialize_entity('dataset')
-        self.assertIn(messages[9] % os.path.join(self.tmp_dir, ML_GIT_DIR, 'dataset', 'metadata'),
-                      check_output(MLGIT_ENTITY_INIT % 'dataset'))
+        self.set_up_init(DATASETS, os.path.join(self.tmp_dir, GIT_PATH))
+        self._initialize_entity(DATASETS)
+        self.assertIn(messages[9] % os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'metadata'),
+                      check_output(MLGIT_ENTITY_INIT % DATASETS))
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_03_initialize_dataset_from_subfolder(self):
-        self.set_up_init('dataset', os.path.join(self.tmp_dir, GIT_PATH))
+        self.set_up_init(DATASETS, os.path.join(self.tmp_dir, GIT_PATH))
         os.chdir(os.path.join(self.tmp_dir, ML_GIT_DIR))
-        self.assertIn(messages[8] % (os.path.join(self.tmp_dir, GIT_PATH), os.path.join(self.tmp_dir, ML_GIT_DIR, 'dataset', 'metadata')),
-                      check_output(MLGIT_ENTITY_INIT % 'dataset'))
+        self.assertIn(messages[8] % (os.path.join(self.tmp_dir, GIT_PATH), os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'metadata')),
+                      check_output(MLGIT_ENTITY_INIT % DATASETS))
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_04_initialize_dataset_from_wrong_repository(self):
         self.assertIn(messages[0], check_output(MLGIT_INIT))
-        self.assertIn(messages[2] % (GIT_WRONG_REP, 'dataset'), check_output(MLGIT_REMOTE_ADD % ('dataset', GIT_WRONG_REP)))
+        self.assertIn(messages[2] % (GIT_WRONG_REP, DATASETS), check_output(MLGIT_REMOTE_ADD % (DATASETS, GIT_WRONG_REP)))
         self.assertIn(messages[7] % (STORE_TYPE, BUCKET_NAME, PROFILE), check_output(MLGIT_STORE_ADD % (BUCKET_NAME, PROFILE)))
-        self.assertIn(messages[10] % GIT_WRONG_REP, check_output(MLGIT_ENTITY_INIT % 'dataset'))
+        self.assertIn(messages[10] % GIT_WRONG_REP, check_output(MLGIT_ENTITY_INIT % DATASETS))
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     @mock.patch.dict(os.environ, {'HOME': GLOBAL_CONFIG_PATH})
     def test_05_initialize_dataset_without_repository_and_storage(self):
         delete_global_config()
         self.assertIn(messages[0], check_output(MLGIT_INIT))
-        self.assertIn(messages[11], check_output(MLGIT_ENTITY_INIT % 'dataset'))
+        self.assertIn(messages[11], check_output(MLGIT_ENTITY_INIT % DATASETS))
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_06_initialize_labels(self):
-        self.set_up_init('labels', os.path.join(self.tmp_dir, GIT_PATH))
-        self._initialize_entity('labels')
+        self.set_up_init(LABELS, os.path.join(self.tmp_dir, GIT_PATH))
+        self._initialize_entity(LABELS)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_07_initialize_model(self):
-        self.set_up_init('model', os.path.join(self.tmp_dir, GIT_PATH))
-        self._initialize_entity('model')
+        self.set_up_init(MODELS, os.path.join(self.tmp_dir, GIT_PATH))
+        self._initialize_entity(MODELS)
