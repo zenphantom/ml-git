@@ -7,7 +7,7 @@ import unittest
 
 import pytest
 
-from ml_git.storages.google_drive_store import GoogleDriveStore
+from ml_git.storages.google_drive_storage import GoogleDriveStorage
 
 
 @pytest.mark.usefixtures('tmp_dir', 'switch_to_test_dir')
@@ -18,6 +18,6 @@ class GdriveStoreTestCases(unittest.TestCase):
         folder_url = 'https://drive.google.com/drive/folders/id_2?usp=sharing'
         download_url = 'https://drive.google.com/uc?id=id_3'
 
-        self.assertEqual(GoogleDriveStore.get_file_id_from_url(GoogleDriveStore, file_url), 'id_1')
-        self.assertEqual(GoogleDriveStore.get_file_id_from_url(GoogleDriveStore, folder_url), 'id_2')
-        self.assertEqual(GoogleDriveStore.get_file_id_from_url(GoogleDriveStore, download_url), 'id_3')
+        self.assertEqual(GoogleDriveStorage.get_file_id_from_url(GoogleDriveStorage, file_url), 'id_1')
+        self.assertEqual(GoogleDriveStorage.get_file_id_from_url(GoogleDriveStorage, folder_url), 'id_2')
+        self.assertEqual(GoogleDriveStorage.get_file_id_from_url(GoogleDriveStorage, download_url), 'id_3')

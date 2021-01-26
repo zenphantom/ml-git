@@ -16,6 +16,7 @@ import pytest
 from git import Repo
 
 from ml_git.config import config_load
+from ml_git.constants import STORAGE_KEY
 
 test_scr = Path('./tests/unit/test_dir').resolve()
 
@@ -57,13 +58,13 @@ def write_config(git_path, path):
     config = """
     dataset:
     git: %s
-    store:
+    %s:
         s3:
             mlgit-datasets:
                 aws-credentials:
                     profile: mlgit
                 region: us-east-1
-    """ % git_path
+    """ % (git_path, STORAGE_KEY)
 
     os.makedirs(path, exist_ok=True)
     with open(os.path.join(path, 'config.yaml'), 'w') as config_yaml:
@@ -118,20 +119,20 @@ def md5_fixture(request):
 @pytest.fixture
 def yaml_str_sample(request):
     doc = """\
-          store:
+          %s:
             s3h:
               bucket_test:
                 aws-credentials:
                   profile: profile_test
                 region: region_test
-        """
+        """ % STORAGE_KEY
     request.cls.yaml_str_sample = textwrap.dedent(doc)
 
 
 @pytest.fixture
 def yaml_obj_sample(request):
     obj = {
-        'store': {
+        STORAGE_KEY: {
             's3h': {
                 'bucket_test': {
                     'aws-credentials': {
@@ -151,7 +152,7 @@ def aws_session():
     os.environ['AWS_SECRET_ACCESS_KEY'] = 'fake_secret_key'
     os.environ['AWS_DEFAULT_REGION'] = 'us-east-1'
     boto3.setup_default_session()
-    with mock.patch('ml_git.storages.s3store.boto3.Session') as mock_session:
+    with mock.patch('ml_git.storages.s3_storage.boto3.Session') as mock_session:
         mock_session.return_value = boto3._get_default_session()
         yield
 

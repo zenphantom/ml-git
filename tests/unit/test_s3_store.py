@@ -15,7 +15,7 @@ from moto import mock_s3
 from ml_git.file_system.index import MultihashIndex, FullIndex
 from ml_git.file_system.objects import Objects
 from ml_git.file_system.local import LocalRepository
-from ml_git.storages.s3store import S3MultihashStore, S3Store
+from ml_git.storages.s3_storage import S3MultihashStore, S3Storage
 from ml_git.utils import ensure_path_exists, yaml_save, yaml_load
 
 files_mock = {'zdj7Wm99FQsJ7a4udnx36ZQNTy7h4Pao3XmRSfjo4sAbt9g74': {'1.jpg'}}
@@ -60,22 +60,22 @@ class S3StoreTestCases(unittest.TestCase):
         client.create_bucket(Bucket=bucketname_2)
 
     def test_put(self):
-        s3store = S3MultihashStore(bucketname, bucket, blocksize=1024 * 1024)
+        s3storage = S3MultihashStore(bucketname, bucket, blocksize=1024 * 1024)
         k = 'think-hires.jpg'
         f = 'data/think-hires.jpg'
-        self.assertFalse(s3store.key_exists(k))
-        self.assertEqual(s3store.put(k, f), k)
-        self.assertTrue(s3store.key_exists(k))
+        self.assertFalse(s3storage.key_exists(k))
+        self.assertEqual(s3storage.put(k, f), k)
+        self.assertTrue(s3storage.key_exists(k))
 
     def test_get(self):
-        s3store = S3MultihashStore(bucketname, bucket)
+        s3storage = S3MultihashStore(bucketname, bucket)
         k = 'zdj7WjdojNAZN53Wf29rPssZamfbC6MVerzcGwd9tNciMpsQh'
         f = 'hdata/zdj7WjdojNAZN53Wf29rPssZamfbC6MVerzcGwd9tNciMpsQh'
-        self.assertFalse(s3store.key_exists(k))
-        self.assertEqual(s3store.put(k, f), k)
-        self.assertTrue(s3store.key_exists(k))
+        self.assertFalse(s3storage.key_exists(k))
+        self.assertEqual(s3storage.put(k, f), k)
+        self.assertTrue(s3storage.key_exists(k))
         fpath = os.path.join(self.tmp_dir, 's3.dat')
-        self.assertTrue(s3store.get(fpath, k))
+        self.assertTrue(s3storage.get(fpath, k))
         self.assertEqual(self.md5sum(fpath), self.md5sum(f))
 
     def test_push(self):
@@ -104,48 +104,48 @@ class S3StoreTestCases(unittest.TestCase):
         self.assertTrue(len(fidx.get_index()) == 1)
 
     def test_list_files_from_path(self):
-        s3store = S3Store(bucketname, bucket)
+        s3storage = S3Storage(bucketname, bucket)
         k = 'path/think-hires.jpg'
         f = 'data/think-hires.jpg'
-        s3store.put(k, f)
-        self.assertTrue(s3store.key_exists('path/think-hires.jpg'))
+        s3storage.put(k, f)
+        self.assertTrue(s3storage.key_exists('path/think-hires.jpg'))
 
-        files = s3store.list_files_from_path('path')
+        files = s3storage.list_files_from_path('path')
         self.assertEqual(files[0], 'path/think-hires.jpg')
 
-        files = s3store.list_files_from_path(None)
+        files = s3storage.list_files_from_path(None)
         self.assertEqual(files[0], 'path/think-hires.jpg')
 
     def test_get_object(self):
-        s3store = S3Store(bucketname, bucket)
+        s3storage = S3Storage(bucketname, bucket)
         k = 'path/think-hires.jpg'
         f = 'data/think-hires.jpg'
 
-        self.assertFalse(s3store.key_exists(k))
+        self.assertFalse(s3storage.key_exists(k))
 
-        s3store.put(k, f)
+        s3storage.put(k, f)
 
-        img = s3store.get_object(k)
+        img = s3storage.get_object(k)
 
         with open(f, 'rb') as file:
             img2 = file.read()
             self.assertEqual(img, img2)
 
-        s3store._delete(k)
+        s3storage._delete(k)
 
-        self.assertRaises(Exception, s3store.get_object, k)
+        self.assertRaises(Exception, s3storage.get_object, k)
 
     def test_put_object(self):
-        s3store = S3Store(bucketname, bucket)
+        s3storage = S3Storage(bucketname, bucket)
         f = 'data/think-hires.jpg'
         k = 'path/think-hires.jpg'
 
-        self.assertFalse(s3store.key_exists(k))
+        self.assertFalse(s3storage.key_exists(k))
 
         with open(f, 'rb') as file:
-            s3store.put_object(k, file.read())
+            s3storage.put_object(k, file.read())
 
-        self.assertTrue(s3store.key_exists(k))
+        self.assertTrue(s3storage.key_exists(k))
 
     def tearDown(self):
         s3 = boto3.resource(

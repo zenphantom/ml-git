@@ -14,9 +14,9 @@ from ml_git.admin import init_mlgit
 from ml_git.config import validate_config_spec_hash, get_sample_config_spec, get_sample_spec, \
     validate_spec_hash, config_verbose, get_refs_path, config_load, mlgit_config_load, list_repos, \
     get_index_path, get_objects_path, get_cache_path, get_metadata_path, import_dir, \
-    extract_store_info_from_list, create_workspace_tree_structure, get_batch_size, merge_conf, \
+    extract_storage_info_from_list, create_workspace_tree_structure, get_batch_size, merge_conf, \
     merge_local_with_global_config, mlgit_config, save_global_config_in_local, start_wizard_questions
-from ml_git.constants import BATCH_SIZE_VALUE, BATCH_SIZE, Mutability
+from ml_git.constants import BATCH_SIZE_VALUE, BATCH_SIZE, Mutability, STORAGE_KEY
 from ml_git.utils import get_root_path, yaml_load
 
 
@@ -29,7 +29,7 @@ class ConfigTestCases(unittest.TestCase):
 
         # Same but with s3 instead of s3h
         spec = get_sample_config_spec('somebucket', 'someprofile', 'someregion')
-        spec['store']['s3'] = spec['store'].pop('s3h')
+        spec[STORAGE_KEY]['s3'] = spec[STORAGE_KEY].pop('s3h')
         self.assertTrue(validate_config_spec_hash(spec))
 
         # None or empty cases
@@ -38,10 +38,10 @@ class ConfigTestCases(unittest.TestCase):
 
         # Missing elements
         spec = get_sample_config_spec('somebucket', 'someprofile', 'someregion')
-        spec['store'].pop('s3h')
+        spec[STORAGE_KEY].pop('s3h')
         self.assertFalse(validate_config_spec_hash(spec))
         spec = get_sample_config_spec('somebucket', 'someprofile', 'someregion')
-        spec.pop('store')
+        spec.pop(STORAGE_KEY)
         self.assertFalse(validate_config_spec_hash(spec))
 
     def test_validate_dataset_spec_hash(self):
@@ -74,9 +74,9 @@ class ConfigTestCases(unittest.TestCase):
         spec['dataset'].pop('categories')
         self.assertFalse(validate_spec_hash(spec))
 
-        # Missing store
+        # Missing storage
         spec = get_sample_spec('somebucket')
-        spec['dataset']['manifest'].pop('store')
+        spec['dataset']['manifest'].pop(STORAGE_KEY)
         self.assertFalse(validate_spec_hash(spec))
 
         # Missing manifest
@@ -84,7 +84,7 @@ class ConfigTestCases(unittest.TestCase):
 
         # Bad bucket URL format
         spec = get_sample_spec('somebucket')
-        spec['dataset']['manifest']['store'] = 'invalid'
+        spec['dataset']['manifest'][STORAGE_KEY] = 'invalid'
         self.assertFalse(validate_spec_hash(spec))
 
         # Missing and empty dataset name
@@ -122,9 +122,9 @@ class ConfigTestCases(unittest.TestCase):
         self.assertTrue(len(os.listdir(src)) > 0)
         shutil.rmtree(dst)
 
-    def test_extract_store_info_from_list(self):
-        array = ['s3h', 'fakestore']
-        self.assertEqual(extract_store_info_from_list(array), ('s3h', 'fakestore'))
+    def test_extract_storage_info_from_list(self):
+        array = ['s3h', 'fakestorage']
+        self.assertEqual(extract_storage_info_from_list(array), ('s3h', 'fakestorage'))
 
     @pytest.mark.usefixtures('switch_to_test_dir')
     def test_create_workspace_tree_structure(self):
@@ -136,7 +136,7 @@ class ConfigTestCases(unittest.TestCase):
 
         spec_path = os.path.join(os.getcwd(), os.sep.join(['repotype', 'artefact_name', 'artefact_name.spec']))
         spec1 = yaml_load(spec_path)
-        self.assertEqual(spec1['repotype']['manifest']['store'], 's3h://minio')
+        self.assertEqual(spec1['repotype']['manifest'][STORAGE_KEY], 's3h://minio')
         self.assertEqual(spec1['repotype']['name'], 'artefact_name')
         self.assertEqual(spec1['repotype']['mutability'], 'strict')
         self.assertEqual(spec1['repotype']['version'], 2)
@@ -159,22 +159,22 @@ class ConfigTestCases(unittest.TestCase):
 
     def test_merge_conf(self):
         local_conf = {'dataset': {'git': ''}}
-        global_conf = {'dataset': {'git': 'url'}, 'model': {'git': 'url'}, 'store': {}}
+        global_conf = {'dataset': {'git': 'url'}, 'model': {'git': 'url'}, STORAGE_KEY: {}}
         merge_conf(local_conf, global_conf)
         self.assertEqual(local_conf['dataset']['git'], 'url')
         self.assertEqual(local_conf['model']['git'], 'url')
-        self.assertTrue('store' in local_conf)
+        self.assertTrue(STORAGE_KEY in local_conf)
 
     @pytest.mark.usefixtures('restore_config')
     def test_merge_local_with_global_config(self):
-        global_conf = {'dataset': {'git': 'url'}, 'model': {'git': 'url'}, 'store': {}}
+        global_conf = {'dataset': {'git': 'url'}, 'model': {'git': 'url'}, STORAGE_KEY: {}}
 
         with mock.patch('ml_git.config.global_config_load', return_value=global_conf):
             merge_local_with_global_config()
 
         self.assertEqual(mlgit_config['dataset']['git'], 'url')
         self.assertEqual(mlgit_config['model']['git'], 'url')
-        self.assertNotEqual(mlgit_config['store'], {})
+        self.assertNotEqual(mlgit_config[STORAGE_KEY], {})
 
     @pytest.mark.usefixtures('restore_config', 'switch_to_tmp_dir')
     def test_save_global_config_in_local(self):
@@ -184,7 +184,7 @@ class ConfigTestCases(unittest.TestCase):
         self.assertTrue(os.path.isdir('.ml-git'))
         config = yaml_load('.ml-git/config.yaml')
         self.assertEqual(config['dataset']['git'], remote_default)
-        global_conf = {'dataset': {'git': 'url'}, 'model': {'git': 'url'}, 'labels': {'git': new_remote}, 'store': {}}
+        global_conf = {'dataset': {'git': 'url'}, 'model': {'git': 'url'}, 'labels': {'git': new_remote}, STORAGE_KEY: {}}
 
         with mock.patch('ml_git.config.global_config_load', return_value=global_conf):
             save_global_config_in_local()
@@ -195,36 +195,36 @@ class ConfigTestCases(unittest.TestCase):
     @pytest.mark.usefixtures('switch_to_test_dir')
     def test_start_wizard_questions(self):
 
-        new_s3_store_options = ['git_repo', 'endpoint', 'default', 'mlgit', 's3h', 'X']
-        invalid_store_options = ['invalid_store', 'X']
-        new_gdrive_store_options = ['git_repo', '.credentials', 'mlgit', 'gdriveh', 'X']
+        new_s3_storage_options = ['git_repo', 'endpoint', 'default', 'mlgit', 's3h', 'X']
+        invalid_storage_options = ['invalid_storage', 'X']
+        new_gdrive_storage_options = ['git_repo', '.credentials', 'mlgit', 'gdriveh', 'X']
 
         with mock.patch('builtins.input', return_value='1'):
-            has_new_store, store_type, bucket, profile, endpoint_url, git_repo = start_wizard_questions('dataset')
-            self.assertEqual(store_type, 's3')
+            has_new_storage, storage_type, bucket, profile, endpoint_url, git_repo = start_wizard_questions('dataset')
+            self.assertEqual(storage_type, 's3')
             self.assertEqual(bucket, 'mlgit-datasets')
             self.assertIsNone(profile)
             self.assertIsNone(endpoint_url)
             self.assertEqual(git_repo, 'git_local_server.git')
-            self.assertFalse(has_new_store)
+            self.assertFalse(has_new_storage)
 
-        with mock.patch('builtins.input', new=lambda *args, **kwargs: invalid_store_options.pop()):
+        with mock.patch('builtins.input', new=lambda *args, **kwargs: invalid_storage_options.pop()):
             self.assertRaises(Exception, lambda: start_wizard_questions('dataset'))
 
-        with mock.patch('builtins.input', new=lambda *args, **kwargs: new_s3_store_options.pop()):
-            has_new_store, store_type, bucket, profile, endpoint_url, git_repo = start_wizard_questions('dataset')
-            self.assertEqual(store_type, 's3h')
+        with mock.patch('builtins.input', new=lambda *args, **kwargs: new_s3_storage_options.pop()):
+            has_new_storage, storage_type, bucket, profile, endpoint_url, git_repo = start_wizard_questions('dataset')
+            self.assertEqual(storage_type, 's3h')
             self.assertEqual(bucket, 'mlgit')
             self.assertEqual(profile, 'default')
             self.assertEqual(endpoint_url, 'endpoint')
             self.assertEqual(git_repo, 'git_repo')
-            self.assertTrue(has_new_store)
+            self.assertTrue(has_new_storage)
 
-        with mock.patch('builtins.input', new=lambda *args, **kwargs: new_gdrive_store_options.pop()):
-            has_new_store, store_type, bucket, profile, endpoint_url, git_repo = start_wizard_questions('dataset')
-            self.assertEqual(store_type, 'gdriveh')
+        with mock.patch('builtins.input', new=lambda *args, **kwargs: new_gdrive_storage_options.pop()):
+            has_new_storage, storage_type, bucket, profile, endpoint_url, git_repo = start_wizard_questions('dataset')
+            self.assertEqual(storage_type, 'gdriveh')
             self.assertEqual(bucket, 'mlgit')
             self.assertEqual(profile, '.credentials')
             self.assertIsNone(endpoint_url)
             self.assertEqual(git_repo, 'git_repo')
-            self.assertTrue(has_new_store)
+            self.assertTrue(has_new_storage)

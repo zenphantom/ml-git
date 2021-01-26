@@ -19,7 +19,7 @@ from ml_git.file_system.index import MultihashIndex, Status, FullIndex
 from ml_git.file_system.objects import Objects
 from ml_git.file_system.local import LocalRepository
 from ml_git.sample import SampleValidate, SampleValidateException
-from ml_git.storages.s3store import S3Store
+from ml_git.storages.s3_storage import S3Storage
 from ml_git.utils import yaml_load, yaml_save, ensure_path_exists, set_write_read
 
 hs = {
@@ -336,7 +336,7 @@ class LocalRepositoryTestCases(unittest.TestCase):
         c = yaml_load('hdata/config.yaml')
 
         r = LocalRepository(c, path_obj)
-        r.change_config_store(testprofile, testbucketname, 's3', region=None, endpoint_url=None)
+        r.change_config_storage(testprofile, testbucketname, 's3', region=None, endpoint_url=None)
         r.import_files(None, None, self.tmp_dir, 2, '{}://{}'.format('s3', testbucketname))
 
         for h in hs:
@@ -398,11 +398,11 @@ class LocalRepositoryTestCases(unittest.TestCase):
 
         c = yaml_load('hdata/config.yaml')
         r = LocalRepository(c, hfspath)
-        s3store = S3Store(testbucketname, bucket)
+        s3storage = S3Storage(testbucketname, bucket)
 
         links = {'Links': [{'Hash': 'zdj7WVyQ8wTdnDXsbg8wxwwFkt2Bzp95Tncsfg8PCgKXeLTye', 'Size': 16822}]}
 
-        self.assertEqual(links, r._get_ipld(s3store, keypath))
+        self.assertEqual(links, r._get_ipld(s3storage, keypath))
 
     def test_mount_blobs(self):
         testbucketname = os.getenv('MLGIT_TEST_BUCKET', 'ml-git-datasets')
@@ -423,12 +423,12 @@ class LocalRepositoryTestCases(unittest.TestCase):
 
         c = yaml_load('hdata/config.yaml')
         r = LocalRepository(c, hfspath)
-        s3store = S3Store(testbucketname, bucket)
+        s3storage = S3Storage(testbucketname, bucket)
 
         links = {'Links': [{'Hash': keypath, 'Size': 16822}]}
 
         with open(file, 'rb') as f:
-            self.assertEqual(f.read(), r._mount_blobs(s3store, links))
+            self.assertEqual(f.read(), r._mount_blobs(s3storage, links))
 
     def check_delete(self, s3, testbucketname):
         try:
