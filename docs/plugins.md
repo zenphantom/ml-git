@@ -112,7 +112,7 @@ dataset:
   manifest:
     data-plugin: package_name <-- type here the package name in your plugin project.
     files: MANIFEST.yaml
-    store: s3h://mlgit
+    storage: s3h://mlgit
   mutability: strict
   name: dataset-ex
   version: 1

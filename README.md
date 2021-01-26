@@ -49,7 +49,7 @@ $ git config --global user.email "your_email@example.com"
 
 Ml-git needs a configured storage to store data from managed artifacts. Please take a look at the [ml-git architecture and internals documentation](docs/mlgit_internals.md) to better understand how ml-git works internally with data.
 
-- To configure the storage [see documentation about supported stores and how to configure each one.](docs/storage_configurations.md)
+- To configure the storage [see documentation about supported storages and how to configure each one.](docs/storage_configurations.md)
 
 
 3 - Ml-git project:
@@ -175,7 +175,7 @@ Demonstration video:
 </details>
 <details>
 <summary><code>ml-git &lt;ml-entity&gt; push</code></summary>
-Upload metadata to remote repository and send [chunks](docs/mlgit_internals.md) to store:
+Upload metadata to remote repository and send [chunks](docs/mlgit_internals.md) to storage:
 
 ```
 $ ml-git dataset push dataset-ex

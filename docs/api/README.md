@@ -107,7 +107,7 @@ def commit(entity, ml_entity_name, commit_message=None, related_dataset=None, re
 
 ```python
 def create(entity, entity_name, categories, mutability, **kwargs):
-    """This command will create the workspace structure with data and spec file for an entity and set the store configurations.
+    """This command will create the workspace structure with data and spec file for an entity and set the storage configurations.
 
         Example:
             create('dataset', 'dataset-ex', categories=['computer-vision', 'images'], mutability='strict')
@@ -117,7 +117,7 @@ def create(entity, entity_name, categories, mutability, **kwargs):
             entity_name (str): An ml-git entity name to identify a ML entity.
             categories (list): Artifact's category name.
             mutability (str): Mutability type. The mutability options are strict, flexible and mutable.
-            store_type (str, optional): Data store type [default: s3h].
+            storage_type (str, optional): Data storage type [default: s3h].
             version (int, optional): Number of artifact version [default: 1].
             import_path (str, optional): Path to be imported to the project.
             bucket_name (str, optional): Bucket name.
@@ -163,7 +163,7 @@ def push(entity, entity_name,  retries=2, clear_on_fail=False):
             entity (str): The type of an ML entity. (dataset, labels or model).
             entity_name (str): An ml-git entity name to identify a ML entity.
             retries (int, optional): Number of retries to upload the files to the storage [default: 2].
-            clear_on_fail (bool, optional): Remove the files from the store in case of failure during the push operation [default: False].
+            clear_on_fail (bool, optional): Remove the files from the storage in case of failure during the push operation [default: False].
          """
 ```
 </details>
@@ -188,15 +188,15 @@ def remote_add(entity, remote_url, global_configuration=False):
 </details>
 
 <details>
-<summary><code> store add </code></summary>
+<summary><code> storage add </code></summary>
 <br>
 
 ```python
-def store_add(bucket_name, bucket_type=StoreType.S3H.value, credentials=None, global_configuration=False, endpoint_url=None):
-    """This command will add a store to the ml-git project.
+def storage_add(bucket_name, bucket_type=StorageType.S3H.value, credentials=None, global_configuration=False, endpoint_url=None):
+    """This command will add a storage to the ml-git project.
 
         Examples:
-            store_add('my-bucket', type='s3h')
+            storage_add('my-bucket', type='s3h')
 
         Args:
             bucket_name (str): The name of the bucket in the storage.
