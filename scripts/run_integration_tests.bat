@@ -6,7 +6,7 @@
 :::::::::::::::::::::::::::::::::::::::::::: MAIN ::::::::::::::::::::::::::::::::::::::::::::
 SET "TESTS_TO_RUN="
 SET INTEGRATION_TESTS_BASE_PATH=%cd%\tests\integration
-SET IGNORE_TESTS="--ignore=%INTEGRATION_TESTS_BASE_PATH%/gdrive_store"
+SET IGNORE_TESTS="--ignore=%INTEGRATION_TESTS_BASE_PATH%/gdrive_storage"
 
 SET PATH_TEST=%INTEGRATION_TESTS_BASE_PATH%\.test_env
 SET MINIO_ACCESS_KEY=fake_access_key
@@ -87,7 +87,7 @@ EXIT /B 0
     ECHO    $ run_integration_tests.bat [test_name1.py test_name2.py...] --gdrive
     ECHO.
     ECHO        test_name1.py test_name2.py..., test files path (relative to 'tests/integration' path)
-    ECHO        --gdrive, run integration tests for gdrive store (use this only if you have configured gdrive credentials).
+    ECHO        --gdrive, run integration tests for gdrive storage (use this only if you have configured gdrive credentials).
     ECHO.
     ECHO Example 1 - Running all tests but gdrive tests:
     ECHO     $ run_integration_tests.bat

@@ -7,7 +7,7 @@ import os
 import unittest
 
 import pytest
-from ml_git.constants import StoreType, Mutability
+from ml_git.constants import StoreType, Mutability, STORAGE_KEY
 from ml_git.ml_git_message import output_messages
 
 from tests.integration.commands import MLGIT_CREATE, MLGIT_INIT
@@ -19,20 +19,20 @@ from tests.integration.output_messages import messages
 @pytest.mark.usefixtures('tmp_dir')
 class CreateAcceptanceTests(unittest.TestCase):
 
-    def create_command(self, entity_type, store_type=StoreType.S3H.value):
+    def create_command(self, entity_type, storage_type=StoreType.S3H.value):
         os.makedirs(os.path.join(self.tmp_dir, IMPORT_PATH))
         self.assertIn(messages[38], check_output(MLGIT_CREATE % (entity_type, entity_type + '-ex')
-                                                 + ' --category=imgs --store-type=' + store_type + ' --bucket-name=minio'
+                                                 + ' --category=imgs --storage-type=' + storage_type + ' --bucket-name=minio'
                                                  + ' --version=1 --import="' + os.path.join(self.tmp_dir, IMPORT_PATH) +
                                                  '" --mutability=' + Mutability.STRICT.value))
 
-    def check_folders(self, entity_type, store_type=StoreType.S3H.value):
+    def check_folders(self, entity_type, storage_type=StoreType.S3H.value):
         folder_data = os.path.join(self.tmp_dir, entity_type, entity_type + '-ex', 'data')
         spec = os.path.join(self.tmp_dir, entity_type, entity_type + '-ex', entity_type + '-ex.spec')
         readme = os.path.join(self.tmp_dir, entity_type, entity_type + '-ex', 'README.md')
         with open(spec, 'r') as s:
             spec_file = yaml_processor.load(s)
-            self.assertEqual(spec_file[entity_type]['manifest']['store'], store_type + '://minio')
+            self.assertEqual(spec_file[entity_type]['manifest'][STORAGE_KEY], storage_type + '://minio')
             self.assertEqual(spec_file[entity_type]['name'], entity_type + '-ex')
             self.assertEqual(spec_file[entity_type]['version'], 1)
         with open(os.path.join(self.tmp_dir, ML_GIT_DIR, 'config.yaml'), 'r') as y:
@@ -44,10 +44,10 @@ class CreateAcceptanceTests(unittest.TestCase):
         self.assertTrue(os.path.exists(readme))
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
-    def _create_entity(self, entity_type, store_type=StoreType.S3H.value):
+    def _create_entity(self, entity_type, storage_type=StoreType.S3H.value):
         self.assertIn(messages[0], check_output(MLGIT_INIT))
-        self.create_command(entity_type, store_type)
-        self.check_folders(entity_type, store_type)
+        self.create_command(entity_type, storage_type)
+        self.check_folders(entity_type, storage_type)
 
     def create_with_mutability(self, entity_type, mutability):
         self.assertIn(messages[0], check_output(MLGIT_INIT))
@@ -80,7 +80,7 @@ class CreateAcceptanceTests(unittest.TestCase):
         os.makedirs(os.path.join(self.tmp_dir, IMPORT_PATH, sub_dir))
 
         self.assertIn(messages[38], check_output(
-            'ml-git dataset create dataset-ex --category=imgs --store-type=s3h --bucket-name=minio '
+            'ml-git dataset create dataset-ex --category=imgs --storage-type=s3h --bucket-name=minio '
             '--version=1 --import="%s" --mutability=strict' % os.path.join(self.tmp_dir, IMPORT_PATH)))
 
         folder_data = os.path.join(self.tmp_dir, 'dataset', 'dataset-ex', 'data')
@@ -88,7 +88,7 @@ class CreateAcceptanceTests(unittest.TestCase):
         readme = os.path.join(self.tmp_dir, 'dataset', 'dataset-ex', 'README.md')
         with open(spec, 'r') as s:
             spec_file = yaml_processor.load(s)
-            self.assertEqual(spec_file['dataset']['manifest']['store'], 's3h://minio')
+            self.assertEqual(spec_file['dataset']['manifest'][STORAGE_KEY], 's3h://minio')
             self.assertEqual(spec_file['dataset']['name'], 'dataset-ex')
             self.assertEqual(spec_file['dataset']['version'], 1)
         with open(os.path.join(self.tmp_dir, ML_GIT_DIR, 'config.yaml'), 'r') as y:
@@ -108,7 +108,7 @@ class CreateAcceptanceTests(unittest.TestCase):
         dataset_path = os.path.join(self.tmp_dir, entity_type, entity_type + 'ex')
         self.assertFalse(os.path.exists(dataset_path))
         self.assertIn(ERROR_MESSAGE, check_output(MLGIT_CREATE % (entity_type, entity_type + '-ex')
-                                                  + ' --category=imgs --store-type=s3h --bucket-name=minio'
+                                                  + ' --category=imgs --storage-type=s3h --bucket-name=minio'
                                                   + ' --version=1 --import=' + IMPORT_PATH+'wrong'
                                                   + ' --mutability=' + Mutability.STRICT.value))
         self.assertFalse(os.path.exists(dataset_path))
@@ -120,7 +120,7 @@ class CreateAcceptanceTests(unittest.TestCase):
         self._create_entity('dataset')
 
         self.assertIn(messages[88], check_output(MLGIT_CREATE % (entity_type, entity_type + '-ex')
-                                                 + ' --category=imgs --store-type=s3h --bucket-name=minio'
+                                                 + ' --category=imgs --storage-type=s3h --bucket-name=minio'
                                                  + ' --version=1 --import=' + IMPORT_PATH
                                                  + ' --mutability=' + Mutability.STRICT.value))
 
@@ -180,7 +180,7 @@ class CreateAcceptanceTests(unittest.TestCase):
         entity_type = 'dataset'
         self.assertIn(messages[0], check_output(MLGIT_INIT))
         os.makedirs(os.path.join(self.tmp_dir, IMPORT_PATH))
-        result = check_output(MLGIT_CREATE % (entity_type, entity_type + '-ex') + ' --category=imgs --store-type=s3h --bucket-name=minio'
+        result = check_output(MLGIT_CREATE % (entity_type, entity_type + '-ex') + ' --category=imgs --storage-type=s3h --bucket-name=minio'
                               + ' --version-number=1 --import="' + os.path.join(self.tmp_dir, IMPORT_PATH) + '"'
                               + ' --mutability=' + Mutability.STRICT.value)
 

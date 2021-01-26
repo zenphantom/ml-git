@@ -9,7 +9,7 @@ set -e
 set -x
 
 INTEGRATION_TESTS_BASE_PATH=$PWD/tests/integration
-IGNORE_TESTS="--ignore=$INTEGRATION_TESTS_BASE_PATH/gdrive_store"
+IGNORE_TESTS="--ignore=$INTEGRATION_TESTS_BASE_PATH/gdrive_storage"
 
 usage()
 {
@@ -17,7 +17,7 @@ usage()
       echo "usage:
           $ run_integration_tests.sh [<test_name1.py> <test_name2.py>...] --gdrive
               <test_name1.py> <test_name2.py>..., test files path (relative to 'tests/integration' path)
-              --gdrive, run integration tests for gdrive store (use this only if you have configured gdrive credentials).
+              --gdrive, run integration tests for gdrive storage (use this only if you have configured gdrive credentials).
 
           Example 1 - Running all tests but gdrive tests:
               $ run_integration_tests.sh

@@ -9,6 +9,7 @@ import unittest
 import pytest
 
 from ml_git import api
+from ml_git.constants import STORAGE_LOG
 from tests.integration.helper import ML_GIT_DIR, create_spec
 from tests.integration.helper import init_repository
 
@@ -42,7 +43,7 @@ class APIAcceptanceTests(unittest.TestCase):
         cache = os.path.join(self.tmp_dir, ML_GIT_DIR, 'dataset', 'cache')
         api.push('dataset', 'dataset-ex', 2, False)
         self.assertTrue(os.path.exists(cache))
-        self.assertFalse(os.path.isfile(os.path.join(cache, 'store.log')))
+        self.assertFalse(os.path.isfile(os.path.join(cache, STORAGE_LOG)))
 
     @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
     def test_02_model_push(self):
@@ -50,7 +51,7 @@ class APIAcceptanceTests(unittest.TestCase):
         cache = os.path.join(self.tmp_dir, ML_GIT_DIR, 'model', 'cache')
         api.push('model', 'model-ex', 2, False)
         self.assertTrue(os.path.exists(cache))
-        self.assertFalse(os.path.isfile(os.path.join(cache, 'store.log')))
+        self.assertFalse(os.path.isfile(os.path.join(cache, STORAGE_LOG)))
 
     @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
     def test_03_labels_push(self):
@@ -58,4 +59,4 @@ class APIAcceptanceTests(unittest.TestCase):
         cache = os.path.join(self.tmp_dir, ML_GIT_DIR, 'labels', 'cache')
         api.push('labels', 'labels-ex', 2, False)
         self.assertTrue(os.path.exists(cache))
-        self.assertFalse(os.path.isfile(os.path.join(cache, 'store.log')))
+        self.assertFalse(os.path.isfile(os.path.join(cache, STORAGE_LOG)))
