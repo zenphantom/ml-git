@@ -13,7 +13,7 @@ We will divide this quick howto into 6 main sections:
 4. [uploading labels associated to a dataset](#upload-labels)
    
     - This section describes how to upload a set of labels by associating the dataset to which these labels refer.
-5. [upload models](#upload-models)
+5. [uploading models](#upload-models)
 
     - This section explains how to create and upload your models.
 6. [downloading a dataset](#download-dataset)
@@ -391,7 +391,7 @@ As you can see, there is a new section "_dataset_" that has been added by ml-git
 **Uploading labels related to a dataset:**
 
 [![asciicast](https://asciinema.org/a/371022.svg)](https://asciinema.org/a/371022)
-## <a name="upload-models">Upload Models</a> ##
+## <a name="upload-models">Uploading Models</a> ##
 
 To create and upload your model, you must be in an already initialized project, if necessary read [section 1](#initial-config) to initialize and configure a project.
 
@@ -403,13 +403,13 @@ $ ml-git repository store add mlgit-models
 $ ml-git model init
 ```
 
-To create a model entity must run the following command:
+To create a model entity, you can run the following command:
 
 ```
 $ ml-git model create imagenet-model --category=computer-vision --category=images --store-type=s3h --bucket-name=mlgit-models --version=1 
 ```
 
-After entity creation, you can create the README.md to create a web page describing your model set. Here below is the tree of caption labels for mscoco directory and file structure:
+After entity creation, you can create the README.md to create a web page describing your model. Here below is the tree directory structure:
 
 ```
 imagenet-model/
@@ -426,7 +426,10 @@ $ ml-git model add imagenet-model
 $ ml-git model commit imagenet-model --dataset=imagenet8
 $ ml-git model push imagenet-model
 ```
-There is not much change compared to dataset and labels operations.
+There is not much change compared to dataset and labels operations. However you can note one particular change in commit command.
+There is an option "_--dataset_" which is used to tell ml-git that the models should be linked to the specified dataset.
+Internally, ml-git will look at the checked out dataset in your workspace for that specified dataset. It then will include the git tag and sha into the specificaiton file to be committed into the metadata repository.
+Once done, anyone will then be able to retrieve the exact same version of the dataset that has been used for that specific label set.
 
 **Persisting model's metrics:**
 
@@ -447,7 +450,7 @@ An example of adding a model passing metrics through the command line, would be 
 $ ml-git model add imagenet-model --metric accuracy 10 --metric precision 20 --metric recall 30
 ```
 
-When inserting the matrices, they will be included in the structure of your model's spec file. An example of what it would look like would be the following structure:
+When inserting the metrics, they will be included in the structure of your model's spec file. An example of what it would look like would be the following structure:
 
 ```
 model:
@@ -457,9 +460,9 @@ model:
   manifest:
     store: s3h://mlgit-models
   metrics:
-    Accuracy: 10.0
-    Precision: 20.0
-    Recall: 30.0
+    accuracy: 10.0
+    precision: 20.0
+    recall: 30.0
   name: imagenet-model
   version: 1
 ```
@@ -470,7 +473,7 @@ You can check the metrics added to the spec by executing the log command.
 $ ml-git model log imagenet-model
 ```
 
-[![asciicast](https://asciinema.org/a/371040.svg)](https://asciinema.org/a/OMOisOrxQ734QL0DKDo4fgD6t)
+[![asciicast](https://asciinema.org/a/Fs4qaPXXDTK1sapmAvnyeXp3n.svg)](https://asciinema.org/a/Fs4qaPXXDTK1sapmAvnyeXp3n)
 ## <a name="download-dataset">Downloading a dataset</a> ##
 
 We assume there is an existing ml-git repository with a few ML datasets under its management and you'd like to download one of the existing datasets.
