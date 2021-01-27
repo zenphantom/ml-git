@@ -48,7 +48,7 @@ Options:
 --help         Show this message and exit.
 ```
 
-Example:
+Dataset example:
 ```
 $ ml-git dataset add dataset-ex --bumpversion
 ```
@@ -59,6 +59,13 @@ Under that repository, it is also expected to have a \<ml-entity-name\>.spec fil
 Optionally, one can add a README.md which will describe the dataset and be what will be shown in the github repository for that specific dataset.
 
 Internally, the _ml-git add_ will add all the files under the \<ml-entity\> directory into the ml-git index / staging area.
+
+Model example:
+```
+$ ml-git model add model-ex --metrics-file='/path/to/your/file.csv'
+```
+
+ml-git allows you to enter a metrics file or the metrics themselves on the command line when adding a model.
 
 </details>
 

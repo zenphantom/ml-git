@@ -1,7 +1,7 @@
 # Your 1st ML artefacts under ml-git management #
 
 We will divide this quick howto into 6 main sections:
-1. [ml-git repository configuation / intialization](#initial-config)   
+1. [initial configuration of ml-git](#initial-config)  
    
     - This section explains how to initialize and configure a repository for ml-git, considering the scenarios of the store be an S3 or a MinIO.
 2. [uploading a dataset](#upload-dataset)
@@ -13,10 +13,13 @@ We will divide this quick howto into 6 main sections:
 4. [uploading labels associated to a dataset](#upload-labels)
    
     - This section describes how to upload a set of labels by associating the dataset to which these labels refer.
-5. [downloading a dataset](#download-dataset)
+5. [upload models](#upload-models)
+
+    - This section explains how to create and upload your models.
+6. [downloading a dataset](#download-dataset)
    
     - This section describes how to download a versioned data set using ml-git.
-6. [checking data integrity](#checking-integrity)
+7. [checking data integrity](#checking-integrity)
    
     - This section explains how to check the integrity of the metadata repository.
     
@@ -388,7 +391,86 @@ As you can see, there is a new section "_dataset_" that has been added by ml-git
 **Uploading labels related to a dataset:**
 
 [![asciicast](https://asciinema.org/a/371022.svg)](https://asciinema.org/a/371022)
+## <a name="upload-models">Upload Models</a> ##
 
+To create and upload your model, you must be in an already initialized project, if necessary read [section 1](#initial-config) to initialize and configure a project.
+
+The first step is to configure your metadata & data repository/store.
+
+```
+$ ml-git repository remote model add git@github.com:HPInc/hp-mlgit-models.git
+$ ml-git repository store add mlgit-models
+$ ml-git model init
+```
+
+To create a model entity must run the following command:
+
+```
+$ ml-git model create imagenet-model --category=computer-vision --category=images --store-type=s3h --bucket-name=mlgit-models --version=1 
+```
+
+After entity creation, you can create the README.md to create a web page describing your model set. Here below is the tree of caption labels for mscoco directory and file structure:
+
+```
+imagenet-model/
+├── README.md
+├── data
+│   ├── model_data
+└── imagenet-model.spec
+```
+
+Now, you're ready to put that new model set under ml-git management.  We assume there is an existing imagenet8 dataset. For this, do:
+
+```
+$ ml-git model add imagenet-model
+$ ml-git model commit imagenet-model --dataset=imagenet8
+$ ml-git model push imagenet-model
+```
+There is not much change compared to dataset and labels operations.
+
+**Persisting model's metrics:**
+
+We can insert metrics to the model in the add command, metrics can be added with the following parameters:
+
+1. __metrics-file__: optional metrics file path.
+2. __metric__: optional metric keys and values.
+
+An example of adding a model passing a metrics file, would be the following command:
+
+```
+$ ml-git model add imagenet-model --metrics-file='/path/to/your/file.csv'
+```
+
+An example of adding a model passing metrics through the command line, would be the following command:
+
+```
+$ ml-git model add imagenet-model --metric accuracy 10 --metric precision 20 --metric recall 30
+```
+
+When inserting the matrices, they will be included in the structure of your model's spec file. An example of what it would look like would be the following structure:
+
+```
+model:
+  categories:
+    - computer-vision
+    - images
+  manifest:
+    store: s3h://mlgit-models
+  metrics:
+    Accuracy: 10.0
+    Precision: 20.0
+    Recall: 30.0
+  name: imagenet-model
+  version: 1
+```
+
+You can check the metrics added to the spec by executing the log command.
+
+```
+$ ml-git model log imagenet-model
+```
+
+[![asciicast](https://asciinema.org/a/371040.svg)](https://asciinema.org/a/OMOisOrxQ734QL0DKDo4fgD6t)
 ## <a name="download-dataset">Downloading a dataset</a> ##
 
 We assume there is an existing ml-git repository with a few ML datasets under its management and you'd like to download one of the existing datasets.
