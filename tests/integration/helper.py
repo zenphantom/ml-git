@@ -2,7 +2,7 @@
 © Copyright 2020 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
-
+import csv
 import os
 import os.path
 import shutil
@@ -315,3 +315,12 @@ def populate_entity_with_new_data(self, entity, bumpversion='--bumpversion', ver
     head_path = os.path.join(self.tmp_dir, ML_GIT_DIR, entity, 'refs', entity + '-ex', 'HEAD')
     self.assertTrue(os.path.exists(head_path))
     self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_PUSH % (entity, entity + '-ex')))
+
+
+def create_csv_file(path, table):
+    with open(path, 'w') as file:
+        writer = csv.writer(file)
+        row_list = list()
+        row_list.append(table.keys())
+        row_list.append(table.values())
+        writer.writerows(row_list)
