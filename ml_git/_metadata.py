@@ -15,7 +15,7 @@ from ml_git import log
 from ml_git.config import get_metadata_path
 from ml_git.constants import METADATA_MANAGER_CLASS_NAME, HEAD_1, RGX_ADDED_FILES, RGX_DELETED_FILES, RGX_SIZE_FILES, \
     RGX_AMOUNT_FILES, TAG, AUTHOR, EMAIL, DATE, MESSAGE, ADDED, SIZE, AMOUNT, DELETED, SPEC_EXTENSION, \
-    DEFAULT_BRANCH_FOR_EMPTY_REPOSITORY
+    DEFAULT_BRANCH_FOR_EMPTY_REPOSITORY, PERFORMANCE_KEY
 from ml_git.manifest import Manifest
 from ml_git.ml_git_message import output_messages
 from ml_git.utils import get_root_path, ensure_path_exists, yaml_load, RootPathException, get_yaml_str, yaml_load_str, \
@@ -368,7 +368,7 @@ class MetadataRepo(object):
 
     def _get_metrics(self, spec, tag, sha):
         spec_file = self._get_spec_content(spec, tag, sha)
-        metrics = spec_file[self.__repo_type].get('metrics', {})
+        metrics = spec_file[self.__repo_type].get(PERFORMANCE_KEY, {})
         metrics_table = PrettyTable()
         if not metrics:
             return ''
@@ -378,7 +378,7 @@ class MetadataRepo(object):
         metrics_table.align['Value'] = 'l'
         for key, value in metrics.items():
             metrics_table.add_row([key, value])
-        return '\nmetrics:\n{}'.format(metrics_table.get_string())
+        return '\n{}:\n{}'.format(PERFORMANCE_KEY, metrics_table.get_string())
 
     def get_log_info(self, spec, fullstat=False, specialized_data_info=None):
 
