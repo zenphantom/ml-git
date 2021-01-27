@@ -37,16 +37,16 @@ class UtilsTestCases(unittest.TestCase):
         self.assertFalse(bool(yal))
         yal = yaml_load('./udata/data.yaml')
         self.assertTrue(bool(yal))
-        self.assertEqual(yal['store']['s3']['mlgit-datasets']['region'], 'us-east-1')
+        self.assertEqual(yal[STORAGE_KEY]['s3']['mlgit-datasets']['region'], 'us-east-1')
 
     def test_yaml_load_str(self):
         obj = yaml_load_str(self.yaml_str_sample)
-        self.assertEqual(obj['store']['s3h']['bucket_test']['aws-credentials']['profile'], 'profile_test')
-        self.assertEqual(obj['store']['s3h']['bucket_test']['region'], 'region_test')
+        self.assertEqual(obj[STORAGE_KEY]['s3h']['bucket_test']['aws-credentials']['profile'], 'profile_test')
+        self.assertEqual(obj[STORAGE_KEY]['s3h']['bucket_test']['region'], 'region_test')
 
     def test_get_yaml_str(self):
-        self.assertEqual(self.yaml_obj_sample['store']['s3h']['bucket_test']['aws-credentials']['profile'], 'profile_test')
-        self.assertEqual(self.yaml_obj_sample['store']['s3h']['bucket_test']['region'], 'region_test')
+        self.assertEqual(self.yaml_obj_sample[STORAGE_KEY]['s3h']['bucket_test']['aws-credentials']['profile'], 'profile_test')
+        self.assertEqual(self.yaml_obj_sample[STORAGE_KEY]['s3h']['bucket_test']['region'], 'region_test')
         self.assertEqual(get_yaml_str(self.yaml_obj_sample), self.yaml_str_sample)
 
     def test_yaml_save(self):

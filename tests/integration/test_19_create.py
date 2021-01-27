@@ -7,7 +7,7 @@ import os
 import unittest
 
 import pytest
-from ml_git.constants import StoreType, Mutability, STORAGE_KEY
+from ml_git.constants import StorageType, Mutability, STORAGE_KEY
 from ml_git.ml_git_message import output_messages
 
 from tests.integration.commands import MLGIT_CREATE, MLGIT_INIT
@@ -19,14 +19,14 @@ from tests.integration.output_messages import messages
 @pytest.mark.usefixtures('tmp_dir')
 class CreateAcceptanceTests(unittest.TestCase):
 
-    def create_command(self, entity_type, storage_type=StoreType.S3H.value):
+    def create_command(self, entity_type, storage_type=StorageType.S3H.value):
         os.makedirs(os.path.join(self.tmp_dir, IMPORT_PATH))
         self.assertIn(messages[38], check_output(MLGIT_CREATE % (entity_type, entity_type + '-ex')
                                                  + ' --category=imgs --storage-type=' + storage_type + ' --bucket-name=minio'
                                                  + ' --version=1 --import="' + os.path.join(self.tmp_dir, IMPORT_PATH) +
                                                  '" --mutability=' + Mutability.STRICT.value))
 
-    def check_folders(self, entity_type, storage_type=StoreType.S3H.value):
+    def check_folders(self, entity_type, storage_type=StorageType.S3H.value):
         folder_data = os.path.join(self.tmp_dir, entity_type, entity_type + '-ex', 'data')
         spec = os.path.join(self.tmp_dir, entity_type, entity_type + '-ex', entity_type + '-ex.spec')
         readme = os.path.join(self.tmp_dir, entity_type, entity_type + '-ex', 'README.md')
@@ -44,7 +44,7 @@ class CreateAcceptanceTests(unittest.TestCase):
         self.assertTrue(os.path.exists(readme))
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
-    def _create_entity(self, entity_type, storage_type=StoreType.S3H.value):
+    def _create_entity(self, entity_type, storage_type=StorageType.S3H.value):
         self.assertIn(messages[0], check_output(MLGIT_INIT))
         self.create_command(entity_type, storage_type)
         self.check_folders(entity_type, storage_type)
@@ -126,11 +126,11 @@ class CreateAcceptanceTests(unittest.TestCase):
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_07_create_entity_with_gdriveh_storage(self):
-        self._create_entity(DATASETS, StoreType.GDRIVEH.value)
+        self._create_entity(DATASETS, StorageType.GDRIVEH.value)
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_08_create_entity_with_azure_storage(self):
-        self._create_entity(DATASETS, StoreType.AZUREBLOBH.value)
+        self._create_entity(DATASETS, StorageType.AZUREBLOBH.value)
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_09_create_with_import_and_import_url_options(self):

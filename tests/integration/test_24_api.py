@@ -9,7 +9,7 @@ import unittest
 import pytest
 
 from ml_git import api
-from ml_git.constants import Mutability, StoreType, STORAGE_KEY
+from ml_git.constants import Mutability, StorageType, STORAGE_KEY
 from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_INIT
 from tests.integration.helper import ML_GIT_DIR, check_output, init_repository, create_git_clone_repo, \
@@ -279,7 +279,7 @@ class APIAcceptanceTests(unittest.TestCase):
 
         self.assertEqual('computer-vision__images__datasets-ex__2', spec[LABELS][DATASETS]['tag'])
 
-    def check_created_folders(self, entity_type, storage_type=StoreType.S3H.value, version=1, bucket_name='fake_storage'):
+    def check_created_folders(self, entity_type, storage_type=StorageType.S3H.value, version=1, bucket_name='fake_storage'):
         folder_data = os.path.join(self.tmp_dir, entity_type, entity_type + '-ex', 'data')
         spec = os.path.join(self.tmp_dir, entity_type, entity_type + '-ex', entity_type + '-ex.spec')
         readme = os.path.join(self.tmp_dir, entity_type, entity_type + '-ex', 'README.md')
@@ -299,7 +299,7 @@ class APIAcceptanceTests(unittest.TestCase):
     @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
     def test_14_create_entity(self):
         entity_type = DATASETS
-        storage_type = StoreType.S3H.value
+        storage_type = StorageType.S3H.value
         self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'] % self.tmp_dir, check_output(MLGIT_INIT))
         api.create(DATASETS, DATASET_NAME, categories=['computer-vision', 'images'], mutability='strict')
         self.check_created_folders(entity_type, storage_type)
@@ -307,7 +307,7 @@ class APIAcceptanceTests(unittest.TestCase):
     @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
     def test_15_create_entity_with_optional_arguments(self):
         entity_type = DATASETS
-        storage_type = StoreType.AZUREBLOBH.value
+        storage_type = StorageType.AZUREBLOBH.value
         self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'] % self.tmp_dir, check_output(MLGIT_INIT))
         api.create(DATASETS, DATASET_NAME, categories=['computer-vision', 'images'],
                    version=5, storage_type=storage_type, bucket_name='test', mutability='strict')
@@ -323,7 +323,7 @@ class APIAcceptanceTests(unittest.TestCase):
         create_zip_file(IMPORT_PATH, 3)
         self.assertTrue(os.path.exists(os.path.join(import_path, 'file.zip')))
         api.create(entity_type, entity_type+'-ex', categories=['computer-vision', 'images'], unzip=True, import_path=import_path, mutability='strict')
-        self.check_created_folders(entity_type, StoreType.S3H.value)
+        self.check_created_folders(entity_type, StorageType.S3H.value)
         folder_data = os.path.join(self.tmp_dir, entity_type, entity_type + '-ex', 'data', 'file')
         self.assertTrue(os.path.exists(folder_data))
         files = [f for f in os.listdir(folder_data)]
@@ -420,7 +420,7 @@ class APIAcceptanceTests(unittest.TestCase):
     def test_27_create_with_invalid_entity(self):
         try:
             entity_type = 'dataset_invalid'
-            storage_type = StoreType.S3H.value
+            storage_type = StorageType.S3H.value
             self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'] % self.tmp_dir, check_output(MLGIT_INIT))
             api.create('dataset_invalid', DATASET_NAME, categories=['computer-vision', 'images'], mutability='strict')
             self.check_created_folders(entity_type, storage_type)

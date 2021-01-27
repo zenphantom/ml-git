@@ -30,7 +30,7 @@ class AddStoreAcceptanceTests(unittest.TestCase):
             self.assertEqual(PROFILE, config[STORAGE_KEY]['s3h'][BUCKET_NAME]['aws-credentials']['profile'])
 
     def _del_storage(self):
-        self.assertIn(output_messages['INFO_REMOVED_STORAGE'] % BUCKET_NAME,
+        self.assertIn(output_messages['INFO_REMOVED_STORAGE'] % (STORAGE_TYPE, BUCKET_NAME),
                       check_output(MLGIT_STORAGE_DEL % BUCKET_NAME))
         with open(os.path.join(self.tmp_dir, ML_GIT_DIR, 'config.yaml'), 'r') as c:
             config = yaml_processor.load(c)
@@ -125,7 +125,7 @@ class AddStoreAcceptanceTests(unittest.TestCase):
     def test_10_add_storage_without_credentials(self):
         self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'] % self.tmp_dir, check_output(MLGIT_INIT))
         self.check_storage()
-        self.assertIn(output_messages['INFO_ADD_STORE_WITHOUT_PROFILE'] % (STORAGE_TYPE, BUCKET_NAME),
+        self.assertIn(output_messages['INFO_ADD_STORAGE_WITHOUT_PROFILE'] % (STORAGE_TYPE, BUCKET_NAME),
                       check_output(MLGIT_STORAGE_ADD_WITHOUT_CREDENTIALS % BUCKET_NAME))
         with open(os.path.join(self.tmp_dir, ML_GIT_DIR, 'config.yaml'), 'r') as c:
             config = yaml_processor.load(c)

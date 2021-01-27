@@ -15,7 +15,7 @@ from moto import mock_s3
 from ml_git.file_system.index import MultihashIndex, FullIndex
 from ml_git.file_system.objects import Objects
 from ml_git.file_system.local import LocalRepository
-from ml_git.storages.s3_storage import S3MultihashStore, S3Storage
+from ml_git.storages.s3_storage import S3MultihashStorage, S3Storage
 from ml_git.utils import ensure_path_exists, yaml_save, yaml_load
 
 files_mock = {'zdj7Wm99FQsJ7a4udnx36ZQNTy7h4Pao3XmRSfjo4sAbt9g74': {'1.jpg'}}
@@ -60,7 +60,7 @@ class S3StoreTestCases(unittest.TestCase):
         client.create_bucket(Bucket=bucketname_2)
 
     def test_put(self):
-        s3storage = S3MultihashStore(bucketname, bucket, blocksize=1024 * 1024)
+        s3storage = S3MultihashStorage(bucketname, bucket, blocksize=1024 * 1024)
         k = 'think-hires.jpg'
         f = 'data/think-hires.jpg'
         self.assertFalse(s3storage.key_exists(k))
@@ -68,7 +68,7 @@ class S3StoreTestCases(unittest.TestCase):
         self.assertTrue(s3storage.key_exists(k))
 
     def test_get(self):
-        s3storage = S3MultihashStore(bucketname, bucket)
+        s3storage = S3MultihashStorage(bucketname, bucket)
         k = 'zdj7WjdojNAZN53Wf29rPssZamfbC6MVerzcGwd9tNciMpsQh'
         f = 'hdata/zdj7WjdojNAZN53Wf29rPssZamfbC6MVerzcGwd9tNciMpsQh'
         self.assertFalse(s3storage.key_exists(k))

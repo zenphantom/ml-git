@@ -9,6 +9,7 @@ import unittest
 
 import pytest
 
+from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_IMPORT
 from tests.integration.helper import check_output, init_repository, PROFILE, DATASETS, DATASET_NAME
 from tests.integration.output_messages import messages
@@ -46,6 +47,6 @@ class ImportAcceptanceTests(unittest.TestCase):
     def test_03_import_when_credentials_does_not_exist(self):
         init_repository(DATASETS, self)
 
-        self.assertIn(messages[52] % 'anyone', check_output(MLGIT_IMPORT % (DATASETS, 'bucket', DATASET_NAME)
-                                                            + ' --credentials=anyone'))
+        self.assertIn(output_messages['ERROR_CONFIG_PROFILE_NOT_FOUND'] % 'anyone', check_output(MLGIT_IMPORT % (DATASETS, 'bucket', DATASET_NAME)
+                                                                                                 + ' --credentials=anyone'))
         self.check_amount_of_files(DATASETS, 1)
