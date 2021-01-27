@@ -6,6 +6,8 @@ import errno
 import os
 import re
 
+import csv
+
 import humanize
 from git import InvalidGitRepositoryError, GitError
 from halo import Halo
@@ -17,7 +19,7 @@ from ml_git.config import get_index_path, get_objects_path, get_cache_path, get_
     get_index_metadata_path, create_workspace_tree_structure, start_wizard_questions, config_load, \
     get_global_config_path, save_global_config_in_local
 from ml_git.constants import REPOSITORY_CLASS_NAME, LOCAL_REPOSITORY_CLASS_NAME, HEAD, HEAD_1, Mutability, StoreType, \
-    RGX_TAG_FORMAT, EntityType, MANIFEST_FILE, SPEC_EXTENSION
+    RGX_TAG_FORMAT, EntityType, MANIFEST_FILE, SPEC_EXTENSION, PERFORMANCE_KEY
 from ml_git.file_system.cache import Cache
 from ml_git.file_system.hashfs import MultihashFS
 from ml_git.file_system.index import MultihashIndex, Status, FullIndex
@@ -32,7 +34,7 @@ from ml_git.refs import Refs
 from ml_git.spec import spec_parse, search_spec_file, increment_version_in_spec, get_entity_tag, update_store_spec, \
     validate_bucket_name, set_version_in_spec
 from ml_git.tag import UsrTag
-from ml_git.utils import yaml_load, ensure_path_exists, get_root_path, get_path_with_categories, \
+from ml_git.utils import yaml_load, yaml_save, ensure_path_exists, get_root_path, get_path_with_categories, \
     RootPathException, change_mask_for_routine, clear, get_yaml_str, unzip_files_in_directory, \
     remove_from_workspace, disable_exception_traceback, group_files_by_path
 
@@ -78,7 +80,7 @@ class Repository(object):
 
     '''Add dir/files to the ml-git index'''
 
-    def add(self, spec, file_path, bump_version=False, run_fsck=False):
+    def add(self, spec, file_path, bump_version=False, run_fsck=False, metrics='', metrics_file_path=''):
         repo_type = self.__repo_type
 
         is_shared_objects = 'objects_path' in self.__config[repo_type]
@@ -131,6 +133,25 @@ class Repository(object):
         spec_path = os.path.join(path, file)
         if not self._is_spec_valid(spec_path):
             return None
+
+        if repo_type == EntityType.MODEL.value and (metrics or metrics_file_path):
+            spec_file = yaml_load(spec_path)
+
+            if metrics_file_path:
+                with open(metrics_file_path) as csv_file:
+                    csv_reader = csv.reader(csv_file, delimiter=',')
+
+                    first_line = 0
+                    secound_line = 1
+
+                    metrics_data = list(csv_reader)
+                    metrics = zip(metrics_data[first_line], metrics_data[secound_line])
+
+            metrics_to_save = dict()
+            for metric, value in metrics:
+                metrics_to_save[metric] = float(value)
+            spec_file[repo_type][PERFORMANCE_KEY] = metrics_to_save
+            yaml_save(spec_file, spec_path)
 
         # Check tag before anything to avoid creating unstable state
         log.debug('Repository: check if tag already exists', class_name=REPOSITORY_CLASS_NAME)

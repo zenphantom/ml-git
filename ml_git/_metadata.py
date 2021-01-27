@@ -9,6 +9,7 @@ import time
 
 from git import Repo, Git, InvalidGitRepositoryError, GitError, PushInfo
 from halo import Halo
+from prettytable import PrettyTable
 
 from ml_git import log
 from ml_git.config import get_metadata_path
@@ -23,7 +24,8 @@ from ml_git.utils import get_root_path, ensure_path_exists, yaml_load, RootPathE
 
 class MetadataRepo(object):
 
-    def __init__(self, git, path):
+    def __init__(self, git, path, repo_type):
+        self.__repo_type = repo_type
         try:
             root_path = get_root_path()
             self.__path = os.path.join(root_path, path)
@@ -351,8 +353,32 @@ class MetadataRepo(object):
         tag = next((tag for tag in repo.tags if tag.commit == repo.head.commit), None)
         return tag
 
-    def __sort_tag_by_date(self, elem):
+    @staticmethod
+    def __sort_tag_by_date(elem):
         return elem.commit.authored_date
+
+    @staticmethod
+    def _get_spec_path_from_tag(entity, tag):
+        spec_path = '/'.join([get_path_with_categories(tag), entity, entity + SPEC_EXTENSION])
+        return spec_path
+
+    def _get_spec_content(self, spec, tag, sha):
+        spec_path = self._get_spec_path_from_tag(spec, tag)
+        return yaml_load_str(self._get_spec_content_from_ref(sha, spec_path))
+
+    def _get_metrics(self, spec, tag, sha):
+        spec_file = self._get_spec_content(spec, tag, sha)
+        metrics = spec_file[self.__repo_type].get('metrics', {})
+        metrics_table = PrettyTable()
+        if not metrics:
+            return ''
+
+        metrics_table.field_names = ['Name', 'Value']
+        metrics_table.align['Name'] = 'l'
+        metrics_table.align['Value'] = 'l'
+        for key, value in metrics.items():
+            metrics_table.add_row([key, value])
+        return '\nmetrics:\n{}'.format(metrics_table.get_string())
 
     def get_log_info(self, spec, fullstat=False, specialized_data_info=None):
 
@@ -365,6 +391,7 @@ class MetadataRepo(object):
 
         for tag in tags:
             formatted += '\n' + self.get_formatted_log_info(tag, fullstat)
+            formatted += self._get_metrics(spec, tag.name, tag.commit)
             if specialized_data_info:
                 value = next(specialized_data_info, '')
                 formatted += value
@@ -454,11 +481,11 @@ class MetadataRepo(object):
 
 
 class MetadataManager(MetadataRepo):
-    def __init__(self, config, type='model'):
-        self.path = get_metadata_path(config, type)
-        self.git = config[type]['git']
+    def __init__(self, config, repo_type='model'):
+        self.path = get_metadata_path(config, repo_type)
+        self.git = config[repo_type]['git']
 
-        super(MetadataManager, self).__init__(self.git, self.path)
+        super(MetadataManager, self).__init__(self.git, self.path, repo_type)
 
 
 class MetadataObject(object):
