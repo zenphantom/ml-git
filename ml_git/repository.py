@@ -80,6 +80,37 @@ class Repository(object):
 
     '''Add dir/files to the ml-git index'''
 
+    @staticmethod
+    def add_metrics_from_file(metrics_path, metrics):
+        if not metrics_path:
+            return metrics
+
+        with open(metrics_path) as csv_file:
+            csv_reader = csv.reader(csv_file, delimiter=',')
+
+            first_line = 0
+            secound_line = 1
+
+            metrics_data = list(csv_reader)
+            return zip(metrics_data[first_line], metrics_data[secound_line])
+
+    def add_metrics(self, spec_path, metrics, metrics_file_path):
+
+        metrics_not_found = metrics is None and metrics_file_path is None
+        wrong_repo_type = self.__repo_type != EntityType.MODEL.value
+
+        if wrong_repo_type or metrics_not_found:
+            return
+
+        spec_file = yaml_load(spec_path)
+        metrics = self.add_metrics_from_file(metrics_file_path, metrics)
+        metrics_to_save = dict()
+
+        for metric, value in metrics:
+            metrics_to_save[metric] = float(value)
+        spec_file[self.__repo_type][PERFORMANCE_KEY] = metrics_to_save
+        yaml_save(spec_file, spec_path)
+
     def add(self, spec, file_path, bump_version=False, run_fsck=False, metrics='', metrics_file_path=''):
         repo_type = self.__repo_type
 
@@ -134,24 +165,11 @@ class Repository(object):
         if not self._is_spec_valid(spec_path):
             return None
 
-        if repo_type == EntityType.MODEL.value and (metrics or metrics_file_path):
-            spec_file = yaml_load(spec_path)
-
-            if metrics_file_path:
-                with open(metrics_file_path) as csv_file:
-                    csv_reader = csv.reader(csv_file, delimiter=',')
-
-                    first_line = 0
-                    secound_line = 1
-
-                    metrics_data = list(csv_reader)
-                    metrics = zip(metrics_data[first_line], metrics_data[secound_line])
-
-            metrics_to_save = dict()
-            for metric, value in metrics:
-                metrics_to_save[metric] = float(value)
-            spec_file[repo_type][PERFORMANCE_KEY] = metrics_to_save
-            yaml_save(spec_file, spec_path)
+        try:
+            self.add_metrics(spec_path, metrics, metrics_file_path)
+        except FileNotFoundError as e:
+            log.error(e, class_name=REPOSITORY_CLASS_NAME)
+            return
 
         # Check tag before anything to avoid creating unstable state
         log.debug('Repository: check if tag already exists', class_name=REPOSITORY_CLASS_NAME)
