@@ -406,7 +406,7 @@ $ ml-git model init
 To create a model entity, you can run the following command:
 
 ```
-$ ml-git model create imagenet-model --category=computer-vision --category=images --store-type=s3h --bucket-name=mlgit-models --version=1 
+$ ml-git model create imagenet-model --category=computer-vision --category=images --store-type=s3h --mutability=mutable --bucket-name=mlgit-models --version=1 
 ```
 
 After entity creation, you can create the README.md to create a web page describing your model. Here below is the tree directory structure:
@@ -449,6 +449,8 @@ An example of adding a model passing metrics through the command line, would be 
 ```
 $ ml-git model add imagenet-model --metric accuracy 10 --metric precision 20 --metric recall 30
 ```
+
+**Obs:** The values ​​entered in the metrics were used for the purposes of examples, you can enter what are the names of your keys and what are their respective values.
 
 When inserting the metrics, they will be included in the structure of your model's spec file. An example of what it would look like would be the following structure:
 
