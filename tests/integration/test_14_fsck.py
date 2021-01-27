@@ -9,7 +9,7 @@ import unittest
 import pytest
 
 from tests.integration.commands import MLGIT_FSCK
-from tests.integration.helper import check_output, init_repository, add_file, ML_GIT_DIR
+from tests.integration.helper import check_output, init_repository, add_file, ML_GIT_DIR, DATASETS, LABELS, MODELS
 from tests.integration.output_messages import messages
 
 
@@ -27,12 +27,12 @@ class FsckAcceptanceTests(unittest.TestCase):
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_01_fsck_dataset(self):
-        self._fsck('dataset')
+        self._fsck(DATASETS)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_02_fsck_labels(self):
-        self._fsck('labels')
+        self._fsck(LABELS)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_03_fsck_model(self):
-        self._fsck('model')
+        self._fsck(MODELS)

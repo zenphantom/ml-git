@@ -1,4 +1,4 @@
-dataset:
+datasets:
   categories: x
   manifest:
     files: MANIFEST.yaml

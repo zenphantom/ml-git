@@ -12,7 +12,7 @@ from ml_git.constants import STORAGE_KEY
 from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_STATUS, MLGIT_ADD, MLGIT_PUSH, MLGIT_COMMIT, MLGIT_INIT, \
     MLGIT_REMOTE_ADD, MLGIT_ENTITY_INIT, MLGIT_CHECKOUT, MLGIT_STORAGE_ADD_WITH_TYPE
-from tests.integration.helper import ML_GIT_DIR, GIT_PATH, BUCKET_NAME, PROFILE, STORAGE_TYPE
+from tests.integration.helper import ML_GIT_DIR, GIT_PATH, BUCKET_NAME, PROFILE, STORAGE_TYPE, DATASETS, DATASET_NAME
 from tests.integration.helper import check_output, clear, init_repository, yaml_processor
 from tests.integration.output_messages import messages
 
@@ -22,83 +22,83 @@ class MetadataPersistenceTests(unittest.TestCase):
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_01_change_metadata(self):
-        init_repository('dataset', self)
-        self.assertRegex(check_output(MLGIT_STATUS % ('dataset', 'dataset-ex')),
-                         r'Changes to be committed:\n\nUntracked files:\n\tdataset-ex.spec\n\nCorrupted files')
+        init_repository(DATASETS, self)
+        self.assertRegex(check_output(MLGIT_STATUS % (DATASETS, DATASET_NAME)),
+                         r'Changes to be committed:\n\nUntracked files:\n\tdatasets-ex.spec\n\nCorrupted files')
 
-        self.assertIn(messages[13] % 'dataset', check_output(MLGIT_ADD % ('dataset', 'dataset-ex', '')))
+        self.assertIn(messages[13] % DATASETS, check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, '')))
 
-        readme = os.path.join('dataset', 'dataset-ex', 'README.md')
+        readme = os.path.join(DATASETS, DATASET_NAME, 'README.md')
 
         with open(readme, 'w') as file:
             file.write('NEW')
 
-        self.assertRegex(check_output(MLGIT_STATUS % ('dataset', 'dataset-ex')),
-                         r'Changes to be committed:\n\tNew file: dataset-ex.spec\n\nUntracked files:\n\tREADME.md\n\nCorrupted files')
+        self.assertRegex(check_output(MLGIT_STATUS % (DATASETS, DATASET_NAME)),
+                         r'Changes to be committed:\n\tNew file: datasets-ex.spec\n\nUntracked files:\n\tREADME.md\n\nCorrupted files')
 
-        self.assertIn(messages[13] % 'dataset', check_output(MLGIT_ADD % ('dataset', 'dataset-ex', '')))
+        self.assertIn(messages[13] % DATASETS, check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, '')))
 
-        status = check_output(MLGIT_STATUS % ('dataset', 'dataset-ex'))
+        status = check_output(MLGIT_STATUS % (DATASETS, DATASET_NAME))
 
-        self.assertIn('New file: dataset-ex.spec', status)
+        self.assertIn('New file: datasets-ex.spec', status)
         self.assertIn('New file: README.md', status)
 
         with open(readme, 'w') as file:
             file.write('NEW2')
 
         spec = {
-            'dataset': {
+            'datasets': {
                 'categories': ['computer-vision', 'images'],
                 'manifest': {
                     'files': 'MANIFEST.yaml',
                     STORAGE_KEY: 's3h://mlgit'
                 },
                 'mutability': 'strict',
-                'name': 'dataset-ex',
+                'name': 'datasets-ex',
                 'version': 16
             }
         }
 
-        with open(os.path.join('dataset', 'dataset-ex', 'dataset-ex.spec'), 'w') as y:
-            spec['dataset']['version'] = 17
+        with open(os.path.join(DATASETS, DATASET_NAME, 'datasets-ex.spec'), 'w') as y:
+            spec[DATASETS]['version'] = 17
             yaml_processor.dump(spec, y)
 
-        status = check_output(MLGIT_STATUS % ('dataset', 'dataset-ex'))
+        status = check_output(MLGIT_STATUS % (DATASETS, DATASET_NAME))
 
         self.assertNotIn('new file: README.md', status)
         self.assertIn('README.md', status)
-        self.assertNotIn('new file: dataset-ex.spec', status)
-        self.assertIn('dataset-ex.spec', status)
+        self.assertNotIn('new file: datasets-ex.spec', status)
+        self.assertIn('datasets-ex.spec', status)
 
-        self.assertIn(messages[13] % 'dataset', check_output(MLGIT_ADD % ('dataset', 'dataset-ex', '')))
+        self.assertIn(messages[13] % DATASETS, check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, '')))
 
-        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, 'dataset', 'metadata'),
-                                      os.path.join('computer-vision', 'images', 'dataset-ex')),
-                      check_output(MLGIT_COMMIT % ('dataset', 'dataset-ex', '')))
+        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'metadata'),
+                                      os.path.join('computer-vision', 'images', DATASET_NAME)),
+                      check_output(MLGIT_COMMIT % (DATASETS, DATASET_NAME, '')))
 
-        self.assertIn('No blobs', check_output(MLGIT_PUSH % ('dataset', 'dataset-ex')))
+        self.assertIn('No blobs', check_output(MLGIT_PUSH % (DATASETS, DATASET_NAME)))
 
-        self.assertRegex(check_output(MLGIT_STATUS % ('dataset', 'dataset-ex')),
+        self.assertRegex(check_output(MLGIT_STATUS % (DATASETS, DATASET_NAME)),
                          r'Changes to be committed:\n\nUntracked files:\n\nCorrupted files')
 
         clear(ML_GIT_DIR)
-        clear('dataset')
+        clear(DATASETS)
 
         self.assertIn(messages[0], check_output(MLGIT_INIT))
-        self.assertIn(messages[2] % (GIT_PATH, 'dataset'), check_output(MLGIT_REMOTE_ADD % ('dataset', GIT_PATH)))
+        self.assertIn(messages[2] % (GIT_PATH, DATASETS), check_output(MLGIT_REMOTE_ADD % (DATASETS, GIT_PATH)))
         self.assertIn(output_messages['INFO_ADD_STORAGE'] % (STORAGE_TYPE, BUCKET_NAME, PROFILE),
                       check_output(MLGIT_STORAGE_ADD_WITH_TYPE % (BUCKET_NAME, PROFILE, STORAGE_TYPE)))
-        self.assertIn(messages[8] % (GIT_PATH, os.path.join(self.tmp_dir, ML_GIT_DIR, 'dataset', 'metadata')),
-                      check_output(MLGIT_ENTITY_INIT % 'dataset'))
+        self.assertIn(messages[8] % (GIT_PATH, os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'metadata')),
+                      check_output(MLGIT_ENTITY_INIT % DATASETS))
 
-        check_output(MLGIT_CHECKOUT % ('dataset', 'computer-vision__images__dataset-ex__17'))
+        check_output(MLGIT_CHECKOUT % (DATASETS, 'computer-vision__images__datasets-ex__17'))
 
-        spec_file = os.path.join(self.tmp_dir, 'dataset', 'computer-vision', 'images', 'dataset-ex', 'dataset-ex.spec')
-        readme = os.path.join(self.tmp_dir, 'dataset', 'computer-vision', 'images', 'dataset-ex', 'README.md')
+        spec_file = os.path.join(self.tmp_dir, DATASETS, 'computer-vision', 'images', DATASET_NAME, 'datasets-ex.spec')
+        readme = os.path.join(self.tmp_dir, DATASETS, 'computer-vision', 'images', DATASET_NAME, 'README.md')
 
         with open(spec_file, 'r') as f:
             spec = yaml_processor.load(f)
-            self.assertEqual(spec['dataset']['version'], 17)
+            self.assertEqual(spec[DATASETS]['version'], 17)
 
         with open(readme, 'r') as f:
             self.assertEqual(f.read(), 'NEW2')

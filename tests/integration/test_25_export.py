@@ -10,7 +10,7 @@ import pytest
 
 from tests.integration.commands import MLGIT_COMMIT, MLGIT_PUSH, MLGIT_EXPORT
 from tests.integration.helper import ML_GIT_DIR, PROFILE, BUCKET_NAME, \
-    check_output, init_repository, add_file, PATH_TEST
+    check_output, init_repository, add_file, PATH_TEST, DATASETS, DATASET_NAME, MODELS, LABELS
 from tests.integration.output_messages import messages
 
 
@@ -38,13 +38,13 @@ class ExportTagAcceptanceTests(unittest.TestCase):
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_01_export_dataset_tag(self):
 
-        self.export('dataset', 'dataset-ex')
+        self.export(DATASETS, DATASET_NAME)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_02_export_model_tag(self):
 
-        self.export('model', 'model-ex')
+        self.export(MODELS, 'models-ex')
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_03_export_labels_tag(self):
-        self.export('labels', 'labels-ex')
+        self.export(LABELS, 'labels-ex')

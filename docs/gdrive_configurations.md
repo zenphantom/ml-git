@@ -79,7 +79,7 @@ $ ml-git repository storage add path-in-your-drive --type=gdriveh --credentials=
 After that initialize the metadata repository:
 
 ```
-$ ml-git dataset init
+$ ml-git datasets init
 ```
 
 
@@ -93,11 +93,11 @@ Configuration example:
 ```
 batch_size: 20
 push_threads_count: 10
-dataset:
+datasets:
   git: ''
 labels:
   git: ''
-model:
+models:
   git: ''
 storage:
   s3:

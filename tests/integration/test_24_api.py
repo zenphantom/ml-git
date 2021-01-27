@@ -13,23 +13,24 @@ from ml_git.constants import Mutability, StoreType, STORAGE_KEY
 from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_INIT
 from tests.integration.helper import ML_GIT_DIR, check_output, init_repository, create_git_clone_repo, \
-    clear, yaml_processor, create_zip_file, CLONE_FOLDER, GIT_PATH, BUCKET_NAME, PROFILE, STORAGE_TYPE
+    clear, yaml_processor, create_zip_file, CLONE_FOLDER, GIT_PATH, BUCKET_NAME, PROFILE, STORAGE_TYPE, DATASETS, \
+    DATASET_NAME, LABELS, MODELS
 
 
 @pytest.mark.usefixtures('tmp_dir', 'aws_session')
 class APIAcceptanceTests(unittest.TestCase):
 
-    objects = os.path.join(ML_GIT_DIR, 'dataset', 'objects')
-    refs = os.path.join(ML_GIT_DIR, 'dataset', 'refs')
-    cache = os.path.join(ML_GIT_DIR, 'dataset', 'cache')
-    metadata = os.path.join(ML_GIT_DIR, 'dataset', 'metadata')
-    spec_file = os.path.join('dataset', 'computer-vision', 'images', 'dataset-ex', 'dataset-ex.spec')
-    file1 = os.path.join('dataset', 'computer-vision', 'images', 'dataset-ex', 'data', 'file1')
-    file2 = os.path.join('dataset', 'computer-vision', 'images', 'dataset-ex', 'data', 'file2')
-    file3 = os.path.join('dataset', 'computer-vision', 'images', 'dataset-ex', 'data', 'file3')
-    file4 = os.path.join('dataset', 'computer-vision', 'images', 'dataset-ex', 'data', 'file4')
-    dataset_tag = 'computer-vision__images__dataset-ex__10'
-    data_path = os.path.join('dataset', 'computer-vision', 'images', 'dataset-ex')
+    objects = os.path.join(ML_GIT_DIR, DATASETS, 'objects')
+    refs = os.path.join(ML_GIT_DIR, DATASETS, 'refs')
+    cache = os.path.join(ML_GIT_DIR, DATASETS, 'cache')
+    metadata = os.path.join(ML_GIT_DIR, DATASETS, 'metadata')
+    spec_file = os.path.join(DATASETS, 'computer-vision', 'images', DATASET_NAME, 'datasets-ex.spec')
+    file1 = os.path.join(DATASETS, 'computer-vision', 'images', DATASET_NAME, 'data', 'file1')
+    file2 = os.path.join(DATASETS, 'computer-vision', 'images', DATASET_NAME, 'data', 'file2')
+    file3 = os.path.join(DATASETS, 'computer-vision', 'images', DATASET_NAME, 'data', 'file3')
+    file4 = os.path.join(DATASETS, 'computer-vision', 'images', DATASET_NAME, 'data', 'file4')
+    dataset_tag = 'computer-vision__images__datasets-ex__10'
+    data_path = os.path.join(DATASETS, 'computer-vision', 'images', DATASET_NAME)
     GIT_CLONE = 'git_clone.git'
 
     def create_file(self, path, file_name, code):
@@ -38,26 +39,26 @@ class APIAcceptanceTests(unittest.TestCase):
             file.write(code * 2048)
 
     def set_up_test(self):
-        init_repository('dataset', self)
+        init_repository(DATASETS, self)
 
-        workspace = os.path.join(self.tmp_dir, 'dataset', 'dataset-ex')
+        workspace = os.path.join(self.tmp_dir, DATASETS, DATASET_NAME)
 
         os.makedirs(workspace, exist_ok=True)
 
         spec = {
-            'dataset': {
+            DATASETS: {
                 'categories': ['computer-vision', 'images'],
                 'manifest': {
                     'files': 'MANIFEST.yaml',
                     STORAGE_KEY: 's3h://mlgit'
                 },
                 'mutability': Mutability.STRICT.value,
-                'name': 'dataset-ex',
+                'name': DATASET_NAME,
                 'version': 9
             }
         }
 
-        with open(os.path.join(workspace, 'dataset-ex.spec'), 'w') as y:
+        with open(os.path.join(workspace, 'datasets-ex.spec'), 'w') as y:
             yaml_processor.dump(spec, y)
 
         os.makedirs(os.path.join(workspace, 'data'), exist_ok=True)
@@ -67,15 +68,15 @@ class APIAcceptanceTests(unittest.TestCase):
         self.create_file(workspace, 'file3', 'a')
         self.create_file(workspace, 'file4', 'b')
 
-        api.add('dataset', 'dataset-ex', bumpversion=True)
-        api.commit('dataset', 'dataset-ex')
-        api.push('dataset', 'dataset-ex')
+        api.add(DATASETS, DATASET_NAME, bumpversion=True)
+        api.commit(DATASETS, DATASET_NAME)
+        api.push(DATASETS, DATASET_NAME)
 
         self.assertTrue(os.path.exists(os.path.join(self.tmp_dir, self.metadata)))
 
         clear(os.path.join(self.tmp_dir, ML_GIT_DIR))
         clear(workspace)
-        init_repository('dataset', self)
+        init_repository(DATASETS, self)
 
     def check_metadata(self):
         self.assertTrue(os.path.exists(self.objects))
@@ -100,7 +101,7 @@ class APIAcceptanceTests(unittest.TestCase):
     def test_01_checkout_tag(self):
         self.set_up_test()
 
-        data_path = api.checkout('dataset', self.dataset_tag)
+        data_path = api.checkout(DATASETS, self.dataset_tag)
 
         self.assertEqual(self.data_path, data_path)
         self.check_metadata()
@@ -114,7 +115,7 @@ class APIAcceptanceTests(unittest.TestCase):
     def test_02_checkout_with_group_sample(self):
         self.set_up_test()
 
-        data_path = api.checkout('dataset', self.dataset_tag, {'group': '1:2', 'seed': '10'})
+        data_path = api.checkout(DATASETS, self.dataset_tag, {'group': '1:2', 'seed': '10'})
 
         self.assertEqual(self.data_path, data_path)
         self.check_metadata()
@@ -128,7 +129,7 @@ class APIAcceptanceTests(unittest.TestCase):
     def test_03_checkout_with_range_sample(self):
         self.set_up_test()
 
-        data_path = api.checkout('dataset', self.dataset_tag, {'range': '0:4:3'})
+        data_path = api.checkout(DATASETS, self.dataset_tag, {'range': '0:4:3'})
 
         self.assertEqual(self.data_path, data_path)
         self.check_metadata()
@@ -142,7 +143,7 @@ class APIAcceptanceTests(unittest.TestCase):
     def test_04_checkout_with_random_sample(self):
         self.set_up_test()
 
-        data_path = api.checkout('dataset', self.dataset_tag, {'random': '1:2', 'seed': '1'})
+        data_path = api.checkout(DATASETS, self.dataset_tag, {'random': '1:2', 'seed': '1'})
 
         self.assertEqual(self.data_path, data_path)
         self.check_metadata()
@@ -156,7 +157,7 @@ class APIAcceptanceTests(unittest.TestCase):
     def test_05_checkout_with_group_sample_without_group(self):
         self.set_up_test()
 
-        data_path = api.checkout('dataset', self.dataset_tag, {'seed': '10'})
+        data_path = api.checkout(DATASETS, self.dataset_tag, {'seed': '10'})
 
         self._checkout_fail(data_path)
 
@@ -164,7 +165,7 @@ class APIAcceptanceTests(unittest.TestCase):
     def test_06_checkout_with_range_sample_without_range(self):
         self.set_up_test()
 
-        data_path = api.checkout('dataset', self.dataset_tag, {'seed': '10'})
+        data_path = api.checkout(DATASETS, self.dataset_tag, {'seed': '10'})
 
         self._checkout_fail(data_path)
 
@@ -172,7 +173,7 @@ class APIAcceptanceTests(unittest.TestCase):
     def test_07_checkout_with_random_sample_without_seed(self):
         self.set_up_test()
 
-        data_path = api.checkout('dataset', self.dataset_tag, {'random': '1:2'})
+        data_path = api.checkout(DATASETS, self.dataset_tag, {'random': '1:2'})
 
         self._checkout_fail(data_path)
 
@@ -201,7 +202,7 @@ class APIAcceptanceTests(unittest.TestCase):
         with open(os.path.join(entity, entity + '-ex', name), 'wt') as z:
             z.write(value * 100)
 
-    def set_up_add_test(self, entity='dataset'):
+    def set_up_add_test(self, entity=DATASETS):
         clear(os.path.join(self.tmp_dir, ML_GIT_DIR))
         clear(os.path.join(self.tmp_dir, entity))
         init_repository(entity, self)
@@ -209,7 +210,7 @@ class APIAcceptanceTests(unittest.TestCase):
         self.create_file_in_ws(entity, 'file', '0')
         self.create_file_in_ws(entity, 'file2', '1')
 
-    def check_add(self, entity='dataset', files=['file', 'file2'], files_not_in=[]):
+    def check_add(self, entity=DATASETS, files=['file', 'file2'], files_not_in=[]):
         metadata = os.path.join(self.tmp_dir, ML_GIT_DIR, entity, 'index', 'metadata', entity + '-ex')
         metadata_file = os.path.join(metadata, 'MANIFEST.yaml')
         index_file = os.path.join(metadata, 'INDEX.yaml')
@@ -224,7 +225,7 @@ class APIAcceptanceTests(unittest.TestCase):
             for file in files_not_in:
                 self.assertNotIn({file}, manifest.values())
 
-    def check_entity_version(self, version, entity='dataset'):
+    def check_entity_version(self, version, entity=DATASETS):
         spec_path = os.path.join(entity, entity+'-ex', entity+'-ex.spec')
         with open(spec_path) as y:
             ws_spec = yaml_processor.load(y)
@@ -233,7 +234,7 @@ class APIAcceptanceTests(unittest.TestCase):
     @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
     def test_10_add_files(self):
         self.set_up_add_test()
-        api.add('dataset', 'dataset-ex', bumpversion=False, fsck=False, file_path=[])
+        api.add(DATASETS, DATASET_NAME, bumpversion=False, fsck=False, file_path=[])
         self.check_add()
 
     @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
@@ -241,7 +242,7 @@ class APIAcceptanceTests(unittest.TestCase):
         self.set_up_add_test()
         self.check_entity_version(1)
 
-        api.add('dataset', 'dataset-ex', bumpversion=True, fsck=False, file_path=[])
+        api.add(DATASETS, DATASET_NAME, bumpversion=True, fsck=False, file_path=[])
 
         self.check_add()
         self.check_entity_version(2)
@@ -250,7 +251,7 @@ class APIAcceptanceTests(unittest.TestCase):
     def test_12_add_one_file(self):
         self.set_up_add_test()
 
-        api.add('dataset', 'dataset-ex', bumpversion=False, fsck=False, file_path=['file'])
+        api.add(DATASETS, DATASET_NAME, bumpversion=False, fsck=False, file_path=['file'])
 
         self.check_add(files=['file'], files_not_in=['file2'])
 
@@ -258,25 +259,25 @@ class APIAcceptanceTests(unittest.TestCase):
     def test_13_commit_files(self):
         self.set_up_test()
         self.set_up_add_test()
-        api.add('dataset', 'dataset-ex', bumpversion=True, fsck=False, file_path=['file'])
-        api.commit('dataset', 'dataset-ex')
-        HEAD = os.path.join(self.tmp_dir, ML_GIT_DIR, 'dataset', 'refs', 'dataset-ex', 'HEAD')
+        api.add(DATASETS, DATASET_NAME, bumpversion=True, fsck=False, file_path=['file'])
+        api.commit(DATASETS, DATASET_NAME)
+        HEAD = os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'refs', DATASET_NAME, 'HEAD')
         self.assertTrue(os.path.exists(HEAD))
 
-        init_repository('labels', self)
-        self.create_file_in_ws('labels', 'file', '0')
-        api.add('labels', 'labels-ex', bumpversion=True, fsck=False, file_path=['file'])
-        api.commit('labels', 'labels-ex', related_dataset='dataset-ex')
+        init_repository(LABELS, self)
+        self.create_file_in_ws(LABELS, 'file', '0')
+        api.add(LABELS, 'labels-ex', bumpversion=True, fsck=False, file_path=['file'])
+        api.commit(LABELS, 'labels-ex', related_dataset=DATASET_NAME)
 
-        labels_metadata = os.path.join(self.tmp_dir, ML_GIT_DIR, 'labels', 'metadata')
+        labels_metadata = os.path.join(self.tmp_dir, ML_GIT_DIR, LABELS, 'metadata')
 
-        with open(os.path.join(labels_metadata, "computer-vision", "images", "labels-ex", "labels-ex.spec")) as y:
+        with open(os.path.join(labels_metadata, 'computer-vision', 'images', 'labels-ex', 'labels-ex.spec')) as y:
             spec = yaml_processor.load(y)
 
-        HEAD = os.path.join(self.tmp_dir, ML_GIT_DIR, 'labels', 'refs', 'labels-ex', 'HEAD')
+        HEAD = os.path.join(self.tmp_dir, ML_GIT_DIR, LABELS, 'refs', 'labels-ex', 'HEAD')
         self.assertTrue(os.path.exists(HEAD))
 
-        self.assertEqual('computer-vision__images__dataset-ex__2', spec['labels']['dataset']['tag'])
+        self.assertEqual('computer-vision__images__datasets-ex__2', spec[LABELS][DATASETS]['tag'])
 
     def check_created_folders(self, entity_type, storage_type=StoreType.S3H.value, version=1, bucket_name='fake_storage'):
         folder_data = os.path.join(self.tmp_dir, entity_type, entity_type + '-ex', 'data')
@@ -297,24 +298,24 @@ class APIAcceptanceTests(unittest.TestCase):
 
     @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
     def test_14_create_entity(self):
-        entity_type = 'dataset'
+        entity_type = DATASETS
         storage_type = StoreType.S3H.value
         self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'] % self.tmp_dir, check_output(MLGIT_INIT))
-        api.create('dataset', 'dataset-ex', categories=['computer-vision', 'images'], mutability='strict')
+        api.create(DATASETS, DATASET_NAME, categories=['computer-vision', 'images'], mutability='strict')
         self.check_created_folders(entity_type, storage_type)
 
     @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
     def test_15_create_entity_with_optional_arguments(self):
-        entity_type = 'dataset'
+        entity_type = DATASETS
         storage_type = StoreType.AZUREBLOBH.value
         self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'] % self.tmp_dir, check_output(MLGIT_INIT))
-        api.create('dataset', 'dataset-ex', categories=['computer-vision', 'images'],
+        api.create(DATASETS, DATASET_NAME, categories=['computer-vision', 'images'],
                    version=5, storage_type=storage_type, bucket_name='test', mutability='strict')
         self.check_created_folders(entity_type, storage_type, version=5, bucket_name='test')
 
     @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
     def test_16_create_entity_with_import(self):
-        entity_type = 'dataset'
+        entity_type = DATASETS
         IMPORT_PATH = 'src'
         self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'] % self.tmp_dir, check_output(MLGIT_INIT))
         import_path = os.path.join(self.tmp_dir, IMPORT_PATH)
@@ -347,15 +348,15 @@ class APIAcceptanceTests(unittest.TestCase):
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_18_add_remote_dataset(self):
-        self._add_remote(entity_type='dataset')
+        self._add_remote(entity_type=DATASETS)
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_19_add_remote_laebls(self):
-        self._add_remote(entity_type='labels')
+        self._add_remote(entity_type=LABELS)
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_20_add_remote_model(self):
-        self._add_remote(entity_type='model')
+        self._add_remote(entity_type=MODELS)
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_21_add_storage(self):
@@ -405,15 +406,15 @@ class APIAcceptanceTests(unittest.TestCase):
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_24_init_dataset(self):
-        self._initialize_entity('dataset')
+        self._initialize_entity(DATASETS)
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_25_init_labels(self):
-        self._initialize_entity('labels')
+        self._initialize_entity(LABELS)
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_26_init_model(self):
-        self._initialize_entity('model')
+        self._initialize_entity(MODELS)
 
     @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
     def test_27_create_with_invalid_entity(self):
@@ -421,7 +422,7 @@ class APIAcceptanceTests(unittest.TestCase):
             entity_type = 'dataset_invalid'
             storage_type = StoreType.S3H.value
             self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'] % self.tmp_dir, check_output(MLGIT_INIT))
-            api.create('dataset_invalid', 'dataset-ex', categories=['computer-vision', 'images'], mutability='strict')
+            api.create('dataset_invalid', DATASET_NAME, categories=['computer-vision', 'images'], mutability='strict')
             self.check_created_folders(entity_type, storage_type)
             self.assertTrue(False)
         except Exception as e:

@@ -11,7 +11,7 @@ To create the .ml-git folder that will be versioned, the following commands are 
    
 2. Configure remotes for the entities that will be used
     ```
-    $ ml-git dataset remote add git@github.com:example/your-mlgit-datasets.git
+    $ ml-git datasets remote add git@github.com:example/your-mlgit-datasets.git
     ```
 
 3. Configure the storages which will be used.

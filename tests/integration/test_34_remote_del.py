@@ -12,7 +12,8 @@ from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_PUSH, MLGIT_COMMIT, MLGIT_INIT, MLGIT_REMOTE_ADD, \
     MLGIT_REMOTE_DEL, MLGIT_UPDATE
 from tests.integration.helper import ML_GIT_DIR, MLGIT_ENTITY_INIT, ERROR_MESSAGE, \
-    add_file, GIT_PATH, check_output, clear, init_repository, yaml_processor, MINIO_BUCKET_PATH
+    add_file, GIT_PATH, check_output, clear, init_repository, yaml_processor, MINIO_BUCKET_PATH, DATASETS, MODELS, \
+    LABELS
 from tests.integration.output_messages import messages
 
 
@@ -75,28 +76,28 @@ class RemoteDelAcceptanceTests(unittest.TestCase):
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_01_remote_del_for_dataset(self):
-        entity = 'dataset'
+        entity = DATASETS
         self._add_remote(entity)
         self._remote_del(entity)
         self._remote_del_without_remote(entity)
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_03_remote_del_for_model(self):
-        entity = 'model'
+        entity = MODELS
         self._add_remote(entity)
         self._remote_del(entity)
         self._remote_del_without_remote(entity)
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_04_remote_del_for_labels(self):
-        entity = 'labels'
+        entity = LABELS
         self._add_remote(entity)
         self._remote_del(entity)
         self._remote_del_without_remote(entity)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_05_update_dataset_after_remote_del(self):
-        entity = 'dataset'
+        entity = DATASETS
         self._setup_update_entity(entity)
         self._check_update_entity(entity)
         self._remote_del(entity)
@@ -105,7 +106,7 @@ class RemoteDelAcceptanceTests(unittest.TestCase):
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_06_update_model_after_remote_del(self):
-        entity = 'model'
+        entity = MODELS
         self._setup_update_entity(entity)
         self._check_update_entity(entity)
         self._remote_del(entity)
@@ -114,7 +115,7 @@ class RemoteDelAcceptanceTests(unittest.TestCase):
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_07_update_labels_after_remote_del(self):
-        entity = 'labels'
+        entity = LABELS
         self._setup_update_entity(entity)
         self._check_update_entity(entity)
         self._remote_del(entity)
@@ -124,7 +125,7 @@ class RemoteDelAcceptanceTests(unittest.TestCase):
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_08_push_after_remote_del(self):
         clear(os.path.join(MINIO_BUCKET_PATH, 'zdj7WWjGAAJ8gdky5FKcVLfd63aiRUGb8fkc8We2bvsp9WW12'))
-        entity_type = 'dataset'
+        entity_type = DATASETS
         init_repository(entity_type, self)
         add_file(self, entity_type, '--bumpversion', 'new', file_content='0')
         metadata_path = os.path.join(self.tmp_dir, ML_GIT_DIR, entity_type, 'metadata')

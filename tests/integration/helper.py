@@ -15,7 +15,7 @@ from zipfile import ZipFile
 
 from ruamel.yaml import YAML
 
-from ml_git.constants import GLOBAL_ML_GIT_CONFIG, Mutability, StorageType, STORAGE_KEY
+from ml_git.constants import GLOBAL_ML_GIT_CONFIG, Mutability, StorageType, STORAGE_KEY, EntityType
 from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_INIT, MLGIT_REMOTE_ADD, MLGIT_ENTITY_INIT, MLGIT_ADD, \
     MLGIT_STORAGE_ADD_WITH_TYPE, MLGIT_REMOTE_ADD_GLOBAL, MLGIT_STORAGE_ADD, MLGIT_STORAGE_ADD_WITHOUT_CREDENTIALS, \
@@ -37,6 +37,12 @@ CREDENTIALS_PATH = os.path.join(os.getcwd(), 'tests', 'integration', 'credential
 MINIO_ENDPOINT_URL = 'http://127.0.0.1:9000'
 GDRIVE_LINKS = os.path.join(os.getcwd(), 'tests', 'integration', 'gdrive-files-links.json')
 GLOBAL_CONFIG_PATH = os.path.join(os.getcwd(), 'tests', 'integration', 'globalconfig')
+
+DATASETS = EntityType.DATASETS.value
+DATASET_NAME = 'datasets-ex'
+DATASET_TAG = 'computer-vision__images__datasets-ex__1'
+MODELS = EntityType.MODELS.value
+LABELS = EntityType.LABELS.value
 
 
 def get_yaml_processor(typ='safe', default_flow_style=False):
@@ -154,9 +160,9 @@ def add_file(self, entity, bumpversion, name=None, artifact_name=None, file_cont
     with open(os.path.join(self.tmp_dir, entity, artifact_name, 'newfile4'), 'wt') as z:
         z.write(str(file_content * 100))
     # Create assert do ml-git add
-    if entity == 'dataset':
-        self.assertIn(messages[13] % 'dataset', check_output(MLGIT_ADD % (entity, artifact_name, bumpversion)))
-    elif entity == 'model':
+    if entity == DATASETS:
+        self.assertIn(messages[13] % DATASETS, check_output(MLGIT_ADD % (entity, artifact_name, bumpversion)))
+    elif entity == MODELS:
         self.assertIn(messages[14], check_output(MLGIT_ADD % (entity, artifact_name, bumpversion)))
     else:
         self.assertIn(messages[15], check_output(MLGIT_ADD % (entity, artifact_name, bumpversion)))
@@ -196,7 +202,7 @@ def clean_git():
 
 def create_git_clone_repo(git_dir, tmp_dir, git_path=GIT_PATH):
     config = {
-        'dataset': {
+        DATASETS: {
             'git': os.path.join(tmp_dir, git_path),
         },
         STORAGE_KEY: {
@@ -298,7 +304,7 @@ def delete_global_config():
         __remove_file(global_config_file)
 
 
-def change_git_in_config(ml_git_dir, git_url, entity='dataset'):
+def change_git_in_config(ml_git_dir, git_url, entity=DATASETS):
     with open(os.path.join(ml_git_dir, 'config.yaml'), 'r') as config_file:
         config = yaml_processor.load(config_file)
         config[entity]['git'] = git_url

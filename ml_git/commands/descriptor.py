@@ -224,8 +224,7 @@ commands = [
 
         'options': {
             '--tag': {'help': help_msg.TAG_OPTION},
-            ('--version-number', '--version'): {'type': click.IntRange(0, int(8 * '9')), 'help': help_msg.SET_VERSION_NUMBER,
-                                                'cls': DeprecatedOption, 'deprecated': ['--version-number'], 'preferred': '--version'},
+            '--version': {'type': click.IntRange(0, int(8 * '9')), 'help': help_msg.SET_VERSION_NUMBER},
             ('--message', '-m'): {'help': help_msg.COMMIT_MSG},
             '--fsck': {'help': help_msg.FSCK_OPTION},
         },
@@ -246,8 +245,7 @@ commands = [
         'options': {
             '--dataset': {'help': 'Link dataset entity name to this label set version.'},
             '--tag': {'help': help_msg.TAG_OPTION},
-            ('--version-number', '--version'): {'type': click.IntRange(0, int(8 * '9')), 'help': help_msg.SET_VERSION_NUMBER,
-                                                'cls': DeprecatedOption, 'deprecated': ['--version-number'], 'preferred':'--version'},
+            '--version': {'type': click.IntRange(0, int(8 * '9')), 'help': help_msg.SET_VERSION_NUMBER},
             ('--message', '-m'): {'help': help_msg.COMMIT_MSG},
             '--fsck': {'help': help_msg.FSCK_OPTION},
         },
@@ -269,8 +267,7 @@ commands = [
             '--dataset': {'help': help_msg.LINK_DATASET},
             '--labels': {'help': help_msg.LINK_LABELS},
             '--tag': {'help': help_msg.TAG_OPTION},
-            ('--version-number', '--version'): {'type': click.IntRange(0, int(8 * '9')), 'help': help_msg.SET_VERSION_NUMBER,
-                                                'cls': DeprecatedOption, 'deprecated': ['--version-number'], 'preferred': '--version'},
+            '--version': {'type': click.IntRange(0, int(8 * '9')), 'help': help_msg.SET_VERSION_NUMBER},
             ('--message', '-m'): {'help': help_msg.COMMIT_MSG},
             '--fsck': {'help': help_msg.FSCK_OPTION},
         },
@@ -449,8 +446,7 @@ commands = [
                 'type': click.Choice(['s3h', 'azureblobh', 'gdriveh']),
                 'help': help_msg.STORAGE_TYPE, 'default': 's3h'
             },
-            ('--version-number', '--version'): {'help': help_msg.VERSION_NUMBER, 'default': 1,
-                                                'cls': DeprecatedOption, 'deprecated': ['--version-number'], 'preferred':'--version'},
+            '--version': {'help': help_msg.VERSION_NUMBER, 'default': 1},
             '--import': {'help': help_msg.IMPORT_OPTION,
                          'cls': MutuallyExclusiveOption, 'mutually_exclusive': ['import_url', 'credentials_path']},
             '--wizard-config': {'is_flag': True, 'help': help_msg.WIZARD_CONFIG},
