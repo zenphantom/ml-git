@@ -27,10 +27,10 @@ from ml_git.ml_git_message import output_messages
 from ml_git.pool import pool_factory, process_futures
 from ml_git.refs import Refs
 from ml_git.sample import SampleValidate
-from ml_git.spec import spec_parse, search_spec_file
+from ml_git.spec import spec_parse, search_spec_file, get_entity_dir
 from ml_git.storages.store_utils import store_factory
-from ml_git.utils import yaml_load, ensure_path_exists, get_path_with_categories, convert_path, \
-    normalize_path, posix_path, set_write_read, change_mask_for_routine, run_function_per_group
+from ml_git.utils import yaml_load, ensure_path_exists, convert_path, \
+    normalize_path, posix_path, set_write_read, change_mask_for_routine, run_function_per_group, get_root_path
 
 
 class LocalRepository(MultihashFS):
@@ -231,11 +231,11 @@ class LocalRepository(MultihashFS):
     def fetch(self, metadata_path, tag, samples, retries=2, bare=False):
         repo_type = self.__repo_type
 
-        categories_path, spec_name, _ = spec_parse(tag)
-
         # retrieve specfile from metadata to get store
-        spec_path = os.path.join(metadata_path, categories_path, spec_name + SPEC_EXTENSION)
-        spec = yaml_load(spec_path)
+        _, spec_name, _ = spec_parse(tag)
+        spec_path, spec_file = search_spec_file(repo_type, spec_name, root_path=metadata_path)
+        entity_dir = os.path.relpath(spec_path, metadata_path)
+        spec = yaml_load(os.path.join(spec_path, spec_file))
         if repo_type not in spec:
             log.error('No spec file found. You need to initialize an entity (dataset|model|label) first',
                       class_name=LOCAL_REPOSITORY_CLASS_NAME)
@@ -247,7 +247,7 @@ class LocalRepository(MultihashFS):
 
         # retrieve manifest from metadata to get all files of version tag
         manifest_file = MANIFEST_FILE
-        manifest_path = os.path.join(metadata_path, categories_path, manifest_file)
+        manifest_path = os.path.join(metadata_path, entity_dir, manifest_file)
         files = self._load_obj_files(samples, manifest_path)
         if files is None:
             return False
@@ -384,12 +384,13 @@ class LocalRepository(MultihashFS):
             return None
         return obj_files
 
-    def checkout(self, cache_path, metadata_path, ws_path, tag, samples, bare=False):
-        categories_path, spec_name, version = spec_parse(tag)
+    def checkout(self, cache_path, metadata_path, ws_path, tag, samples, bare=False, entity_dir=None):
+        _, spec_name, version = spec_parse(tag)
         index_path = get_index_path(self.__config, self.__repo_type)
+
         # get all files for specific tag
-        manifest_path = os.path.join(metadata_path, categories_path, MANIFEST_FILE)
-        mutability, _ = self.get_mutability_from_spec(spec_name, self.__repo_type, tag)
+        manifest_path = os.path.join(metadata_path, entity_dir, MANIFEST_FILE)
+        mutability, _ = self.get_mutability_from_spec(spec_name, self.__repo_type, entity_dir)
         index_manifest_path = os.path.join(index_path, 'metadata', spec_name)
         fidx_path = os.path.join(index_manifest_path, INDEX_FILE)
         try:
@@ -432,7 +433,7 @@ class LocalRepository(MultihashFS):
         # Check files that have been removed (present in wskpace and not in MANIFEST)
         self._remove_unused_links_wspace(ws_path, mfiles)
         # Update metadata in workspace
-        full_md_path = os.path.join(metadata_path, categories_path)
+        full_md_path = os.path.join(metadata_path, entity_dir)
         self._update_metadata(full_md_path, ws_path, spec_name)
         self.check_bare_flag(bare, index_manifest_path)
 
@@ -577,9 +578,10 @@ class LocalRepository(MultihashFS):
     def remote_fsck(self, metadata_path, tag, spec_file, retries=2, thorough=False, paranoid=False):
         spec = yaml_load(spec_file)
         manifest = spec[self.__repo_type]['manifest']
-        categories_path, spec_name, version = spec_parse(tag)
+        _, spec_name, _ = spec_parse(tag)
         # get all files for specific tag
-        manifest_path = os.path.join(metadata_path, categories_path, MANIFEST_FILE)
+        entity_dir = get_entity_dir(self.__repo_type, spec_name, root_path=metadata_path)
+        manifest_path = os.path.join(metadata_path, entity_dir, MANIFEST_FILE)
         obj_files = yaml_load(manifest_path)
 
         store = store_factory(self.__config, manifest['store'])
@@ -701,14 +703,13 @@ class LocalRepository(MultihashFS):
         metadata = Metadata(spec, metadata_path, self.__config, repo_type)
         if tag:
             metadata.checkout(tag)
-        categories_path = get_path_with_categories(tag)
-        full_metadata_path = os.path.join(metadata_path, categories_path, spec)
-        index_full_metadata_path_without_cat = os.path.join(index_metadata_path, spec)
-        index_full_metadata_path_with_cat = os.path.join(index_metadata_path, categories_path, spec)
+        index_metadata_entity_path = os.path.join(index_metadata_path, spec)
 
         path, file = None, None
         try:
-            path, file = search_spec_file(self.__repo_type, spec, categories_path)
+            path, file = search_spec_file(self.__repo_type, spec)
+            entity_dir = os.path.relpath(path, os.path.join(get_root_path(), self.__repo_type))
+            full_metadata_path = os.path.join(metadata_path, entity_dir)
         except Exception as e:
             if log_errors:
                 log.error(e, class_name=REPOSITORY_CLASS_NAME)
@@ -731,15 +732,14 @@ class LocalRepository(MultihashFS):
         if path is not None:
             changed_files, untracked_files = \
                 self._get_workspace_files_status(all_files, full_metadata_path, idx_yaml_mf,
-                                                 index_full_metadata_path_with_cat, index_full_metadata_path_without_cat,
+                                                 index_metadata_entity_path,
                                                  path, new_files, status_directory)
-
         if tag:
             metadata.checkout()
         return new_files, deleted_files, untracked_files, corrupted_files, changed_files
 
     def _get_workspace_files_status(self, all_files, full_metadata_path, idx_yaml_mf,
-                                    index_full_metadata_path_with_cat, index_full_metadata_path_without_cat, path,
+                                    index_metadata_entity_path, path,
                                     new_files, status_directory=''):
         changed_files = []
         untracked_files = []
@@ -766,10 +766,7 @@ class LocalRepository(MultihashFS):
                         bisect.insort(untracked_files, bpath)
                     else:
                         file_path_metadata = os.path.join(full_metadata_path, file)
-                        file_index_path_with_cat = os.path.join(index_full_metadata_path_with_cat, file)
-                        file_index_path_without_cat = os.path.join(index_full_metadata_path_without_cat, file)
-                        file_index_path = file_index_path_without_cat if os.path.isfile(
-                            file_index_path_without_cat) else file_index_path_with_cat
+                        file_index_path = os.path.join(index_metadata_entity_path, file)
                         full_base_path = os.path.join(root, bpath)
                         self._compare_metadata_file(bpath, file_index_path, file_path_metadata, full_base_path,
                                                     new_files, untracked_files)
@@ -897,8 +894,10 @@ class LocalRepository(MultihashFS):
         return True
 
     def export_tag(self, metadata_path, tag, bucket, retry):
-        categories_path, spec_name, _ = spec_parse(tag)
-        spec_path = os.path.join(metadata_path, categories_path, spec_name + SPEC_EXTENSION)
+        _, spec_name, _ = spec_parse(tag)
+
+        entity_dir = get_entity_dir(self.__repo_type, spec_name, root_path=metadata_path)
+        spec_path = os.path.join(metadata_path, entity_dir, spec_name + SPEC_EXTENSION)
         spec = yaml_load(spec_path)
 
         if self.__repo_type not in spec:
@@ -919,7 +918,7 @@ class LocalRepository(MultihashFS):
             log.error('No store for [%s]' % store_dst_type, class_name=LOCAL_REPOSITORY_CLASS_NAME)
             return
         manifest_file = MANIFEST_FILE
-        manifest_path = os.path.join(metadata_path, categories_path, manifest_file)
+        manifest_path = os.path.join(metadata_path, entity_dir, manifest_file)
         files = yaml_load(manifest_path)
         log.info('Exporting tag [{}] from [{}] to [{}].'.format(tag, manifest['store'], store_dst_type),
                  class_name=LOCAL_REPOSITORY_CLASS_NAME)
@@ -1000,23 +999,18 @@ class LocalRepository(MultihashFS):
             else:
                 wp.progress_bar_total_inc(-1)
 
-    def get_mutability_from_spec(self, spec, repo_type, tag=None):
+    def get_mutability_from_spec(self, spec, repo_type, entity_dir=None):
         metadata_path = get_metadata_path(self.__config, repo_type)
-        categories_path = get_path_with_categories(tag)
         spec_path, spec_file = None, None
         check_update_mutability = False
-
         try:
-            if tag:
-                spec_path = os.path.join(metadata_path, categories_path, spec)
+            if entity_dir:
+                spec_path, spec_file = search_spec_file(repo_type, spec, root_path=metadata_path)
             else:
-                refs_path = get_refs_path(self.__config, repo_type)
-                ref = Refs(refs_path, spec, repo_type)
-                tag, sha = ref.branch()
-                categories_path = get_path_with_categories(tag)
-                spec_path, spec_file = search_spec_file(repo_type, spec, categories_path)
-                check_update_mutability = self.check_mutability_between_specs(repo_type, tag, metadata_path,
-                                                                              categories_path, spec_path, spec)
+                spec_path, spec_file = search_spec_file(repo_type, spec)
+                entity_dir = os.path.relpath(spec_path, os.path.join(get_root_path(), repo_type))
+                check_update_mutability = self.check_mutability_between_specs(repo_type, entity_dir,
+                                                                              metadata_path, spec_path, spec)
         except Exception as e:
             log.error(e, class_name=REPOSITORY_CLASS_NAME)
             return None, False
@@ -1035,15 +1029,15 @@ class LocalRepository(MultihashFS):
             return Mutability.STRICT.value, check_update_mutability
 
     @staticmethod
-    def check_mutability_between_specs(repo_type, tag, metadata_path, categories_path, spec_path, spec):
+    def check_mutability_between_specs(repo_type, entity_dir, metadata_path, spec_path, spec):
         ws_spec_path = os.path.join(spec_path, spec + SPEC_EXTENSION)
         file_ws_spec = yaml_load(ws_spec_path)
         ws_spec_mutability = None
         if 'mutability' in file_ws_spec[repo_type]:
             ws_spec_mutability = file_ws_spec[repo_type]['mutability']
 
-        if tag:
-            metadata_spec_path = os.path.join(metadata_path, categories_path, spec, spec + SPEC_EXTENSION)
+        metadata_spec_path = os.path.join(metadata_path, entity_dir, spec + SPEC_EXTENSION)
+        if os.path.exists(metadata_spec_path):
             file_md_spec = yaml_load(metadata_spec_path)
             md_spec_mutability = None
             try:

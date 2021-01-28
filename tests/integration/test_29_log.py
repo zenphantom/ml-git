@@ -23,8 +23,7 @@ class LogTests(unittest.TestCase):
         init_repository('dataset', self)
         create_spec(self, 'dataset', self.tmp_dir)
         self.assertIn(messages[13] % 'dataset', check_output(MLGIT_ADD % ('dataset', 'dataset-ex', '')))
-        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, 'dataset', 'metadata'),
-                                      os.path.join('computer-vision', 'images', 'dataset-ex')),
+        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, 'dataset', 'metadata'), 'dataset-ex'),
                       check_output(MLGIT_COMMIT % ('dataset', 'dataset-ex', '-m ' + self.COMMIT_MESSAGE)))
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')

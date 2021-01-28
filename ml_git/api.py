@@ -13,6 +13,8 @@ from ml_git.config import config_load
 from ml_git.constants import StoreType, EntityType
 from ml_git.repository import Repository
 from ml_git.log import init_logger
+from ml_git.spec import search_spec_file, spec_parse
+from ml_git.utils import get_root_path
 
 init_logger()
 
@@ -74,7 +76,9 @@ def checkout(entity, tag, sampling=None, retries=2, force=False, dataset=False, 
     options['version'] = version
     repo.checkout(tag, sampling, options)
 
-    data_path = os.path.join(entity, *tag.split('__')[:-1])
+    _, specname, _ = spec_parse(tag)
+    spec_path, _ = search_spec_file(entity, specname)
+    data_path = os.path.relpath(spec_path, get_root_path())
     if not os.path.exists(data_path):
         data_path = None
     return data_path
@@ -187,6 +191,7 @@ def create(entity, entity_name, categories, mutability, **kwargs):
             import_url (str, optional): Import data from a google drive url.
             credentials_path (str, optional): Directory of credentials.json.
             unzip (bool, optional): Unzip imported zipped files [default: False].
+            entity_dir (str, optional): The relative path where the entity will be created [default: empty].
     """
 
     args = {'artifact_name': entity_name, 'category': categories, 'mutability': mutability,
@@ -194,7 +199,7 @@ def create(entity, entity_name, categories, mutability, **kwargs):
             'store_type':  kwargs.get('store_type', StoreType.S3H.value),
             'bucket_name': kwargs.get('bucket_name', None), 'unzip': kwargs.get('unzip', False),
             'import_url': kwargs.get('import_url', None), 'credentials_path': kwargs.get('credentials_path', None),
-            'wizard_config': False}
+            'wizard_config': False, 'entity_dir': kwargs.get('entity_dir', '')}
 
     repo = Repository(config_load(), entity)
     repo.create(args)

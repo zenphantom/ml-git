@@ -89,7 +89,7 @@ $ ml-git dataset init
 
 The Ml-git uses git to versioning project's metadata. See bellow versioned metadata:
 
-*  **.spec**, is the specification file that contains informations like version number, artefact name, entity type (dataset, label, model), categories (tree struct that caracterize an entity).
+*  **.spec**, is the specification file that contains informations like version number, artefact name, entity type (dataset, label, model), categories (list of labels to categorize an entity).
 *  **MANIFEST.yaml**, is responsible to map artefact's files. The files are mapped by hashes, that are the references used to perform operations in local files, and download/upload operations in Stores (AWS|MinIO).
 
 You can find more information about metadata [here](docs/mlgit_internals.md).
@@ -125,8 +125,17 @@ Ml-git expects any dataset to be specified under _dataset/_ directory of your pr
 To create this specification file for a new entity you must run the following command:
 
 ```
-$ ml-git dataset create imagenet8 --category=computer-vision --category=images --mutability=strict --store-type=s3h --bucket-name=mlgit-datasets --version=1 
+$ ml-git dataset create imagenet8 --category=computer-vision --category=images --mutability=strict --store-type=s3h --bucket-name=mlgit-datasets
 ```
+
+This command will create the dataset directory at the root of the project entity.
+If you want to create a version of your dataset in a different directory, you can use the --entity-dir parameter
+to inform the relative directory where the entity is to be created. Example:
+
+```
+$ ml-git dataset create imagenet8 --category=computer-vision --category=images --mutability=strict --store-type=s3h --bucket-name=mlgit-datasets --entity-dir=folderA/folderB
+```
+
 
 After that a file must have been created in dataset/imagenet8/imagenet8.spec and should look like this:
 
@@ -153,7 +162,7 @@ dataset:
 There are 5 main items in the spec file:
 1. __name__: it's the name of the dataset
 2. __version__: the version should be an integer, incremented each time there is new version pushed into ml-git.  You can use the --bumpversion argument to do the increment automatically for you when you add more files to a dataset.
-3. __categories__ : describes a tree structure to characterize the dataset category. That information is used by ml-git to create a directory structure in the git repository managing the metadata.
+3. __categories__ : labels to categorize the entity. That information is used by ml-git to create the tag in the git repository managing the metadata.
 4. __manifest__: describes the data store in which the data is actually stored. In this case a S3 bucket named _mlgit-datasets_. The AWS credential profile name and AWS region should be found in the ml-git config file.
 5. __mutability__: describes the mutability option that your project will have, choosing an option that can never be changed. The mutability options are "strict", "flexible" and "mutable". If you want to know more about each type of mutability and how it works, please take a look at [mutability documentation](mutability_helper.md).
 
@@ -416,13 +425,13 @@ To discover which datasets are under ml-git management, you can execute the foll
 ```
 $ ml-git dataset list
 ML dataset
-|-- computer-vision
-|   |-- images
+|-- folderA
+|   |-- folderB
 |   |   |-- dataset-ex-minio
 |   |   |-- imagenet8
 |   |   |-- dataset-ex
 ```
-The ml-git repository contains 3 different datasets, all falling under the same category _computer-vision/images_.
+The ml-git repository contains 3 different datasets, all falling under the same directories _folderA/folderB_ (These directories were defined when the entity was created and can be modified at any time by the user).
 
 In order for ml-git to manage the different versions of the same dataset, it internally creates a tag based on categories, ml entity name and its version.
 To show all these tag representing the versions of a dataset, simply type the following:
@@ -463,8 +472,8 @@ $ ml-git dataset checkout imagenet8
 Getting the data will auto-create a directory structure under _dataset_ directory as shown below. That structure _computer-vision/images_ is actually coming from the categories defined in the dataset spec file. Doing that way allows for easy download of many datasets in one single ml-git project without creating any conflicts.
 
 ```
-computer-vision/
-└── images
+folderA
+└── folderB
     └── imagenet8
         ├── README.md
         ├── data

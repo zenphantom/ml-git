@@ -11,7 +11,7 @@ import pytest
 from ml_git.ml_git_message import output_messages
 from ml_git.utils import ensure_path_exists
 from tests.integration.commands import MLGIT_ADD, MLGIT_COMMIT, MLGIT_RESET, MLGIT_STATUS
-from tests.integration.helper import ML_GIT_DIR
+from tests.integration.helper import ML_GIT_DIR, move_entity_to_dir
 from tests.integration.helper import check_output, init_repository, ERROR_MESSAGE, create_file
 from tests.integration.output_messages import messages
 
@@ -24,13 +24,11 @@ class ResetAcceptanceTests(unittest.TestCase):
         init_repository('dataset', self)
         create_file(os.path.join('dataset', 'dataset-ex'), 'file1', '0', '')
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ADD % ('dataset', 'dataset-ex', '--bumpversion')))
-        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, 'dataset', 'metadata'),
-                                      os.path.join('computer-vision', 'images', 'dataset-ex')),
+        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, 'dataset', 'metadata'), 'dataset-ex'),
                       check_output(MLGIT_COMMIT % ('dataset', 'dataset-ex', '')))
         create_file(os.path.join('dataset', 'dataset-ex'), 'file2', '0', '')
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ADD % ('dataset', 'dataset-ex', '--bumpversion')))
-        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, 'dataset', 'metadata'),
-                                      os.path.join('computer-vision', 'images', 'dataset-ex')),
+        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, 'dataset', 'metadata'), 'dataset-ex'),
                       check_output(MLGIT_COMMIT % ('dataset', 'dataset-ex', '')))
 
     def _check_dir(self, tag):
@@ -103,3 +101,23 @@ class ResetAcceptanceTests(unittest.TestCase):
         self.assertRegex(check_output(MLGIT_STATUS % (entity, entity+'-ex')),
                          r'Changes to be committed:\n\tNew file: dataset-ex.spec\n\nUntracked files:\n\nCorrupted files')
         self._check_dir(self.dataset_tag)
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
+    def test_06_hard_entity_with_changed_dir(self):
+        entity_type = 'dataset'
+        artifact_name = 'dataset-ex'
+        init_repository(entity_type, self)
+        create_file(os.path.join(entity_type, artifact_name), 'file1', '0', '')
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ADD % (entity_type, artifact_name, '--bumpversion')))
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_COMMIT % (entity_type, artifact_name, '')))
+        create_file(os.path.join(entity_type, artifact_name), 'file2', '0', '')
+        entity_dir, workspace, workspace_with_dir = move_entity_to_dir(self.tmp_dir, artifact_name, entity_type)
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ADD % (entity_type, artifact_name, '--bumpversion')))
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_COMMIT % (entity_type, artifact_name, '')))
+        new_file_path = os.path.join(workspace_with_dir, artifact_name, 'file2')
+        self.assertFalse(os.path.exists(workspace))
+        self.assertTrue(os.path.exists(new_file_path))
+        self.assertIn(output_messages['INFO_INITIALIZING_RESET'] % ('--hard', 'HEAD~1'),
+                      check_output(MLGIT_RESET % (entity_type, artifact_name) + ' --hard --reference=head~1'))
+        self.assertFalse(os.path.exists(new_file_path))
+        self.assertTrue(os.path.exists(workspace))

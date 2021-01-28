@@ -11,7 +11,7 @@ import os
 
 from ml_git.spec import yaml_load, incr_version, is_valid_version, search_spec_file, SearchSpecException, spec_parse, \
     get_spec_file_dir, increment_version_in_spec, get_root_path, get_version, update_store_spec, validate_bucket_name, \
-    set_version_in_spec
+    set_version_in_spec, get_entity_dir
 from ml_git.utils import yaml_save
 
 testdir = 'specdata'
@@ -52,32 +52,33 @@ class SpecTestCases(unittest.TestCase):
         self.assertFalse(is_valid_version(spec_hash))
 
     def test_search_spec_file(self):
-        categories_path = ''
-        specpath = 'dataset-ex'
-        spec_dir = os.path.join(self.tmp_dir, 'dataset')
-        spec_dir_c = os.path.join(spec_dir, categories_path, specpath)
-
-        os.mkdir(spec_dir)
-        os.mkdir(spec_dir_c)
-        os.mkdir(os.path.join(spec_dir_c, 'data'))
-
-        spec_file = specpath + '.spec'
-
-        f = open(os.path.join(spec_dir_c, spec_file), 'w')
+        spec_name = 'dataset-ex'
+        entity_dir = os.path.join(self.tmp_dir, 'dataset')
+        spec_path = os.path.join(entity_dir, spec_name)
+        os.mkdir(entity_dir)
+        os.mkdir(spec_path)
+        os.mkdir(os.path.join(spec_path, 'data'))
+        spec_file = spec_name + '.spec'
+        f = open(os.path.join(spec_path, spec_file), 'w')
         f.close()
-
-        dir, spec = search_spec_file(spec_dir, specpath, categories_path)
-
-        self.assertEqual(dir, spec_dir_c)
+        dir, spec = search_spec_file('dataset', spec_name, entity_dir)
+        self.assertEqual(dir, spec_path)
         self.assertEqual(spec, spec_file)
+        os.remove(os.path.join(spec_path, spec_file))
+        self.assertRaises(SearchSpecException, lambda:  search_spec_file('dataset', spec_name, entity_dir))
+        shutil.rmtree(entity_dir)
+        self.assertRaises(Exception, lambda:  search_spec_file('dataset', spec_name, entity_dir))
 
-        os.remove(os.path.join(spec_dir_c, spec_file))
-
-        self.assertRaises(SearchSpecException, lambda: search_spec_file(spec_dir, specpath, categories_path))
-
-        shutil.rmtree(spec_dir)
-
-        self.assertRaises(Exception, lambda: search_spec_file(spec_dir, specpath, categories_path))
+    def test_get_entity_dir(self):
+        spec_name = 'dataset-ex'
+        dir_folders = os.path.join('folderA', 'folderB', spec_name)
+        entity_path = os.path.join(self.tmp_dir, 'dataset', dir_folders)
+        os.makedirs(entity_path)
+        spec_file = spec_name + '.spec'
+        f = open(os.path.join(entity_path, spec_file), 'w')
+        f.close()
+        entity_dir = get_entity_dir('dataset', spec_name, os.path.join(self.tmp_dir, 'dataset'))
+        self.assertEquals(dir_folders, entity_dir)
 
     def test_spec_parse(self):
 

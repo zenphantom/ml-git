@@ -463,13 +463,13 @@ ml-git_project/
 |      |  └── <ml-entity-name>/
 |      |      ├── HEAD  <-- Update tag with SHA-1 here.
 |      └── metadata/
-|         └── <categopries>*/
+|         └── <entity-dir>*/
 |            ├── MANIFEST.yaml
 |            ├── <ml-entity-name>.spec < -- Save here
 └── <ml-entity>/
 ```
 
-***** *Categories path is a tree of categories paths described in .spec file. (Ex: categories/images/MANIFEST.yaml)*.
+***** *Entity dir is a tree of directories in which the entity was versioned (Ex: folderA/folderB/MANIFEST.yaml)*.
 
 </details>
 
@@ -593,7 +593,7 @@ ml-git_project/
 <details>
 <summary> <code>ml-git &lt;ml-entity&gt; list </code></summary>
 
-That command will list all \<ml-entity\> under management in the ml-git repository. To do this, ml-git goes through the metadata directory to identify the structure of categories and entities that are under management.
+That command will list all \<ml-entity\> under management in the ml-git repository. To do this, ml-git goes through the metadata directory to identify the structure of directories and entities that are under management.
 
 ```
 ml-git_project/
@@ -744,7 +744,7 @@ ml-git_project/
     └── <ml-entity>/
        └── index/
        └── metadata/
-       |  └── <categories>*/
+       |  └── <entity-dir>*/
        |     └── <ml-entity-name>/ <-- Search all .spec file here
        └── objects/
        └── refs/
@@ -752,7 +752,8 @@ ml-git_project/
 
 After found all .spec files the command show each one contents, then execute git checkout to branch *master*.
 
-***** *Categories path is a tree of categories paths described in .spec file.*
+***** *Entity dir is a tree of directories in which the entity was versioned (Ex: folderA/folderB/MANIFEST.yaml)*.
+
 
 </details>
 

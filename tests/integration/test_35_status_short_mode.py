@@ -30,7 +30,7 @@ class StatusShortModeAcceptanceTests(unittest.TestCase):
         create_file(data_path, 'file', '0', '')
         create_file(data_path, 'file2', '0', '')
         self.assertIn(messages[13] % 'dataset', check_output(MLGIT_ADD % ('dataset', 'dataset-ex', '')))
-        self.assertIn(messages[17] % (metadata_path, os.path.join('computer-vision', 'images', entity + '-ex')),
+        self.assertIn(messages[17] % (metadata_path, entity + '-ex'),
                       check_output(MLGIT_COMMIT % (entity, entity + '-ex', '')))
         HEAD = os.path.join(self.tmp_dir, ML_GIT_DIR, entity, 'refs', entity + '-ex', 'HEAD')
         self.assertTrue(os.path.exists(HEAD))
@@ -81,8 +81,7 @@ class StatusShortModeAcceptanceTests(unittest.TestCase):
         create_file(data_path, 'file2', '0', '')
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ADD % ('dataset', 'dataset-ex', '--bumpversion')))
 
-        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, 'dataset', 'metadata'),
-                                      os.path.join('computer-vision', 'images', 'dataset-ex')),
+        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, 'dataset', 'metadata'), 'dataset-ex'),
                       check_output(MLGIT_COMMIT % ('dataset', 'dataset-ex', '')))
         self.assertRegex(check_output(MLGIT_STATUS_SHORT % ('dataset', 'dataset-ex')),
                          r'Changes to be committed:\s+Untracked files:')
@@ -100,7 +99,7 @@ class StatusShortModeAcceptanceTests(unittest.TestCase):
         self.set_up_checkout('dataset')
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_CHECKOUT % ('dataset',
                                                                        'computer-vision__images__dataset-ex__1')))
-        data_path = os.path.join(self.tmp_dir, 'dataset', 'computer-vision', 'images', 'dataset-ex', 'data')
+        data_path = os.path.join(self.tmp_dir, 'dataset', 'dataset-ex', 'data')
         file_to_be_deleted = os.path.join(data_path, 'file')
         file_to_be_deleted2 = os.path.join(data_path, 'file2')
         clear(file_to_be_deleted)

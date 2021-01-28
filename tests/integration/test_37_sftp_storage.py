@@ -44,8 +44,7 @@ class SFTPAcceptanceTests(unittest.TestCase):
         add_file(self, self.repo_type, '', 'new')
 
         metadata_path = os.path.join(ML_GIT_DIR, self.repo_type, 'metadata')
-        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, metadata_path),
-                                      os.path.join('computer-vision', 'images', self.dataset_name)),
+        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, metadata_path), self.dataset_name),
                       check_output(MLGIT_COMMIT % (self.repo_type, self.dataset_name, '')))
         HEAD = os.path.join(ML_GIT_DIR, self.repo_type, 'refs', self.dataset_name, 'HEAD')
         self.assertTrue(os.path.exists(HEAD))
@@ -85,7 +84,7 @@ class SFTPAcceptanceTests(unittest.TestCase):
 
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ENTITY_INIT % self.repo_type))
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_CHECKOUT % (self.repo_type, self.dataset_name)))
-        ws_path = os.path.join(self.tmp_dir, self.repo_type, 'computer-vision', 'images', self.dataset_name)
+        ws_path = os.path.join(self.tmp_dir, self.repo_type, self.dataset_name)
         self.assertTrue(os.path.exists(ws_path))
         self.assertTrue(os.path.isfile(os.path.join(ws_path, 'newfile0')))
         self.assertTrue(os.path.isfile(os.path.join(ws_path, 'newfile1')))
@@ -105,7 +104,8 @@ class SFTPAcceptanceTests(unittest.TestCase):
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ENTITY_INIT % self.repo_type))
 
         self.assertNotIn(ERROR_MESSAGE, check_output(
-            MLGIT_CREATE % ('dataset', 'dataset-ex --storage-type=sftph --mutability=strict --category=test --bucket-name=wrong_bucket')))
+            MLGIT_CREATE % ('dataset', 'dataset-ex --storage-type=sftph --mutability=strict --category=test '
+                                       '--bucket-name=wrong_bucket')))
         add_file(self, self.repo_type, '', 'new')
 
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ADD % (self.repo_type, self.dataset_name, '')))
