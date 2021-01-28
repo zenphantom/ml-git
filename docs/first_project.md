@@ -409,25 +409,25 @@ To create a model entity, you can run the following command:
 $ ml-git model create imagenet-model --category=computer-vision --category=images --store-type=s3h --mutability=mutable --bucket-name=mlgit-models --version=1 
 ```
 
-After entity creation, you can create the README.md to create a web page describing your model. Here below is the tree directory structure:
+After creating the model, we add the model file to the data folder. Here below is the tree directory structure:
 
 ```
 imagenet-model/
 ├── README.md
 ├── data
-│   ├── model_data
+│   ├── model_file
 └── imagenet-model.spec
 ```
 
-Now, you're ready to put that new model set under ml-git management.  We assume there is an existing imagenet8 dataset. For this, do:
+Now, you're ready to put that new model set under ml-git management. We assume there is an existing imagenet8 dataset and mscoco-captions labels. For this, do:
 
 ```
 $ ml-git model add imagenet-model
-$ ml-git model commit imagenet-model --dataset=imagenet8
+$ ml-git model commit imagenet-model --dataset=imagenet8 --labels=mscoco-captions
 $ ml-git model push imagenet-model
 ```
-There is not much change compared to dataset and labels operations. However you can note one particular change in commit command.
-There is an option "_--dataset_" which is used to tell ml-git that the models should be linked to the specified dataset.
+There is not much change compared to dataset operation. However you can note one particular change in commit command.
+There is an option "_-- dataset_" and "_--labels_" which are used to tell ml-git that the models should be linked to the specified dataset and labels.
 Internally, ml-git will look at the checked out dataset in your workspace for that specified dataset. It then will include the git tag and sha into the specificaiton file to be committed into the metadata repository.
 Once done, anyone will then be able to retrieve the exact same version of the dataset that has been used for that specific model.
 
@@ -450,7 +450,7 @@ An example of adding a model passing metrics through the command line, would be 
 $ ml-git model add imagenet-model --metric accuracy 10 --metric precision 20 --metric recall 30
 ```
 
-**Obs:** The values ​​entered in the metrics were used for the purposes of examples, you can enter what are the names of your keys and what are their respective values.
+Obs: The parameters used above were chosen for example purposes, you can name your metrics however you want to, you can also pass as many metrics as you want, as long as you use the command correctly.
 
 When inserting the metrics, they will be included in the structure of your model's spec file. An example of what it would look like would be the following structure:
 

@@ -45,6 +45,8 @@ Add dataset change set ML_ENTITY_NAME to the local ml-git staging area.
 Options:
 --bumpversion  Increment the version number when adding more files.
 --fsck         Run fsck after command execution.
+--metrics-file Insert the methic file path.
+--metric       Insert the metric key and value.
 --help         Show this message and exit.
 ```
 

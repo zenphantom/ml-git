@@ -207,8 +207,8 @@ commands = [
         'options': {
             '--bumpversion': {'is_flag': True, 'help': help_msg.BUMP_VERSION},
             '--fsck': {'is_flag': True, 'help': help_msg.FSCK_OPTION},
-            '--metrics-file': {'required': False},
-            '--metric': {'required': False, 'multiple': True, 'type': (str, float)},
+            '--metrics-file': {'required': False, 'help': help_msg.METRICS_FILE_OPTION},
+            '--metric': {'required': False, 'multiple': True, 'type': (str, float), 'help': help_msg.METRIC_OPTION},
         },
 
         'help': 'Add %s change set ML_ENTITY_NAME to the local ml-git staging area.'
