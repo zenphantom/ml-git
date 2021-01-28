@@ -6,6 +6,7 @@ from ml_git.config import get_sample_spec_doc
 
 output_messages = {
     'DEBUG_REMOVE_REMOTE': 'Removing remote from local repository [%s]',
+    'DEBUG_WRONG_ENTITY_TYPE_OR_METRICS_NOT_FOUND': 'Wrong entity type OR metrics options not found!',
 
     'INFO_INITIALIZED_PROJECT': 'Initialized empty ml-git repository in %s',
     'INFO_ADD_REMOTE': 'Add remote repository [%s] for [%s]',

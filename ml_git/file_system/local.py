@@ -4,6 +4,7 @@ SPDX-License-Identifier: GPL-2.0-only
 """
 
 import bisect
+import csv
 import filecmp
 import json
 import os
@@ -18,7 +19,7 @@ from ml_git import log
 from ml_git.config import get_index_path, get_objects_path, get_refs_path, get_index_metadata_path, \
     get_metadata_path, get_batch_size, get_push_threads_count
 from ml_git.constants import LOCAL_REPOSITORY_CLASS_NAME, STORE_FACTORY_CLASS_NAME, REPOSITORY_CLASS_NAME, \
-    Mutability, StoreType, SPEC_EXTENSION, MANIFEST_FILE, INDEX_FILE
+    Mutability, StoreType, SPEC_EXTENSION, MANIFEST_FILE, INDEX_FILE, EntityType, PERFORMANCE_KEY
 from ml_git.file_system.cache import Cache
 from ml_git.file_system.hashfs import MultihashFS
 from ml_git.file_system.index import MultihashIndex, FullIndex, Status
@@ -30,7 +31,7 @@ from ml_git.sample import SampleValidate
 from ml_git.spec import spec_parse, search_spec_file
 from ml_git.storages.store_utils import store_factory
 from ml_git.utils import yaml_load, ensure_path_exists, get_path_with_categories, convert_path, \
-    normalize_path, posix_path, set_write_read, change_mask_for_routine, run_function_per_group
+    normalize_path, posix_path, set_write_read, change_mask_for_routine, run_function_per_group, yaml_save
 
 
 class LocalRepository(MultihashFS):
@@ -1065,3 +1066,36 @@ class LocalRepository(MultihashFS):
     def import_file_from_url(self, path_dst, url, store_type):
         store = store_factory(self.__config, '{}://{}'.format(store_type, store_type))
         store.import_file_from_url(path_dst, url)
+
+    @staticmethod
+    def __add_metrics_from_file(metrics_path, metrics):
+        if not metrics_path:
+            return metrics
+
+        with open(metrics_path) as csv_file:
+            csv_reader = csv.reader(csv_file, delimiter=',')
+
+            first_line = 0
+            secound_line = 1
+
+            metrics_data = list(csv_reader)
+            return zip(metrics_data[first_line], metrics_data[secound_line])
+
+    def add_metrics(self, spec_path, metrics, metrics_file_path):
+
+        metrics_not_found = not metrics and not metrics_file_path
+        wrong_repo_type = self.__repo_type != EntityType.MODEL.value
+
+        if wrong_repo_type or metrics_not_found:
+            log.debug(output_messages['DEBUG_WRONG_ENTITY_TYPE_OR_METRICS_NOT_FOUND'],
+                      class_name=LOCAL_REPOSITORY_CLASS_NAME)
+            return
+
+        spec_file = yaml_load(spec_path)
+        metrics = self.__add_metrics_from_file(metrics_file_path, metrics)
+        metrics_to_save = dict()
+
+        for metric, value in metrics:
+            metrics_to_save[metric] = float(value)
+        spec_file[self.__repo_type][PERFORMANCE_KEY] = metrics_to_save
+        yaml_save(spec_file, spec_path)
