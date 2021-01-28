@@ -10,7 +10,7 @@ from stat import S_IWUSR, S_IREAD
 import pytest
 
 from tests.integration.helper import ML_GIT_DIR, create_spec, init_repository, ERROR_MESSAGE, MLGIT_ADD, \
-    create_file, create_csv_file
+    create_file
 from tests.integration.helper import clear, check_output, add_file, entity_init, yaml_processor
 from tests.integration.output_messages import messages
 
@@ -145,7 +145,7 @@ class AddFilesAcceptanceTests(unittest.TestCase):
             metrics = spec_file[repo_type].get('metrics', {})
             self.assertTrue(metrics == {})
 
-    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir', 'create_csv_file')
     def test_10_add_command_with_metric_file(self):
         repo_type = 'model'
         self.set_up_add(repo_type)
@@ -159,7 +159,7 @@ class AddFilesAcceptanceTests(unittest.TestCase):
 
         csv_file = os.path.join(self.tmp_dir, 'metrics.csv')
 
-        create_csv_file(csv_file, {'Accuracy': 1, 'Recall': 2})
+        self.create_csv_file(csv_file, {'Accuracy': 1, 'Recall': 2})
 
         metrics_options = '--metrics-file={}'.format(csv_file)
 
