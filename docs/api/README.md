@@ -8,7 +8,7 @@
 <br>
 
 ```python
-def add(entity_type, entity_name, bumpversion=False, fsck=False, file_path=[], metric='', metric_file=''):
+def add(entity_type, entity_name, bumpversion=False, fsck=False, file_path=[], metric=[], metric_file=''):
     """This command will add all the files under the directory into the ml-git index/staging area.
 
     Example:
@@ -20,8 +20,8 @@ def add(entity_type, entity_name, bumpversion=False, fsck=False, file_path=[], m
         bumpversion (bool, optional): Increment the entity version number when adding more files [default: False].
         fsck (bool, optional): Run fsck after command execution [default: False].
         file_path (list, optional): List of files that must be added by the command [default: all files].
-        metric (str, float, optional): The metric keys and values [default: empty].
-        metric_file (str, optional): The metric file path [default: empty].
+        metric (dictionary, optional): The metric dictionary, example: { 'metric': value } [default: empty].
+        metrics_file (str, optional): The metrics file path [default: empty].
     """
 ```
 </details>
