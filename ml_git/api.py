@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-2.0-only
 import os
 import shutil
 import tempfile
+import ast
 
 from ml_git import log, admin
 from ml_git.admin import init_mlgit
@@ -107,7 +108,7 @@ def clone(repository_url, folder=None, track=False):
             os.chdir(current_directory)
 
 
-def add(entity_type, entity_name, bumpversion=False, fsck=False, file_path=[], metrics_file='', metric=''):
+def add(entity_type, entity_name, bumpversion=False, fsck=False, file_path=[], metric='', metrics_file=''):
     """This command will add all the files under the directory into the ml-git index/staging area.
 
     Example:
@@ -119,13 +120,19 @@ def add(entity_type, entity_name, bumpversion=False, fsck=False, file_path=[], m
         bumpversion (bool, optional): Increment the entity version number when adding more files [default: False].
         fsck (bool, optional): Run fsck after command execution [default: False].
         file_path (list, optional): List of files that must be added by the command [default: all files].
+        metric (dictionary, optional): The metric dictionary, example: { 'metric': value } [default: empty].
         metrics_file (str, optional): The metrics file path [default: empty].
-        metric (str, float, optional): The metric keys and values [default: empty].
     """
 
-    repo = Repository(config_load(), entity_type)
-    repo.add(entity_name, file_path, bumpversion, fsck, metric, metrics_file)
+    metric_tuple = [[], []]
 
+    if metric:
+        for key, val in metric.items():
+            metric_tuple[0].append(key)
+            metric_tuple[1].append(val)
+
+    repo = Repository(config_load(), entity_type)
+    repo.add(entity_name, file_path, bumpversion, fsck, metric_tuple, metrics_file)
 
 def commit(entity, ml_entity_name, commit_message=None, related_dataset=None, related_labels=None):
     """That command commits the index / staging area to the local repository.
