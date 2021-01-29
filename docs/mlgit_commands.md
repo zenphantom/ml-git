@@ -46,7 +46,7 @@ Options:
 --bumpversion  Increment the version number when adding more files.
 --fsck         Run fsck after command execution.
 --metric       Insert the metric key and value.
---metrics-file Insert the methic file path.
+--metrics-file Insert the methic file path. It is expected a CSV file containing the metric names in the header and the values in the next line.
 --help         Show this message and exit.
 ```
 

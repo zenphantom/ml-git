@@ -120,7 +120,8 @@ def add(entity_type, entity_name, bumpversion=False, fsck=False, file_path=[], m
         fsck (bool, optional): Run fsck after command execution [default: False].
         file_path (list, optional): List of files that must be added by the command [default: all files].
         metric (dictionary, optional): The metric dictionary, example: { 'metric': value } [default: empty].
-        metrics_file (str, optional): The metrics file path [default: empty].
+        metrics_file (str, optional): The metrics file path. It is expected a CSV file containing the metric names in the header and
+         the values in the next line [default: empty].
     """
 
     metrics = []

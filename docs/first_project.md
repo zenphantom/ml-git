@@ -406,10 +406,10 @@ $ ml-git model init
 To create a model entity, you can run the following command:
 
 ```
-$ ml-git model create imagenet-model --category=computer-vision --category=images --store-type=s3h --mutability=mutable --bucket-name=mlgit-models --version=1 
+$ ml-git model create imagenet-model --category=computer-vision --category=images --store-type=s3h --mutability=mutable --bucket-name=mlgit-models
 ```
 
-After creating the model, we add the model file to the data folder. Here below is the tree directory structure:
+After creating the model, we add the model file to the data folder. Here below is the directory tree structure:
 
 ```
 imagenet-model/
@@ -426,10 +426,9 @@ $ ml-git model add imagenet-model
 $ ml-git model commit imagenet-model --dataset=imagenet8 --labels=mscoco-captions
 $ ml-git model push imagenet-model
 ```
-There is not much change compared to dataset operation. However you can note one particular change in commit command.
-There is an option "_-- dataset_" and "_--labels_" which are used to tell ml-git that the models should be linked to the specified dataset and labels.
-Internally, ml-git will look at the checked out dataset in your workspace for that specified dataset. It then will include the git tag and sha into the specificaiton file to be committed into the metadata repository.
-Once done, anyone will then be able to retrieve the exact same version of the dataset that has been used for that specific model.
+You can use the options "_-- dataset_" and "_--labels_", which tells to ml-git that the model should be linked to the specified dataset and labels.
+Internally, ml-git will look in your workspace for the checked out dataset and labels specified in the options. It then will include the reference to the checked out versions into the model's specification file to be committed into the metadata repository.
+Once done, anyone will then be able to retrieve the exact same version of the dataset and labels that has been used for that specific model.
 
 **Persisting model's metrics:**
 
