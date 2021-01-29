@@ -469,7 +469,7 @@ ml-git_project/
 └── <ml-entity>/
 ```
 
-***** *Entity dir is a tree of directories in which the entity was versioned (Ex: folderA/folderB/MANIFEST.yaml)*.
+***** *Entity dir path is a tree of directories in which the entity was versioned (Ex: folderA/folderB/MANIFEST.yaml)*.
 
 </details>
 
@@ -752,7 +752,7 @@ ml-git_project/
 
 After found all .spec files the command show each one contents, then execute git checkout to branch *master*.
 
-***** *Entity dir is a tree of directories in which the entity was versioned (Ex: folderA/folderB/MANIFEST.yaml)*.
+***** *Entity dir path is a tree of directories in which the entity was versioned (Ex: folderA/folderB/MANIFEST.yaml)*.
 
 
 </details>
