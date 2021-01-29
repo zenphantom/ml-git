@@ -6,7 +6,6 @@ SPDX-License-Identifier: GPL-2.0-only
 import os
 import shutil
 import tempfile
-import ast
 
 from ml_git import log, admin
 from ml_git.admin import init_mlgit
@@ -133,6 +132,7 @@ def add(entity_type, entity_name, bumpversion=False, fsck=False, file_path=[], m
 
     repo = Repository(config_load(), entity_type)
     repo.add(entity_name, file_path, bumpversion, fsck, metric_tuple, metrics_file)
+
 
 def commit(entity, ml_entity_name, commit_message=None, related_dataset=None, related_labels=None):
     """That command commits the index / staging area to the local repository.
