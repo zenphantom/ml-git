@@ -136,16 +136,7 @@ to inform the relative directory where the entity is to be created. Example:
 $ ml-git dataset create imagenet8 --category=computer-vision --category=images --mutability=strict --store-type=s3h --bucket-name=mlgit-datasets --entity-dir=folderA/folderB
 ```
 
-
-After that a file must have been created in dataset/imagenet8/imagenet8.spec and should look like this:
-
-To create this specification file for a new entity you must run the following command:
-
-```
-$ ml-git dataset create imagenet8 --category=computer-vision --category=images --store-type=s3h --bucket-name=mlgit-datasets --version=1 
-```
-
-After that a file must have been created in dataset/imagenet8/imagenet8.spec and should look like this:
+After that a file must have been created in dataset/folderA/folderB/imagenet8/imagenet8.spec and should look like this:
 
 ```
 dataset:
@@ -469,7 +460,7 @@ If you want to get the latest available version of an entity you can just pass i
 $ ml-git dataset checkout imagenet8
 ```
 
-Getting the data will auto-create a directory structure under _dataset_ directory as shown below. That structure _computer-vision/images_ is actually coming from the categories defined in the dataset spec file. Doing that way allows for easy download of many datasets in one single ml-git project without creating any conflicts.
+Getting the data will auto-create a directory structure under _dataset_ directory as shown below. That structure _folderA/folderB_ is actually the structure in which the dataset was versioned.
 
 ```
 folderA
