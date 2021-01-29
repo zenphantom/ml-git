@@ -426,6 +426,8 @@ $ ml-git model add imagenet-model
 $ ml-git model commit imagenet-model --dataset=imagenet8 --labels=mscoco-captions
 $ ml-git model push imagenet-model
 ```
+
+There is not much change compared to dataset and labels operation.
 You can use the options "_-- dataset_" and "_--labels_", which tells to ml-git that the model should be linked to the specified dataset and labels.
 Internally, ml-git will look in your workspace for the checked out dataset and labels specified in the options. It then will include the reference to the checked out versions into the model's specification file to be committed into the metadata repository.
 Once done, anyone will then be able to retrieve the exact same version of the dataset and labels that has been used for that specific model.
@@ -434,7 +436,7 @@ Once done, anyone will then be able to retrieve the exact same version of the da
 
 We can insert metrics to the model in the add command, metrics can be added with the following parameters:
 
-1. __metrics-file__: optional metrics file path.
+1. __metrics-file__: optional metrics file path. It is expected a CSV file containing the metric names in the header and the values in the next line.
 2. __metric__: optional metric keys and values.
 
 An example of adding a model passing a metrics file, would be the following command:
