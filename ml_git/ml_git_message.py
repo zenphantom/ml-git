@@ -6,7 +6,6 @@ from ml_git.config import get_sample_spec_doc
 
 output_messages = {
     'DEBUG_REMOVE_REMOTE': 'Removing remote from local repository [%s]',
-    'DEBUG_WRONG_ENTITY_TYPE_OR_METRICS_NOT_FOUND': 'Wrong entity type OR metrics options not found!',
 
     'INFO_INITIALIZED_PROJECT': 'Initialized empty ml-git repository in %s',
     'INFO_ADD_REMOTE': 'Add remote repository [%s] for [%s]',
@@ -24,6 +23,7 @@ output_messages = {
     'INFO_RECLAIMED_SPACE': 'Total reclaimed space %s.',
     'INFO_ENTITY_DELETED': 'Entity %s was deleted',
     'INFO_PUT_STORED': 'Put - stored [%s] in bucket [%s] with key [%s]-[%s]',
+    'INFO_WRONG_ENTITY_TYPE': 'Metrics cannot be added to this entity: [%s].',
 
     'ERROR_WITHOUT_TAG_FOR_THIS_ENTITY': 'No entity with that name was found.',
     'ERROR_MULTIPLES_ENTITIES_WITH_SAME_NAME': 'You have more than one entity with the same name. Use one of the following tags to perform the checkout:\n',

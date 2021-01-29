@@ -20,7 +20,7 @@ class LogTests(unittest.TestCase):
     COMMIT_MESSAGE = 'test_message'
     TAG = 'computer-vision__images__dataset-ex__1'
 
-    def setUp_test(self, repo_type='dataset', with_metrics=False):
+    def set_up_test(self, repo_type='dataset', with_metrics=False):
         entity = '{}-ex'.format(repo_type)
         init_repository(repo_type, self)
         create_spec(self, repo_type, self.tmp_dir)
@@ -45,7 +45,7 @@ class LogTests(unittest.TestCase):
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_01_log(self):
-        self.setUp_test()
+        self.set_up_test()
         output = check_output(MLGIT_LOG % ('dataset', 'dataset-ex', ''))
         self.assertIn(messages[77] % self.TAG, output)
         self.assertIn(messages[78] % self.COMMIT_MESSAGE, output)
@@ -56,7 +56,7 @@ class LogTests(unittest.TestCase):
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_02_log_with_stat(self):
-        self.setUp_test()
+        self.set_up_test()
         output = check_output(MLGIT_LOG % ('dataset', 'dataset-ex', '--stat'))
         self.assertIn(messages[79] % 0, output)
         self.assertIn(messages[80] % 0, output)
@@ -67,7 +67,7 @@ class LogTests(unittest.TestCase):
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_03_log_with_fullstat(self):
-        self.setUp_test()
+        self.set_up_test()
         add_file(self, 'dataset', '--bumpversion')
         check_output(MLGIT_COMMIT % ('dataset', 'dataset-ex', ''))
         amount_files = 5
@@ -85,7 +85,7 @@ class LogTests(unittest.TestCase):
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_04_log_with_fullstat_files_added_and_deleted(self):
-        self.setUp_test()
+        self.set_up_test()
         add_file(self, 'dataset', '--bumpversion')
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_COMMIT % ('dataset', 'dataset-ex', '')))
         added = 4
@@ -103,7 +103,7 @@ class LogTests(unittest.TestCase):
     def test_05_log_metrics(self):
         repo_type = 'model'
         entity = '{}-ex'.format(repo_type)
-        self.setUp_test(repo_type, with_metrics=True)
+        self.set_up_test(repo_type, with_metrics=True)
         output = check_output(MLGIT_LOG % (repo_type, entity, ''))
         self.assertIn(messages[77] % self.TAG.replace('dataset-ex', entity), output)
         self.assertIn(messages[78] % self.COMMIT_MESSAGE, output)
@@ -117,7 +117,7 @@ class LogTests(unittest.TestCase):
     def test_06_log_metrics_wrong_entity(self):
         repo_type = 'labels'
         entity = '{}-ex'.format(repo_type)
-        self.setUp_test(repo_type, with_metrics=True)
+        self.set_up_test(repo_type, with_metrics=True)
         output = check_output(MLGIT_LOG % (repo_type, entity, ''))
         self.assertIn(messages[77] % self.TAG.replace('dataset-ex', entity), output)
         self.assertIn(messages[78] % self.COMMIT_MESSAGE, output)

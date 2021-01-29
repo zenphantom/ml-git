@@ -1083,12 +1083,16 @@ class LocalRepository(MultihashFS):
 
     def add_metrics(self, spec_path, metrics, metrics_file_path):
 
-        metrics_not_found = not metrics and not metrics_file_path
+        has_metrics_options = metrics or metrics_file_path
         wrong_repo_type = self.__repo_type != EntityType.MODEL.value
+        wrong_entity_and_has_metrics = wrong_repo_type and has_metrics_options
 
-        if wrong_repo_type or metrics_not_found:
-            log.debug(output_messages['DEBUG_WRONG_ENTITY_TYPE_OR_METRICS_NOT_FOUND'],
-                      class_name=LOCAL_REPOSITORY_CLASS_NAME)
+        if wrong_entity_and_has_metrics:
+            log.info(output_messages['INFO_WRONG_ENTITY_TYPE'] % self.__repo_type,
+                     class_name=LOCAL_REPOSITORY_CLASS_NAME)
+            return
+
+        if not has_metrics_options:
             return
 
         spec_file = yaml_load(spec_path)
