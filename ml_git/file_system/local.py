@@ -1076,10 +1076,10 @@ class LocalRepository(MultihashFS):
             csv_reader = csv.reader(csv_file, delimiter=',')
 
             first_line = 0
-            secound_line = 1
+            second_line = 1
 
             metrics_data = list(csv_reader)
-            return zip(metrics_data[first_line], metrics_data[secound_line])
+            return zip(metrics_data[first_line], metrics_data[second_line])
 
     def add_metrics(self, spec_path, metrics, metrics_file_path):
 
