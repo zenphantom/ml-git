@@ -22,7 +22,7 @@ class FetchAcceptanceTests(unittest.TestCase):
         add_file(self, entity, '', 'new')
         metadata_path = os.path.join(self.tmp_dir, ML_GIT_DIR, entity, 'metadata')
         workspace = os.path.join(self.tmp_dir, entity)
-        self.assertIn(messages[17] % (metadata_path, os.path.join('computer-vision', 'images', entity + '-ex')),
+        self.assertIn(messages[17] % (metadata_path, entity + '-ex'),
                       check_output(MLGIT_COMMIT % (entity, entity + '-ex', '')))
         HEAD = os.path.join(self.tmp_dir, ML_GIT_DIR, entity, 'refs', entity + '-ex', 'HEAD')
         self.assertTrue(os.path.exists(HEAD))

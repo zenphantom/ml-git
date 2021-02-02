@@ -26,7 +26,7 @@ class StatusAcceptanceTests(unittest.TestCase):
         add_file(self, entity, '', 'new')
         metadata_path = os.path.join(self.tmp_dir, ML_GIT_DIR, entity, 'metadata')
         workspace = os.path.join(self.tmp_dir, entity)
-        self.assertIn(messages[17] % (metadata_path, os.path.join('computer-vision', 'images', entity + '-ex')),
+        self.assertIn(messages[17] % (metadata_path, entity + '-ex'),
                       check_output(MLGIT_COMMIT % (entity, entity + '-ex', '')))
         HEAD = os.path.join(self.tmp_dir, ML_GIT_DIR, entity, 'refs', entity + '-ex', 'HEAD')
         self.assertTrue(os.path.exists(HEAD))
@@ -60,8 +60,7 @@ class StatusAcceptanceTests(unittest.TestCase):
         create_file(os.path.join(self.tmp_dir, 'dataset', 'dataset-ex'), 'file2', '0', '')
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ADD % ('dataset', 'dataset-ex', '--bumpversion')))
 
-        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, 'dataset', 'metadata'),
-                                      os.path.join('computer-vision', 'images', 'dataset-ex')),
+        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, 'dataset', 'metadata'), 'dataset-ex'),
                       check_output(MLGIT_COMMIT % ('dataset', 'dataset-ex', '')))
         self.assertRegex(check_output(MLGIT_STATUS % ('dataset', 'dataset-ex')),
                          r'Changes to be committed:\s+Untracked files:')
@@ -79,7 +78,7 @@ class StatusAcceptanceTests(unittest.TestCase):
         self.set_up_checkout('dataset')
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_CHECKOUT % ('dataset',
                                                                        'computer-vision__images__dataset-ex__1')))
-        new_file_path = os.path.join(self.tmp_dir, 'dataset', 'computer-vision', 'images', 'dataset-ex', 'newfile4')
+        new_file_path = os.path.join(self.tmp_dir, 'dataset', 'dataset-ex', 'newfile4')
         os.chmod(new_file_path, S_IWUSR | S_IREAD)
         os.remove(new_file_path)
         self.assertRegex(check_output(MLGIT_STATUS % ('dataset', 'dataset-ex')),
@@ -90,8 +89,8 @@ class StatusAcceptanceTests(unittest.TestCase):
         self.set_up_checkout('dataset')
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_CHECKOUT % ('dataset',
                                                                        'computer-vision__images__dataset-ex__1')))
-        old_file = os.path.join(self.tmp_dir, 'dataset', 'computer-vision', 'images', 'dataset-ex', 'newfile4')
-        new_file = os.path.join(self.tmp_dir, 'dataset', 'computer-vision', 'images', 'dataset-ex', 'file4_renamed')
+        old_file = os.path.join(self.tmp_dir, 'dataset', 'dataset-ex', 'newfile4')
+        new_file = os.path.join(self.tmp_dir, 'dataset', 'dataset-ex', 'file4_renamed')
         os.rename(old_file, new_file)
         self.assertRegex(check_output(MLGIT_STATUS % ('dataset', 'dataset-ex')),
                          r'Changes to be committed:\s+Deleted: newfile4\s+Untracked files:\s+file4_renamed')
@@ -101,12 +100,12 @@ class StatusAcceptanceTests(unittest.TestCase):
         self.set_up_checkout('dataset')
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_CHECKOUT % ('dataset',
                                                                        'computer-vision__images__dataset-ex__1')))
-        corrupted_file = os.path.join(self.tmp_dir, 'dataset', 'computer-vision', 'images', 'dataset-ex', 'newfile4')
+        corrupted_file = os.path.join(self.tmp_dir, 'dataset', 'dataset-ex', 'newfile4')
 
         os.chmod(corrupted_file, S_IWUSR | S_IREAD)
         with open(corrupted_file, 'w') as file:
             file.write('modified')
-        create_file(os.path.join(self.tmp_dir, 'dataset', 'computer-vision', 'images', 'dataset-ex'), 'Ls87x', '0', '')
+        create_file(os.path.join(self.tmp_dir, 'dataset', 'dataset-ex'), 'Ls87x', '0', '')
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ADD % ('dataset', 'dataset-ex', '--bumpversion')))
         self.assertRegex(check_output(MLGIT_STATUS % ('dataset', 'dataset-ex')),
                          r'Changes to be committed:\n\tNew file: Ls87x\n\tNew file: dataset-ex.spec\n\nUntracked files:\n\nCorrupted files:\n\tnewfile4\n')

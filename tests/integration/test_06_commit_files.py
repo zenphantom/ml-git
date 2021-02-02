@@ -10,7 +10,7 @@ import pytest
 
 from tests.integration.commands import MLGIT_COMMIT, MLGIT_ADD
 from tests.integration.helper import check_output, add_file, ML_GIT_DIR, entity_init, create_spec, create_file, \
-    init_repository
+    init_repository, move_entity_to_dir, ERROR_MESSAGE
 from tests.integration.output_messages import messages
 
 
@@ -20,8 +20,7 @@ class CommitFilesAcceptanceTests(unittest.TestCase):
     def _commit_entity(self, entity_type):
         entity_init(entity_type, self)
         add_file(self, entity_type, '--bumpversion', 'new')
-        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, entity_type, 'metadata'),
-                                      os.path.join('computer-vision', 'images', entity_type + '-ex')),
+        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, entity_type, 'metadata'), entity_type + '-ex'),
                       check_output(MLGIT_COMMIT % (entity_type, entity_type + '-ex', '')))
         HEAD = os.path.join(self.tmp_dir, ML_GIT_DIR, entity_type, 'refs', entity_type + '-ex', 'HEAD')
         self.assertTrue(os.path.exists(HEAD))
@@ -49,8 +48,7 @@ class CommitFilesAcceptanceTests(unittest.TestCase):
         create_file(workspace, 'file1', '0')
         self.assertIn(messages[13] % 'dataset',
                       check_output(MLGIT_ADD % ('dataset', 'dataset-ex', "")))
-        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, 'dataset', 'metadata'),
-                                      os.path.join('computer-vision', 'images', 'dataset' + '-ex')),
+        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, 'dataset', 'metadata'), 'dataset-ex'),
                       check_output(MLGIT_COMMIT % ('dataset', 'dataset' + '-ex', '')))
 
         create_file(workspace, 'file2', '1')
@@ -63,8 +61,7 @@ class CommitFilesAcceptanceTests(unittest.TestCase):
         self.assertIn(messages[96] % 'test',
                       check_output(MLGIT_COMMIT % ('dataset', 'dataset' + '-ex', '--version=test')))
 
-        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, 'dataset', 'metadata'),
-                                      os.path.join('computer-vision', 'images', 'dataset' + '-ex')),
+        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, 'dataset', 'metadata'), 'dataset-ex'),
                       check_output(MLGIT_COMMIT % ('dataset', 'dataset' + '-ex', '--version=2')))
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
@@ -80,8 +77,7 @@ class CommitFilesAcceptanceTests(unittest.TestCase):
         result = check_output(MLGIT_COMMIT % ('dataset', 'dataset' + '-ex', '--version-number=2'))
 
         self.assertIn(messages[106] % ('--version-number', '--version'), result)
-        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, 'dataset', 'metadata'),
-                                      os.path.join('computer-vision', 'images', 'dataset' + '-ex')), result)
+        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, 'dataset', 'metadata'), 'dataset-ex'), result)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_06_commit_with_large_version_number(self):
@@ -104,3 +100,13 @@ class CommitFilesAcceptanceTests(unittest.TestCase):
         self.assertIn(messages[104] % 'computer-vision__images__dataset-ex__2', check_output(MLGIT_COMMIT % (entity_type, entity_type+'-ex', '')))
         head_path = os.path.join(self.tmp_dir, ML_GIT_DIR, entity_type, 'refs', entity_type + '-ex', 'HEAD')
         self.assertTrue(os.path.exists(head_path))
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
+    def test_06_commit_entity_with_changed_dir(self):
+        entity_type = 'dataset'
+        artifact_name = 'dataset-ex'
+        self._commit_entity(entity_type)
+        create_file(os.path.join(entity_type, artifact_name), 'newfile5', '0', '')
+        move_entity_to_dir(self.tmp_dir, artifact_name, entity_type)
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ADD % (entity_type, artifact_name, ' --bumpversion')))
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_COMMIT % (entity_type, artifact_name, '')))

@@ -17,33 +17,22 @@ class SearchSpecException(Exception):
         super().__init__(msg)
 
 
-def search_spec_file(repotype, spec, categories_path):
-    root_path = get_root_path()
-    dir_with_cat_path = os.path.join(root_path, repotype, categories_path, spec)
-    dir_without_cat_path = os.path.join(root_path, repotype, spec)
-
-    files = None
-    dir_files = None
-
-    try:
-        files = os.listdir(dir_with_cat_path)
-        dir_files = dir_with_cat_path
-    except Exception:
-        try:
-            files = os.listdir(dir_without_cat_path)
-            dir_files = dir_without_cat_path
-        except Exception:  # TODO: search '.' path as well
-            # if 'files_without_cat_path' and 'files_with_cat_path' remains as None, the system couldn't find the directory
-            #  which means that the entity name passed is wrong
-            if files is None:
-                raise SearchSpecException('The entity name passed is wrong. Please check again')
-
-    if len(files) > 0:
-        for file in files:
-            if spec in file:
-                log.debug('search spec file: found [%s]-[%s]' % (dir_files, file), class_name=ML_GIT_PROJECT_NAME)
-                return dir_files, file
+def search_spec_file(repotype, spec, root_path=None):
+    if root_path is None:
+        root_path = os.path.join(get_root_path(), repotype)
+    spec_file = spec + SPEC_EXTENSION
+    for root, dir, files in os.walk(root_path):
+        if spec_file in files:
+            return root, spec_file
     raise SearchSpecException('The entity name passed is wrong. Please check again')
+
+
+def get_entity_dir(repotype, spec, root_path=None):
+    if root_path is None:
+        root_path = os.path.join(get_root_path(), repotype)
+    spec_path, _ = search_spec_file(repotype, spec, root_path)
+    entity_dir = os.path.relpath(spec_path, root_path)
+    return entity_dir
 
 
 def spec_parse(spec):

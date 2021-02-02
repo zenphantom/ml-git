@@ -4,6 +4,7 @@ SPDX-License-Identifier: GPL-2.0-only
 """
 
 import os
+import shutil
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -11,6 +12,7 @@ from unittest import mock
 import pytest
 
 from ml_git.ml_git_message import output_messages
+from ml_git.utils import ensure_path_exists
 from tests.integration.commands import MLGIT_COMMIT, MLGIT_PUSH
 from tests.integration.helper import ML_GIT_DIR, MINIO_BUCKET_PATH, GIT_PATH
 from tests.integration.helper import check_output, clear, init_repository, add_file, ERROR_MESSAGE
@@ -25,7 +27,7 @@ class PushFilesAcceptanceTests(unittest.TestCase):
         init_repository(entity_type, self)
         add_file(self, entity_type, '--bumpversion', 'new', file_content='0')
         metadata_path = os.path.join(self.tmp_dir, ML_GIT_DIR, entity_type, 'metadata')
-        self.assertIn(messages[17] % (metadata_path, os.path.join('computer-vision', 'images', entity_type + '-ex')),
+        self.assertIn(messages[17] % (metadata_path, entity_type + '-ex'),
                       check_output(MLGIT_COMMIT % (entity_type, entity_type + '-ex', '')))
 
         HEAD = os.path.join(self.tmp_dir, ML_GIT_DIR, entity_type, 'refs', entity_type+'-ex', 'HEAD')
@@ -58,7 +60,7 @@ class PushFilesAcceptanceTests(unittest.TestCase):
         init_repository('dataset', self)
         add_file(self, 'dataset', '--bumpversion', 'new')
         metadata_path = os.path.join(self.tmp_dir, ML_GIT_DIR, 'dataset', 'metadata')
-        self.assertIn(messages[17] % (metadata_path, os.path.join('computer-vision', 'images', 'dataset-ex')),
+        self.assertIn(messages[17] % (metadata_path, 'dataset-ex'),
                       check_output(MLGIT_COMMIT % ('dataset',  'dataset-ex', '')))
 
         HEAD = os.path.join(self.tmp_dir, ML_GIT_DIR, 'dataset', 'refs', 'dataset-ex', 'HEAD')
@@ -114,3 +116,20 @@ class PushFilesAcceptanceTests(unittest.TestCase):
         add_file(self, entity_type, '--bumpversion', 'new')
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_COMMIT % (entity_type, artifact_name, '')))
         self.assertIn('Unable to locate credentials', check_output(MLGIT_PUSH % (entity_type, artifact_name)))
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
+    def test_09_push_entity_with_dir(self):
+        entity_type = 'dataset'
+        artifact_name = 'dataset-ex'
+        init_repository(entity_type, self)
+        workspace = os.path.join(self.tmp_dir, entity_type, artifact_name)
+        self.assertTrue(os.path.exists(workspace))
+        entity_dir = os.path.join('folderA', 'folderB')
+        workspace_with_dir = os.path.join(self.tmp_dir, entity_type, entity_dir)
+        ensure_path_exists(workspace_with_dir)
+        shutil.move(workspace, workspace_with_dir)
+        add_file(self, entity_type, '--bumpversion', 'new', entity_dir=entity_dir)
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_COMMIT % (entity_type, artifact_name, '')))
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_PUSH % (entity_type, artifact_name)))
+        self.assertTrue(os.path.exists(workspace_with_dir))
+        self.assertTrue(os.path.exists(os.path.join(self.tmp_dir, ML_GIT_DIR, entity_type, 'metadata', entity_dir)))

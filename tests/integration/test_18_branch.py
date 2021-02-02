@@ -23,8 +23,7 @@ class BranchAcceptanceTests(unittest.TestCase):
 
         add_file(self, entity_type, '--bumpversion', 'new')
 
-        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, entity_type, 'metadata'),
-                                      os.path.join('computer-vision', 'images', entity_type+'-ex')),
+        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, entity_type, 'metadata'), entity_type+'-ex'),
                       check_output(MLGIT_COMMIT % (entity_type, entity_type+'-ex', '')))
 
         self.assertTrue(re.findall('computer-vision__images__' + entity_type + '-ex__2*',

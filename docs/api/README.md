@@ -124,6 +124,7 @@ def create(entity, entity_name, categories, mutability, **kwargs):
             import_url (str, optional): Import data from a google drive url.
             credentials_path (str, optional): Directory of credentials.json.
             unzip (bool, optional): Unzip imported zipped files [default: False].
+            entity_dir (str, optional): The relative path where the entity will be created inside the ml entity directory [default: empty].
     """
 ```
 </details>
