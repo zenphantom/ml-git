@@ -24,6 +24,8 @@ from ml_git.file_system.hashfs import MultihashFS
 from ml_git.file_system.index import MultihashIndex, FullIndex, Status
 from ml_git.metadata import Metadata
 from ml_git.ml_git_message import output_messages
+from ml_git.plugin_interface.data_plugin_constants import COMPARE_WORKSPACE_DATA
+from ml_git.plugin_interface.plugin_especialization import PluginCaller
 from ml_git.pool import pool_factory, process_futures
 from ml_git.refs import Refs
 from ml_git.sample import SampleValidate
@@ -42,6 +44,7 @@ class LocalRepository(MultihashFS):
         self.__config = config
         self.__repo_type = repo_type
         self.__progress_bar = None
+        self.plugin_insertion_data = None
 
     def _pool_push(self, ctx, obj, obj_path):
         store = ctx
@@ -710,6 +713,8 @@ class LocalRepository(MultihashFS):
             path, file = search_spec_file(self.__repo_type, spec)
             entity_dir = os.path.relpath(path, os.path.join(get_root_path(), self.__repo_type))
             full_metadata_path = os.path.join(metadata_path, entity_dir)
+            spec_content = yaml_load(os.path.join(path, file))
+            plugin_caller = PluginCaller(spec_content[self.__repo_type]['manifest'])
         except Exception as e:
             if log_errors:
                 log.error(e, class_name=REPOSITORY_CLASS_NAME)
@@ -736,6 +741,9 @@ class LocalRepository(MultihashFS):
                                                  path, new_files, status_directory)
         if tag:
             metadata.checkout()
+
+        self.plugin_insertion_data = plugin_caller.call(COMPARE_WORKSPACE_DATA, path, untracked_files)
+
         return new_files, deleted_files, untracked_files, corrupted_files, changed_files
 
     def _get_workspace_files_status(self, all_files, full_metadata_path, idx_yaml_mf,

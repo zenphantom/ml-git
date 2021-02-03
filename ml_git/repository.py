@@ -261,7 +261,11 @@ class Repository(object):
             self._print_files(deleted_files, full_option, 'Deleted: ')
 
             print('\nUntracked files:')
-            self._print_files(untracked_files, full_option)
+            data_from_plugin = repo.plugin_insertion_data
+            if data_from_plugin:
+                self._print_data_specialization(group_files_by_path(untracked_files), data_from_plugin)
+            else:
+                self._print_files(untracked_files, full_option)
 
             print('\nCorrupted files:')
             self._print_files(corruped_files, full_option)
@@ -282,6 +286,20 @@ class Repository(object):
         for base_path, path_files in files.items():
             if not base_path:
                 print('\t%s%s' % (files_status, '\n\t'.join(path_files)))
+            elif len(path_files) == one_file:
+                print('\t%s%s' % (files_status, os.path.join(base_path, ''.join(path_files))))
+            else:
+                print('\t%s%s\t->\t%d FILES' % (files_status, base_path + '/', len(path_files)))
+
+    @staticmethod
+    def _print_data_specialization(files, specialized_data, files_status=''):
+        one_file = 1
+
+        for base_path, path_files in files.items():
+            if not base_path:
+                print('\t%s%s' % (files_status, '\n\t'.join(path_files)))
+            elif base_path in specialized_data:
+                print('\t%s%s\t->\t%d ROWS' % (files_status, base_path + '/', specialized_data[base_path]))
             elif len(path_files) == one_file:
                 print('\t%s%s' % (files_status, os.path.join(base_path, ''.join(path_files))))
             else:
