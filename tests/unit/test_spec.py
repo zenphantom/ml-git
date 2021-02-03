@@ -9,9 +9,9 @@ import unittest
 import pytest
 import os
 
-from ml_git.constants import EntityType
+from ml_git.constants import STORAGE_KEY, EntityType
 from ml_git.spec import yaml_load, incr_version, is_valid_version, search_spec_file, SearchSpecException, spec_parse, \
-    get_spec_file_dir, increment_version_in_spec, get_root_path, get_version, update_store_spec, validate_bucket_name, \
+    get_spec_file_dir, increment_version_in_spec, get_root_path, get_version, update_storage_spec, validate_bucket_name, \
     set_version_in_spec
 from ml_git.utils import yaml_save
 
@@ -123,13 +123,13 @@ class SpecTestCases(unittest.TestCase):
         DATASETS = EntityType.DATASETS.value
         spec_path = os.path.join(os.getcwd(), os.sep.join([DATASETS, 'dataex', 'dataex.spec']))
 
-        update_store_spec(DATASETS, 'dataex', 's3h', 'fakestore')
+        update_storage_spec(DATASETS, 'dataex', 's3h', 'fakestorage')
         spec1 = yaml_load(spec_path)
-        self.assertEqual(spec1[DATASETS]['manifest']['store'], 's3h://fakestore')
+        self.assertEqual(spec1[DATASETS]['manifest'][STORAGE_KEY], 's3h://fakestorage')
 
-        update_store_spec(DATASETS, 'dataex', 's3h', 'some-bucket-name')
+        update_storage_spec(DATASETS, 'dataex', 's3h', 'some-bucket-name')
         spec2 = yaml_load(spec_path)
-        self.assertEqual(spec2[DATASETS]['manifest']['store'], 's3h://some-bucket-name')
+        self.assertEqual(spec2[DATASETS]['manifest'][STORAGE_KEY], 's3h://some-bucket-name')
 
     def test_validate_bucket_name(self):
         repo_type = EntityType.DATASETS.value
@@ -140,9 +140,9 @@ class SpecTestCases(unittest.TestCase):
         spec_bucket_name_not_in_config = yaml_load(os.path.join(testdir, 'valid.spec'))
         self.assertFalse(validate_bucket_name(spec_bucket_name_not_in_config[repo_type], config))
 
-        store = config['store']['s3']
-        del config['store']['s3']
-        config['store']['s3h'] = store
+        storage = config[STORAGE_KEY]['s3']
+        del config[STORAGE_KEY]['s3']
+        config[STORAGE_KEY]['s3h'] = storage
 
         spec_with_bucket_in_config = yaml_load(os.path.join(testdir, 'valid2.spec'))
         self.assertTrue(validate_bucket_name(spec_with_bucket_in_config[repo_type], config))

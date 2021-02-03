@@ -13,34 +13,34 @@ from botocore.client import ClientError, Config
 from cid import CIDv1
 from ml_git import log
 from ml_git.config import get_key
-from ml_git.constants import STORE_FACTORY_CLASS_NAME, S3STORE_NAME, S3_MULTI_HASH_STORE_NAME, StoreType
+from ml_git.constants import STORAGE_FACTORY_CLASS_NAME, S3STORAGE_NAME, S3_MULTI_HASH_STORAGE_NAME, StorageType
 from ml_git.ml_git_message import output_messages
-from ml_git.storages.multihash_store import MultihashStore
-from ml_git.storages.store import Store
+from ml_git.storages.multihash_storage import MultihashStorage
+from ml_git.storages.storage import Storage
 
 
-class S3Store(Store):
+class S3Storage(Storage):
     def __init__(self, bucket_name, bucket):
-        self._store_type = 'S3'
+        self._storage_type = 'S3'
         self._profile = bucket['aws-credentials']['profile']
         self._region = get_key('region', bucket)
         self._minio_url = get_key('endpoint-url', bucket)
         self._bucket = bucket_name
-        super(S3Store, self).__init__()
+        super(S3Storage, self).__init__()
 
     def connect(self):
-        log.debug('Connect - profile [%s] ; region [%s]' % (self._profile, self._region), class_name=S3STORE_NAME)
+        log.debug(output_messages['DEBUG_CONNECT_PROFILE_AND_REGION'] % (self._profile, self._region), class_name=S3STORAGE_NAME)
         self._session = boto3.Session(profile_name=self._profile, region_name=self._region)
         if self._minio_url != '':
-            log.debug('Connecting to [%s]' % self._minio_url, class_name=STORE_FACTORY_CLASS_NAME)
-            self._store = self._session.resource(StoreType.S3.value, endpoint_url=self._minio_url,
-                                                 config=Config(signature_version='s3v4'))
+            log.debug(output_messages['DEBUG_CONNECTING_TO_STORAGE'] % self._minio_url, class_name=STORAGE_FACTORY_CLASS_NAME)
+            self._storage = self._session.resource(StorageType.S3.value, endpoint_url=self._minio_url,
+                                                   config=Config(signature_version='s3v4'))
         else:
-            self._store = self._session.resource(StoreType.S3.value)
+            self._storage = self._session.resource(StorageType.S3.value)
 
     def bucket_exists(self):
         try:
-            self._store.meta.client.head_bucket(Bucket=self._bucket)
+            self._storage.meta.client.head_bucket(Bucket=self._bucket)
             return True
         except ClientError as e:
             error_msg = e.response['Error']['Message']
@@ -48,7 +48,7 @@ class S3Store(Store):
                 error_msg = output_messages['ERROR_BUCKET_DOES_NOT_EXIST'] % self._bucket
             elif e.response['Error']['Code'] == '403':
                 error_msg = output_messages['ERROR_AWS_KEY_NOT_EXIST']
-            log.error(error_msg, class_name=STORE_FACTORY_CLASS_NAME)
+            log.error(error_msg, class_name=STORAGE_FACTORY_CLASS_NAME)
             return False
 
     def create_bucket_name(self, bucket_prefix):
@@ -57,7 +57,7 @@ class S3Store(Store):
         return ''.join([bucket_prefix, str(uuid.uuid4())])
 
     def create_bucket(self, bucket_prefix):
-        s3_connection = self._store
+        s3_connection = self._storage
         current_region = self._session.region_name
         bucket_name = self.create_bucket_name(bucket_prefix)
         bucket_response = s3_connection.create_bucket(
@@ -72,7 +72,7 @@ class S3Store(Store):
 
     def key_exists(self, key_path):
         bucket = self._bucket
-        s3_resource = self._store
+        s3_resource = self._storage
 
         object_found = True
         try:
@@ -87,7 +87,7 @@ class S3Store(Store):
 
     def put(self, key_path, file_path):
         bucket = self._bucket
-        s3_resource = self._store
+        s3_resource = self._storage
         self.key_exists(key_path)
         res = s3_resource.Bucket(bucket).Object(key_path).put(file_path, Body=open(file_path,
                                                                                    'rb'))  # TODO :test for errors here!!!
@@ -95,16 +95,16 @@ class S3Store(Store):
         try:
             version = res['VersionId']
         except Exception:
-            log.error('Put - bucket [%s] not configured with Versioning' % bucket, class_name=S3STORE_NAME)
+            log.error(output_messages['ERROR_BUCKET_NOT_CONFIGURED'] % bucket, class_name=S3STORAGE_NAME)
             version = None
 
-        log.info('Put - stored [%s] in bucket [%s] with key [%s]-[%s]' % (file_path, bucket, key_path, version),
-                 class_name=S3STORE_NAME)
+        log.info(output_messages['INFO_FILE_STORED_IN_BUCKET'] % (file_path, bucket, key_path, version),
+                 class_name=S3STORAGE_NAME)
         return self._to_uri(key_path, version)
 
     def put_object(self, file_path, object):
         bucket = self._bucket
-        s3_resource = self._store
+        s3_resource = self._storage
         s3_resource.Object(bucket, file_path).put(Body=object)
 
     @staticmethod
@@ -129,7 +129,7 @@ class S3Store(Store):
 
     def get_object(self, key_path):
         bucket = self._bucket
-        s3_resource = self._store
+        s3_resource = self._storage
 
         if not self.key_exists(key_path):
             raise RuntimeError('Object [%s] not found' % key_path)
@@ -139,12 +139,11 @@ class S3Store(Store):
 
     def _get(self, file, key_path, version=None):
         bucket = self._bucket
-        s3_resource = self._store
+        s3_resource = self._storage
         if version is not None:
             res = s3_resource.Object(bucket, key_path).get(VersionId=version)
             r = res['Body']
-            log.debug('Get - downloading [%s], version [%s], from bucket [%s] into file [%s]'
-                      % (key_path, version, bucket, file), class_name=S3STORE_NAME)
+            log.debug(output_messages['DEBUG_DOWNLOADING_FROM_BUCKET'] % (key_path, bucket, file), class_name=S3STORAGE_NAME)
             with open(file, 'wb') as f:
                 while True:
                     chunk = r.read(1024)
@@ -160,9 +159,8 @@ class S3Store(Store):
 
     def _delete(self, key_path, version=None):
         bucket = self._bucket
-        s3_resource = self._store
-        log.debug('Delete - deleting [%s] with version [%s] from bucket [%s]' % (key_path, version, bucket),
-                  class_name=S3STORE_NAME)
+        s3_resource = self._storage
+        log.debug(output_messages['DEBUG_DELETING_FROM_BUCKET'] % (key_path, bucket), class_name=S3STORAGE_NAME)
         if version is not None:
             s3_resource.Object(bucket, key_path).delete(VersionId=version)
         else:
@@ -170,7 +168,7 @@ class S3Store(Store):
 
     def list_files_from_path(self, path):
         bucket = self._bucket
-        s3_resource = self._store
+        s3_resource = self._storage
         res = s3_resource.Bucket(bucket)
 
         if path:
@@ -181,25 +179,26 @@ class S3Store(Store):
         return list(filter(lambda file: file[-1] != '/', files))
 
 
-class S3MultihashStore(S3Store, MultihashStore):
+class S3MultihashStorage(S3Storage, MultihashStorage):
     def __init__(self, bucket_name, bucket, blocksize=256 * 1024):
         self._blk_size = blocksize
         if blocksize < 64 * 1024:
             self._blk_size = 64 * 1024
         if blocksize > 1024 * 1024:
             self._blk_size = 1024 * 1024
-        super(S3MultihashStore, self).__init__(bucket_name, bucket)
+        super(S3MultihashStorage, self).__init__(bucket_name, bucket)
 
     def put(self, key_path, file_path):
         bucket = self._bucket
-        s3_resource = self._store
+        s3_resource = self._storage
 
         if self.key_exists(key_path) is True:
-            log.debug('Object [%s] already in S3 store' % key_path, class_name=S3STORE_NAME)
+            log.debug(output_messages['DEBUG_OBJECT_ALREADY_IN_STORAGE'] % (key_path, self._storage_type),
+                      class_name=S3STORAGE_NAME)
             return True
 
         if os.path.exists(file_path) is False:
-            log.debug('File [%s] not present in local repository' % file_path, class_name=S3STORE_NAME)
+            log.debug(output_messages['DEBUG_FILE_NOT_IN_LOCAL_REPOSITORY'] % file_path, class_name=S3STORAGE_NAME)
             return False
 
         with open(file_path, 'rb') as f:
@@ -211,13 +210,13 @@ class S3MultihashStore(S3Store, MultihashStore):
 
     def _get(self, file, key_path):
         bucket = self._bucket
-        s3_resource = self._store
+        s3_resource = self._storage
 
         res = s3_resource.Object(bucket, key_path).get()
         c = res['Body']
         log.debug(
-            'Get - downloading [%s] from bucket [%s] into file [%s]' % (key_path, bucket, file),
-            class_name=S3_MULTI_HASH_STORE_NAME
+            output_messages['DEBUG_DOWNLOADING_FROM_BUCKET'] % (key_path, bucket, file),
+            class_name=S3_MULTI_HASH_STORAGE_NAME
         )
         with open(file, 'wb') as f:
             m = hashlib.sha256()
@@ -241,6 +240,6 @@ class S3MultihashStore(S3Store, MultihashStore):
 
     def _delete(self, key_path):
         bucket = self._bucket
-        s3_resource = self._store
-        log.debug('Delete - deleting [%s] from bucket [%s]' % (key_path, bucket), class_name=S3_MULTI_HASH_STORE_NAME)
+        s3_resource = self._storage
+        log.debug(output_messages['DEBUG_DELETING_FROM_BUCKET'] % (key_path, bucket), class_name=S3_MULTI_HASH_STORAGE_NAME)
         return s3_resource.Object(bucket, key_path).delete()

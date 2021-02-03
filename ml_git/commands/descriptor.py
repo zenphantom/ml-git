@@ -7,9 +7,8 @@ import copy
 
 import click
 
-from ml_git.commands import entity, help_msg, store, storage
-from ml_git.commands.custom_options import MutuallyExclusiveOption, OptionRequiredIf, DeprecatedOption, \
-    DeprecatedOptionsCommand
+from ml_git.commands import entity, help_msg, storage
+from ml_git.commands.custom_options import MutuallyExclusiveOption, OptionRequiredIf, DeprecatedOptionsCommand
 from ml_git.commands.utils import set_verbose_mode
 from ml_git.constants import Mutability
 
@@ -59,7 +58,7 @@ commands = [
             '--clearonfail': {'is_flag': True, 'help': help_msg.CLEAR_ON_FAIL},
         },
 
-        'help': 'Push local commits from ML_ENTITY_NAME to remote ml-git repository & store.'
+        'help': 'Push local commits from ML_ENTITY_NAME to remote ml-git repository & storage.'
 
     },
 
@@ -349,10 +348,9 @@ commands = [
             '--retry': {'default': 2, 'help': help_msg.RETRY_OPTION},
             '--path': {'default': None, 'help': help_msg.PATH_OPTION},
             '--object': {'default': None, 'help': help_msg.OBJECT_OPTION},
-            ('--store-type', '--storage-type'): {
+            '--storage-type': {
                 'default': 's3', 'help': help_msg.STORAGE_TYPE,
-                'type': click.Choice(['s3', 'gdrive']),
-                'cls': DeprecatedOption, 'deprecated': ['--store-type'], 'preferred': '--storage-type'
+                'type': click.Choice(['s3', 'gdrive'])
             },
             '--endpoint-url': {'default': '', 'help': help_msg.ENDPOINT_URL},
         },
@@ -382,7 +380,7 @@ commands = [
 
         },
 
-        'help': 'This command allows you to export files from one store (S3|MinIO) to another (S3|MinIO).'
+        'help': 'This command allows you to export files from one storage (S3|MinIO) to another (S3|MinIO).'
 
     },
 
@@ -443,9 +441,8 @@ commands = [
         'options': {
             '--category': {'required': True, 'multiple': True, 'help': help_msg.CATEGORY_OPTION},
             '--mutability': {'required': True, 'type': click.Choice(Mutability.list()), 'help': help_msg.MUTABILITY},
-            ('--store-type', '--storage-type'): {
+            '--storage-type': {
                 'type': click.Choice(['s3h', 'azureblobh', 'gdriveh']),
-                'cls': DeprecatedOption, 'deprecated': ['--store-type'], 'preferred': '--storage-type',
                 'help': help_msg.STORAGE_TYPE, 'default': 's3h'
             },
             '--version': {'help': help_msg.VERSION_NUMBER, 'default': 1},
@@ -465,7 +462,7 @@ commands = [
         },
 
         'help': 'This command will create the workspace structure with data and spec '
-                'file for an entity and set the git and store configurations.'
+                'file for an entity and set the git and storage configurations.'
 
     },
 
@@ -502,55 +499,6 @@ commands = [
         },
 
         'help': 'This command shows ml-entity-name\'s commit information like author, date, commit message.'
-
-    },
-
-    {
-        'name': 'add',
-
-        'callback': storage.storage_add,
-
-        'groups': [store.store],
-
-        'arguments': {
-            'bucket-name': {},
-        },
-
-        'options': {
-            '--credentials': {'help': help_msg.STORAGE_CREDENTIALS},
-            '--region': {'help': help_msg.STORAGE_REGION},
-            '--type': {'default': 's3h',
-                       'type': click.Choice(['s3h', 's3', 'azureblobh', 'gdriveh'],
-                                            case_sensitive=True),
-                       'help': help_msg.STORAGE_TYPE},
-            '--endpoint-url': {'help': help_msg.ENDPOINT_URL},
-            ('--global', '-g'): {'is_flag': True, 'default': False, 'help': help_msg.GLOBAL_OPTION},
-        },
-
-        'help': '[DEPRECATED]: Add a storage BUCKET_NAME to ml-git'
-
-    },
-
-    {
-        'name': 'del',
-
-        'callback': storage.storage_del,
-
-        'groups': [store.store],
-
-        'arguments': {
-            'bucket-name': {},
-        },
-
-        'options': {
-            '--type': {'default': 's3h',
-                       'type': click.Choice(['s3h', 's3', 'azureblobh', 'gdriveh'],
-                                            case_sensitive=True),
-                       'help': help_msg.STORAGE_TYPE},
-            ('--global', '-g'): {'is_flag': True, 'default': False, 'help': help_msg.GLOBAL_OPTION},
-        },
-
-        'help': '[DEPRECATED]: Delete a storage BUCKET_NAME from ml-git.'
 
     },
 

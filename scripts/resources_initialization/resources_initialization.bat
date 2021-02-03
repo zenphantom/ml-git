@@ -18,7 +18,7 @@ CALL:CREATE_NEW_GITHUB_REPOSITORY model
 
 ECHO.
 ECHO ## BUCKET CONFIGURATION ##
-ECHO store: >> config.yaml
+ECHO storage: >> config.yaml
 CALL:CREATE_NEW_BUCKET_WIZARD
 
 ECHO.
@@ -90,7 +90,7 @@ GOTO :END
 
 
 :CREATE_NEW_BUCKET
-   SET /p STORE_TYPE="What type of store do you want to configure? [s3h, azureblobh]: "
+   SET /p STORE_TYPE="What type of storage do you want to configure? [s3h, azureblobh]: "
    SET /p BUCKET_NAME="What name do you want to give to your bucket? "
    ECHO   %STORE_TYPE%: >> config.yaml
    ECHO     %BUCKET_NAME%: >> config.yaml
@@ -104,7 +104,7 @@ GOTO :END
          az storage container create -n %BUCKET_NAME%
          ECHO       credentials: None >> config.yaml
       ) ELSE (
-         ECHO Please enter a valid store type.
+         ECHO Please enter a valid storage type.
          CALL:CREATE_NEW_BUCKET
       )
    )

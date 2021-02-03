@@ -12,7 +12,7 @@ from unittest import mock
 import pytest
 from git import GitError, Repo
 
-from ml_git.constants import EntityType
+from ml_git.constants import STORAGE_KEY, EntityType
 from ml_git.metadata import Metadata
 from ml_git.repository import Repository
 from ml_git.utils import clear, yaml_load_str, yaml_load
@@ -45,7 +45,7 @@ config = {
     },
 
 
-    'store': {
+    STORAGE_KEY: {
         's3': {
             'mlgit-datasets': {
                 'region': 'us-east-1',
@@ -64,7 +64,7 @@ metadata_config = {
         'categories': 'images',
         'manifest': {
             'files': 'MANIFEST.yaml',
-            'store': 's3h://ml-git-datasets'
+            STORAGE_KEY: 's3h://ml-git-datasets'
         },
         'name': 'dataset_ex',
         'version': 1

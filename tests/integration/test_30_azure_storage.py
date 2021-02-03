@@ -10,6 +10,7 @@ from unittest import mock
 import pytest
 from azure.storage.blob import BlobServiceClient, ContainerClient
 
+from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_INIT, MLGIT_REMOTE_ADD, MLGIT_ENTITY_INIT, MLGIT_COMMIT, MLGIT_PUSH, \
     MLGIT_CHECKOUT
 from tests.integration.helper import ML_GIT_DIR, ERROR_MESSAGE, DATASETS, DATASET_NAME, DATASET_TAG
@@ -20,7 +21,7 @@ from tests.integration.output_messages import messages
 @pytest.mark.usefixtures('tmp_dir', 'start_local_git_server', 'switch_to_tmp_dir')
 class AzureAcceptanceTests(unittest.TestCase):
     repo_type = DATASETS
-    store_type = 'azureblobh'
+    storage_type = 'azureblobh'
     bucket = 'mlgit'
     workspace = os.path.join(repo_type, repo_type + '-ex')
     dev_store_account_ = 'DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNO' \
@@ -29,14 +30,14 @@ class AzureAcceptanceTests(unittest.TestCase):
 
     def set_up_push(self):
         os.makedirs(self.workspace)
-        create_spec(self, self.repo_type, self.tmp_dir, version=1, mutability='strict', store_type=self.store_type)
+        create_spec(self, self.repo_type, self.tmp_dir, version=1, mutability='strict', storage_type=self.storage_type)
 
         self.assertIn(messages[0], check_output(MLGIT_INIT))
         self.assertIn(messages[2] % (GIT_PATH, self.repo_type),
                       check_output(MLGIT_REMOTE_ADD % (self.repo_type, GIT_PATH)))
-        self.assertIn(messages[87] % (self.store_type, self.bucket),
-                      check_output('ml-git repository store add %s --type=%s' %
-                                   (self.bucket, self.store_type)))
+        self.assertIn(output_messages['INFO_ADD_STORAGE_WITHOUT_PROFILE'] % (self.storage_type, self.bucket),
+                      check_output('ml-git repository storage add %s --type=%s' %
+                                   (self.bucket, self.storage_type)))
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ENTITY_INIT % DATASETS))
 
         add_file(self, self.repo_type, '', 'new')
@@ -62,9 +63,9 @@ class AzureAcceptanceTests(unittest.TestCase):
         self.create_bucket(self.dev_store_account_, self.bucket)
         self.assertIn(messages[0], check_output(MLGIT_INIT))
         self.assertIn(messages[2] % (GIT_PATH, self.repo_type), check_output(MLGIT_REMOTE_ADD % (self.repo_type, GIT_PATH)))
-        self.assertIn(messages[87] % (self.store_type, self.bucket),
-                      check_output('ml-git repository store add %s --type=%s' %
-                                   (self.bucket, self.store_type)))
+        self.assertIn(output_messages['INFO_ADD_STORAGE_WITHOUT_PROFILE'] % (self.storage_type, self.bucket),
+                      check_output('ml-git repository storage add %s --type=%s' %
+                                   (self.bucket, self.storage_type)))
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ENTITY_INIT % DATASETS))
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
@@ -78,14 +79,14 @@ class AzureAcceptanceTests(unittest.TestCase):
     @mock.patch.dict(os.environ, {'AZURE_STORAGE_CONNECTION_STRING': dev_store_account_})
     def test_03_checkout(self):
         os.makedirs(self.workspace)
-        create_spec(self, self.repo_type, self.tmp_dir, version=1, mutability='strict', store_type=self.store_type)
+        create_spec(self, self.repo_type, self.tmp_dir, version=1, mutability='strict', storage_type=self.storage_type)
 
         self.assertIn(messages[0], check_output(MLGIT_INIT))
         self.assertIn(messages[2] % (GIT_PATH, self.repo_type),
                       check_output(MLGIT_REMOTE_ADD % (self.repo_type, GIT_PATH)))
-        self.assertIn(messages[87] % (self.store_type, self.bucket),
-                      check_output('ml-git repository store add %s --type=%s' %
-                                   (self.bucket, self.store_type)))
+        self.assertIn(output_messages['INFO_ADD_STORAGE_WITHOUT_PROFILE'] % (self.storage_type, self.bucket),
+                      check_output('ml-git repository storage add %s --type=%s' %
+                                   (self.bucket, self.storage_type)))
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ENTITY_INIT % DATASETS))
 
         add_file(self, self.repo_type, '', 'new')

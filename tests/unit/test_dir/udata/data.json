@@ -2,7 +2,7 @@
   "datasets": {
     "categories": "imgs",
     "manifest": {
-      "store": "s3h://br.edu.ufcg.virtus.hp.ml.gitml.test0"
+      "storage": "s3h://some-bucket-name"
     },
     "name": "dataex",
     "version": 1

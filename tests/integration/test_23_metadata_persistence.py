@@ -8,9 +8,11 @@ import unittest
 
 import pytest
 
+from ml_git.constants import STORAGE_KEY
+from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_STATUS, MLGIT_ADD, MLGIT_PUSH, MLGIT_COMMIT, MLGIT_INIT, \
-    MLGIT_REMOTE_ADD, MLGIT_ENTITY_INIT, MLGIT_CHECKOUT, MLGIT_STORE_ADD_WITH_TYPE
-from tests.integration.helper import ML_GIT_DIR, GIT_PATH, BUCKET_NAME, PROFILE, STORE_TYPE, DATASETS, DATASET_NAME
+    MLGIT_REMOTE_ADD, MLGIT_ENTITY_INIT, MLGIT_CHECKOUT, MLGIT_STORAGE_ADD_WITH_TYPE
+from tests.integration.helper import ML_GIT_DIR, GIT_PATH, BUCKET_NAME, PROFILE, STORAGE_TYPE, DATASETS, DATASET_NAME
 from tests.integration.helper import check_output, clear, init_repository, yaml_processor
 from tests.integration.output_messages import messages
 
@@ -49,7 +51,7 @@ class MetadataPersistenceTests(unittest.TestCase):
                 'categories': ['computer-vision', 'images'],
                 'manifest': {
                     'files': 'MANIFEST.yaml',
-                    'store': 's3h://mlgit'
+                    STORAGE_KEY: 's3h://mlgit'
                 },
                 'mutability': 'strict',
                 'name': 'datasets-ex',
@@ -84,8 +86,8 @@ class MetadataPersistenceTests(unittest.TestCase):
 
         self.assertIn(messages[0], check_output(MLGIT_INIT))
         self.assertIn(messages[2] % (GIT_PATH, DATASETS), check_output(MLGIT_REMOTE_ADD % (DATASETS, GIT_PATH)))
-        self.assertIn(messages[7] % (STORE_TYPE, BUCKET_NAME, PROFILE),
-                      check_output(MLGIT_STORE_ADD_WITH_TYPE % (BUCKET_NAME, PROFILE, STORE_TYPE)))
+        self.assertIn(output_messages['INFO_ADD_STORAGE'] % (STORAGE_TYPE, BUCKET_NAME, PROFILE),
+                      check_output(MLGIT_STORAGE_ADD_WITH_TYPE % (BUCKET_NAME, PROFILE, STORAGE_TYPE)))
         self.assertIn(messages[8] % (GIT_PATH, os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'metadata')),
                       check_output(MLGIT_ENTITY_INIT % DATASETS))
 

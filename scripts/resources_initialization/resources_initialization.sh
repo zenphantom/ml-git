@@ -42,7 +42,7 @@ create_new_github_repository()
 
 create_new_bucket()
 {
-   read -p "What type of store do you want to configure? [s3h, azureblobh]: " STORE_TYPE
+   read -p "What type of storage do you want to configure? [s3h, azureblobh]: " STORE_TYPE
    read -p "What name do you want to give to your bucket? " BUCKET_NAME
    echo "  ${STORE_TYPE}:" >> config.yaml
    echo "    ${BUCKET_NAME}:" >> config.yaml
@@ -58,7 +58,7 @@ create_new_bucket()
       az storage container create -n ${BUCKET_NAME}
       echo "      credentials: None" >> config.yaml
    else
-      echo "Please enter a valid store type."
+      echo "Please enter a valid storage type."
       create_new_bucket
    fi
    } > log.txt
@@ -159,7 +159,7 @@ create_new_github_repository labels
 create_new_github_repository model
 
 echo -e "\n## BUCKET CONFIGURATION ##"
-echo "store:" >> config.yaml
+echo "storage:" >> config.yaml
 create_new_bucket_wizard
 
 echo -e "\n## CREATE REPOSITORY WITH CONFIGURATIONS ##"

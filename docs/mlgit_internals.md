@@ -5,7 +5,7 @@
 The first design concept about ml-git is to decouple the ML entities metadata management from the actual data such that there are 2 main layers in the tool:
 1. the metadata management : There are for each ML entities managed under ml-git, the user needs to define a small specification file. These files are then managed by a git repository to retrieve the different versions.
 
-2. the data store management
+2. the data storage management
 
 | ![mlgit-cidv1](mlgit-metadata-data.png) |
 |:--:|
@@ -36,9 +36,9 @@ Summarizing, a CID is :
 There are a few steps to chunk a file to get an IPLD - CID format:
 1. slide the file in piece of, say, 256KB
 2. for each slice, compute its digest (currently, ml-git uses sha2-256)
-3. obtain the CID for all these digests. These slice of files will be saved in a data store with the computed CID as their filename. 
+3. obtain the CID for all these digests. These slice of files will be saved in a data storage with the computed CID as their filename. 
 4. build a json describing all the chunks of the file
-5. obtain the CID of that json. That json will also be saved in the data store with the computed CID as its filename.
+5. obtain the CID of that json. That json will also be saved in the data storage with the computed CID as its filename.
 
 Note that this last CID is really the only piece of information you need to keep to retrieve the whole image.jpg file.
 And last but not least, one can ensure the integrity of the file while downloading by computing the digests of all downloaded chunks and checking against the digest encoded in their CID.
@@ -294,7 +294,7 @@ ml-git_project/
           └── hashfs/ <-- Objects here
 ```
 
-When objects not found in cache, the command download the blobs from data store to the workspace:
+When objects not found in cache, the command download the blobs from data storage to the workspace:
 
 ```
 ml-git_project/
@@ -403,7 +403,7 @@ datasets:
     - images
   mutability: strict
   manifest:
-    store: s3h://mlgit-datasets
+    storage: s3h://mlgit-datasets
   name: imagenet8
   version: 1
 ```
@@ -418,7 +418,7 @@ datasets:
   mutability: strict
   manifest:
     files: MANIFEST.yaml
-    store: s3h://mlgit-datasets
+    storage: s3h://mlgit-datasets
   name: imagenet8
   version: 1
 ```
@@ -499,8 +499,8 @@ The parameter ```--mutability``` must be used to define the entity's mutability,
 If you want to know more about each type of mutability and how it works, please take a look at [mutability helper documentation](mutability_helper.md).
 
 The parameter ```--import``` is used to import files from a src folder to data folder.
-The optional parameter ```--wizard-questions``` if passed, ask interactive questions at console for git & store configurations and update the config.yaml file.
-The parameter ```--store-type``` must be used to define the entity's storage, which can be: s3h, azureblobh, gdriveh.
+The optional parameter ```--wizard-questions``` if passed, ask interactive questions at console for git & storage configurations and update the config.yaml file.
+The parameter ```--storage-type``` must be used to define the entity's storage, which can be: s3h, azureblobh, gdriveh.
 
 The parameter ```--import-url``` is used to import files from Google Drive to data folder. 
 Using this option it will be necessary to inform the path to your google drive credentials through the ```credentials-path``` argument. 
@@ -513,13 +513,13 @@ In addition, you can use the ```--unzip``` option to unzip the files imported.
 <details>
 <summary> <code>ml-git &lt;ml-entity&gt; export</code> </summary>
 
-This command allows you to export files from one store (S3|MinIO) to another (S3|MinIO).
+This command allows you to export files from one storage (S3|MinIO) to another (S3|MinIO).
 
 ```
 ml-git (datasets|labels|models) export ML_ENTITY_TAG BUCKET_NAME
 ```
 
-Initially, it checks if the user is in an initialized ml-git project. With the ```entity tag```, ```--credentials```, ```--region```, ```--endpoint```, ```--retry``` and ```bucket name```  arguments, ml-git connects to the store (S3|MinIO) bucket. Then the files are exported to the target store (S3|MinIO) bucket.
+Initially, it checks if the user is in an initialized ml-git project. With the ```entity tag```, ```--credentials```, ```--region```, ```--endpoint```, ```--retry``` and ```bucket name```  arguments, ml-git connects to the storage (S3|MinIO) bucket. Then the files are exported to the target storage (S3|MinIO) bucket.
 
 </details>
 
@@ -624,7 +624,7 @@ ML dataset
 ml-git (datasets|labels|models) push ML_ENTITY_NAME
 ```
 
-Verify the git global configuration, and try upload **objects** from local repository to data store creating a thread pool with maximum of ten workers. This process use store configuration from spec file and AWS credentials.
+Verify the git global configuration, and try upload **objects** from local repository to data storage creating a thread pool with maximum of ten workers. This process use stored configuration from spec file and AWS credentials.
 
 .spec file:
 
@@ -634,7 +634,7 @@ datasets:
     - computer-vision
     - images
   manifest:
-    store: s3h://mlgit-datasets < -- store configuration
+    storage: s3h://mlgit-datasets < -- storage configuration
   name: imagenet8
   version: 1
 ```
@@ -650,7 +650,7 @@ ml-git_project/
 |      └── objects/ < -- Files to be uploaded.
 └── <ml-entity>/
     └── <ml-entity-name>/
-       ├── <ml-entity-name>.spec < -- Spec file with store configuration.
+       ├── <ml-entity-name>.spec < -- Spec file with storage configuration.
 ```
 
 After the upload process, ml-git executes **git push** from local repository **.ml-git/dataset/metadata** to the remote repository configured in **config.yaml**.
@@ -662,17 +662,17 @@ After the upload process, ml-git executes **git push** from local repository **.
 
 Starting point of a remote fsck is to identify all the IPLD files contained in the MANIFEST file associated with the specified artefact spec (\<ml-artefact-name\>) and then executes the following steps:
 
-* Verify the existence of all these IPLDs in the remote store
-    * If one IPLD does not exist and it is present in the local repository, upload it to the remote store
+* Verify the existence of all these IPLDs in the remote storage
+    * If one IPLD does not exist and it is present in the local repository, upload it to the remote storage
 * If the IPLD is present in the local repository:
     * Open it and identify all blobs associated with that IPLD.
-    * Verify the existence of these blobs in the remote store.
-    * If one blob does not exist and it is present in the local repository, upload it to the remote store.
+    * Verify the existence of these blobs in the remote storage.
+    * If one blob does not exist and it is present in the local repository, upload it to the remote storage.
 * If the IPLD is NOT present in the local repository and --thorough option is set
     * Download the IPLD
     * Open it and identify all blobs associated with that IPLD.
-    * Verify the existence of these blobs in the remote store.
-    * If one blob does not exist and it is present in the local repository, upload it to the remote store.
+    * Verify the existence of these blobs in the remote storage.
+    * If one blob does not exist and it is present in the local repository, upload it to the remote storage.
 
 ``[--paranoid]``: 
 Paranoid mode adds an additional step that will download all IPLD and its associated IPLD links to verify the content by computing the multihash of all these.<br />
@@ -935,8 +935,8 @@ ml-git-project/
 ```
 datasets:
   git: git@github.com:standel/ml-datasets.git <-- git project url
-store:
-  s3: <-- store type (AWS)
+storage:
+  s3: <-- storage type (AWS)
     mlgit-datasets: <-- bucket name
       aws-credentials:
         profile: mlgit
@@ -967,9 +967,9 @@ ml-git_project/
 </details>
 
 <details>
-<summary> <code>ml-git repository store add </code></summary>
+<summary> <code>ml-git repository storage add </code></summary>
 
-ml-git store verify option [`[--type=<store-type>]`](#store-type),  then open existent file **.ml-git/config.yaml** and append the new storage.
+ml-git storage verify option [`[--type=<storage-type>]`](#storage-type),  then open existent file **.ml-git/config.yaml** and append the new storage.
 
 You can use three types of storage (S3, MinIO, Azure or GDrive). See how configure each type in [Storage Configuration](storage_configurations.md) file.
 
@@ -977,7 +977,7 @@ You can use three types of storage (S3, MinIO, Azure or GDrive). See how configu
 
 <details>
 
-<summary> <code>ml-git repository store del </code></summary>
+<summary> <code>ml-git repository storage del </code></summary>
 
 
 ml-git open existent file **.ml-git/config.yaml**:
@@ -986,12 +986,12 @@ ml-git open existent file **.ml-git/config.yaml**:
 ```
 datasets:
   git: git@github.com:standel/ml-datasets.git <-- git project url
-store:
-  s3: <-- store type (AWS)
+storage:
+  s3: <-- storage type (AWS)
     mlgit-datasets: <-- bucket name
       aws-credentials:
         profile: mlgit
       region: us-east-1
 ```
-Then verify if the store exists in the file. Remove if exists.
+Then verify if the storage exists in the file. Remove if exists.
 </details>

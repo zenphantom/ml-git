@@ -21,7 +21,7 @@ class GdrivePushFilesAcceptanceTests(unittest.TestCase):
     @pytest.mark.usefixtures('switch_to_tmp_dir_with_gdrive_credentials', 'start_local_git_server')
     def test_01_push_and_checkout(self):
         cpath = 'credentials-json'
-        init_repository(DATASETS, self, store_type='gdriveh', profile=cpath)
+        init_repository(DATASETS, self, storage_type='gdriveh', profile=cpath)
         add_file(self, DATASETS, '--bumpversion', 'new')
         metadata_path = os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'metadata')
         self.assertIn(messages[17] % (metadata_path, os.path.join('computer-vision', 'images', DATASET_NAME)),
@@ -41,7 +41,7 @@ class GdrivePushFilesAcceptanceTests(unittest.TestCase):
         workspace = os.path.join(self.tmp_dir, DATASETS)
         clear(workspace)
         clear(os.path.join(self.tmp_dir, ML_GIT_DIR))
-        init_repository(DATASETS, self, store_type='gdriveh', profile=cpath)
+        init_repository(DATASETS, self, storage_type='gdriveh', profile=cpath)
 
         self.assertNotIn(ERROR_MESSAGE, check_output('ml-git datasets checkout %s' % tag))
 
@@ -64,14 +64,14 @@ class GdrivePushFilesAcceptanceTests(unittest.TestCase):
 
         file_path_b = os.path.join(DATASET_NAME, 'B')
         self.assertNotIn(ERROR_MESSAGE, check_output(
-            MLGIT_IMPORT % (DATASETS, 'mlgit', DATASET_NAME) + ' --store-type=gdrive --object=B --credentials=' + CREDENTIALS_PATH))
+            MLGIT_IMPORT % (DATASETS, 'mlgit', DATASET_NAME) + ' --storage-type=gdrive --object=B --credentials=' + CREDENTIALS_PATH))
 
         self.assertTrue(os.path.exists(file_path_b))
 
         file_path = os.path.join(DATASET_NAME, 'test-folder', 'A')
 
         self.assertNotIn(ERROR_MESSAGE, check_output(
-            MLGIT_IMPORT % (DATASETS, 'mlgit', DATASET_NAME) + ' --store-type=gdrive --path=test-folder --credentials=' + cpath))
+            MLGIT_IMPORT % (DATASETS, 'mlgit', DATASET_NAME) + ' --storage-type=gdrive --path=test-folder --credentials=' + cpath))
 
         self.assertTrue(os.path.exists(file_path))
 

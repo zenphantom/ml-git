@@ -255,9 +255,9 @@ bucket_name = 'minio'
 bucket_type='s3h'
 endpoint_url = 'http://127.0.0.1:9000/'
 
-api.store_add(bucket_name=bucket_name,bucket_type=bucket_type, endpoint_url=endpoint_url)
+api.storage_add(bucket_name=bucket_name,bucket_type=bucket_type, endpoint_url=endpoint_url)
 ```
 
 output:
 
-    INFO - Admin: Add store [s3h://minio]
+    INFO - Admin: Add storage [s3h://minio]

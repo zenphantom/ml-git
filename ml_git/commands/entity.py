@@ -184,7 +184,7 @@ def import_tag(context, **kwargs):
     retry = kwargs['retry']
 
     bucket = {'bucket_name': kwargs['bucket_name'], 'profile': kwargs['credentials'],
-              'region': kwargs['region'], 'store_type': kwargs['store_type'], 'endpoint_url': kwargs['endpoint_url']}
+              'region': kwargs['region'], 'storage_type': kwargs['storage_type'], 'endpoint_url': kwargs['endpoint_url']}
     repositories[repo_type].import_files(object_name, path, directory, retry, bucket)
 
 

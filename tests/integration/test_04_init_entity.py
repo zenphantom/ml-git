@@ -9,9 +9,10 @@ from unittest import mock
 
 import pytest
 
-from tests.integration.commands import MLGIT_INIT, MLGIT_REMOTE_ADD, MLGIT_STORE_ADD, MLGIT_ENTITY_INIT
+from ml_git.ml_git_message import output_messages
+from tests.integration.commands import MLGIT_INIT, MLGIT_REMOTE_ADD, MLGIT_STORAGE_ADD, MLGIT_ENTITY_INIT
 from tests.integration.helper import ML_GIT_DIR, GIT_PATH, \
-    GIT_WRONG_REP, BUCKET_NAME, PROFILE, STORE_TYPE, GLOBAL_CONFIG_PATH, delete_global_config, DATASETS, LABELS, MODELS
+    GIT_WRONG_REP, BUCKET_NAME, PROFILE, STORAGE_TYPE, GLOBAL_CONFIG_PATH, delete_global_config, DATASETS, LABELS, MODELS
 from tests.integration.helper import check_output
 from tests.integration.output_messages import messages
 
@@ -22,7 +23,8 @@ class InitEntityAcceptanceTests(unittest.TestCase):
     def set_up_init(self, entity_type, git=GIT_PATH):
         self.assertIn(messages[0], check_output(MLGIT_INIT))
         self.assertIn(messages[2] % (git, entity_type), check_output(MLGIT_REMOTE_ADD % (entity_type, git)))
-        self.assertIn(messages[7] % (STORE_TYPE, BUCKET_NAME, PROFILE), check_output(MLGIT_STORE_ADD % (BUCKET_NAME, PROFILE)))
+        self.assertIn(output_messages['INFO_ADD_STORAGE'] % (STORAGE_TYPE, BUCKET_NAME, PROFILE),
+                      check_output(MLGIT_STORAGE_ADD % (BUCKET_NAME, PROFILE)))
 
     def _initialize_entity(self, entity_type):
         self.assertIn(messages[8] % (os.path.join(self.tmp_dir, GIT_PATH), os.path.join(self.tmp_dir, ML_GIT_DIR, entity_type, 'metadata')),
@@ -53,7 +55,8 @@ class InitEntityAcceptanceTests(unittest.TestCase):
     def test_04_initialize_dataset_from_wrong_repository(self):
         self.assertIn(messages[0], check_output(MLGIT_INIT))
         self.assertIn(messages[2] % (GIT_WRONG_REP, DATASETS), check_output(MLGIT_REMOTE_ADD % (DATASETS, GIT_WRONG_REP)))
-        self.assertIn(messages[7] % (STORE_TYPE, BUCKET_NAME, PROFILE), check_output(MLGIT_STORE_ADD % (BUCKET_NAME, PROFILE)))
+        self.assertIn(output_messages['INFO_ADD_STORAGE'] % (STORAGE_TYPE, BUCKET_NAME, PROFILE),
+                      check_output(MLGIT_STORAGE_ADD % (BUCKET_NAME, PROFILE)))
         self.assertIn(messages[10] % GIT_WRONG_REP, check_output(MLGIT_ENTITY_INIT % DATASETS))
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')

@@ -166,7 +166,7 @@ $ ml-git models commit model-ex --dataset=dataset-ex
 ```
 
 This command commits the index / staging area to the local repository. It is a 2-step operation in which 1) the actual data (blobs) is copied to the local repository, 2) committing the metadata to the git repository managing the metadata.
-Internally, ml-git keeps track of files that have been added to the data store and is storing that information to the metadata management layer to be able to restore any version of each \<ml-entity-name\>.
+Internally, ml-git keeps track of files that have been added to the data storage and is storing that information to the metadata management layer to be able to restore any version of each \<ml-entity-name\>.
 
 Another important feature of ml-git is the ability to keep track of the relationship between the ML entities. So when committing a label set, one can (should) provide the option ```--dataset=<dataset-name>```.
 Internally, ml-git will inspect the HEAD / ref of the specified \<dataset-name\> checked out in the ml-git repository and will add that information to the specificatino file that is committed to the metadata repository.
@@ -184,22 +184,21 @@ Same for ML model, one can specify which dataset and label set that have been us
 Usage: ml-git datasets create [OPTIONS] ARTIFACT_NAME
 
   This command will create the workspace structure with data and spec file
-  for an entity and set the git and store configurations.
+  for an entity and set the git and storage configurations.
 
 Options:
   --category TEXT                 Artifact's category name.  [required]
   --mutability [strict|flexible|mutable]
                                   Mutability type.  [required]
-  --store-type, --storage-type [s3h|azureblobh|gdriveh]
+  --storage-type [s3h|azureblobh|gdriveh]
                                   Data storage type [default: s3h].
-                                  [DEPRECATED:--store-type]
   --version INTEGER RANGE         Set the version number of the artifact. This 
                                   number must be in the range 0 to 999999999.
   --import TEXT                   Path to be imported to the project. NOTE:
                                   Mutually exclusive with argument:
                                   credentials_path, import_url.
   --wizard-config                 If specified, ask interactive questions. at
-                                  console for git & store configurations.
+                                  console for git & storage configurations.
   --bucket-name TEXT              Bucket name
   --import-url TEXT               Import data from a google drive url. NOTE:
                                   Mutually exclusive with argument: import.
@@ -230,7 +229,7 @@ ml-git datasets create imagenet8 --storage-type=s3h --category=computer-vision -
 ```
 Usage: ml-git datasets export [OPTIONS] ML_ENTITY_TAG BUCKET_NAME
 
-  This command allows you to export files from one store (S3|MinIO) to
+  This command allows you to export files from one storage (S3|MinIO) to
   another (S3|MinIO).
 
 Options:
@@ -332,9 +331,8 @@ Options:
                       [default: 2].
   --path TEXT         Bucket folder path.
   --object TEXT       Filename in bucket.
-  --store-type, --storage-type [s3|gdrive]
-                                  Data storage type [default: s3h].
-                                  [DEPRECATED:--store-type]
+  --storage-type [s3|gdrive]
+                      Data storage type [default: s3h].
   --endpoint-url      Storage endpoint url.
   --help              Show this message and exit.
 ```
@@ -343,9 +341,9 @@ Example:
 ```
 $ ml-git datasets import bucket-name dataset/computer-vision/imagenet8/data
 ```
-For google drive store:
+For google drive storage:
 ```
-$ ml-git datasets import gdrive-folder --store-type=gdrive --object=file_to_download --credentials=credentials-path dataset/
+$ ml-git datasets import gdrive-folder --storage-type=gdrive --object=file_to_download --credentials=credentials-path dataset/
 ```
 
 </details>
@@ -433,12 +431,12 @@ ml-git datasets log dataset-ex
 Usage: ml-git datasets push [OPTIONS] ML_ENTITY_NAME
 
   Push local commits from ML_ENTITY_NAME to remote ml-git repository &
-  store.
+  storage.
 
 Options:
   --retry INTEGER  Number of retries to upload or download the files from the
                    storage [default: 2].
-  --clearonfail    Remove the files from the store in case of failure during
+  --clearonfail    Remove the files from the storage in case of failure during
                    the push operation.
   --verbose        Debug mode
 ```
@@ -449,7 +447,7 @@ ml-git datasets push dataset-ex
 ```
 
 This command will perform a 2-step operations:
-1. push all blobs to the configured data store.
+1. push all blobs to the configured data storage.
 2. push all metadata related to the commits to the remote metadata repository.
 
 </details>
@@ -483,7 +481,7 @@ ml-git datasets remote-fsck dataset-ex
 
 This ml-git command will basically try to:
 
-* Detects any chunk/blob lacking in a remote store for a specific ML artefact version
+* Detects any chunk/blob lacking in a remote storage for a specific ML artefact version
 * Repair - if possible - by uploading lacking chunks/blobs
 * In paranoid mode, verifies the content of all the blobs
 
@@ -564,7 +562,7 @@ categories:
 - images
 manifest:
   files: MANIFEST.yaml
-  store: s3h://mlgit-datasets
+  storage: s3h://mlgit-datasets
 name: imagenet8
 version: 1
 ```
@@ -750,7 +748,7 @@ Example:
 $ ml-git repository config
 config:
 {'dataset': {'git': 'git@github.com:example/your-mlgit-datasets'},
- 'store': {'s3': {'mlgit-datasets': {'aws-credentials': {'profile': 'mlgit'},
+ 'storage': {'s3': {'mlgit-datasets': {'aws-credentials': {'profile': 'mlgit'},
                                      'region': 'us-east-1'}}},
  'verbose': 'info'}
 ```
@@ -836,62 +834,6 @@ Example:
 ```
 $ ml-git repository remote dataset del
 ```
-
-</details>
-
-<details>
-<summary><code> ml-git repository store add </code> (DEPRECATED)</summary>
-<br>
-
-```
-Usage: ml-git repository store add [OPTIONS] BUCKET_NAME
-
-  [DEPRECATED]: Add a storage BUCKET_NAME to ml-git
-
-Options:
-  --credentials TEXT              Profile name for storage credentials
-  --region TEXT                   Aws region name for S3 bucket
-  --type [s3h|s3|azureblobh|gdriveh]
-                                  Storage type (s3h, s3, azureblobh, gdriveh
-                                  ...) [default: s3h]
-  --endpoint-url TEXT             Storage endpoint url
-  -g, --global                    Use this option to set configuration at
-                                  global level
-  --verbose                       Debug mode
-```
-
-Example:
-```
-$ ml-git repository store add minio --endpoint-url=<minio-endpoint-url>
-```
-
-Use this command to add a data storage to a ml-git project.
-
-**Note: Command deprecated, use storage instead store.**
-
-</details>
-
-<details>
-<summary><code> ml-git repository store del </code>(DEPRECATED)</summary>
-<br>
-
-```
-Usage: ml-git repository store del [OPTIONS] BUCKET_NAME
-
-  [DEPRECATED]: Delete a store BUCKET_NAME from ml-git
-
-Options:
-  --type [s3h|s3|azureblobh|gdriveh]  Store type (s3h, s3, azureblobh, gdriveh ...) [default:
-                              s3h]
-  --help                      Show this message and exit.
-```
-
-Example:
-```
-$ ml-git repository store del minio
-```
-
-**Note: Command deprecated, use storage instead store.**
 
 </details>
 

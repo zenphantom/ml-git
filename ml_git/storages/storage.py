@@ -7,26 +7,26 @@ import abc
 import os
 
 
-class Store(abc.ABC):
+class Storage(abc.ABC):
     def __init__(self):
         self.connect()
-        if self._store is None:
+        if self._storage is None:
             return None
 
     @abc.abstractmethod
     def connect(self):
         """
-        Method to create a conection with the store.
+        Method to create a conection with the storage.
         """
         pass
 
     @abc.abstractmethod
     def put(self, keypath, filepath):
         """
-        Method to upload file to store.
+        Method to upload file to storage.
 
         :param keypath: local file path.
-        :param filepath: store file path.
+        :param filepath: storage file path.
         :return: boolean.
         """
         pass
@@ -34,9 +34,9 @@ class Store(abc.ABC):
     @abc.abstractmethod
     def get(self, filepath, reference):
         """
-        Method to download file from the store.
+        Method to download file from the storage.
         :param filepath: local file path.
-        :param reference: file located in the store.
+        :param reference: file located in the storage.
         :return: boolean.
         """
         pass
