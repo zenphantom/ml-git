@@ -28,8 +28,7 @@ class LogTests(unittest.TestCase):
         if with_metrics:
             metrics_options = '--metric Accuracy 1 --metric Recall 2'
         self.assertIn(messages[13] % repo_type, check_output(MLGIT_ADD % (repo_type, entity, metrics_options)))
-        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, repo_type, 'metadata'),
-                                      os.path.join('computer-vision', 'images', entity)),
+        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, repo_type, 'metadata'), entity),
                       check_output(MLGIT_COMMIT % (repo_type, entity, '-m ' + self.COMMIT_MESSAGE)))
 
     @staticmethod

@@ -18,8 +18,9 @@ from ml_git.constants import METADATA_MANAGER_CLASS_NAME, HEAD_1, RGX_ADDED_FILE
     DEFAULT_BRANCH_FOR_EMPTY_REPOSITORY, PERFORMANCE_KEY
 from ml_git.manifest import Manifest
 from ml_git.ml_git_message import output_messages
+from ml_git.spec import get_entity_dir
 from ml_git.utils import get_root_path, ensure_path_exists, yaml_load, RootPathException, get_yaml_str, yaml_load_str, \
-    get_path_with_categories
+    clear
 
 
 class MetadataRepo(object):
@@ -299,16 +300,6 @@ class MetadataRepo(object):
         for specpath in specs:
             self.metadata_print(specpath, spec)
 
-    def get(self, categories, model_name, file=None):
-        if file is None:
-            full_path = os.path.join(self.__path, os.sep.join(categories), model_name, model_name)
-        else:
-            full_path = os.path.join(self.__path, os.sep.join(categories), model_name, file)
-        log.info('Metadata GET %s' % full_path, class_name=METADATA_MANAGER_CLASS_NAME)
-        if os.path.exists(full_path):
-            return yaml_load(full_path)
-        return None
-
     def reset(self):
         repo = Repo(self.__path)
         # get current tag reference
@@ -357,13 +348,10 @@ class MetadataRepo(object):
     def __sort_tag_by_date(elem):
         return elem.commit.authored_date
 
-    @staticmethod
-    def _get_spec_path_from_tag(entity, tag):
-        spec_path = '/'.join([get_path_with_categories(tag), entity, entity + SPEC_EXTENSION])
-        return spec_path
-
     def _get_spec_content(self, spec, tag, sha):
-        spec_path = self._get_spec_path_from_tag(spec, tag)
+        entity_dir = get_entity_dir(self.__repo_type, spec, root_path=self.__path)
+        spec_path = '/'.join([entity_dir, spec + SPEC_EXTENSION])
+
         return yaml_load_str(self._get_spec_content_from_ref(sha, spec_path))
 
     def _get_metrics(self, spec, tag, sha):
@@ -403,12 +391,12 @@ class MetadataRepo(object):
         entity_spec = ref.tree / spec_path
         return io.BytesIO(entity_spec.data_stream.read())
 
-    def get_specs_to_compare(self, spec, entity):
+    def get_specs_to_compare(self, spec, entity, entity_dir=''):
         spec_manifest_key = 'manifest'
         tags = self.list_tags(spec, True)
 
         for tag in tags:
-            spec_path = '/'.join([get_path_with_categories(tag.name), spec, spec + SPEC_EXTENSION])
+            spec_path = '/'.join([entity_dir, spec, spec + SPEC_EXTENSION])
             current_ref = tag.commit
             parents = current_ref.parents
             base_spec = {entity: {spec_manifest_key: {}}}
@@ -478,6 +466,15 @@ class MetadataRepo(object):
             log.error(e.stderr, class_name=METADATA_MANAGER_CLASS_NAME)
             return False
         return True
+
+    def move_metadata_dir(self, old_directory, new_directory):
+        repo = Repo(self.__path)
+        old_path = os.path.join(self.__path, old_directory)
+        new_path = os.path.join(self.__path, os.path.dirname(new_directory))
+        ensure_path_exists(new_path)
+        repo.git.mv([old_path, new_path])
+        if not os.listdir(os.path.dirname(old_path)):
+            clear(os.path.dirname(old_path))
 
 
 class MetadataManager(MetadataRepo):

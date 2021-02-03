@@ -212,3 +212,14 @@ class CreateAcceptanceTests(unittest.TestCase):
         self.assertIn(messages[0], check_output(MLGIT_INIT))
         self.assertIn(output_messages['ERROR_MISSING_MUTABILITY'], check_output(MLGIT_CREATE % (entity_type, entity_type + '-ex')
                                                                                 + ' --category=img --version-number=1'))
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir')
+    def test_16_create_with_entity_option(self):
+        entity_type = 'dataset'
+        self.assertIn(messages[0], check_output(MLGIT_INIT))
+        entity_dir = os.path.join('FolderA', 'FolderB')
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_CREATE % (entity_type, entity_type + '-ex')
+                                                     + ' --category=imgs --mutability=' + Mutability.STRICT.value
+                                                     + ' --entity-dir=' + entity_dir))
+        folder_data = os.path.join(self.tmp_dir, entity_type, entity_dir, entity_type + '-ex', 'data')
+        self.assertTrue(os.path.exists(folder_data))

@@ -463,7 +463,8 @@ commands = [
                              'cls': MutuallyExclusiveOption, 'mutually_exclusive': ['import']},
             '--credentials-path': {'default': None, 'help': help_msg.CREDENTIALS_PATH,
                                    'cls': OptionRequiredIf, 'required_option': ['import-url']},
-            '--unzip': {'help': help_msg.UNZIP_OPTION, 'is_flag': True}
+            '--unzip': {'help': help_msg.UNZIP_OPTION, 'is_flag': True},
+            '--entity-dir': {'default': '', 'help': help_msg.ENTITY_DIR}
         },
 
         'arguments': {

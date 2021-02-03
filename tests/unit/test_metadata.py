@@ -91,9 +91,12 @@ class MetadataTestCases(unittest.TestCase):
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_test_dir')
     def test_tag_exist(self):
         mdpath = os.path.join(self.test_dir, 'metadata')
+        ws_path = os.path.join(self.test_dir, 'dataset')
         specpath = 'dataset-ex'
         ensure_path_exists(os.path.join(mdpath, specpath))
+        ensure_path_exists(os.path.join(ws_path, specpath))
         shutil.copy('hdata/dataset-ex.spec', os.path.join(mdpath, specpath) + '/dataset-ex.spec')
+        shutil.copy('hdata/dataset-ex.spec', os.path.join(ws_path, specpath) + '/dataset-ex.spec')
         manifestpath = os.path.join(os.path.join(mdpath, specpath), 'MANIFEST.yaml')
         yaml_save(files_mock, manifestpath)
 

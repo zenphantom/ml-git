@@ -32,7 +32,7 @@ class UpdateAcceptanceTests(unittest.TestCase):
         init_repository(entity_type, self)
         add_file(self, entity_type, '', 'new')
         metadata_path = os.path.join(self.tmp_dir, ML_GIT_DIR, entity_type, 'metadata')
-        self.assertIn(messages[17] % (metadata_path, os.path.join('computer-vision', 'images', entity_type + '-ex')),
+        self.assertIn(messages[17] % (metadata_path, entity_type + '-ex'),
                       check_output(MLGIT_COMMIT % (entity_type, entity_type + '-ex', '')))
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_PUSH % (entity_type, entity_type + '-ex')))
 

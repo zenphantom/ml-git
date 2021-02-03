@@ -23,13 +23,13 @@ class APIAcceptanceTests(unittest.TestCase):
     refs = os.path.join(ML_GIT_DIR, 'dataset', 'refs')
     cache = os.path.join(ML_GIT_DIR, 'dataset', 'cache')
     metadata = os.path.join(ML_GIT_DIR, 'dataset', 'metadata')
-    spec_file = os.path.join('dataset', 'computer-vision', 'images', 'dataset-ex', 'dataset-ex.spec')
-    file1 = os.path.join('dataset', 'computer-vision', 'images', 'dataset-ex', 'data', 'file1')
-    file2 = os.path.join('dataset', 'computer-vision', 'images', 'dataset-ex', 'data', 'file2')
-    file3 = os.path.join('dataset', 'computer-vision', 'images', 'dataset-ex', 'data', 'file3')
-    file4 = os.path.join('dataset', 'computer-vision', 'images', 'dataset-ex', 'data', 'file4')
+    spec_file = os.path.join('dataset', 'dataset-ex', 'dataset-ex.spec')
+    file1 = os.path.join('dataset', 'dataset-ex', 'data', 'file1')
+    file2 = os.path.join('dataset', 'dataset-ex', 'data', 'file2')
+    file3 = os.path.join('dataset', 'dataset-ex', 'data', 'file3')
+    file4 = os.path.join('dataset',  'dataset-ex', 'data', 'file4')
     dataset_tag = 'computer-vision__images__dataset-ex__10'
-    data_path = os.path.join('dataset', 'computer-vision', 'images', 'dataset-ex')
+    data_path = os.path.join('dataset', 'dataset-ex')
     GIT_CLONE = 'git_clone.git'
 
     def create_file(self, path, file_name, code):
@@ -270,7 +270,7 @@ class APIAcceptanceTests(unittest.TestCase):
 
         labels_metadata = os.path.join(self.tmp_dir, ML_GIT_DIR, 'labels', 'metadata')
 
-        with open(os.path.join(labels_metadata, "computer-vision", "images", "labels-ex", "labels-ex.spec")) as y:
+        with open(os.path.join(labels_metadata, 'labels-ex', 'labels-ex.spec')) as y:
             spec = yaml_processor.load(y)
 
         HEAD = os.path.join(self.tmp_dir, ML_GIT_DIR, 'labels', 'refs', 'labels-ex', 'HEAD')
@@ -308,7 +308,8 @@ class APIAcceptanceTests(unittest.TestCase):
         entity_type = 'dataset'
         store_type = StoreType.AZUREBLOBH.value
         self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'] % self.tmp_dir, check_output(MLGIT_INIT))
-        api.create('dataset', 'dataset-ex', categories=['computer-vision', 'images'], version=5, store_type=store_type, bucket_name='test', mutability='strict')
+        api.create('dataset', 'dataset-ex', categories=['computer-vision', 'images'], version=5, store_type=store_type,
+                   bucket_name='test', mutability='strict')
         self.check_created_folders(entity_type, store_type, version=5, bucket_name='test')
 
     @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
@@ -320,7 +321,8 @@ class APIAcceptanceTests(unittest.TestCase):
         os.makedirs(import_path)
         create_zip_file(IMPORT_PATH, 3)
         self.assertTrue(os.path.exists(os.path.join(import_path, 'file.zip')))
-        api.create(entity_type, entity_type+'-ex', categories=['computer-vision', 'images'], unzip=True, import_path=import_path, mutability='strict')
+        api.create(entity_type, entity_type+'-ex', categories=['computer-vision', 'images'],
+                   unzip=True, import_path=import_path, mutability='strict')
         self.check_created_folders(entity_type, StoreType.S3H.value)
         folder_data = os.path.join(self.tmp_dir, entity_type, entity_type + '-ex', 'data', 'file')
         self.assertTrue(os.path.exists(folder_data))

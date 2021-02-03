@@ -221,6 +221,8 @@ Options:
                                   option is required if --import-url is used.
   --unzip                         Unzip imported zipped files. Only available
                                   if --import-url is used.
+  --entity-dir TEXT               The relative path where the entity will be
+                                  created inside the ml entity directory.
   --verbose                       Debug mode
 ```
 
