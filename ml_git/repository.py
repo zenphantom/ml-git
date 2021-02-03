@@ -254,16 +254,24 @@ class Repository(object):
         except Exception as e:
             log.error(e, class_name=REPOSITORY_CLASS_NAME)
             return
+
+        untracked_spec, new_files_spec = None, None
+        if repo.plugin_insertion_data:
+            untracked_spec, new_files_spec = repo.plugin_insertion_data
+
         if new_files is not None and deleted_files is not None and untracked_files is not None:
             print('Changes to be committed:')
-            self._print_files(new_files, full_option, 'New file: ')
+
+            if new_files_spec:
+                self._print_data_specialization(group_files_by_path(new_files), new_files_spec)
+            else:
+                self._print_files(new_files, full_option, 'New file: ')
 
             self._print_files(deleted_files, full_option, 'Deleted: ')
 
             print('\nUntracked files:')
-            data_from_plugin = repo.plugin_insertion_data
-            if data_from_plugin:
-                self._print_data_specialization(group_files_by_path(untracked_files), data_from_plugin)
+            if untracked_spec:
+                self._print_data_specialization(group_files_by_path(untracked_files), untracked_spec)
             else:
                 self._print_files(untracked_files, full_option)
 

@@ -704,6 +704,7 @@ class LocalRepository(MultihashFS):
         ref = Refs(refs_path, spec, repo_type)
         tag, sha = ref.branch()
         metadata = Metadata(spec, metadata_path, self.__config, repo_type)
+
         if tag:
             metadata.checkout(tag)
         index_metadata_entity_path = os.path.join(index_metadata_path, spec)
@@ -715,6 +716,7 @@ class LocalRepository(MultihashFS):
             full_metadata_path = os.path.join(metadata_path, entity_dir)
             spec_content = yaml_load(os.path.join(path, file))
             plugin_caller = PluginCaller(spec_content[self.__repo_type]['manifest'])
+            spec_content_current_tag = {}
         except Exception as e:
             if log_errors:
                 log.error(e, class_name=REPOSITORY_CLASS_NAME)
@@ -740,9 +742,10 @@ class LocalRepository(MultihashFS):
                                                  index_metadata_entity_path,
                                                  path, new_files, status_directory)
         if tag:
+            spec_content_current_tag = metadata.get_spec_content_from_ref(tag, metadata.get_spec_tree(entity_dir, spec))
             metadata.checkout()
 
-        self.plugin_insertion_data = plugin_caller.call(COMPARE_WORKSPACE_DATA, path, untracked_files)
+        self.plugin_insertion_data = plugin_caller.call(COMPARE_WORKSPACE_DATA, path, untracked_files, new_files)
 
         return new_files, deleted_files, untracked_files, corrupted_files, changed_files
 

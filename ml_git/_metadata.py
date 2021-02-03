@@ -361,6 +361,19 @@ class MetadataRepo(object):
 
         return formatted
 
+    def __get_commit_object_from_tag(self, tag_name):
+        tags = Repo(self.__path).tags
+        tags_filtered = [tag.commit for tag in tags if tag.name == tag_name]
+        return tags_filtered.pop()
+
+    def get_spec_content_from_ref(self, tag, spec_path):
+        sha = self.__get_commit_object_from_tag(tag)
+        self._get_spec_content_from_ref(sha, spec_path)
+
+    @staticmethod
+    def get_spec_tree(entity_dir, spec):
+        return '/'.join([entity_dir, spec, spec + SPEC_EXTENSION])
+
     @staticmethod
     def _get_spec_content_from_ref(ref, spec_path):
         entity_spec = ref.tree / spec_path
@@ -371,7 +384,7 @@ class MetadataRepo(object):
         tags = self.list_tags(spec, True)
 
         for tag in tags:
-            spec_path = '/'.join([entity_dir, spec, spec + SPEC_EXTENSION])
+            spec_path = self.get_spec_tree(entity_dir, spec)
             current_ref = tag.commit
             parents = current_ref.parents
             base_spec = {entity: {spec_manifest_key: {}}}
