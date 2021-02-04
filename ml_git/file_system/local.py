@@ -701,7 +701,7 @@ class LocalRepository(MultihashFS):
             return {}
 
         metadata = Metadata(spec, metadata_path, self.__config, repo_type)
-        spec_tree = metadata.get_spec_tree('', spec)
+        spec_tree = metadata.get_spec_tree(path, spec)
         return metadata.get_spec_content_from_ref(tag, spec_tree)
 
     def status(self, spec, status_directory='', log_errors=True):

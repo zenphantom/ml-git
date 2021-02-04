@@ -368,11 +368,13 @@ class MetadataRepo(object):
 
     def get_spec_content_from_ref(self, tag, spec_path):
         sha = self.__get_commit_object_from_tag(tag)
-        self._get_spec_content_from_ref(sha, spec_path)
+        return yaml_load_str(self._get_spec_content_from_ref(sha, spec_path))
 
     @staticmethod
     def get_spec_tree(entity_dir, spec):
-        return '/'.join([entity_dir, spec, spec + SPEC_EXTENSION])
+        if entity_dir:
+            return '/'.join([entity_dir, spec, spec + SPEC_EXTENSION])
+        return '/'.join([spec, spec + SPEC_EXTENSION])
 
     @staticmethod
     def _get_spec_content_from_ref(ref, spec_path):
