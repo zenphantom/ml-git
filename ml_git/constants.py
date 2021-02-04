@@ -53,6 +53,7 @@ SPEC_EXTENSION = '.spec'
 MANIFEST_FILE = 'MANIFEST.yaml'
 INDEX_FILE = 'INDEX.yaml'
 DEFAULT_BRANCH_FOR_EMPTY_REPOSITORY = 'master'
+PERFORMANCE_KEY = 'metrics'
 
 
 class Mutability(Enum):

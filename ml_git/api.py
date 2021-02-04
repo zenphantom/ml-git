@@ -111,7 +111,7 @@ def clone(repository_url, folder=None, track=False):
             os.chdir(current_directory)
 
 
-def add(entity_type, entity_name, bumpversion=False, fsck=False, file_path=[]):
+def add(entity_type, entity_name, bumpversion=False, fsck=False, file_path=[], metric=[], metrics_file=''):
     """This command will add all the files under the directory into the ml-git index/staging area.
 
     Example:
@@ -123,10 +123,19 @@ def add(entity_type, entity_name, bumpversion=False, fsck=False, file_path=[]):
         bumpversion (bool, optional): Increment the entity version number when adding more files [default: False].
         fsck (bool, optional): Run fsck after command execution [default: False].
         file_path (list, optional): List of files that must be added by the command [default: all files].
+        metric (dictionary, optional): The metric dictionary, example: { 'metric': value } [default: empty].
+        metrics_file (str, optional): The metrics file path. It is expected a CSV file containing the metric names in the header and
+         the values in the next line [default: empty].
     """
 
+    metrics = []
+    if metric:
+        for key, val in metric.items():
+            metric_value = (key, val)
+            metrics.append(metric_value)
+
     repo = Repository(config_load(), entity_type)
-    repo.add(entity_name, file_path, bumpversion, fsck)
+    repo.add(entity_name, file_path, bumpversion, fsck, tuple(metrics), metrics_file)
 
 
 def commit(entity, ml_entity_name, commit_message=None, related_dataset=None, related_labels=None):

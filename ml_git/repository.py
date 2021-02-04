@@ -79,7 +79,7 @@ class Repository(object):
 
     '''Add dir/files to the ml-git index'''
 
-    def add(self, spec, file_path, bump_version=False, run_fsck=False):
+    def add(self, spec, file_path, bump_version=False, run_fsck=False, metrics='', metrics_file_path=''):
         repo_type = self.__repo_type
 
         is_shared_objects = 'objects_path' in self.__config[repo_type]
@@ -130,6 +130,12 @@ class Repository(object):
         spec_path = os.path.join(path, file)
         if not self._is_spec_valid(spec_path):
             return None
+
+        try:
+            repo.add_metrics(spec_path, metrics, metrics_file_path)
+        except FileNotFoundError as e:
+            log.error(e, class_name=REPOSITORY_CLASS_NAME)
+            return
 
         # Check tag before anything to avoid creating unstable state
         log.debug('Repository: check if tag already exists', class_name=REPOSITORY_CLASS_NAME)

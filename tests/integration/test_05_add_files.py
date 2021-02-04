@@ -18,9 +18,9 @@ from tests.integration.output_messages import messages
 @pytest.mark.usefixtures('tmp_dir')
 class AddFilesAcceptanceTests(unittest.TestCase):
 
-    def set_up_add(self):
-        init_repository('dataset', self)
-        workspace = os.path.join(self.tmp_dir, 'dataset', 'dataset-ex')
+    def set_up_add(self, repo_type='dataset'):
+        init_repository(repo_type, self)
+        workspace = os.path.join(self.tmp_dir, repo_type, '{}-ex'.format(repo_type))
         clear(workspace)
         os.makedirs(workspace)
 
@@ -96,3 +96,80 @@ class AddFilesAcceptanceTests(unittest.TestCase):
         create_file(workspace, 'file4', '0')
         self.assertIn(messages[13] % 'dataset', check_output(MLGIT_ADD % ('dataset', 'dataset-ex', '')))
         self._check_index(index, ['data/file1', 'data/file2', 'data/file3', 'data/file4'], [])
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
+    def test_08_add_command_with_metric_option(self):
+        repo_type = 'model'
+        self.set_up_add(repo_type)
+
+        create_spec(self, repo_type, self.tmp_dir)
+        workspace = os.path.join(self.tmp_dir, repo_type, 'model-ex')
+
+        os.makedirs(os.path.join(workspace, 'data'))
+
+        create_file(workspace, 'file1', '0')
+
+        metrics_options = '--metric Accuracy 1 --metric Recall 2'
+
+        self.assertIn(messages[13] % repo_type, check_output(MLGIT_ADD % (repo_type, 'model-ex', metrics_options)))
+        index = os.path.join(ML_GIT_DIR, repo_type, 'index', 'metadata', 'model-ex', 'INDEX.yaml')
+        self._check_index(index, ['data/file1'], [])
+
+        with open(os.path.join(workspace, 'model-ex.spec')) as spec:
+            spec_file = yaml_processor.load(spec)
+            metrics = spec_file[repo_type].get('metrics', {})
+            self.assertFalse(metrics == {})
+            self.assertTrue(metrics['Accuracy'] == 1)
+            self.assertTrue(metrics['Recall'] == 2)
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
+    def test_09_add_command_with_metric_for_wrong_entity(self):
+        repo_type = 'dataset'
+        self.set_up_add()
+
+        create_spec(self, repo_type, self.tmp_dir)
+        workspace = os.path.join(self.tmp_dir, repo_type, 'dataset-ex')
+
+        os.makedirs(os.path.join(workspace, 'data'))
+
+        create_file(workspace, 'file1', '0')
+
+        metrics_options = '--metric Accuracy 1 --metric Recall 2'
+
+        self.assertIn(messages[13] % repo_type, check_output(MLGIT_ADD % (repo_type, 'dataset-ex', metrics_options)))
+        index = os.path.join(ML_GIT_DIR, repo_type, 'index', 'metadata', 'dataset-ex', 'INDEX.yaml')
+        self._check_index(index, ['data/file1'], [])
+
+        with open(os.path.join(workspace, 'dataset-ex.spec')) as spec:
+            spec_file = yaml_processor.load(spec)
+            metrics = spec_file[repo_type].get('metrics', {})
+            self.assertTrue(metrics == {})
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir', 'create_csv_file')
+    def test_10_add_command_with_metric_file(self):
+        repo_type = 'model'
+        self.set_up_add(repo_type)
+
+        create_spec(self, repo_type, self.tmp_dir)
+        workspace = os.path.join(self.tmp_dir, repo_type, 'model-ex')
+
+        os.makedirs(os.path.join(workspace, 'data'))
+
+        create_file(workspace, 'file1', '0')
+
+        csv_file = os.path.join(self.tmp_dir, 'metrics.csv')
+
+        self.create_csv_file(csv_file, {'Accuracy': 1, 'Recall': 2})
+
+        metrics_options = '--metrics-file={}'.format(csv_file)
+
+        self.assertIn(messages[13] % repo_type, check_output(MLGIT_ADD % (repo_type, 'model-ex', metrics_options)))
+        index = os.path.join(ML_GIT_DIR, repo_type, 'index', 'metadata', 'model-ex', 'INDEX.yaml')
+        self._check_index(index, ['data/file1'], [])
+
+        with open(os.path.join(workspace, 'model-ex.spec')) as spec:
+            spec_file = yaml_processor.load(spec)
+            metrics = spec_file[repo_type].get('metrics', {})
+            self.assertFalse(metrics == {})
+            self.assertTrue(metrics['Accuracy'] == 1)
+            self.assertTrue(metrics['Recall'] == 2)
