@@ -27,7 +27,7 @@ from ml_git.file_system.objects import Objects
 from ml_git.manifest import Manifest
 from ml_git.metadata import Metadata, MetadataManager
 from ml_git.ml_git_message import output_messages
-from ml_git.plugin_interface.data_plugin_constants import COMPARE_SPECS
+from ml_git.plugin_interface.data_plugin_constants import COMPARE_SPECS, COMPARE_WORKSPACE_DATA
 from ml_git.plugin_interface.plugin_especialization import PluginCaller
 from ml_git.refs import Refs
 from ml_git.spec import spec_parse, search_spec_file, increment_version_in_spec, get_entity_tag, update_store_spec, \
@@ -244,20 +244,27 @@ class Repository(object):
 
     '''prints status of changes in the index and changes not yet tracked or staged'''
 
+    def __load_plugin_caller(self, path, spec):
+        spec_content = yaml_load(os.path.join(path, spec))
+        return PluginCaller(spec_content[self.__repo_type]['manifest'])
+
     def status(self, spec, full_option, status_directory):
         repo_type = self.__repo_type
         try:
             objects_path = get_objects_path(self.__config, repo_type)
             repo = LocalRepository(self.__config, objects_path, repo_type)
             log.info('%s: status of ml-git index for [%s]' % (repo_type, spec), class_name=REPOSITORY_CLASS_NAME)
+            path, spec_file = search_spec_file(self.__repo_type, spec)
+            plugin_caller = self.__load_plugin_caller(path, spec_file)
             new_files, deleted_files, untracked_files, corruped_files, changed_files = repo.status(spec, status_directory)
+            plugin_insertion_data = plugin_caller.call(COMPARE_WORKSPACE_DATA, path, untracked_files, new_files)
         except Exception as e:
             log.error(e, class_name=REPOSITORY_CLASS_NAME)
             return
 
         untracked_spec, new_files_spec = None, None
-        if repo.plugin_insertion_data:
-            untracked_spec, new_files_spec = repo.plugin_insertion_data
+        if plugin_insertion_data:
+            untracked_spec, new_files_spec = plugin_insertion_data
 
         if new_files is not None and deleted_files is not None and untracked_files is not None:
             print('Changes to be committed:')
@@ -268,6 +275,8 @@ class Repository(object):
                 self._print_files(new_files, full_option, 'New file: ')
 
             self._print_files(deleted_files, full_option, 'Deleted: ')
+
+            print('Current rows:')
 
             print('\nUntracked files:')
             if untracked_spec:
