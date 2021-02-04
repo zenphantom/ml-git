@@ -687,6 +687,23 @@ class LocalRepository(MultihashFS):
 
         return corrupted_files
 
+    def get_spec_from_current_tag(self, spec, path):
+        try:
+            repo_type = self.__repo_type
+            metadata_path = get_metadata_path(self.__config, repo_type)
+            refs_path = get_refs_path(self.__config, repo_type)
+        except Exception as e:
+            log.error(e, class_name=LOCAL_REPOSITORY_CLASS_NAME)
+            return
+
+        tag, _ = Refs(refs_path, spec, repo_type).branch()
+        if not tag:
+            return {}
+
+        metadata = Metadata(spec, metadata_path, self.__config, repo_type)
+        spec_tree = metadata.get_spec_tree('', spec)
+        return metadata.get_spec_content_from_ref(tag, spec_tree)
+
     def status(self, spec, status_directory='', log_errors=True):
         try:
             repo_type = self.__repo_type
