@@ -42,6 +42,32 @@ def compare_metadata(specs_to_compare):
 ```
 </details>
 
+
+<details>
+<summary><code> get_rows_workspace_data </code></summary>
+</br>
+
+Responsible to count the number of rows for specific files in the user workspace.
+Returns two dict that's contains the number of rows for each file.
+
+*Definition:*
+
+```python
+def get_rows_workspace_data(path, untracked_files, files_to_be_commited):
+    """
+    Args:
+        path (str): The path where the data is in the user workspace.
+        files_to_be_commited (list): The list of files to be commited in the user workspace.
+        untracked_files (list): The list of untracked files in the user workspace.
+
+    Returns:
+        untracked_data: Dict with the number of rows for each untracked file.
+        to_be_commited_data: Dict with the number of rows for each added file to be commited.
+
+    """
+```
+</details>
+
 **Note:**
 The plugin doesn't need to implement all methods defined in the plugin contract.
 
