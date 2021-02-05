@@ -277,7 +277,7 @@ class Repository(object):
 
             self._print_files(deleted_files, full_option, 'Deleted: ')
 
-            self._print_data_spec_to_be_commited(new_files_spec)
+            self._print_rows_to_be_commited(new_files_spec)
 
             print('\nUntracked files:')
             if untracked_spec:
@@ -291,17 +291,6 @@ class Repository(object):
             if changed_files and len(changed_files) > 0:
                 print('\nChanges not staged for commit:')
                 self._print_files(changed_files, full_option)
-
-    @staticmethod
-    def _print_data_spec_to_be_commited(new_files_spec):
-        total = 0
-
-        if not new_files_spec:
-            return
-        for value in new_files_spec.values():
-            total += value
-
-        print('\n\tTotal rows to be commited: %d.' % total)
 
     @staticmethod
     def _print_full_option(files, files_status):
@@ -319,6 +308,16 @@ class Repository(object):
                 print('\t%s%s' % (files_status, os.path.join(base_path, ''.join(path_files))))
             else:
                 print('\t%s%s\t->\t%d FILES' % (files_status, base_path + '/', len(path_files)))
+
+    @staticmethod
+    def _print_rows_to_be_commited(new_files_spec):
+
+        if not new_files_spec:
+            return
+
+        total = sum(new_files_spec.values())
+
+        print('\n\tTotal rows to be commited: %d.' % total)
 
     @staticmethod
     def _print_data_specialization(files, specialized_data, files_status=''):
