@@ -11,6 +11,7 @@ from unittest import mock
 
 import pytest
 from git import GitError, Repo
+from prettytable import PrettyTable
 
 from ml_git.metadata import Metadata
 from ml_git.repository import Repository
@@ -227,3 +228,62 @@ class MetadataTestCases(unittest.TestCase):
         for c, v in specs:
             self.assertEqual(c, spec_file[repotype]['manifest'])
             self.assertIsNotNone(v, {repotype: {'manifest': {}}})
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_test_dir')
+    def test_get_metrics(self):
+        repo_type = 'model'
+        mdpath = os.path.join(self.test_dir, 'mdata', repo_type, 'metadata')
+        specpath = os.path.join('vision-computer', 'images')
+        entity = 'model-ex'
+        m = Metadata(entity, self.test_dir, config, repo_type)
+        m.init()
+        ensure_path_exists(os.path.join(mdpath, specpath, entity))
+        spec_metadata_path = os.path.join(mdpath, specpath, entity) + '/model-ex.spec'
+        shutil.copy('hdata/dataset-ex.spec', spec_metadata_path)
+
+        spec_file = yaml_load(spec_metadata_path)
+        spec_file[repo_type] = deepcopy(spec_file['dataset'])
+        del spec_file['dataset']
+        spec_file[repo_type]['metrics'] = {'metric_1': 0, 'metric_2': 1}
+        yaml_save(spec_file,  spec_metadata_path)
+
+        tag = 'vision-computer__images__model-ex__1'
+        sha = m.commit(spec_metadata_path, specpath)
+        m.tag_add(tag)
+
+        metrics = m._get_metrics(entity, tag, sha)
+
+        test_table = PrettyTable()
+        test_table.field_names = ['Name', 'Value']
+        test_table.align['Name'] = 'l'
+        test_table.align['Value'] = 'l'
+        test_table.add_row(['metric_1', 0])
+        test_table.add_row(['metric_2', 1])
+        test_metrics = '\nmetrics:\n{}'.format(test_table.get_string())
+
+        self.assertEqual(metrics, test_metrics)
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_test_dir')
+    def test_get_metrics_without_metrics(self):
+        repo_type = 'model'
+        mdpath = os.path.join(self.test_dir, 'mdata', repo_type, 'metadata')
+        specpath = os.path.join('vision-computer', 'images')
+        entity = 'model-ex'
+        m = Metadata(entity, self.test_dir, config, repo_type)
+        m.init()
+        ensure_path_exists(os.path.join(mdpath, specpath, entity))
+        spec_metadata_path = os.path.join(mdpath, specpath, entity) + '/model-ex.spec'
+        shutil.copy('hdata/dataset-ex.spec', spec_metadata_path)
+
+        spec_file = yaml_load(spec_metadata_path)
+        spec_file[repo_type] = deepcopy(spec_file['dataset'])
+        del spec_file['dataset']
+        yaml_save(spec_file,  spec_metadata_path)
+
+        tag = 'vision-computer__images__model-ex__1'
+        sha = m.commit(spec_metadata_path, specpath)
+        m.tag_add(tag)
+
+        metrics = m._get_metrics(entity, tag, sha)
+
+        self.assertEqual(metrics, '')

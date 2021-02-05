@@ -113,7 +113,9 @@ def add(context, **kwargs):
     run_fsck = kwargs['fsck']
     file_path = kwargs['file_path']
     entity_name = kwargs['ml_entity_name']
-    repositories[repo_type].add(entity_name, file_path, bump_version, run_fsck)
+    metric = kwargs['metric']
+    metrics_file_path = kwargs['metrics_file']
+    repositories[repo_type].add(entity_name, file_path, bump_version, run_fsck, metric, metrics_file_path)
 
 
 def commit(context, **kwargs):
