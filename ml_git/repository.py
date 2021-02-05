@@ -18,7 +18,7 @@ from ml_git.config import get_index_path, get_objects_path, get_cache_path, get_
     get_index_metadata_path, create_workspace_tree_structure, start_wizard_questions, config_load, \
     get_global_config_path, save_global_config_in_local
 from ml_git.constants import REPOSITORY_CLASS_NAME, LOCAL_REPOSITORY_CLASS_NAME, HEAD, HEAD_1, Mutability, StoreType, \
-    RGX_TAG_FORMAT, EntityType, MANIFEST_FILE, SPEC_EXTENSION, NUMBER_OF_ROWS
+    RGX_TAG_FORMAT, EntityType, MANIFEST_FILE, SPEC_EXTENSION
 from ml_git.file_system.cache import Cache
 from ml_git.file_system.hashfs import MultihashFS
 from ml_git.file_system.index import MultihashIndex, Status, FullIndex
@@ -262,10 +262,6 @@ class Repository(object):
             log.error(e, class_name=REPOSITORY_CLASS_NAME)
             return
 
-        entity_dir = os.path.relpath(path, os.path.join(get_root_path(), self.__repo_type))
-        spec_content = repo.get_spec_from_current_tag(spec, os.path.dirname(entity_dir))
-        data_manifest = spec_content.get(self.__repo_type, {}).get('manifest', {})
-
         untracked_spec, new_files_spec = None, None
         if plugin_insertion_data:
 
@@ -281,7 +277,7 @@ class Repository(object):
 
             self._print_files(deleted_files, full_option, 'Deleted: ')
 
-            self._print_data_spec_to_be_commited(new_files_spec, data_manifest)
+            self._print_data_spec_to_be_commited(new_files_spec)
 
             print('\nUntracked files:')
             if untracked_spec:
@@ -297,20 +293,15 @@ class Repository(object):
                 self._print_files(changed_files, full_option)
 
     @staticmethod
-    def _print_data_spec_to_be_commited(new_files_spec, data_spec_from_tag):
-        total = {}
-        added_rows = 'added'
-        total_rows = 'total'
-        if not data_spec_from_tag or not new_files_spec:
+    def _print_data_spec_to_be_commited(new_files_spec):
+        total = 0
+
+        if not new_files_spec:
             return
-        for key, value in new_files_spec.items():
-            base_dir = os.path.dirname(key)
-            if base_dir in data_spec_from_tag and base_dir not in total:
-                total[base_dir] = {added_rows: value, total_rows: data_spec_from_tag[base_dir][NUMBER_OF_ROWS]}
-            elif base_dir in total:
-                total[base_dir][added_rows] += value
-        for key, value in total.items():
-            print('\n\t%s: Rows %d (Added Rows: %d)' % (key, value[total_rows], value[added_rows]))
+        for value in new_files_spec.values():
+            total += value
+
+        print('\n\tTotal rows to be commited: %d.' % total)
 
     @staticmethod
     def _print_full_option(files, files_status):
