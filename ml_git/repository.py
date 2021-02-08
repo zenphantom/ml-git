@@ -1097,6 +1097,7 @@ class Repository(object):
         tag, _ = ref.branch()
         path, spec_file = search_spec_file(self.__repo_type, spec)
         plugin_caller = self.__load_plugin_caller(path, spec_file)
+        entity_dir = os.path.relpath(path, os.path.join(get_root_path(), self.__repo_type))
         return plugin_caller.call(COMPARE_SPECS, metadata.get_specs_to_compare(spec, self.__repo_type, os.path.dirname(entity_dir)))
 
     def log(self, spec, stat=False, fullstat=False):
