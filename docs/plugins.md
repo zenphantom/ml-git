@@ -48,7 +48,7 @@ def compare_metadata(specs_to_compare):
 </br>
 
 Responsible to count the number of rows for specific files in the user workspace.
-Returns two dict that's contains the number of rows for each file.
+Returns two dict that's contains the number of rows for each file. This signature will be triggered during the execution of the ml-git status command.
 
 *Definition:*
 

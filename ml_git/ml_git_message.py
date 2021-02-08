@@ -42,4 +42,6 @@ output_messages = {
     'ERROR_OBJECT_NOT_FOUND': 'Object [%s] not found',
 
     'WARN_HAS_CONFIGURED_REMOTE': 'YOU ALREADY HAS A CONFIGURED REMOTE. All data stored in this repository will be sent to the new one on the first push.',
+
+    'TOTAL_ROWS_TO_BE_COMMITED': '\n\tTotal rows to be commited: %d.',
 }

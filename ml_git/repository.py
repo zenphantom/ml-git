@@ -18,7 +18,7 @@ from ml_git.config import get_index_path, get_objects_path, get_cache_path, get_
     get_index_metadata_path, create_workspace_tree_structure, start_wizard_questions, config_load, \
     get_global_config_path, save_global_config_in_local
 from ml_git.constants import REPOSITORY_CLASS_NAME, LOCAL_REPOSITORY_CLASS_NAME, HEAD, HEAD_1, Mutability, StoreType, \
-    RGX_TAG_FORMAT, EntityType, MANIFEST_FILE, SPEC_EXTENSION
+    RGX_TAG_FORMAT, EntityType, MANIFEST_FILE, SPEC_EXTENSION, MANIFEST_KEY
 from ml_git.file_system.cache import Cache
 from ml_git.file_system.hashfs import MultihashFS
 from ml_git.file_system.index import MultihashIndex, Status, FullIndex
@@ -252,7 +252,7 @@ class Repository(object):
 
     def __load_plugin_caller(self, path, spec):
         spec_content = yaml_load(os.path.join(path, spec))
-        return PluginCaller(spec_content[self.__repo_type]['manifest'])
+        return PluginCaller(spec_content[self.__repo_type][MANIFEST_KEY])
 
     def status(self, spec, full_option, status_directory):
         repo_type = self.__repo_type
@@ -263,31 +263,31 @@ class Repository(object):
             path, spec_file = search_spec_file(self.__repo_type, spec)
             plugin_caller = self.__load_plugin_caller(path, spec_file)
             new_files, deleted_files, untracked_files, corruped_files, changed_files = repo.status(spec, status_directory)
-            plugin_insertion_data = plugin_caller.call(GET_ROWS_WORKSPACE_DATA, path, untracked_files, new_files)
+            specialized_plugin_data = plugin_caller.call(GET_ROWS_WORKSPACE_DATA, path, untracked_files, new_files)
         except Exception as e:
             log.error(e, class_name=REPOSITORY_CLASS_NAME)
             return
 
-        untracked_spec, new_files_spec = None, None
-        if plugin_insertion_data:
+        untracked_specialized, new_files_specialized = None, None
+        if specialized_plugin_data:
 
-            untracked_spec, new_files_spec = plugin_insertion_data
+            untracked_specialized, new_files_specialized = specialized_plugin_data
 
         if new_files is not None and deleted_files is not None and untracked_files is not None:
             print('Changes to be committed:')
 
-            if new_files_spec:
-                self._print_data_specialization(group_files_by_path(new_files), new_files_spec, 'New file: ')
+            if untracked_specialized:
+                self._print_data_specialization(group_files_by_path(new_files), new_files_specialized, 'New file: ')
             else:
                 self._print_files(new_files, full_option, 'New file: ')
 
             self._print_files(deleted_files, full_option, 'Deleted: ')
 
-            self._print_rows_to_be_commited(new_files_spec)
+            self._print_rows_to_be_commited(new_files_specialized)
 
             print('\nUntracked files:')
-            if untracked_spec:
-                self._print_data_specialization(group_files_by_path(untracked_files), untracked_spec)
+            if untracked_specialized:
+                self._print_data_specialization(group_files_by_path(untracked_files), untracked_specialized)
             else:
                 self._print_files(untracked_files, full_option)
 
@@ -316,14 +316,13 @@ class Repository(object):
                 print('\t%s%s\t->\t%d FILES' % (files_status, base_path + '/', len(path_files)))
 
     @staticmethod
-    def _print_rows_to_be_commited(new_files_spec):
-
-        if not new_files_spec:
+    def _print_rows_to_be_commited(new_files_specialized):
+        if not new_files_specialized:
             return
 
-        total = sum(new_files_spec.values())
+        total = sum(new_files_specialized.values())
 
-        print('\n\tTotal rows to be commited: %d.' % total)
+        print(output_messages['TOTAL_ROWS_TO_BE_COMMITED'] % total)
 
     @staticmethod
     def _print_data_specialization(files, specialized_data, files_status=''):
@@ -1097,9 +1096,7 @@ class Repository(object):
         ref = Refs(refs_path, spec, self.__repo_type)
         tag, _ = ref.branch()
         path, spec_file = search_spec_file(self.__repo_type, spec)
-        entity_dir = os.path.relpath(path, os.path.join(get_root_path(), self.__repo_type))
-        spec_content = yaml_load(os.path.join(path, spec_file))
-        plugin_caller = PluginCaller(spec_content[self.__repo_type]['manifest'])
+        plugin_caller = self.__load_plugin_caller(path, spec_file)
         return plugin_caller.call(COMPARE_SPECS, metadata.get_specs_to_compare(spec, self.__repo_type, os.path.dirname(entity_dir)))
 
     def log(self, spec, stat=False, fullstat=False):
