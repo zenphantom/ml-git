@@ -27,7 +27,7 @@ from ml_git.file_system.objects import Objects
 from ml_git.manifest import Manifest
 from ml_git.metadata import Metadata, MetadataManager
 from ml_git.ml_git_message import output_messages
-from ml_git.plugin_interface.data_plugin_constants import COMPARE_SPECS, GET_ROWS_WORKSPACE_DATA
+from ml_git.plugin_interface.data_plugin_constants import COMPARE_SPECS, GET_STATUS_OUTPUT
 from ml_git.plugin_interface.plugin_especialization import PluginCaller
 from ml_git.refs import Refs
 from ml_git.spec import spec_parse, search_spec_file, increment_version_in_spec, get_entity_tag, update_store_spec, \
@@ -263,7 +263,7 @@ class Repository(object):
             path, spec_file = search_spec_file(self.__repo_type, spec)
             plugin_caller = self.__load_plugin_caller(path, spec_file)
             new_files, deleted_files, untracked_files, corruped_files, changed_files = repo.status(spec, status_directory)
-            specialized_plugin_data = plugin_caller.call(GET_ROWS_WORKSPACE_DATA, path, untracked_files, new_files)
+            specialized_plugin_data = plugin_caller.call(GET_STATUS_OUTPUT, path, untracked_files, new_files, full_option)
         except Exception as e:
             log.error(e, class_name=REPOSITORY_CLASS_NAME)
             return
@@ -276,7 +276,7 @@ class Repository(object):
             print('Changes to be committed:')
 
             if new_files_specialized:
-                self._print_full_option(new_files_specialized, STATUS_NEW_FILE)
+                self._print_files(new_files_specialized, True, STATUS_NEW_FILE)
             else:
                 self._print_files(new_files, full_option, STATUS_NEW_FILE)
 
@@ -287,7 +287,7 @@ class Repository(object):
 
             print('\nUntracked files:')
             if untracked_specialized:
-                self._print_full_option(untracked_specialized)
+                self._print_files(untracked_specialized, True)
             else:
                 self._print_files(untracked_files, full_option)
 
