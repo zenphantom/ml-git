@@ -268,26 +268,26 @@ class Repository(object):
             log.error(e, class_name=REPOSITORY_CLASS_NAME)
             return
 
-        untracked_specialized, new_files_specialized = None, None
+        untracked_specialized, new_files_specialized, total_registry = None, None, None
         if specialized_plugin_data:
-
-            untracked_specialized, new_files_specialized = specialized_plugin_data
+            untracked_specialized, new_files_specialized, total_registry = specialized_plugin_data
 
         if new_files is not None and deleted_files is not None and untracked_files is not None:
             print('Changes to be committed:')
 
-            if untracked_specialized:
-                self._print_data_specialization(group_files_by_path(new_files), new_files_specialized, 'New file: ')
+            if new_files_specialized:
+                self._print_full_option(new_files_specialized, 'New file: ')
             else:
                 self._print_files(new_files, full_option, 'New file: ')
 
             self._print_files(deleted_files, full_option, 'Deleted: ')
 
-            self._print_rows_to_be_commited(new_files_specialized)
+            if total_registry:
+                print(total_registry)
 
             print('\nUntracked files:')
             if untracked_specialized:
-                self._print_data_specialization(group_files_by_path(untracked_files), untracked_specialized)
+                self._print_full_option(untracked_specialized)
             else:
                 self._print_files(untracked_files, full_option)
 
@@ -299,7 +299,7 @@ class Repository(object):
                 self._print_files(changed_files, full_option)
 
     @staticmethod
-    def _print_full_option(files, files_status):
+    def _print_full_option(files, files_status=''):
         for file in files:
             print('\t%s%s' % (files_status, file))
 
@@ -310,29 +310,6 @@ class Repository(object):
         for base_path, path_files in files.items():
             if not base_path:
                 print('\t%s%s' % (files_status, '\n\t'.join(path_files)))
-            elif len(path_files) == one_file:
-                print('\t%s%s' % (files_status, os.path.join(base_path, ''.join(path_files))))
-            else:
-                print('\t%s%s\t->\t%d FILES' % (files_status, base_path + '/', len(path_files)))
-
-    @staticmethod
-    def _print_rows_to_be_commited(new_files_specialized):
-        if not new_files_specialized:
-            return
-
-        total = sum(new_files_specialized.values())
-
-        print(output_messages['TOTAL_ROWS_TO_BE_COMMITED'] % total)
-
-    @staticmethod
-    def _print_data_specialization(files, specialized_data, files_status=''):
-        one_file = 1
-
-        for base_path, path_files in files.items():
-            if not base_path:
-                print('\t%s%s' % (files_status, '\n\t'.join(path_files)))
-            elif base_path in specialized_data:
-                print('\t%s%s\t->\t%d ROWS' % (files_status, base_path + '/', specialized_data[base_path]))
             elif len(path_files) == one_file:
                 print('\t%s%s' % (files_status, os.path.join(base_path, ''.join(path_files))))
             else:
