@@ -18,7 +18,7 @@ from ml_git.config import get_index_path, get_objects_path, get_cache_path, get_
     get_index_metadata_path, create_workspace_tree_structure, start_wizard_questions, config_load, \
     get_global_config_path, save_global_config_in_local
 from ml_git.constants import REPOSITORY_CLASS_NAME, LOCAL_REPOSITORY_CLASS_NAME, HEAD, HEAD_1, Mutability, StoreType, \
-    RGX_TAG_FORMAT, EntityType, MANIFEST_FILE, SPEC_EXTENSION, MANIFEST_KEY
+    RGX_TAG_FORMAT, EntityType, MANIFEST_FILE, SPEC_EXTENSION, MANIFEST_KEY, STATUS_NEW_FILE, STATUS_DELETED_FILE
 from ml_git.file_system.cache import Cache
 from ml_git.file_system.hashfs import MultihashFS
 from ml_git.file_system.index import MultihashIndex, Status, FullIndex
@@ -276,11 +276,11 @@ class Repository(object):
             print('Changes to be committed:')
 
             if new_files_specialized:
-                self._print_full_option(new_files_specialized, 'New file: ')
+                self._print_full_option(new_files_specialized, STATUS_NEW_FILE)
             else:
-                self._print_files(new_files, full_option, 'New file: ')
+                self._print_files(new_files, full_option, STATUS_NEW_FILE)
 
-            self._print_files(deleted_files, full_option, 'Deleted: ')
+            self._print_files(deleted_files, full_option, STATUS_DELETED_FILE)
 
             if total_registry:
                 print(total_registry)
