@@ -56,9 +56,6 @@ This signature will be triggered during the execution of the ml-git status comma
 ```python
 def get_status_output(path, untracked_files, files_to_be_commited, full_option=False):
     """
-    Responsible to count the number of rows for specific files in the user workspace.
-    Returns two dict that's contains the number of rows for each file.
-
     Args:
         path (str): The path where the data is in the user workspace.
         files_to_be_commited (list): The list of files to be commited in the user workspace.
