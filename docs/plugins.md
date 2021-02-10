@@ -48,7 +48,7 @@ def compare_metadata(specs_to_compare):
 </br>
 
 Responsible for generating status outputs for files in the user's workspace.
-Returns two lists containing the formatted status output for untracked and added files and an a summarized output string for the total added.
+Returns two lists containing the formatted status output for untracked and added files and a summarized output string for the total added.
 This signature will be triggered during the execution of the ml-git status command.
 
 *Definition:*
