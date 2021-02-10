@@ -47,8 +47,8 @@ def compare_metadata(specs_to_compare):
 <summary><code> get_status_output </code></summary>
 </br>
 
-Responsible to count the number of rows for specific files in the user workspace.
-Returns two list that's contains the formatted output with number of rows for each file and the total registry.
+Responsible for generating status outputs for files in the user's workspace.
+Returns two lists containing the formatted status output for untracked and added files and an a summarized output string for the total added.
 This signature will be triggered during the execution of the ml-git status command.
 
 *Definition:*
