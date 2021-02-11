@@ -997,7 +997,7 @@ class Repository(object):
                 has_new_store, store_type, bucket, profile, endpoint_url, git_repo = start_wizard_questions(repo_type)
                 if has_new_store:
                     store_add(store_type, bucket, profile, endpoint_url)
-                update_store_spec(repo_type, artifact_name, store_type, bucket)
+                update_store_spec(repo_type, artifact_name, store_type, bucket, kwargs['entity_dir'])
                 remote_add(repo_type, git_repo)
             if import_url:
                 self.create_config_store('gdrive', credentials_path)

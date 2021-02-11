@@ -135,14 +135,13 @@ def get_entity_tag(specpath, repotype, entity):
     return entity_tag
 
 
-def update_store_spec(repotype, artefact_name, store_type, bucket):
+def update_store_spec(repotype, artifact_name, store_type, bucket, entity_dir=''):
     path = None
     try:
         path = get_root_path()
     except Exception as e:
         log.error(e, CLASS_NAME=ML_GIT_PROJECT_NAME)
-
-    spec_path = os.path.join(path, repotype, artefact_name, artefact_name + SPEC_EXTENSION)
+    spec_path = os.path.join(path, repotype, entity_dir, artifact_name, artifact_name + SPEC_EXTENSION)
     spec_hash = utils.yaml_load(spec_path)
     spec_hash[repotype]['manifest']['store'] = store_type + '://' + bucket
     utils.yaml_save(spec_hash, spec_path)
