@@ -14,7 +14,6 @@ from tests.integration.commands import MLGIT_INIT, MLGIT_REMOTE_ADD, MLGIT_ENTIT
 from tests.integration.helper import ERROR_MESSAGE, create_spec, add_file, ML_GIT_DIR, clear, SFTP_BUCKET_PATH, \
     FAKE_SSH_KEY_PATH, DATASETS, DATASET_NAME
 from tests.integration.helper import check_output, GIT_PATH
-from tests.ml_git.ml_ import messages
 
 
 @pytest.mark.usefixtures('tmp_dir', 'start_local_git_server', 'switch_to_tmp_dir')
@@ -28,14 +27,14 @@ class SFTPAcceptanceTests(unittest.TestCase):
         os.makedirs(self.workspace)
         create_spec(self, self.repo_type, self.tmp_dir, version=1, mutability='strict', storage_type=self.storage_type)
 
-        self.assertIn(messages[0], check_output(MLGIT_INIT))
-        self.assertIn(messages[2] % (GIT_PATH, self.repo_type),
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'] % self.tmp_dir, check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_ADD_REMOTE'] % (GIT_PATH, self.repo_type),
                       check_output(MLGIT_REMOTE_ADD % (self.repo_type, GIT_PATH)))
-        self.assertIn(output_messages['INFO_ADD_STORAGE'] % (self.storage_type, self.bucket),
+        self.assertIn(output_messages['INFO_ADD_STORAGE_WITHOUT_PROFILE'] % (self.storage_type, self.bucket),
                       check_output('ml-git repository storage add %s --type=%s' %
                                    ('mlgit --username=mlgit_user '
                                     '--endpoint-url=127.0.0.1 --port=9922 --private-key=' + FAKE_SSH_KEY_PATH, self.storage_type)))
-        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ENTITY_INIT % 'dataset'))
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ENTITY_INIT % DATASETS))
 
         if create_know_file:
             with open(os.path.join(self.repo_type, DATASET_NAME, 'file'), 'wt') as z:
@@ -43,7 +42,7 @@ class SFTPAcceptanceTests(unittest.TestCase):
         add_file(self, self.repo_type, '', 'new')
 
         metadata_path = os.path.join(ML_GIT_DIR, self.repo_type, 'metadata')
-        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, metadata_path), DATASET_NAME),
+        self.assertIn(output_messages['INFO_COMMIT_REPO'] % (os.path.join(self.tmp_dir, metadata_path), DATASET_NAME),
                       check_output(MLGIT_COMMIT % (self.repo_type, DATASET_NAME, '')))
         HEAD = os.path.join(ML_GIT_DIR, self.repo_type, 'refs', DATASET_NAME, 'HEAD')
         self.assertTrue(os.path.exists(HEAD))
@@ -57,9 +56,9 @@ class SFTPAcceptanceTests(unittest.TestCase):
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_01_create_sftp_storage(self):
-        self.assertIn(messages[0], check_output(MLGIT_INIT))
-        self.assertIn(messages[2] % (GIT_PATH, self.repo_type), check_output(MLGIT_REMOTE_ADD % (self.repo_type, GIT_PATH)))
-        self.assertIn(messages[87] % (self.storage_type, self.bucket),
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'] % self.tmp_dir, check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_ADD_REMOTE'] % (GIT_PATH, self.repo_type), check_output(MLGIT_REMOTE_ADD % (self.repo_type, GIT_PATH)))
+        self.assertIn(output_messages['INFO_ADD_STORAGE_WITHOUT_PROFILE'] % (self.storage_type, self.bucket),
                       check_output('ml-git repository storage add %s --type=%s' %
                                    ('mlgit --username=mlgit_user '
                                     '--endpoint-url=127.0.0.1 --port=9922 --private-key=' + FAKE_SSH_KEY_PATH, self.storage_type)))
@@ -93,10 +92,10 @@ class SFTPAcceptanceTests(unittest.TestCase):
         clear(SFTP_BUCKET_PATH)
         os.mkdir(SFTP_BUCKET_PATH)
         wrong_bucket = 'wrong_bucket'
-        self.assertIn(messages[0], check_output(MLGIT_INIT))
-        self.assertIn(messages[2] % (GIT_PATH, self.repo_type),
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'] % self.tmp_dir, check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_ADD_REMOTE'] % (GIT_PATH, self.repo_type),
                       check_output(MLGIT_REMOTE_ADD % (self.repo_type, GIT_PATH)))
-        self.assertIn(messages[87] % (self.storage_type, wrong_bucket),
+        self.assertIn(output_messages['INFO_ADD_STORAGE_WITHOUT_PROFILE'] % (self.storage_type, wrong_bucket),
                       check_output('ml-git repository storage add %s --type=%s' %
                                    (wrong_bucket, self.storage_type + ' --username=mlgit_user '
                                                                     '--port=9922 --endpoint-url=127.0.0.1 --private-key=' + FAKE_SSH_KEY_PATH)))

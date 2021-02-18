@@ -463,7 +463,7 @@ class LocalRepositoryTestCases(unittest.TestCase):
     def test_add_metrics_with_none_metrics_options(self):
         hashfs_path = os.path.join(self.tmp_dir, 'objectsfs')
         test_config = yaml_load('hdata/config.yaml')
-        local_repo = LocalRepository(test_config, hashfs_path, repo_type='model')
+        local_repo = LocalRepository(test_config, hashfs_path, repo_type=MODELS)
         spec_path = os.path.join(self.tmp_dir, 'model-ex.spec')
         shutil.copy('hdata/dataset-ex.spec', spec_path)
         spec_file = yaml_load(spec_path)
@@ -480,7 +480,7 @@ class LocalRepositoryTestCases(unittest.TestCase):
     def test_add_metrics_file(self):
         hashfs_path = os.path.join(self.tmp_dir, 'objectsfs')
         test_config = yaml_load('hdata/config.yaml')
-        local_repo = LocalRepository(test_config, hashfs_path, repo_type='model')
+        local_repo = LocalRepository(test_config, hashfs_path, repo_type=MODELS)
         spec_path = os.path.join(self.tmp_dir, 'model-ex.spec')
         shutil.copy('hdata/dataset-ex.spec', spec_path)
         spec_file = yaml_load(spec_path)

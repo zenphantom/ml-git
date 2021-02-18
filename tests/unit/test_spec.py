@@ -17,6 +17,8 @@ from ml_git.utils import yaml_save
 
 testdir = 'specdata'
 
+DATASETS = EntityType.DATASETS.value
+
 
 @pytest.mark.usefixtures('tmp_dir', 'switch_to_test_dir')
 class SpecTestCases(unittest.TestCase):
@@ -62,23 +64,23 @@ class SpecTestCases(unittest.TestCase):
         spec_file = spec_name + '.spec'
         f = open(os.path.join(spec_path, spec_file), 'w')
         f.close()
-        dir, spec = search_spec_file('dataset', spec_name, entity_dir)
+        dir, spec = search_spec_file(DATASETS, spec_name, entity_dir)
         self.assertEqual(dir, spec_path)
         self.assertEqual(spec, spec_file)
         os.remove(os.path.join(spec_path, spec_file))
-        self.assertRaises(SearchSpecException, lambda:  search_spec_file('dataset', spec_name, entity_dir))
+        self.assertRaises(SearchSpecException, lambda:  search_spec_file(DATASETS, spec_name, entity_dir))
         shutil.rmtree(entity_dir)
-        self.assertRaises(Exception, lambda:  search_spec_file('dataset', spec_name, entity_dir))
+        self.assertRaises(Exception, lambda:  search_spec_file(DATASETS, spec_name, entity_dir))
 
     def test_get_entity_dir(self):
         spec_name = 'dataset-ex'
         dir_folders = os.path.join('folderA', 'folderB', spec_name)
-        entity_path = os.path.join(self.tmp_dir, 'dataset', dir_folders)
+        entity_path = os.path.join(self.tmp_dir, DATASETS, dir_folders)
         os.makedirs(entity_path)
         spec_file = spec_name + '.spec'
         f = open(os.path.join(entity_path, spec_file), 'w')
         f.close()
-        entity_dir = get_entity_dir('dataset', spec_name, os.path.join(self.tmp_dir, 'dataset'))
+        entity_dir = get_entity_dir(DATASETS, spec_name, os.path.join(self.tmp_dir, DATASETS))
         self.assertEquals(dir_folders, entity_dir)
 
     def test_spec_parse(self):

@@ -399,7 +399,7 @@ The first step is to configure your metadata & data repository/store.
 
 ```
 $ ml-git repository remote model add git@github.com:HPInc/hp-mlgit-models.git
-$ ml-git repository store add mlgit-models
+$ ml-git repository storage add mlgit-models
 $ ml-git models init
 ```
 
@@ -461,7 +461,7 @@ models:
     - computer-vision
     - images
   manifest:
-    store: s3h://mlgit-models
+    storage: s3h://mlgit-models
   metrics:
     accuracy: 10.0
     precision: 20.0

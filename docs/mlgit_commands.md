@@ -42,11 +42,11 @@ Usage: ml-git datasets add [OPTIONS] ML_ENTITY_NAME [FILE_PATH]...
   Add datasets change set ML_ENTITY_NAME to the local ml-git staging area.
 
 Options:
---bumpversion  Increment the version number when adding more files.
---fsck         Run fsck after command execution.
---metric       Insert the metric key and value.
---metrics-file Insert the methic file path. It is expected a CSV file containing the metric names in the header and the values in the next line.
---help         Show this message and exit.
+  --bumpversion  Increment the version number when adding more files.
+  --fsck         Run fsck after command execution.
+  --metric       Insert the metric key and value.
+  --metrics-file Insert the methic file path. It is expected a CSV file containing the metric names in the header and the values in the next line.
+  --help         Show this message and exit.
 ```
 
 Dataset example:

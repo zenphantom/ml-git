@@ -13,7 +13,7 @@ $ ml-git repository storage add path-in-your-sftp-server --type=sftph --username
 After that initialize the metadata repository:
 
 ```
-$ ml-git dataset init
+$ ml-git datasets init
 ```
 
 
