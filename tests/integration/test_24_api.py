@@ -24,13 +24,13 @@ class APIAcceptanceTests(unittest.TestCase):
     refs = os.path.join(ML_GIT_DIR, DATASETS, 'refs')
     cache = os.path.join(ML_GIT_DIR, DATASETS, 'cache')
     metadata = os.path.join(ML_GIT_DIR, DATASETS, 'metadata')
-    spec_file = os.path.join(DATASETS, 'computer-vision', 'images', DATASET_NAME, 'datasets-ex.spec')
-    file1 = os.path.join(DATASETS, 'computer-vision', 'images', DATASET_NAME, 'data', 'file1')
-    file2 = os.path.join(DATASETS, 'computer-vision', 'images', DATASET_NAME, 'data', 'file2')
-    file3 = os.path.join(DATASETS, 'computer-vision', 'images', DATASET_NAME, 'data', 'file3')
-    file4 = os.path.join(DATASETS, 'computer-vision', 'images', DATASET_NAME, 'data', 'file4')
+    spec_file = os.path.join(DATASETS, DATASET_NAME, 'datasets-ex.spec')
+    file1 = os.path.join(DATASETS, DATASET_NAME, 'data', 'file1')
+    file2 = os.path.join(DATASETS, DATASET_NAME, 'data', 'file2')
+    file3 = os.path.join(DATASETS, DATASET_NAME, 'data', 'file3')
+    file4 = os.path.join(DATASETS, DATASET_NAME, 'data', 'file4')
     dataset_tag = 'computer-vision__images__datasets-ex__10'
-    data_path = os.path.join(DATASETS, 'computer-vision', 'images', DATASET_NAME)
+    data_path = os.path.join(DATASETS, DATASET_NAME)
     GIT_CLONE = 'git_clone.git'
 
     def create_file(self, path, file_name, code):
@@ -271,7 +271,7 @@ class APIAcceptanceTests(unittest.TestCase):
 
         labels_metadata = os.path.join(self.tmp_dir, ML_GIT_DIR, LABELS, 'metadata')
 
-        with open(os.path.join(labels_metadata, 'computer-vision', 'images', 'labels-ex', 'labels-ex.spec')) as y:
+        with open(os.path.join(labels_metadata, 'labels-ex', 'labels-ex.spec')) as y:
             spec = yaml_processor.load(y)
 
         HEAD = os.path.join(self.tmp_dir, ML_GIT_DIR, LABELS, 'refs', 'labels-ex', 'HEAD')
@@ -322,7 +322,8 @@ class APIAcceptanceTests(unittest.TestCase):
         os.makedirs(import_path)
         create_zip_file(IMPORT_PATH, 3)
         self.assertTrue(os.path.exists(os.path.join(import_path, 'file.zip')))
-        api.create(entity_type, entity_type+'-ex', categories=['computer-vision', 'images'], unzip=True, import_path=import_path, mutability='strict')
+        api.create(entity_type, entity_type+'-ex', categories=['computer-vision', 'images'],
+                   unzip=True, import_path=import_path, mutability='strict')
         self.check_created_folders(entity_type, StorageType.S3H.value)
         folder_data = os.path.join(self.tmp_dir, entity_type, entity_type + '-ex', 'data', 'file')
         self.assertTrue(os.path.exists(folder_data))

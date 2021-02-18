@@ -25,8 +25,7 @@ class RemoteFsckAcceptanceTests(unittest.TestCase):
             z.write(str('0' * 10011))
 
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ADD % (entity, entity+'-ex', '--bumpversion')))
-        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, entity, 'metadata'),
-                                      os.path.join('computer-vision', 'images', entity+'-ex')),
+        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, entity, 'metadata'), entity+'-ex'),
                       check_output(MLGIT_COMMIT % (entity, entity+'-ex', '')))
 
         HEAD = os.path.join(ML_GIT_DIR, entity, 'refs', DATASET_NAME, 'HEAD')

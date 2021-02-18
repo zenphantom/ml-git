@@ -24,7 +24,7 @@ class GdrivePushFilesAcceptanceTests(unittest.TestCase):
         init_repository(DATASETS, self, storage_type='gdriveh', profile=cpath)
         add_file(self, DATASETS, '--bumpversion', 'new')
         metadata_path = os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'metadata')
-        self.assertIn(messages[17] % (metadata_path, os.path.join('computer-vision', 'images', DATASET_NAME)),
+        self.assertIn(messages[17] % (metadata_path, DATASET_NAME),
                       check_output('ml-git datasets commit datasets-ex'))
 
         HEAD = os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'refs', DATASET_NAME, 'HEAD')
@@ -48,8 +48,8 @@ class GdrivePushFilesAcceptanceTests(unittest.TestCase):
         objects = os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'objects')
         refs = os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'refs')
         cache = os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'cache')
-        spec_file = os.path.join(self.tmp_dir, DATASETS, 'computer-vision', 'images', DATASET_NAME, 'datasets-ex.spec')
-        file = os.path.join(self.tmp_dir, DATASETS, 'computer-vision', 'images', DATASET_NAME, 'newfile0')
+        spec_file = os.path.join(self.tmp_dir, DATASETS, DATASET_NAME, 'datasets-ex.spec')
+        file = os.path.join(self.tmp_dir, DATASETS, DATASET_NAME, 'newfile0')
 
         self.assertTrue(os.path.exists(objects))
         self.assertTrue(os.path.exists(refs))

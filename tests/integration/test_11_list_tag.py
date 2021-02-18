@@ -20,8 +20,7 @@ class ListTagAcceptanceTests(unittest.TestCase):
     def _list_tag_entity(self, entity_type):
         init_repository(entity_type, self)
         add_file(self, entity_type, '--bumpversion', 'new')
-        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, entity_type, 'metadata'),
-                                      os.path.join('computer-vision', 'images', entity_type+'-ex')),
+        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, entity_type, 'metadata'), entity_type+'-ex'),
                       check_output(MLGIT_COMMIT % (entity_type, entity_type+'-ex', '')))
         check_output(MLGIT_PUSH % (entity_type, entity_type+'-ex'))
         self.assertIn('computer-vision__images__' + entity_type + '-ex__2',
@@ -48,8 +47,7 @@ class ListTagAcceptanceTests(unittest.TestCase):
         os.makedirs(workspace, exist_ok=True)
         create_spec(self, DATASETS, self.tmp_dir, artifact_name=similar_entity)
         add_file(self, DATASETS, '--bumpversion', 'new', artifact_name=similar_entity)
-        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'metadata'),
-                                      os.path.join('computer-vision', 'images', similar_entity)),
+        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'metadata'), similar_entity),
                       check_output(MLGIT_COMMIT % (DATASETS, similar_entity, '')))
         check_output(MLGIT_PUSH % (DATASETS, similar_entity))
         self.assertNotIn(similar_entity,

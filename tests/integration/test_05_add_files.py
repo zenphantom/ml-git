@@ -18,9 +18,9 @@ from tests.integration.output_messages import messages
 @pytest.mark.usefixtures('tmp_dir')
 class AddFilesAcceptanceTests(unittest.TestCase):
 
-    def set_up_add(self):
-        init_repository(DATASETS, self)
-        workspace = os.path.join(self.tmp_dir, DATASETS, DATASET_NAME)
+    def set_up_add(self, repo_type=DATASETS):
+        init_repository(repo_type, self)
+        workspace = os.path.join(self.tmp_dir, repo_type, '{}-ex'.format(repo_type))
         clear(workspace)
         os.makedirs(workspace)
 
@@ -96,3 +96,82 @@ class AddFilesAcceptanceTests(unittest.TestCase):
         create_file(workspace, 'file4', '0')
         self.assertIn(messages[13] % DATASETS, check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, '')))
         self._check_index(index, ['data/file1', 'data/file2', 'data/file3', 'data/file4'], [])
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
+    def test_08_add_command_with_metric_option(self):
+        repo_type = MODELS
+        entity_name = '{}-ex'.format(repo_type)
+        self.set_up_add(repo_type)
+
+        create_spec(self, repo_type, self.tmp_dir)
+        workspace = os.path.join(self.tmp_dir, repo_type, entity_name)
+
+        os.makedirs(os.path.join(workspace, 'data'))
+
+        create_file(workspace, 'file1', '0')
+
+        metrics_options = '--metric Accuracy 1 --metric Recall 2'
+
+        self.assertIn(messages[13] % repo_type, check_output(MLGIT_ADD % (repo_type, entity_name, metrics_options)))
+        index = os.path.join(ML_GIT_DIR, repo_type, 'index', 'metadata', entity_name, 'INDEX.yaml')
+        self._check_index(index, ['data/file1'], [])
+
+        with open(os.path.join(workspace, entity_name + '.spec')) as spec:
+            spec_file = yaml_processor.load(spec)
+            metrics = spec_file[repo_type].get('metrics', {})
+            self.assertFalse(metrics == {})
+            self.assertTrue(metrics['Accuracy'] == 1)
+            self.assertTrue(metrics['Recall'] == 2)
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
+    def test_09_add_command_with_metric_for_wrong_entity(self):
+        repo_type = DATASETS
+        self.set_up_add()
+
+        create_spec(self, repo_type, self.tmp_dir)
+        workspace = os.path.join(self.tmp_dir, repo_type, DATASET_NAME)
+
+        os.makedirs(os.path.join(workspace, 'data'))
+
+        create_file(workspace, 'file1', '0')
+
+        metrics_options = '--metric Accuracy 1 --metric Recall 2'
+
+        self.assertIn(messages[13] % repo_type, check_output(MLGIT_ADD % (repo_type, DATASET_NAME, metrics_options)))
+        index = os.path.join(ML_GIT_DIR, repo_type, 'index', 'metadata', DATASET_NAME, 'INDEX.yaml')
+        self._check_index(index, ['data/file1'], [])
+
+        with open(os.path.join(workspace, DATASET_NAME+'.spec')) as spec:
+            spec_file = yaml_processor.load(spec)
+            metrics = spec_file[repo_type].get('metrics', {})
+            self.assertTrue(metrics == {})
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir', 'create_csv_file')
+    def test_10_add_command_with_metric_file(self):
+        repo_type = MODELS
+        entity_name = '{}-ex'.format(repo_type)
+        self.set_up_add(repo_type)
+
+        create_spec(self, repo_type, self.tmp_dir)
+        workspace = os.path.join(self.tmp_dir, repo_type, entity_name)
+
+        os.makedirs(os.path.join(workspace, 'data'))
+
+        create_file(workspace, 'file1', '0')
+
+        csv_file = os.path.join(self.tmp_dir, 'metrics.csv')
+
+        self.create_csv_file(csv_file, {'Accuracy': 1, 'Recall': 2})
+
+        metrics_options = '--metrics-file={}'.format(csv_file)
+
+        self.assertIn(messages[13] % repo_type, check_output(MLGIT_ADD % (repo_type, entity_name, metrics_options)))
+        index = os.path.join(ML_GIT_DIR, repo_type, 'index', 'metadata', entity_name, 'INDEX.yaml')
+        self._check_index(index, ['data/file1'], [])
+
+        with open(os.path.join(workspace, entity_name + '.spec')) as spec:
+            spec_file = yaml_processor.load(spec)
+            metrics = spec_file[repo_type].get('metrics', {})
+            self.assertFalse(metrics == {})
+            self.assertTrue(metrics['Accuracy'] == 1)
+            self.assertTrue(metrics['Recall'] == 2)

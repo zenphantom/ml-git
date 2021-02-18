@@ -35,7 +35,7 @@ class APIAcceptanceTests(unittest.TestCase):
         objects = os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'objects')
         refs = os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'refs')
         cache = os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'cache')
-        spec_file = os.path.join(self.tmp_dir, DATASETS, 'computer-vision', 'images', DATASET_NAME, 'datasets-ex.spec')
+        spec_file = os.path.join(self.tmp_dir, DATASETS, DATASET_NAME, 'datasets-ex.spec')
 
         self.assertTrue(os.path.exists(objects))
         self.assertTrue(os.path.exists(refs))
@@ -43,7 +43,7 @@ class APIAcceptanceTests(unittest.TestCase):
         self.assertTrue(os.path.exists(spec_file))
 
     def check_amount_of_files(self, entity_type, expected_files):
-        entity_dir = os.path.join(self.tmp_dir, entity_type, 'computer-vision', 'images', entity_type + '-ex')
+        entity_dir = os.path.join(self.tmp_dir, entity_type, entity_type + '-ex')
         self.assertTrue(os.path.exists(entity_dir))
         file_count = 0
         for path in pathlib.Path(entity_dir).iterdir():
@@ -75,7 +75,7 @@ class APIAcceptanceTests(unittest.TestCase):
     def test_03_checkout_with_otf_fail(self):
         self.set_up_checkout(DATASETS)
         self.assertIn(messages[98], check_output(MLGIT_CHECKOUT % (DATASETS, 'computer-vision__images__datasets-ex__2')))
-        entity_dir = os.path.join(self.tmp_dir, DATASETS, 'computer-vision', 'images', DATASET_NAME)
+        entity_dir = os.path.join(self.tmp_dir, DATASETS, DATASET_NAME)
         self.assertFalse(os.path.exists(entity_dir))
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
@@ -84,5 +84,5 @@ class APIAcceptanceTests(unittest.TestCase):
         self.set_up_checkout(DATASETS)
         delete_global_config()
         self.assertIn(messages[99], check_output(MLGIT_CHECKOUT % (DATASETS, 'computer-vision__images__datasets-ex__2')))
-        entity_dir = os.path.join(self.tmp_dir, DATASETS, 'computer-vision', 'images', DATASET_NAME)
+        entity_dir = os.path.join(self.tmp_dir, DATASETS, DATASET_NAME)
         self.assertFalse(os.path.exists(entity_dir))

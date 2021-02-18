@@ -32,6 +32,9 @@ google-api-python-client = "==1.8.4"
 google-auth-httplib2 = "==0.0.3"
 google-auth-oauthlib = "==0.4.1"
 halo = "==0.0.29"
+paramiko = "==2.7.2"
+mock = "==4.0.2"
+prettytable = "==2.0.0"
 
 [requires]
 python_version = "3.7"

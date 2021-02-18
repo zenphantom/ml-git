@@ -30,7 +30,7 @@ class StatusShortModeAcceptanceTests(unittest.TestCase):
         create_file(data_path, 'file', '0', '')
         create_file(data_path, 'file2', '0', '')
         self.assertIn(messages[13] % DATASETS, check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, '')))
-        self.assertIn(messages[17] % (metadata_path, os.path.join('computer-vision', 'images', entity + '-ex')),
+        self.assertIn(messages[17] % (metadata_path, entity + '-ex'),
                       check_output(MLGIT_COMMIT % (entity, entity + '-ex', '')))
         HEAD = os.path.join(self.tmp_dir, ML_GIT_DIR, entity, 'refs', entity + '-ex', 'HEAD')
         self.assertTrue(os.path.exists(HEAD))
@@ -81,8 +81,7 @@ class StatusShortModeAcceptanceTests(unittest.TestCase):
         create_file(data_path, 'file2', '0', '')
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, '--bumpversion')))
 
-        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'metadata'),
-                                      os.path.join('computer-vision', 'images', DATASET_NAME)),
+        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'metadata'),  DATASET_NAME),
                       check_output(MLGIT_COMMIT % (DATASETS, DATASET_NAME, '')))
         self.assertRegex(check_output(MLGIT_STATUS_SHORT % (DATASETS, DATASET_NAME)),
                          r'Changes to be committed:\s+Untracked files:')
@@ -98,7 +97,7 @@ class StatusShortModeAcceptanceTests(unittest.TestCase):
     def test_06_status_after_delete_file(self):
         self.set_up_checkout(DATASETS)
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG)))
-        data_path = os.path.join(self.tmp_dir, DATASETS, 'computer-vision', 'images', DATASET_NAME, 'data')
+        data_path = os.path.join(self.tmp_dir, DATASETS, DATASET_NAME, 'data')
         file_to_be_deleted = os.path.join(data_path, 'file')
         file_to_be_deleted2 = os.path.join(data_path, 'file2')
         clear(file_to_be_deleted)

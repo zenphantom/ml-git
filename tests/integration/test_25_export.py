@@ -21,8 +21,7 @@ class ExportTagAcceptanceTests(unittest.TestCase):
         init_repository(repotype, self)
         add_file(self, repotype, '', repotype)
         file_in_storage = os.path.join(PATH_TEST, 'data', 'mlgit', repotype+'file0')
-        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, repotype, 'metadata'),
-                                      os.path.join('computer-vision', 'images', entity)),
+        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, repotype, 'metadata'), entity),
                       check_output(MLGIT_COMMIT % (repotype, entity, '')))
 
         self.assertFalse(os.path.exists(file_in_storage))

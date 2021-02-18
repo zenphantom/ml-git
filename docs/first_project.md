@@ -1,7 +1,7 @@
 # Your 1st ML artefacts under ml-git management #
 
 We will divide this quick howto into 6 main sections:
-1. [ml-git repository configuation / intialization](#initial-config)   
+1. [initial configuration of ml-git](#initial-config)  
    
     - This section explains how to initialize and configure a repository for ml-git, considering the scenarios of the storage be an S3 or a MinIO.
 2. [uploading a dataset](#upload-dataset)
@@ -13,10 +13,13 @@ We will divide this quick howto into 6 main sections:
 4. [uploading labels associated to a dataset](#upload-labels)
    
     - This section describes how to upload a set of labels by associating the dataset to which these labels refer.
-5. [downloading a dataset](#download-dataset)
+5. [uploading models](#upload-models)
+
+    - This section explains how to create and upload your models.
+6. [downloading a dataset](#download-dataset)
    
     - This section describes how to download a versioned data set using ml-git.
-6. [checking data integrity](#checking-integrity)
+7. [checking data integrity](#checking-integrity)
    
     - This section explains how to check the integrity of the metadata repository.
     
@@ -89,7 +92,7 @@ $ ml-git datasets init
 
 The Ml-git uses git to versioning project's metadata. See bellow versioned metadata:
 
-*  **.spec**, is the specification file that contains informations like version number, artefact name, entity type (dataset, label, model), categories (tree struct that caracterize an entity).
+*  **.spec**, is the specification file that contains informations like version number, artefact name, entity type (dataset, label, model), categories (list of labels to categorize an entity).
 *  **MANIFEST.yaml**, is responsible to map artefact's files. The files are mapped by hashes, that are the references used to perform operations in local files, and download/upload operations in Stores (AWS|MinIO).
 
 You can find more information about metadata [here](docs/mlgit_internals.md).
@@ -125,18 +128,18 @@ Ml-git expects any dataset to be specified under _dataset/_ directory of your pr
 To create this specification file for a new entity you must run the following command:
 
 ```
-$ ml-git datasets create imagenet8 --category=computer-vision --category=images --mutability=strict --storage-type=s3h --bucket-name=mlgit-datasets --version=1 
+$ ml-git datasets create imagenet8 --category=computer-vision --category=images --mutability=strict --storage-type=s3h --bucket-name=mlgit-datasets
 ```
 
-After that a file must have been created in dataset/imagenet8/imagenet8.spec and should look like this:
-
-To create this specification file for a new entity you must run the following command:
+This command will create the dataset directory at the root of the project entity.
+If you want to create a version of your dataset in a different directory, you can use the --entity-dir parameter
+to inform the relative directory where the entity is to be created. Example:
 
 ```
-$ ml-git datasets create imagenet8 --category=computer-vision --category=images --storage-type=s3h --bucket-name=mlgit-datasets --version=1 
+$ ml-git datasets create imagenet8 --category=computer-vision --category=images --mutability=strict --storage-type=s3h --bucket-name=mlgit-datasets --entity-dir=folderA/folderB
 ```
 
-After that a file must have been created in dataset/imagenet8/imagenet8.spec and should look like this:
+After that a file must have been created in dataset/folderA/folderB/imagenet8/imagenet8.spec and should look like this:
 
 ```
 datasets:
@@ -153,7 +156,7 @@ datasets:
 There are 5 main items in the spec file:
 1. __name__: it's the name of the dataset
 2. __version__: the version should be an integer, incremented each time there is new version pushed into ml-git.  You can use the --bumpversion argument to do the increment automatically for you when you add more files to a dataset.
-3. __categories__ : describes a tree structure to characterize the dataset category. That information is used by ml-git to create a directory structure in the git repository managing the metadata.
+3. __categories__ : labels to categorize the entity. That information is used by ml-git to create the tag in the git repository managing the metadata.
 4. __manifest__: describes the data storage in which the data is actually stored. In this case a S3 bucket named _mlgit-datasets_. The AWS credential profile name and AWS region should be found in the ml-git config file.
 5. __mutability__: describes the mutability option that your project will have, choosing an option that can never be changed. The mutability options are "strict", "flexible" and "mutable". If you want to know more about each type of mutability and how it works, please take a look at [mutability documentation](mutability_helper.md).
 
@@ -388,7 +391,92 @@ As you can see, there is a new section "_dataset_" that has been added by ml-git
 **Uploading labels related to a dataset:**
 
 [![asciicast](https://asciinema.org/a/385774.svg)](https://asciinema.org/a/385774)
+## <a name="upload-models">Uploading Models</a> ##
 
+To create and upload your model, you must be in an already initialized project, if necessary read [section 1](#initial-config) to initialize and configure a project.
+
+The first step is to configure your metadata & data repository/store.
+
+```
+$ ml-git repository remote model add git@github.com:HPInc/hp-mlgit-models.git
+$ ml-git repository store add mlgit-models
+$ ml-git models init
+```
+
+To create a model entity, you can run the following command:
+
+```
+$ ml-git models create imagenet-model --category=computer-vision --category=images --store-type=s3h --mutability=mutable --bucket-name=mlgit-models
+```
+
+After creating the model, we add the model file to the data folder. Here below is the directory tree structure:
+
+```
+imagenet-model/
+├── README.md
+├── data
+│   ├── model_file
+└── imagenet-model.spec
+```
+
+Now, you're ready to put that new model set under ml-git management. We assume there is an existing imagenet8 dataset and mscoco-captions labels. For this, do:
+
+```
+$ ml-git models add imagenet-model
+$ ml-git models commit imagenet-model --dataset=imagenet8 --labels=mscoco-captions
+$ ml-git models push imagenet-model
+```
+
+There is not much change compared to dataset and labels operation.
+You can use the options "_-- dataset_" and "_--labels_", which tells to ml-git that the model should be linked to the specified dataset and labels.
+Internally, ml-git will look in your workspace for the checked out dataset and labels specified in the options. It then will include the reference to the checked out versions into the model's specification file to be committed into the metadata repository.
+Once done, anyone will then be able to retrieve the exact same version of the dataset and labels that has been used for that specific model.
+
+**Persisting model's metrics:**
+
+We can insert metrics to the model in the add command, metrics can be added with the following parameters:
+
+1. __metrics-file__: optional metrics file path. It is expected a CSV file containing the metric names in the header and the values in the next line.
+2. __metric__: optional metric keys and values.
+
+An example of adding a model passing a metrics file, would be the following command:
+
+```
+$ ml-git models add imagenet-model --metrics-file='/path/to/your/file.csv'
+```
+
+An example of adding a model passing metrics through the command line, would be the following command:
+
+```
+$ ml-git models add imagenet-model --metric accuracy 10 --metric precision 20 --metric recall 30
+```
+
+Obs: The parameters used above were chosen for example purposes, you can name your metrics however you want to, you can also pass as many metrics as you want, as long as you use the command correctly.
+
+When inserting the metrics, they will be included in the structure of your model's spec file. An example of what it would look like would be the following structure:
+
+```
+models:
+  categories:
+    - computer-vision
+    - images
+  manifest:
+    store: s3h://mlgit-models
+  metrics:
+    accuracy: 10.0
+    precision: 20.0
+    recall: 30.0
+  name: imagenet-model
+  version: 1
+```
+
+You can check the metrics added to the spec by executing the log command.
+
+```
+$ ml-git models log imagenet-model
+```
+
+[![asciicast](https://asciinema.org/a/Fs4qaPXXDTK1sapmAvnyeXp3n.svg)](https://asciinema.org/a/Fs4qaPXXDTK1sapmAvnyeXp3n)
 ## <a name="download-dataset">Downloading a dataset</a> ##
 
 We assume there is an existing ml-git repository with a few ML datasets under its management and you'd like to download one of the existing datasets.
@@ -416,13 +504,13 @@ To discover which datasets are under ml-git management, you can execute the foll
 ```
 $ ml-git datasets list
 ML dataset
-|-- computer-vision
-|   |-- images
+|-- folderA
+|   |-- folderB
 |   |   |-- dataset-ex-minio
 |   |   |-- imagenet8
 |   |   |-- dataset-ex
 ```
-The ml-git repository contains 3 different datasets, all falling under the same category _computer-vision/images_.
+The ml-git repository contains 3 different datasets, all falling under the same directories _folderA/folderB_ (These directories were defined when the entity was created and can be modified at any time by the user).
 
 In order for ml-git to manage the different versions of the same dataset, it internally creates a tag based on categories, ml entity name and its version.
 To show all these tag representing the versions of a dataset, simply type the following:
@@ -460,11 +548,11 @@ If you want to get the latest available version of an entity you can just pass i
 $ ml-git datasets checkout imagenet8
 ```
 
-Getting the data will auto-create a directory structure under _dataset_ directory as shown below. That structure _computer-vision/images_ is actually coming from the categories defined in the dataset spec file. Doing that way allows for easy download of many datasets in one single ml-git project without creating any conflicts.
+Getting the data will auto-create a directory structure under _dataset_ directory as shown below. That structure _folderA/folderB_ is actually the structure in which the dataset was versioned.
 
 ```
-computer-vision/
-└── images
+folderA
+└── folderB
     └── imagenet8
         ├── README.md
         ├── data

@@ -42,8 +42,7 @@ class AzureAcceptanceTests(unittest.TestCase):
 
         add_file(self, self.repo_type, '', 'new')
         metadata_path = os.path.join(ML_GIT_DIR, DATASETS, 'metadata')
-        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, metadata_path),
-                                      os.path.join('computer-vision', 'images', DATASET_NAME)),
+        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, metadata_path), DATASET_NAME),
                       check_output(MLGIT_COMMIT % (self.repo_type, DATASET_NAME, '')))
         HEAD = os.path.join(ML_GIT_DIR, DATASETS, 'refs', DATASET_NAME, 'HEAD')
         self.assertTrue(os.path.exists(HEAD))
@@ -92,8 +91,7 @@ class AzureAcceptanceTests(unittest.TestCase):
         add_file(self, self.repo_type, '', 'new')
         metadata_path = os.path.join(ML_GIT_DIR, DATASETS, 'metadata')
         self.assertIn(messages[17] %
-                      (os.path.join(self.tmp_dir, metadata_path),
-                       os.path.join('computer-vision', 'images', DATASET_NAME)),
+                      (os.path.join(self.tmp_dir, metadata_path), DATASET_NAME),
                       check_output(MLGIT_COMMIT % (self.repo_type, DATASET_NAME, '')))
         HEAD = os.path.join(ML_GIT_DIR, DATASETS, 'refs', DATASET_NAME, 'HEAD')
         self.assertTrue(os.path.exists(HEAD))
@@ -106,7 +104,7 @@ class AzureAcceptanceTests(unittest.TestCase):
         self.assertEqual(os.getenv('AZURE_STORAGE_CONNECTION_STRING'), self.dev_store_account_)
         self.assertNotIn(ERROR_MESSAGE,
                          check_output(MLGIT_CHECKOUT % (self.repo_type, DATASET_TAG)))
-        ws_path = os.path.join(self.tmp_dir, DATASETS, 'computer-vision', 'images', DATASET_NAME)
+        ws_path = os.path.join(self.tmp_dir, DATASETS, DATASET_NAME)
 
         self.assertTrue(os.path.isfile(os.path.join(ws_path, 'newfile0')))
         self.assertTrue(os.path.isfile(os.path.join(ws_path, 'newfile1')))

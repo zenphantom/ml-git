@@ -8,7 +8,7 @@
 <br>
 
 ```python
-def add(entity_type, entity_name, bumpversion=False, fsck=False, file_path=[]):
+def add(entity_type, entity_name, bumpversion=False, fsck=False, file_path=[], metric=[], metrics_file=''):
     """This command will add all the files under the directory into the ml-git index/staging area.
 
     Example:
@@ -20,6 +20,8 @@ def add(entity_type, entity_name, bumpversion=False, fsck=False, file_path=[]):
         bumpversion (bool, optional): Increment the entity version number when adding more files [default: False].
         fsck (bool, optional): Run fsck after command execution [default: False].
         file_path (list, optional): List of files that must be added by the command [default: all files].
+        metric (dictionary, optional): The metric dictionary, example: { 'metric': value } [default: empty].
+        metrics_file (str, optional): The metrics file path. It is expected a CSV file containing the metric names in the header and the values in the next line [default: empty].
     """
 ```
 </details>
@@ -124,6 +126,7 @@ def create(entity, entity_name, categories, mutability, **kwargs):
             import_url (str, optional): Import data from a google drive url.
             credentials_path (str, optional): Directory of credentials.json.
             unzip (bool, optional): Unzip imported zipped files [default: False].
+            entity_dir (str, optional): The relative path where the entity will be created inside the ml entity directory [default: empty].
     """
 ```
 </details>

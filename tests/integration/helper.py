@@ -2,7 +2,6 @@
 © Copyright 2020 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
-
 import os
 import os.path
 import shutil
@@ -17,6 +16,7 @@ from ruamel.yaml import YAML
 
 from ml_git.constants import GLOBAL_ML_GIT_CONFIG, Mutability, StorageType, STORAGE_KEY, EntityType
 from ml_git.ml_git_message import output_messages
+from ml_git.utils import ensure_path_exists
 from tests.integration.commands import MLGIT_INIT, MLGIT_REMOTE_ADD, MLGIT_ENTITY_INIT, MLGIT_ADD, \
     MLGIT_STORAGE_ADD_WITH_TYPE, MLGIT_REMOTE_ADD_GLOBAL, MLGIT_STORAGE_ADD, MLGIT_STORAGE_ADD_WITHOUT_CREDENTIALS, \
     MLGIT_COMMIT, MLGIT_PUSH
@@ -27,6 +27,8 @@ ML_GIT_DIR = '.ml-git'
 IMPORT_PATH = 'src'
 GIT_PATH = 'local_git_server.git'
 MINIO_BUCKET_PATH = os.path.join(PATH_TEST, 'data', 'mlgit')
+SFTP_BUCKET_PATH = os.path.join(PATH_TEST, 'sftp', 'mlgit')
+FAKE_SSH_KEY_PATH = os.path.join(os.getcwd(), 'tests', 'integration', 'fake_ssh_key', 'test_key')
 GIT_WRONG_REP = 'https://github.com/wrong_repository/wrong_repository.git'
 BUCKET_NAME = 'mlgit'
 STORAGE_TYPE = StorageType.S3H.value
@@ -147,7 +149,7 @@ def init_repository(entity, self, version=1, storage_type='s3h', profile=PROFILE
     self.assertTrue(os.path.exists(spec_file))
 
 
-def add_file(self, entity, bumpversion, name=None, artifact_name=None, file_content='1'):
+def add_file(self, entity, bumpversion, name=None, artifact_name=None, file_content='1', entity_dir=''):
     if not artifact_name:
         artifact_name = f'{entity}-ex'
     if name is None:
@@ -155,9 +157,9 @@ def add_file(self, entity, bumpversion, name=None, artifact_name=None, file_cont
     else:
         file_list = [name + 'file0', name + 'file1', name + 'file2', name + 'file3']
     for file in file_list:
-        with open(os.path.join(self.tmp_dir, entity, artifact_name, file), 'wt') as z:
+        with open(os.path.join(self.tmp_dir, entity, entity_dir, artifact_name, file), 'wt') as z:
             z.write(str(uuid.uuid1()) * 100)
-    with open(os.path.join(self.tmp_dir, entity, artifact_name, 'newfile4'), 'wt') as z:
+    with open(os.path.join(self.tmp_dir, entity, entity_dir, artifact_name, 'newfile4'), 'wt') as z:
         z.write(str(file_content * 100))
     # Create assert do ml-git add
     if entity == DATASETS:
@@ -319,3 +321,12 @@ def populate_entity_with_new_data(self, entity, bumpversion='--bumpversion', ver
     head_path = os.path.join(self.tmp_dir, ML_GIT_DIR, entity, 'refs', entity + '-ex', 'HEAD')
     self.assertTrue(os.path.exists(head_path))
     self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_PUSH % (entity, entity + '-ex')))
+
+
+def move_entity_to_dir(tmp_dir, artifact_name, entity_type):
+    workspace = os.path.join(tmp_dir, entity_type, artifact_name)
+    entity_dir = os.path.join('folderA')
+    workspace_with_dir = os.path.join(tmp_dir, entity_type, entity_dir)
+    ensure_path_exists(workspace_with_dir)
+    shutil.move(workspace, workspace_with_dir)
+    return entity_dir, workspace, workspace_with_dir

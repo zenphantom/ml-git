@@ -92,7 +92,7 @@ def valid_storage_type(storage_type):
     return True
 
 
-def storage_add(storage_type, bucket, credentials_profile, global_conf=False, endpoint_url=None):
+def storage_add(storage_type, bucket, credentials_profile, global_conf=False, endpoint_url=None, sftp_configs=None):
     if not valid_storage_type(storage_type):
         return
 
@@ -123,6 +123,11 @@ def storage_add(storage_type, bucket, credentials_profile, global_conf=False, en
         conf[STORAGE_KEY][storage_type][bucket]['endpoint-url'] = endpoint_url
     elif storage_type in [StorageType.GDRIVEH.value]:
         conf[STORAGE_KEY][storage_type][bucket]['credentials-path'] = credentials_profile
+    elif storage_type in [StorageType.SFTPH.value]:
+        conf[STORAGE_KEY][storage_type][bucket]['endpoint-url'] = endpoint_url
+        conf[STORAGE_KEY][storage_type][bucket]['username'] = sftp_configs['username']
+        conf[STORAGE_KEY][storage_type][bucket]['private-key'] = sftp_configs['private_key']
+        conf[STORAGE_KEY][storage_type][bucket]['port'] = sftp_configs['port']
     yaml_save(conf, file)
 
 

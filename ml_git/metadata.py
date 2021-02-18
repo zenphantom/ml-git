@@ -18,6 +18,7 @@ from ml_git.ml_git_message import output_messages
 from ml_git.plugin_interface.data_plugin_constants import ADD_METADATA
 from ml_git.plugin_interface.plugin_especialization import PluginCaller
 from ml_git.refs import Refs
+from ml_git.spec import spec_parse, get_entity_dir
 from ml_git.utils import ensure_path_exists, yaml_save, yaml_load, clear, get_file_size, normalize_path
 
 
@@ -31,9 +32,9 @@ class Metadata(MetadataManager):
 
     def tag_exists(self, index_path):
         spec_file = os.path.join(index_path, 'metadata', self._spec, self._spec + SPEC_EXTENSION)
-        full_metadata_path, categories_sub_path, metadata = self._full_metadata_path(spec_file)
+        full_metadata_path, entity_sub_path, metadata = self._full_metadata_path(spec_file)
         if metadata is None:
-            return full_metadata_path, categories_sub_path, metadata
+            return full_metadata_path, entity_sub_path, metadata
 
         # generates a tag to associate to the commit
         tag = self.metadata_tag(metadata)
@@ -47,16 +48,16 @@ class Metadata(MetadataManager):
                 % (tag, self.__repo_type), class_name=METADATA_CLASS_NAME
             )
             return None, None, None
-        return full_metadata_path, categories_sub_path, metadata
+        return full_metadata_path, entity_sub_path, metadata
 
     def commit_metadata(self, index_path, tags, commit_msg, changed_files, mutability, ws_path):
         spec_file = os.path.join(index_path, 'metadata', self._spec, self._spec + SPEC_EXTENSION)
-        full_metadata_path, categories_sub_path, metadata = self._full_metadata_path(spec_file)
+        full_metadata_path, entity_sub_path, metadata = self._full_metadata_path(spec_file)
         log.debug('Metadata path [%s]' % full_metadata_path, class_name=METADATA_CLASS_NAME)
 
         if full_metadata_path is None:
             return None, None
-        elif categories_sub_path is None:
+        elif entity_sub_path is None:
             return None, None
 
         ensure_path_exists(full_metadata_path)
@@ -91,7 +92,7 @@ class Metadata(MetadataManager):
             # generates a commit message
             msg = self.metadata_message(metadata)
         log.debug('Commit message [%s]' % msg, class_name=METADATA_CLASS_NAME)
-        sha = self.commit(categories_sub_path, msg)
+        sha = self.commit(entity_sub_path, msg)
         self.tag_add(tag)
         return str(tag), str(sha)
 
@@ -102,19 +103,14 @@ class Metadata(MetadataManager):
         return path
 
     def _full_metadata_path(self, spec_file):
-        log.debug('Getting subpath from categories in specfile [%s]' % spec_file, class_name=METADATA_CLASS_NAME)
-
+        try:
+            entity_dir = get_entity_dir(self.__repo_type, self._spec)
+        except Exception as e:
+            log.error(e, class_name=METADATA_CLASS_NAME)
+            return None, None, None
         metadata = yaml_load(spec_file)
-        if metadata == {}:
-            log.error('The entity name passed it\'s wrong. Please check again', class_name=METADATA_CLASS_NAME)
-            return None, None, None
-        categories_path = self.metadata_subpath(metadata)
-        if categories_path is None:
-            log.error('You must place at least one category in the entity .spec file', class_name=METADATA_CLASS_NAME)
-            return None, None, None
-
-        full_metadata_path = os.path.join(self.__path, categories_path)
-        return full_metadata_path, categories_path, metadata
+        full_metadata_path = os.path.join(self.__path, entity_dir)
+        return full_metadata_path, entity_dir, metadata
 
     @Halo(text='Commit manifest', spinner='dots')
     def __commit_manifest(self, full_metadata_path, index_path, changed_files, mutability):
@@ -134,13 +130,10 @@ class Metadata(MetadataManager):
         os.unlink(idx_path)
         return True
 
-    def spec_split(self, spec):
-        return spec.split('__')
-
     def get_metadata_path(self, tag):
-        specs = self.spec_split(tag)
-        categories_path = os.sep.join(specs[:-1])
-        return os.path.join(self.__path, categories_path)
+        _, specname, _ = spec_parse(tag)
+        entity_dir = get_entity_dir(self.__repo_type, specname)
+        return os.path.join(self.__path, entity_dir)
 
     def __commit_metadata(self, full_metadata_path, index_path, metadata, specs, ws_path):
         idx_path = os.path.join(index_path, 'metadata', self._spec)

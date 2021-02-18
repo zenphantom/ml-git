@@ -114,7 +114,7 @@ class GcAcceptanceTests(unittest.TestCase):
         result = check_output(MLGIT_REPOSITORY_GC)
         self._check_result(result, entity, original_size, number_of_files,
                            expected_removed_files=3, expected_reclaimed_space='2.1 kB')
-        file = os.path.join(self.tmp_dir, DATASETS, 'computer-vision', 'images', DATASET_NAME, 'file-after-gc')
+        file = os.path.join(self.tmp_dir, DATASETS, DATASET_NAME, 'file-after-gc')
         with open(file, 'wb') as z:
             z.write(b'1' * 1024)
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ADD % (entity, entity + '-ex', '')))

@@ -26,8 +26,7 @@ class MutabilityAcceptanceTests(unittest.TestCase):
         create_file(workspace, 'file1', '0')
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ADD % (entity_type, entity_type+'-ex', '')))
 
-        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, entity_type, 'metadata'),
-                                      os.path.join('computer-vision', 'images', entity_type+'-ex')),
+        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, entity_type, 'metadata'), entity_type+'-ex'),
                       check_output(MLGIT_COMMIT % (entity_type, entity_type + '-ex', '')))
 
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_PUSH % (entity_type, entity_type+'-ex')))
@@ -60,13 +59,12 @@ class MutabilityAcceptanceTests(unittest.TestCase):
         self._create_entity_with_mutability(entity_type, 'strict')
         self._checkout_entity(entity_type)
 
-        spec_with_categories = os.path.join(self.tmp_dir, entity_type, 'computer-vision', 'images', entity_type + '-ex',
-                                            entity_type + '-ex.spec')
+        spec_with_categories = os.path.join(self.tmp_dir, entity_type, entity_type + '-ex', entity_type + '-ex.spec')
 
         ws_spec = self._verify_mutability(entity_type, 'strict', spec_with_categories)
         self._change_mutability(entity_type, 'flexible', spec_with_categories, ws_spec)
 
-        create_file(os.path.join(entity_type, 'computer-vision', 'images', entity_type+'-ex'), 'file2', '012')
+        create_file(os.path.join(entity_type, entity_type+'-ex'), 'file2', '012')
 
         self.assertIn(messages[64], check_output(MLGIT_ADD % (entity_type, entity_type+'-ex', '')))
 
@@ -76,13 +74,12 @@ class MutabilityAcceptanceTests(unittest.TestCase):
         self._create_entity_with_mutability(entity_type, 'flexible')
         self._checkout_entity(entity_type, 'computer-vision__images__models-ex__1')
 
-        spec_with_categories = os.path.join(self.tmp_dir, entity_type, 'computer-vision', 'images', entity_type + '-ex',
-                                            entity_type + '-ex.spec')
+        spec_with_categories = os.path.join(self.tmp_dir, entity_type, entity_type + '-ex', entity_type + '-ex.spec')
 
         ws_spec = self._verify_mutability(entity_type, 'flexible', spec_with_categories)
         self._change_mutability(entity_type, 'strict', spec_with_categories, ws_spec)
 
-        create_file(os.path.join(self.tmp_dir, entity_type, 'computer-vision', 'images', entity_type+'-ex'), 'file2', '012')
+        create_file(os.path.join(self.tmp_dir, entity_type, entity_type+'-ex'), 'file2', '012')
 
         self.assertIn(messages[64], check_output(MLGIT_ADD % (entity_type, entity_type+'-ex', '')))
 
@@ -92,12 +89,11 @@ class MutabilityAcceptanceTests(unittest.TestCase):
         self._create_entity_with_mutability(entity_type, 'mutable')
         self._checkout_entity(entity_type, 'computer-vision__images__labels-ex__1')
 
-        spec_with_categories = os.path.join(self.tmp_dir, entity_type, 'computer-vision', 'images', entity_type + '-ex',
-                                            entity_type + '-ex.spec')
+        spec_with_categories = os.path.join(self.tmp_dir, entity_type,  entity_type + '-ex', entity_type + '-ex.spec')
 
         ws_spec = self._verify_mutability(entity_type, 'mutable', spec_with_categories)
         self._change_mutability(entity_type, 'strict', spec_with_categories, ws_spec)
 
-        create_file(os.path.join(self.tmp_dir, entity_type, 'computer-vision', 'images', entity_type+'-ex'), 'file2', '012')
+        create_file(os.path.join(self.tmp_dir, entity_type, entity_type+'-ex'), 'file2', '012')
 
         self.assertIn(messages[64], check_output(MLGIT_ADD % (entity_type, entity_type+'-ex', '')))

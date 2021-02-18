@@ -13,6 +13,8 @@ from ml_git.admin import init_mlgit
 from ml_git.config import config_load
 from ml_git.constants import EntityType, StorageType
 from ml_git.log import init_logger
+from ml_git.spec import search_spec_file, spec_parse
+from ml_git.utils import get_root_path
 from ml_git.repository import Repository
 
 init_logger()
@@ -78,7 +80,9 @@ def checkout(entity, tag, sampling=None, retries=2, force=False, dataset=False, 
     options['version'] = version
     repo.checkout(tag, sampling, options)
 
-    data_path = os.path.join(entity, *tag.split('__')[:-1])
+    _, specname, _ = spec_parse(tag)
+    spec_path, _ = search_spec_file(entity, specname)
+    data_path = os.path.relpath(spec_path, get_root_path())
     if not os.path.exists(data_path):
         data_path = None
     return data_path
@@ -111,7 +115,7 @@ def clone(repository_url, folder=None, track=False):
             os.chdir(current_directory)
 
 
-def add(entity_type, entity_name, bumpversion=False, fsck=False, file_path=[]):
+def add(entity_type, entity_name, bumpversion=False, fsck=False, file_path=[], metric=[], metrics_file=''):
     """This command will add all the files under the directory into the ml-git index/staging area.
 
     Example:
@@ -123,10 +127,19 @@ def add(entity_type, entity_name, bumpversion=False, fsck=False, file_path=[]):
         bumpversion (bool, optional): Increment the entity version number when adding more files [default: False].
         fsck (bool, optional): Run fsck after command execution [default: False].
         file_path (list, optional): List of files that must be added by the command [default: all files].
+        metric (dictionary, optional): The metric dictionary, example: { 'metric': value } [default: empty].
+        metrics_file (str, optional): The metrics file path. It is expected a CSV file containing the metric names in the header and
+         the values in the next line [default: empty].
     """
 
+    metrics = []
+    if metric:
+        for key, val in metric.items():
+            metric_value = (key, val)
+            metrics.append(metric_value)
+
     repo = get_repository_instance(entity_type)
-    repo.add(entity_name, file_path, bumpversion, fsck)
+    repo.add(entity_name, file_path, bumpversion, fsck, tuple(metrics), metrics_file)
 
 
 def commit(entity, ml_entity_name, commit_message=None, related_dataset=None, related_labels=None):
@@ -185,12 +198,13 @@ def create(entity, entity_name, categories, mutability, **kwargs):
             categories (list): Artifact's category name.
             mutability (str): Mutability type. The mutability options are strict, flexible and mutable.
             storage_type (str, optional): Data storage type [default: s3h].
-            version (int, optional): Number of retries to upload the files to the storage [default: 2].
+            version (int, optional): Number of artifact version [default: 1].
             import_path (str, optional): Path to be imported to the project.
             bucket_name (str, optional): Bucket name.
             import_url (str, optional): Import data from a google drive url.
             credentials_path (str, optional): Directory of credentials.json.
             unzip (bool, optional): Unzip imported zipped files [default: False].
+            entity_dir (str, optional): The relative path where the entity will be created inside the ml entity directory [default: empty].
     """
 
     args = {'artifact_name': entity_name, 'category': categories, 'mutability': mutability,
@@ -198,7 +212,7 @@ def create(entity, entity_name, categories, mutability, **kwargs):
             'storage_type':  kwargs.get('storage_type', StorageType.S3H.value),
             'bucket_name': kwargs.get('bucket_name', None), 'unzip': kwargs.get('unzip', False),
             'import_url': kwargs.get('import_url', None), 'credentials_path': kwargs.get('credentials_path', None),
-            'wizard_config': False}
+            'wizard_config': False, 'entity_dir': kwargs.get('entity_dir', '')}
 
     repo = get_repository_instance(entity)
     repo.create(args)
@@ -224,7 +238,8 @@ def init(entity):
         log.error('The type of entity entered is invalid. Valid types are: [repository, dataset, labels or model]')
 
 
-def storage_add(bucket_name, bucket_type=StorageType.S3H.value, credentials=None, global_configuration=False, endpoint_url=None):
+def storage_add(bucket_name, bucket_type=StorageType.S3H.value, credentials=None, global_configuration=False,
+                endpoint_url=None, username=None, private_key=None, port=22):
     """This command will add a storage to the ml-git project.
 
         Examples:
@@ -236,12 +251,17 @@ def storage_add(bucket_name, bucket_type=StorageType.S3H.value, credentials=None
             credentials (str, optional): Name of the profile that stores the credentials or the path to the credentials.
             global_configuration (bool, optional): Use this option to set configuration at global level [default: False].
             endpoint_url (str, optional): Storage endpoint url.
+            username (str, optional): The username for the sftp login.
+            private_key (str, optional): Full path for the private key file.
     """
 
     if bucket_type not in StorageType.to_list():
         return
 
-    admin.storage_add(bucket_type, bucket_name, credentials, global_configuration, endpoint_url)
+    sftp_configs = {'username': username,
+                    'private_key': private_key,
+                    'port': port}
+    admin.storage_add(bucket_type, bucket_name, credentials, global_configuration, endpoint_url, sftp_configs=sftp_configs)
 
 
 def remote_add(entity, remote_url, global_configuration=False):

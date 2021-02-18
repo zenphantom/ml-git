@@ -205,7 +205,9 @@ commands = [
 
         'options': {
             '--bumpversion': {'is_flag': True, 'help': help_msg.BUMP_VERSION},
-            '--fsck': {'is_flag': True, 'help': help_msg.FSCK_OPTION}
+            '--fsck': {'is_flag': True, 'help': help_msg.FSCK_OPTION},
+            '--metric': {'required': False, 'multiple': True, 'type': (str, float), 'help': help_msg.METRIC_OPTION},
+            '--metrics-file': {'required': False, 'help': help_msg.METRICS_FILE_OPTION},
         },
 
         'help': 'Add %s change set ML_ENTITY_NAME to the local ml-git staging area.'
@@ -442,7 +444,7 @@ commands = [
             '--category': {'required': True, 'multiple': True, 'help': help_msg.CATEGORY_OPTION},
             '--mutability': {'required': True, 'type': click.Choice(Mutability.list()), 'help': help_msg.MUTABILITY},
             '--storage-type': {
-                'type': click.Choice(['s3h', 'azureblobh', 'gdriveh']),
+                'type': click.Choice(['s3h', 'azureblobh', 'gdriveh', 'sftph']),
                 'help': help_msg.STORAGE_TYPE, 'default': 's3h'
             },
             '--version': {'help': help_msg.VERSION_NUMBER, 'default': 1},
@@ -454,7 +456,8 @@ commands = [
                              'cls': MutuallyExclusiveOption, 'mutually_exclusive': ['import']},
             '--credentials-path': {'default': None, 'help': help_msg.CREDENTIALS_PATH,
                                    'cls': OptionRequiredIf, 'required_option': ['import-url']},
-            '--unzip': {'help': help_msg.UNZIP_OPTION, 'is_flag': True}
+            '--unzip': {'help': help_msg.UNZIP_OPTION, 'is_flag': True},
+            '--entity-dir': {'default': '', 'help': help_msg.ENTITY_DIR}
         },
 
         'arguments': {
@@ -517,10 +520,13 @@ commands = [
             '--credentials': {'help': help_msg.STORAGE_CREDENTIALS},
             '--region': {'help': help_msg.STORAGE_REGION},
             '--type': {'default': 's3h',
-                       'type': click.Choice(['s3h', 's3', 'azureblobh', 'gdriveh'],
+                       'type': click.Choice(['s3h', 's3', 'azureblobh', 'gdriveh', 'sftph'],
                                             case_sensitive=True),
                        'help': help_msg.STORAGE_TYPE},
             '--endpoint-url': {'help': help_msg.ENDPOINT_URL},
+            '--username': {'help': help_msg.USERNAME},
+            '--private-key': {'help': help_msg.PRIVATE_KEY},
+            '--port': {'help': help_msg.PORT, 'default': 22},
             ('--global', '-g'): {'is_flag': True, 'default': False, 'help': help_msg.GLOBAL_OPTION},
         },
 

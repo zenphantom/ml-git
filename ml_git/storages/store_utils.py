@@ -12,13 +12,15 @@ from ml_git.ml_git_message import output_messages
 from ml_git.storages.azure_storage import AzureMultihashStorage
 from ml_git.storages.google_drive_storage import GoogleDriveMultihashStorage, GoogleDriveStorage
 from ml_git.storages.s3_storage import S3Storage, S3MultihashStorage
+from ml_git.storages.sftp_store import SFtpStore
 
 
 def storage_factory(config, storage_string):
     storages = {StorageType.S3.value: S3Storage, StorageType.S3H.value: S3MultihashStorage,
                 StorageType.AZUREBLOBH.value: AzureMultihashStorage,
                 StorageType.GDRIVEH.value: GoogleDriveMultihashStorage,
-                StorageType.GDRIVE.value: GoogleDriveStorage}
+                StorageType.GDRIVE.value: GoogleDriveStorage,
+                StorageType.SFTPH.value: SFtpStore}
     sp = storage_string.split('/')
     config_bucket_name, bucket_name = None, None
 

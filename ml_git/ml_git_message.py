@@ -49,6 +49,8 @@ output_messages = {
     'INFO_REMOVED_FILES': 'A total of %s files have been removed from %s',
     'INFO_RECLAIMED_SPACE': 'Total reclaimed space %s.',
     'INFO_ENTITY_DELETED': 'Entity %s was deleted',
+    'INFO_PUT_STORED': 'Put - stored [%s] in bucket [%s] with key [%s]-[%s]',
+    'INFO_WRONG_ENTITY_TYPE': 'Metrics cannot be added to this entity: [%s].',
     'INFO_DIRECTORY_STRUCTURE_WRONG': 'It was observed that the directories of this project follow the scheme of old versions of ml-git.\n'
                                       '\tTo continue using this project it is necessary to update the directories. Ml-git can do this update on its own.',
     'INFO_WANT_UPDATE_NOW': '\tDo you want to update your project now? (Yes/No) ',
@@ -79,6 +81,7 @@ output_messages = {
     'ERROR_BUCKET_DOES_NOT_EXIST': 'This bucket does not exist -- [%s]',
     'ERROR_INVALID_ENTITY_TYPE': 'Invalid entity type. Valid values are:',
     'ERROR_INVALID_STATUS_DIRECTORY': 'The directory informed is invalid.',
+    'ERROR_OBJECT_NOT_FOUND': 'Object [%s] not found',
     'ERROR_NO_SUCH_OPTION': 'no such option: %s',
     'ERROR_INVALID_VALUE_FOR': 'Error: Invalid value for "%s": %s',
     'ERROR_NEED_UPDATE_PROJECT': 'To continue using this project it is necessary to update it.',

@@ -11,12 +11,14 @@ from unittest import mock
 
 import pytest
 from git import GitError, Repo
+from prettytable import PrettyTable
 
 from ml_git.constants import STORAGE_KEY, EntityType
 from ml_git.metadata import Metadata
 from ml_git.repository import Repository
 from ml_git.utils import clear, yaml_load_str, yaml_load
 from ml_git.utils import yaml_save, ensure_path_exists
+from tests.unit.test_local import MODELS, DATASETS
 
 files_mock = {'zdj7Wm99FQsJ7a4udnx36ZQNTy7h4Pao3XmRSfjo4sAbt9g74': {'1.jpg'},
               'zdj7WnVtg7ZgwzNxwmmDatnEoM3vbuszr3xcVuBYrcFD6XzmW': {'2.jpg'},
@@ -91,9 +93,12 @@ class MetadataTestCases(unittest.TestCase):
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_test_dir')
     def test_tag_exist(self):
         mdpath = os.path.join(self.test_dir, 'metadata')
+        ws_path = os.path.join(self.test_dir, DATASETS)
         specpath = 'dataset-ex'
         ensure_path_exists(os.path.join(mdpath, specpath))
+        ensure_path_exists(os.path.join(ws_path, specpath))
         shutil.copy('hdata/dataset-ex.spec', os.path.join(mdpath, specpath) + '/dataset-ex.spec')
+        shutil.copy('hdata/dataset-ex.spec', os.path.join(ws_path, specpath) + '/dataset-ex.spec')
         manifestpath = os.path.join(os.path.join(mdpath, specpath), 'MANIFEST.yaml')
         yaml_save(files_mock, manifestpath)
 
@@ -225,3 +230,62 @@ class MetadataTestCases(unittest.TestCase):
         for c, v in specs:
             self.assertEqual(c, spec_file[repotype]['manifest'])
             self.assertIsNotNone(v, {repotype: {'manifest': {}}})
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_test_dir')
+    def test_get_metrics(self):
+        repo_type = MODELS
+        mdpath = os.path.join(self.test_dir, 'mdata', repo_type, 'metadata')
+        specpath = os.path.join('vision-computer', 'images')
+        entity = 'model-ex'
+        m = Metadata(entity, self.test_dir, config, repo_type)
+        m.init()
+        ensure_path_exists(os.path.join(mdpath, specpath, entity))
+        spec_metadata_path = os.path.join(mdpath, specpath, entity) + '/model-ex.spec'
+        shutil.copy('hdata/dataset-ex.spec', spec_metadata_path)
+
+        spec_file = yaml_load(spec_metadata_path)
+        spec_file[repo_type] = deepcopy(spec_file[DATASETS])
+        del spec_file[DATASETS]
+        spec_file[repo_type]['metrics'] = {'metric_1': 0, 'metric_2': 1}
+        yaml_save(spec_file,  spec_metadata_path)
+
+        tag = 'vision-computer__images__model-ex__1'
+        sha = m.commit(spec_metadata_path, specpath)
+        m.tag_add(tag)
+
+        metrics = m._get_metrics(entity, tag, sha)
+
+        test_table = PrettyTable()
+        test_table.field_names = ['Name', 'Value']
+        test_table.align['Name'] = 'l'
+        test_table.align['Value'] = 'l'
+        test_table.add_row(['metric_1', 0])
+        test_table.add_row(['metric_2', 1])
+        test_metrics = '\nmetrics:\n{}'.format(test_table.get_string())
+
+        self.assertEqual(metrics, test_metrics)
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_test_dir')
+    def test_get_metrics_without_metrics(self):
+        repo_type = MODELS
+        mdpath = os.path.join(self.test_dir, 'mdata', repo_type, 'metadata')
+        specpath = os.path.join('vision-computer', 'images')
+        entity = 'model-ex'
+        m = Metadata(entity, self.test_dir, config, repo_type)
+        m.init()
+        ensure_path_exists(os.path.join(mdpath, specpath, entity))
+        spec_metadata_path = os.path.join(mdpath, specpath, entity) + '/model-ex.spec'
+        shutil.copy('hdata/dataset-ex.spec', spec_metadata_path)
+
+        spec_file = yaml_load(spec_metadata_path)
+        spec_file[repo_type] = deepcopy(spec_file[DATASETS])
+        del spec_file[DATASETS]
+        yaml_save(spec_file,  spec_metadata_path)
+
+        tag = 'vision-computer__images__model-ex__1'
+        sha = m.commit(spec_metadata_path, specpath)
+        m.tag_add(tag)
+
+        metrics = m._get_metrics(entity, tag, sha)
+
+        self.assertEqual(metrics, '')

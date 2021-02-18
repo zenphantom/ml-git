@@ -42,12 +42,14 @@ Usage: ml-git datasets add [OPTIONS] ML_ENTITY_NAME [FILE_PATH]...
   Add datasets change set ML_ENTITY_NAME to the local ml-git staging area.
 
 Options:
-  --bumpversion  Increment the version number when adding more files.
-  --fsck         Run fsck after command execution.
-  --verbose      Debug mode
+--bumpversion  Increment the version number when adding more files.
+--fsck         Run fsck after command execution.
+--metric       Insert the metric key and value.
+--metrics-file Insert the methic file path. It is expected a CSV file containing the metric names in the header and the values in the next line.
+--help         Show this message and exit.
 ```
 
-Example:
+Dataset example:
 ```
 $ ml-git datasets add dataset-ex --bumpversion
 ```
@@ -58,6 +60,13 @@ Under that repository, it is also expected to have a \<ml-entity-name\>.spec fil
 Optionally, one can add a README.md which will describe the dataset and be what will be shown in the github repository for that specific dataset.
 
 Internally, the _ml-git add_ will add all the files under the \<ml-entity\> directory into the ml-git index / staging area.
+
+Model example:
+```
+$ ml-git models add model-ex --metrics-file='/path/to/your/file.csv'
+```
+
+ml-git allows you to enter a metrics file or the metrics themselves on the command line when adding a model.
 
 </details>
 
@@ -190,14 +199,14 @@ Options:
   --category TEXT                 Artifact's category name.  [required]
   --mutability [strict|flexible|mutable]
                                   Mutability type.  [required]
-  --storage-type [s3h|azureblobh|gdriveh]
+  --storage-type [s3h|azureblobh|gdriveh|sftph]
                                   Data storage type [default: s3h].
   --version INTEGER RANGE         Set the version number of the artifact. This 
                                   number must be in the range 0 to 999999999.
   --import TEXT                   Path to be imported to the project. NOTE:
                                   Mutually exclusive with argument:
-                                  credentials_path, import_url.
-  --wizard-config                 If specified, ask interactive questions. at
+                                  import_url, credentials_path.
+  --wizard-config                 If specified, ask interactive questions at
                                   console for git & storage configurations.
   --bucket-name TEXT              Bucket name
   --import-url TEXT               Import data from a google drive url. NOTE:
@@ -206,6 +215,8 @@ Options:
                                   option is required if --import-url is used.
   --unzip                         Unzip imported zipped files. Only available
                                   if --import-url is used.
+  --entity-dir TEXT               The relative path where the entity will be
+                                  created inside the ml entity directory.
   --verbose                       Debug mode
 ```
 
@@ -849,10 +860,13 @@ Usage: ml-git repository storage add [OPTIONS] BUCKET_NAME
 Options:
   --credentials TEXT              Profile name for storage credentials
   --region TEXT                   Aws region name for S3 bucket
-  --type [s3h|s3|azureblobh|gdriveh]
+  --type [s3h|s3|azureblobh|gdriveh|sftph]
                                   Storage type (s3h, s3, azureblobh, gdriveh
                                   ...) [default: s3h]
-  --endpoint-url TEXT             Storage endpoint url
+  --endpoint-url TEXT             Storage endpoint url.
+  --username TEXT                 The username for the sftp login.
+  --private-key TEXT              Full path for the private key file.
+  --port INTEGER                  SFTP port [default: 22].
   -g, --global                    Use this option to set configuration at
                                   global level
   --verbose                       Debug mode

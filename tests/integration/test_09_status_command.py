@@ -26,7 +26,7 @@ class StatusAcceptanceTests(unittest.TestCase):
         add_file(self, entity, '', 'new')
         metadata_path = os.path.join(self.tmp_dir, ML_GIT_DIR, entity, 'metadata')
         workspace = os.path.join(self.tmp_dir, entity)
-        self.assertIn(messages[17] % (metadata_path, os.path.join('computer-vision', 'images', entity + '-ex')),
+        self.assertIn(messages[17] % (metadata_path, entity + '-ex'),
                       check_output(MLGIT_COMMIT % (entity, entity + '-ex', '')))
         HEAD = os.path.join(self.tmp_dir, ML_GIT_DIR, entity, 'refs', entity + '-ex', 'HEAD')
         self.assertTrue(os.path.exists(HEAD))
@@ -60,8 +60,7 @@ class StatusAcceptanceTests(unittest.TestCase):
         create_file(os.path.join(self.tmp_dir, DATASETS, DATASET_NAME), 'file2', '0', '')
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, '--bumpversion')))
 
-        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'metadata'),
-                                      os.path.join('computer-vision', 'images', DATASET_NAME)),
+        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'metadata'), DATASET_NAME),
                       check_output(MLGIT_COMMIT % (DATASETS, DATASET_NAME, '')))
         self.assertRegex(check_output(MLGIT_STATUS % (DATASETS, DATASET_NAME)),
                          r'Changes to be committed:\s+Untracked files:')
@@ -77,7 +76,7 @@ class StatusAcceptanceTests(unittest.TestCase):
     def test_05_status_after_delete_file(self):
         self.set_up_checkout(DATASETS)
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG)))
-        new_file_path = os.path.join(self.tmp_dir, DATASETS, 'computer-vision', 'images', DATASET_NAME, 'newfile4')
+        new_file_path = os.path.join(self.tmp_dir, DATASETS, DATASET_NAME, 'newfile4')
         os.chmod(new_file_path, S_IWUSR | S_IREAD)
         os.remove(new_file_path)
         self.assertRegex(check_output(MLGIT_STATUS % (DATASETS, DATASET_NAME)),
@@ -87,8 +86,8 @@ class StatusAcceptanceTests(unittest.TestCase):
     def test_06_status_after_rename_file(self):
         self.set_up_checkout(DATASETS)
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG)))
-        old_file = os.path.join(self.tmp_dir, DATASETS, 'computer-vision', 'images', DATASET_NAME, 'newfile4')
-        new_file = os.path.join(self.tmp_dir, DATASETS, 'computer-vision', 'images', DATASET_NAME, 'file4_renamed')
+        old_file = os.path.join(self.tmp_dir, DATASETS, DATASET_NAME, 'newfile4')
+        new_file = os.path.join(self.tmp_dir, DATASETS, DATASET_NAME, 'file4_renamed')
         os.rename(old_file, new_file)
         self.assertRegex(check_output(MLGIT_STATUS % (DATASETS, DATASET_NAME)),
                          r'Changes to be committed:\s+Deleted: newfile4\s+Untracked files:\s+file4_renamed')
@@ -97,12 +96,12 @@ class StatusAcceptanceTests(unittest.TestCase):
     def test_07_status_corrupted_files(self):
         self.set_up_checkout(DATASETS)
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG)))
-        corrupted_file = os.path.join(self.tmp_dir, DATASETS, 'computer-vision', 'images', DATASET_NAME, 'newfile4')
+        corrupted_file = os.path.join(self.tmp_dir, DATASETS, DATASET_NAME, 'newfile4')
 
         os.chmod(corrupted_file, S_IWUSR | S_IREAD)
         with open(corrupted_file, 'w') as file:
             file.write('modified')
-        create_file(os.path.join(self.tmp_dir, DATASETS, 'computer-vision', 'images', DATASET_NAME), 'Ls87x', '0', '')
+        create_file(os.path.join(self.tmp_dir, DATASETS, DATASET_NAME), 'Ls87x', '0', '')
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, '--bumpversion')))
         self.assertRegex(check_output(MLGIT_STATUS % (DATASETS, DATASET_NAME)),
                          r'Changes to be committed:\n\tNew file: Ls87x\n\tNew file: datasets-ex.spec\n\nUntracked files:\n\nCorrupted files:\n\tnewfile4\n')

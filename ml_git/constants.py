@@ -20,6 +20,7 @@ POOL_CLASS_NAME = 'Pool'
 REFS_CLASS_NAME = 'Refs'
 REPOSITORY_CLASS_NAME = 'Repository'
 ML_GIT_PROJECT_NAME = 'Ml-git Project'
+SFTPSTORE_NAME = 'SFtpStorage'
 S3STORAGE_NAME = 'S3Storage'
 AZURE_STORAGE_NAME = 'AzureMultihashStorage'
 S3_MULTI_HASH_STORAGE_NAME = 'S3MultihashStorage'
@@ -52,6 +53,7 @@ SPEC_EXTENSION = '.spec'
 MANIFEST_FILE = 'MANIFEST.yaml'
 INDEX_FILE = 'INDEX.yaml'
 DEFAULT_BRANCH_FOR_EMPTY_REPOSITORY = 'master'
+PERFORMANCE_KEY = 'metrics'
 V1_STORAGE_KEY = 'store'
 STORAGE_KEY = 'storage'
 V1_DATASETS_KEY = 'dataset'
@@ -75,6 +77,7 @@ class StorageType(Enum):
     AZUREBLOBH = 'azureblobh'
     GDRIVEH = 'gdriveh'
     GDRIVE = 'gdrive'
+    SFTPH = 'sftph'
 
     @staticmethod
     def to_list():

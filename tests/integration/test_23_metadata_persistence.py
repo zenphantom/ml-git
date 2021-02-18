@@ -72,8 +72,7 @@ class MetadataPersistenceTests(unittest.TestCase):
 
         self.assertIn(messages[13] % DATASETS, check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, '')))
 
-        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'metadata'),
-                                      os.path.join('computer-vision', 'images', DATASET_NAME)),
+        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'metadata'), DATASET_NAME),
                       check_output(MLGIT_COMMIT % (DATASETS, DATASET_NAME, '')))
 
         self.assertIn('No blobs', check_output(MLGIT_PUSH % (DATASETS, DATASET_NAME)))
@@ -93,8 +92,8 @@ class MetadataPersistenceTests(unittest.TestCase):
 
         check_output(MLGIT_CHECKOUT % (DATASETS, 'computer-vision__images__datasets-ex__17'))
 
-        spec_file = os.path.join(self.tmp_dir, DATASETS, 'computer-vision', 'images', DATASET_NAME, 'datasets-ex.spec')
-        readme = os.path.join(self.tmp_dir, DATASETS, 'computer-vision', 'images', DATASET_NAME, 'README.md')
+        spec_file = os.path.join(self.tmp_dir, DATASETS, DATASET_NAME, 'datasets-ex.spec')
+        readme = os.path.join(self.tmp_dir, DATASETS, DATASET_NAME, 'README.md')
 
         with open(spec_file, 'r') as f:
             spec = yaml_processor.load(f)
