@@ -106,7 +106,7 @@ def start_local_git_server_with_main_branch(tmp_path):
 def create_csv_file(request):
 
     def _create_csv_file(_, path, table):
-        with open(path, 'w') as file:
+        with open(path, 'w', newline='') as file:
             writer = csv.writer(file)
             row_list = list()
             row_list.append(table.keys())

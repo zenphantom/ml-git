@@ -182,7 +182,7 @@ def change_branch_name(request):
 def create_csv_file(request):
 
     def _create_csv_file(_, path, table):
-        with open(path, 'w') as file:
+        with open(path, 'w', newline='') as file:
             writer = csv.writer(file)
             row_list = list()
             row_list.append(table.keys())
