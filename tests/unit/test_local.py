@@ -55,6 +55,7 @@ HDATA_IMG_1 = os.path.join('hdata', 'imghires.jpg')
 DATASETS = EntityType.DATASETS.value
 MODELS = EntityType.MODELS.value
 
+
 @mock_s3
 @pytest.mark.usefixtures('md5_fixture', 'tmp_dir', 'switch_to_test_dir', 'aws_session')
 class LocalRepositoryTestCases(unittest.TestCase):

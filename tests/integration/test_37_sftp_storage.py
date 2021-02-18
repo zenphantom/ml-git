@@ -98,12 +98,12 @@ class SFTPAcceptanceTests(unittest.TestCase):
         self.assertIn(output_messages['INFO_ADD_STORAGE_WITHOUT_PROFILE'] % (self.storage_type, wrong_bucket),
                       check_output('ml-git repository storage add %s --type=%s' %
                                    (wrong_bucket, self.storage_type + ' --username=mlgit_user '
-                                                                    '--port=9922 --endpoint-url=127.0.0.1 --private-key=' + FAKE_SSH_KEY_PATH)))
+                                                                      '--port=9922 --endpoint-url=127.0.0.1 --private-key=' + FAKE_SSH_KEY_PATH)))
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ENTITY_INIT % self.repo_type))
 
         self.assertNotIn(ERROR_MESSAGE, check_output(
             MLGIT_CREATE % (DATASETS, DATASET_NAME + ' --storage-type=sftph --mutability=strict --category=test '
-                                       '--bucket-name=wrong_bucket')))
+                                                     '--bucket-name=wrong_bucket')))
         add_file(self, self.repo_type, '', 'new')
 
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ADD % (self.repo_type, DATASET_NAME, '')))
