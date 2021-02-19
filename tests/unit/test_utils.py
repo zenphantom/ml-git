@@ -14,11 +14,15 @@ import humanize
 import pytest
 import yaml
 
-from ml_git.constants import EntityType, ROOT_FILE_NAME, V1_STORAGE_KEY, STORAGE_KEY, V1_DATASETS_KEY, V1_MODELS_KEY
+from ml_git.constants import EntityType, ROOT_FILE_NAME, V1_STORAGE_KEY, STORAGE_KEY, V1_DATASETS_KEY, V1_MODELS_KEY, StorageType
 from ml_git.utils import json_load, yaml_load, yaml_save, RootPathException, get_root_path, change_mask_for_routine, \
     ensure_path_exists, yaml_load_str, get_yaml_str, run_function_per_group, unzip_files_in_directory, \
     remove_from_workspace, group_files_by_path, remove_other_files, remove_unnecessary_files, change_keys_in_config, \
     update_directories_to_plural, validate_config_keys
+
+DATASETS = EntityType.DATASETS.value
+S3H = StorageType.S3H.value
+S3 = StorageType.S3.value
 
 
 @pytest.mark.usefixtures('tmp_dir', 'switch_to_test_dir', 'yaml_str_sample', 'yaml_obj_sample')
@@ -37,16 +41,16 @@ class UtilsTestCases(unittest.TestCase):
         self.assertFalse(bool(yal))
         yal = yaml_load('./udata/data.yaml')
         self.assertTrue(bool(yal))
-        self.assertEqual(yal[STORAGE_KEY]['s3']['mlgit-datasets']['region'], 'us-east-1')
+        self.assertEqual(yal[STORAGE_KEY][S3]['mlgit-datasets']['region'], 'us-east-1')
 
     def test_yaml_load_str(self):
         obj = yaml_load_str(self.yaml_str_sample)
-        self.assertEqual(obj[STORAGE_KEY]['s3h']['bucket_test']['aws-credentials']['profile'], 'profile_test')
-        self.assertEqual(obj[STORAGE_KEY]['s3h']['bucket_test']['region'], 'region_test')
+        self.assertEqual(obj[STORAGE_KEY][S3H]['bucket_test']['aws-credentials']['profile'], 'profile_test')
+        self.assertEqual(obj[STORAGE_KEY][S3H]['bucket_test']['region'], 'region_test')
 
     def test_get_yaml_str(self):
-        self.assertEqual(self.yaml_obj_sample[STORAGE_KEY]['s3h']['bucket_test']['aws-credentials']['profile'], 'profile_test')
-        self.assertEqual(self.yaml_obj_sample[STORAGE_KEY]['s3h']['bucket_test']['region'], 'region_test')
+        self.assertEqual(self.yaml_obj_sample[STORAGE_KEY][S3H]['bucket_test']['aws-credentials']['profile'], 'profile_test')
+        self.assertEqual(self.yaml_obj_sample[STORAGE_KEY][S3H]['bucket_test']['region'], 'region_test')
         self.assertEqual(get_yaml_str(self.yaml_obj_sample), self.yaml_str_sample)
 
     def test_yaml_save(self):
@@ -69,7 +73,7 @@ class UtilsTestCases(unittest.TestCase):
             # create new git variable
             new_git_var = '.'.join(temp_arr)
 
-            self.assertFalse(yal['datasets']['git'] == new_git_var)
+            self.assertFalse(yal[DATASETS]['git'] == new_git_var)
 
             yal[EntityType.DATASETS.value]['git'] = new_git_var
 

@@ -66,7 +66,7 @@ class Mutability(Enum):
     MUTABLE = 'mutable'
 
     @staticmethod
-    def list():
+    def to_list():
         return list(map(lambda c: c.value, Mutability))
 
 

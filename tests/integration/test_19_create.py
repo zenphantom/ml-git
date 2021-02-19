@@ -12,7 +12,7 @@ from ml_git.ml_git_message import output_messages
 
 from tests.integration.commands import MLGIT_CREATE, MLGIT_INIT
 from tests.integration.helper import check_output, ML_GIT_DIR, IMPORT_PATH, create_file, ERROR_MESSAGE, yaml_processor, \
-    create_zip_file, DATASETS, DATASET_NAME, MODELS, LABELS
+    create_zip_file, DATASETS, DATASET_NAME, MODELS, LABELS, STRICT, FLEXIBLE, MUTABLE
 from tests.integration.output_messages import messages
 
 
@@ -188,19 +188,19 @@ class CreateAcceptanceTests(unittest.TestCase):
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_13_create_with_mutability_mutable(self):
         entity_type = DATASETS
-        mutability = 'mutable'
+        mutability = MUTABLE
         self.create_with_mutability(entity_type, mutability)
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_14_create_with_mutability_flexible(self):
         entity_type = DATASETS
-        mutability = 'flexible'
+        mutability = FLEXIBLE
         self.create_with_mutability(entity_type, mutability)
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_15_create_with_mutability_strict(self):
         entity_type = DATASETS
-        mutability = 'strict'
+        mutability = STRICT
         self.create_with_mutability(entity_type, mutability)
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')

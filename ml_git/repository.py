@@ -951,7 +951,7 @@ class Repository(object):
 
         try:
             mutability = spec_file[repo_type]['mutability']
-            if mutability not in Mutability.list():
+            if mutability not in Mutability.to_list():
                 log.error('Invalid mutability type.', class_name=REPOSITORY_CLASS_NAME)
                 return
         except Exception:

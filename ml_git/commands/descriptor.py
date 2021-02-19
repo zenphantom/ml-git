@@ -10,7 +10,7 @@ import click
 from ml_git.commands import entity, help_msg, storage
 from ml_git.commands.custom_options import MutuallyExclusiveOption, OptionRequiredIf, DeprecatedOptionsCommand
 from ml_git.commands.utils import set_verbose_mode
-from ml_git.constants import Mutability
+from ml_git.constants import Mutability, StorageType
 
 commands = [
 
@@ -442,9 +442,9 @@ commands = [
 
         'options': {
             '--category': {'required': True, 'multiple': True, 'help': help_msg.CATEGORY_OPTION},
-            '--mutability': {'required': True, 'type': click.Choice(Mutability.list()), 'help': help_msg.MUTABILITY},
+            '--mutability': {'required': True, 'type': click.Choice(Mutability.to_list()), 'help': help_msg.MUTABILITY},
             '--storage-type': {
-                'type': click.Choice(['s3h', 'azureblobh', 'gdriveh', 'sftph']),
+                'type': click.Choice(StorageType.to_list()),
                 'help': help_msg.STORAGE_TYPE, 'default': 's3h'
             },
             '--version': {'help': help_msg.VERSION_NUMBER, 'default': 1},
@@ -520,7 +520,7 @@ commands = [
             '--credentials': {'help': help_msg.STORAGE_CREDENTIALS},
             '--region': {'help': help_msg.STORAGE_REGION},
             '--type': {'default': 's3h',
-                       'type': click.Choice(['s3h', 's3', 'azureblobh', 'gdriveh', 'sftph'],
+                       'type': click.Choice(StorageType.to_list(),
                                             case_sensitive=True),
                        'help': help_msg.STORAGE_TYPE},
             '--endpoint-url': {'help': help_msg.ENDPOINT_URL},
@@ -547,7 +547,7 @@ commands = [
 
         'options': {
             '--type': {'default': 's3h',
-                       'type': click.Choice(['s3h', 's3', 'azureblobh', 'gdriveh'],
+                       'type': click.Choice(StorageType.to_list(),
                                             case_sensitive=True),
                        'help': help_msg.STORAGE_TYPE},
             ('--global', '-g'): {'is_flag': True, 'default': False, 'help': help_msg.GLOBAL_OPTION},

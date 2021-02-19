@@ -1019,8 +1019,8 @@ class LocalRepository(MultihashFS):
         file_ws_spec = yaml_load(full_spec_path)
 
         try:
-            spec_mutability = file_ws_spec[repo_type].get('mutability', 'strict')
-            if spec_mutability not in Mutability.list():
+            spec_mutability = file_ws_spec[repo_type].get('mutability', Mutability.STRICT.value)
+            if spec_mutability not in Mutability.to_list():
                 log.error('Invalid mutability type.', class_name=REPOSITORY_CLASS_NAME)
                 return None, False
             else:

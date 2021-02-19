@@ -13,7 +13,7 @@ from azure.storage.blob import BlobServiceClient, ContainerClient
 from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_INIT, MLGIT_REMOTE_ADD, MLGIT_ENTITY_INIT, MLGIT_COMMIT, MLGIT_PUSH, \
     MLGIT_CHECKOUT
-from tests.integration.helper import ML_GIT_DIR, ERROR_MESSAGE, DATASETS, DATASET_NAME, DATASET_TAG
+from tests.integration.helper import ML_GIT_DIR, ERROR_MESSAGE, DATASETS, DATASET_NAME, DATASET_TAG, STRICT, AZUREBLOBH
 from tests.integration.helper import check_output, clear, GIT_PATH, create_spec, add_file
 from tests.integration.output_messages import messages
 
@@ -21,7 +21,7 @@ from tests.integration.output_messages import messages
 @pytest.mark.usefixtures('tmp_dir', 'start_local_git_server', 'switch_to_tmp_dir')
 class AzureAcceptanceTests(unittest.TestCase):
     repo_type = DATASETS
-    storage_type = 'azureblobh'
+    storage_type = AZUREBLOBH
     bucket = 'mlgit'
     workspace = os.path.join(repo_type, repo_type + '-ex')
     dev_store_account_ = 'DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNO' \
@@ -30,7 +30,7 @@ class AzureAcceptanceTests(unittest.TestCase):
 
     def set_up_push(self):
         os.makedirs(self.workspace)
-        create_spec(self, self.repo_type, self.tmp_dir, version=1, mutability='strict', storage_type=self.storage_type)
+        create_spec(self, self.repo_type, self.tmp_dir, version=1, mutability=STRICT, storage_type=self.storage_type)
 
         self.assertIn(messages[0], check_output(MLGIT_INIT))
         self.assertIn(messages[2] % (GIT_PATH, self.repo_type),
@@ -78,7 +78,7 @@ class AzureAcceptanceTests(unittest.TestCase):
     @mock.patch.dict(os.environ, {'AZURE_STORAGE_CONNECTION_STRING': dev_store_account_})
     def test_03_checkout(self):
         os.makedirs(self.workspace)
-        create_spec(self, self.repo_type, self.tmp_dir, version=1, mutability='strict', storage_type=self.storage_type)
+        create_spec(self, self.repo_type, self.tmp_dir, version=1, mutability=STRICT, storage_type=self.storage_type)
 
         self.assertIn(messages[0], check_output(MLGIT_INIT))
         self.assertIn(messages[2] % (GIT_PATH, self.repo_type),

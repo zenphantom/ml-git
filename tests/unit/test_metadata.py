@@ -18,7 +18,7 @@ from ml_git.metadata import Metadata
 from ml_git.repository import Repository
 from ml_git.utils import clear, yaml_load_str, yaml_load
 from ml_git.utils import yaml_save, ensure_path_exists
-from tests.unit.test_local import MODELS, DATASETS
+from tests.unit.test_local import MODELS, DATASETS, LABELS, S3
 
 files_mock = {'zdj7Wm99FQsJ7a4udnx36ZQNTy7h4Pao3XmRSfjo4sAbt9g74': {'1.jpg'},
               'zdj7WnVtg7ZgwzNxwmmDatnEoM3vbuszr3xcVuBYrcFD6XzmW': {'2.jpg'},
@@ -36,19 +36,19 @@ config = {
     'mlgit_path': './mdata',
     'mlgit_conf': 'config.yaml',
 
-    EntityType.DATASETS.value: {
+    DATASETS: {
         'git': os.path.join(os.getcwd(), 'git_local_server.git'),
     },
-    EntityType.LABELS.value: {
+    LABELS: {
         'git': os.path.join(os.getcwd(), 'git_local_server.git'),
     },
-    EntityType.MODELS.value: {
+    MODELS: {
         'git': os.path.join(os.getcwd(), 'git_local_server.git'),
     },
 
 
     STORAGE_KEY: {
-        's3': {
+        S3: {
             'mlgit-datasets': {
                 'region': 'us-east-1',
                 'aws-credentials': {'profile': 'mlgit'}
@@ -59,10 +59,8 @@ config = {
     'verbose': 'info',
 }
 
-repotype = EntityType.DATASETS.value
-
 metadata_config = {
-    repotype: {
+    DATASETS: {
         'categories': 'images',
         'manifest': {
             'files': 'MANIFEST.yaml',
@@ -79,14 +77,14 @@ class MetadataTestCases(unittest.TestCase):
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_test_dir')
     def test_init(self):
-        m = Metadata(spec, self.test_dir, config, repotype)
+        m = Metadata(spec, self.test_dir, config, DATASETS)
         m.init()
         self.assertTrue(m.check_exists())
         clear(m.path)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_test_dir')
     def test_metadata_tag(self):
-        m = Metadata(spec, index_path, config, repotype)
+        m = Metadata(spec, index_path, config, DATASETS)
         tag = m.metadata_tag(metadata_config)
         self.assertEqual(tag, 'images__dataset_ex__1')
 
@@ -103,8 +101,8 @@ class MetadataTestCases(unittest.TestCase):
         yaml_save(files_mock, manifestpath)
 
         config['mlgit_path'] = self.test_dir
-        m = Metadata(specpath, mdpath, config, repotype)
-        r = Repository(config, repotype)
+        m = Metadata(specpath, mdpath, config, DATASETS)
+        r = Repository(config, DATASETS)
         r.init()
 
         fullmetadatapath, categories_subpath, metadata = m.tag_exists(self.test_dir)
@@ -112,7 +110,7 @@ class MetadataTestCases(unittest.TestCase):
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_test_dir')
     def test_clone_config_repo(self):
-        m = Metadata('', self.test_dir, config, repotype)
+        m = Metadata('', self.test_dir, config, DATASETS)
         m.clone_config_repo()
         self.assertTrue(m.check_exists())
 
@@ -126,8 +124,8 @@ class MetadataTestCases(unittest.TestCase):
         yaml_save(files_mock, manifestpath)
 
         config['mlgit_path'] = self.test_dir
-        m = Metadata(specpath, mdpath, config, repotype)
-        r = Repository(config, repotype)
+        m = Metadata(specpath, mdpath, config, DATASETS)
+        r = Repository(config, DATASETS)
         r.init()
 
         tag_list = ['computer__images__dataset-ex__1']
@@ -141,7 +139,7 @@ class MetadataTestCases(unittest.TestCase):
         tags = ['computer__images__dataset-ex__1',
                 'computer__images__dataset-ex__2',
                 'computer__videos__dataset-ex__1']
-        m = Metadata('', self.test_dir, config, repotype)
+        m = Metadata('', self.test_dir, config, DATASETS)
         self.assertRaises(RuntimeError, lambda: m._get_target_tag(tags, 'dataset-ex', -1))
         self.assertRaises(RuntimeError, lambda: m._get_target_tag(tags, 'dataset-ex', 1))
         self.assertRaises(RuntimeError, lambda: m._get_target_tag(tags, 'dataset-wrong', 1))
@@ -158,7 +156,7 @@ class MetadataTestCases(unittest.TestCase):
             EntityType.LABELS.value: {'git': '', },
             EntityType.MODELS.value: {'git': '', }, }
 
-        m = Metadata('', self.test_dir, config, repotype)
+        m = Metadata('', self.test_dir, config, DATASETS)
         m.clone_config_repo()
         self.assertFalse(m.check_exists())
 
@@ -166,13 +164,13 @@ class MetadataTestCases(unittest.TestCase):
     def test_blank_remote_url(self):
         config_cp = deepcopy(config)
         config_cp[EntityType.DATASETS.value]['git'] = ''
-        m = Metadata(spec, self.test_dir, config_cp, repotype)
+        m = Metadata(spec, self.test_dir, config_cp, DATASETS)
         self.assertRaises(GitError, m.validate_blank_remote_url)
         clear(m.path)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_test_dir')
     def test_delete_git_reference(self):
-        m = Metadata(spec, self.test_dir, config, repotype)
+        m = Metadata(spec, self.test_dir, config, DATASETS)
         m.init()
 
         for url in Repo(m.path).remote().urls:
@@ -187,7 +185,7 @@ class MetadataTestCases(unittest.TestCase):
     def test_default_branch(self):
         default_branch_for_empty_repo = 'master'
         new_branch = 'main'
-        m = Metadata('', self.test_dir, config, repotype)
+        m = Metadata('', self.test_dir, config, DATASETS)
         m.init()
         self.assertTrue(m.check_exists())
         self.assertEqual(m.get_default_branch(), default_branch_for_empty_repo)
@@ -198,9 +196,9 @@ class MetadataTestCases(unittest.TestCase):
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_test_dir')
     def test_get_spec_content_from_ref(self):
-        mdpath = os.path.join(self.test_dir, 'mdata', repotype, 'metadata')
+        mdpath = os.path.join(self.test_dir, 'mdata', DATASETS, 'metadata')
         specpath = 'dataset-ex'
-        m = Metadata(specpath, self.test_dir, config, repotype)
+        m = Metadata(specpath, self.test_dir, config, DATASETS)
         m.init()
         ensure_path_exists(os.path.join(mdpath, specpath))
         spec_metadata_path = os.path.join(mdpath, specpath) + '/dataset-ex.spec'
@@ -215,9 +213,9 @@ class MetadataTestCases(unittest.TestCase):
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_test_dir')
     def test_get_specs_to_compare(self):
-        mdpath = os.path.join(self.test_dir, 'mdata', repotype, 'metadata')
+        mdpath = os.path.join(self.test_dir, 'mdata', DATASETS, 'metadata')
         specpath = 'dataset-ex'
-        m = Metadata(specpath, self.test_dir, config, repotype)
+        m = Metadata(specpath, self.test_dir, config, DATASETS)
         m.init()
         ensure_path_exists(os.path.join(mdpath, specpath))
         spec_metadata_path = os.path.join(mdpath, specpath) + '/dataset-ex.spec'
@@ -225,11 +223,11 @@ class MetadataTestCases(unittest.TestCase):
 
         sha = m.commit(spec_metadata_path, specpath)
         m.tag_add(sha)
-        specs = m.get_specs_to_compare(specpath, repotype)
+        specs = m.get_specs_to_compare(specpath, DATASETS)
         spec_file = yaml_load(spec_metadata_path)
         for c, v in specs:
-            self.assertEqual(c, spec_file[repotype]['manifest'])
-            self.assertIsNotNone(v, {repotype: {'manifest': {}}})
+            self.assertEqual(c, spec_file[DATASETS]['manifest'])
+            self.assertIsNotNone(v, {DATASETS: {'manifest': {}}})
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_test_dir')
     def test_get_metrics(self):

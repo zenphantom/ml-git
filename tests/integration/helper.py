@@ -45,6 +45,13 @@ DATASET_NAME = 'datasets-ex'
 DATASET_TAG = 'computer-vision__images__datasets-ex__1'
 MODELS = EntityType.MODELS.value
 LABELS = EntityType.LABELS.value
+STRICT = Mutability.STRICT.value
+FLEXIBLE = Mutability.FLEXIBLE.value
+MUTABLE = Mutability.MUTABLE.value
+S3H = StorageType.S3H.value
+AZUREBLOBH = StorageType.AZUREBLOBH.value
+GDRIVEH = StorageType.GDRIVEH.value
+SFTPH = StorageType.SFTPH.value
 
 
 def get_yaml_processor(typ='safe', default_flow_style=False):
@@ -105,7 +112,7 @@ def check_output(command):
     return subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, shell=True).stdout
 
 
-def init_repository(entity, self, version=1, storage_type='s3h', profile=PROFILE, artifact_name=None, category='images'):
+def init_repository(entity, self, version=1, storage_type=S3H, profile=PROFILE, artifact_name=None, category='images'):
     if not artifact_name:
         artifact_name = f'{entity}-ex'
     if os.path.exists(os.path.join(self.tmp_dir, ML_GIT_DIR)):
@@ -183,7 +190,7 @@ def delete_file(workspace_path, delete_files):
                 os.unlink(os.path.join(root, file_name))
 
 
-def edit_config_yaml(ml_git_dir, storage_type='s3h'):
+def edit_config_yaml(ml_git_dir, storage_type=S3H):
     with open(os.path.join(ml_git_dir, 'config.yaml'), 'r') as config_file:
         config = yaml_processor.load(config_file)
         config[STORAGE_KEY][storage_type]['mlgit']['endpoint-url'] = MINIO_ENDPOINT_URL
@@ -230,7 +237,7 @@ def create_git_clone_repo(git_dir, tmp_dir, git_path=GIT_PATH):
     clear(master)
 
 
-def create_spec(self, model, tmpdir, version=1, mutability='strict', storage_type=STORAGE_TYPE, artifact_name=None):
+def create_spec(self, model, tmpdir, version=1, mutability=Mutability.STRICT.value, storage_type=STORAGE_TYPE, artifact_name=None):
     if not artifact_name:
         artifact_name = f'{model}-ex'
     spec = {
@@ -292,7 +299,7 @@ def configure_global(self, entity_type):
     clear(os.path.join(self.tmp_dir, ML_GIT_DIR))
 
 
-def edit_global_config_yaml(storage_type='s3h'):
+def edit_global_config_yaml(storage_type=S3H):
     with open(os.path.join(GLOBAL_CONFIG_PATH, GLOBAL_ML_GIT_CONFIG), 'r') as config_file:
         config = yaml_processor.load(config_file)
         config[STORAGE_KEY][storage_type]['mlgit']['endpoint-url'] = MINIO_ENDPOINT_URL
