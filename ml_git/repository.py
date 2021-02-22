@@ -673,7 +673,7 @@ class Repository(object):
                 log.error('LocalRepository: [%s]' % e, class_name=REPOSITORY_CLASS_NAME)
         if lb_tag is not None:
             try:
-                self.__repo_type = EntityType.DATASETS.value
+                self.__repo_type = EntityType.LABELS.value
                 m = Metadata('', metadata_path, self.__config, self.__repo_type)
                 log.info('Initializing related labels download', class_name=REPOSITORY_CLASS_NAME)
                 if not m.check_exists():

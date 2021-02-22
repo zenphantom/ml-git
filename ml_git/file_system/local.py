@@ -237,7 +237,7 @@ class LocalRepository(MultihashFS):
         entity_dir = os.path.relpath(spec_path, metadata_path)
         spec = yaml_load(os.path.join(spec_path, spec_file))
         if repo_type not in spec:
-            log.error('No spec file found. You need to initialize an entity (dataset|model|label) first',
+            log.error('No spec file found. You need to initialize an entity %s first' % EntityType.to_list(),
                       class_name=LOCAL_REPOSITORY_CLASS_NAME)
             return False
         manifest = spec[repo_type]['manifest']
@@ -901,7 +901,7 @@ class LocalRepository(MultihashFS):
         spec = yaml_load(spec_path)
 
         if self.__repo_type not in spec:
-            log.error('No spec file found. You need to initialize an entity (dataset|model|label) first',
+            log.error('No spec file found. You need to initialize an entity %s first' % EntityType.to_list(),
                       class_name=LOCAL_REPOSITORY_CLASS_NAME)
             return
 
