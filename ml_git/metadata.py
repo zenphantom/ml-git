@@ -11,7 +11,7 @@ from halo import Halo
 from ml_git import log
 from ml_git._metadata import MetadataManager
 from ml_git.config import get_refs_path, get_sample_spec_doc
-from ml_git.constants import METADATA_CLASS_NAME, LOCAL_REPOSITORY_CLASS_NAME, ROOT_FILE_NAME, Mutability, \
+from ml_git.constants import METADATA_CLASS_NAME, LOCAL_REPOSITORY_CLASS_NAME, ROOT_FILE_NAME, MutabilityType, \
     SPEC_EXTENSION, MANIFEST_FILE, EntityType, STORAGE_KEY
 from ml_git.manifest import Manifest
 from ml_git.ml_git_message import output_messages
@@ -121,7 +121,7 @@ class Metadata(MetadataManager):
             return False
         full_path = os.path.join(full_metadata_path, MANIFEST_FILE)
         mobj = Manifest(full_path)
-        if mutability == Mutability.MUTABLE.value or mutability == Mutability.FLEXIBLE.value:
+        if mutability == MutabilityType.MUTABLE.value or mutability == MutabilityType.FLEXIBLE.value:
             for key, file in changed_files:
                 mobj.rm(key, file)
         mobj.merge(idx_path)

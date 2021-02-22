@@ -16,16 +16,9 @@ from ml_git.config import validate_config_spec_hash, get_sample_config_spec, get
     get_index_path, get_objects_path, get_cache_path, get_metadata_path, import_dir, \
     extract_storage_info_from_list, create_workspace_tree_structure, get_batch_size, merge_conf, \
     merge_local_with_global_config, mlgit_config, save_global_config_in_local, start_wizard_questions
-from ml_git.constants import BATCH_SIZE_VALUE, BATCH_SIZE, Mutability, STORAGE_KEY, EntityType, StorageType
+from ml_git.constants import BATCH_SIZE_VALUE, BATCH_SIZE, STORAGE_KEY
 from ml_git.utils import get_root_path, yaml_load
-
-DATASETS = EntityType.DATASETS.value
-LABELS = EntityType.LABELS.value
-MODELS = EntityType.MODELS.value
-STRICT = Mutability.STRICT.value
-S3H = StorageType.S3H.value
-S3 = StorageType.S3.value
-GDRIVEH = StorageType.GDRIVEH.value
+from conftest import DATASETS, LABELS, MODELS, STRICT, S3H, S3, GDRIVEH
 
 
 class ConfigTestCases(unittest.TestCase):
@@ -140,7 +133,7 @@ class ConfigTestCases(unittest.TestCase):
         IMPORT_PATH = os.path.join(os.getcwd(), 'test', 'src')
         os.makedirs(IMPORT_PATH)
         self.assertTrue(create_workspace_tree_structure('repotype', 'artefact_name',
-                                                        ['imgs', 'old', 'blue'], S3H, 'minio', 2, IMPORT_PATH, Mutability.STRICT.value))
+                                                        ['imgs', 'old', 'blue'], S3H, 'minio', 2, IMPORT_PATH, STRICT))
 
         spec_path = os.path.join(os.getcwd(), os.sep.join(['repotype', 'artefact_name', 'artefact_name.spec']))
         spec1 = yaml_load(spec_path)
@@ -170,7 +163,7 @@ class ConfigTestCases(unittest.TestCase):
         global_conf = {DATASETS: {'git': 'url'}, MODELS: {'git': 'url'}, STORAGE_KEY: {}}
         merge_conf(local_conf, global_conf)
         self.assertEqual(local_conf[DATASETS]['git'], 'url')
-        self.assertEqual(local_conf[EntityType.MODELS.value]['git'], 'url')
+        self.assertEqual(local_conf[MODELS]['git'], 'url')
         self.assertTrue(STORAGE_KEY in local_conf)
 
     @pytest.mark.usefixtures('restore_config')
@@ -181,7 +174,7 @@ class ConfigTestCases(unittest.TestCase):
             merge_local_with_global_config()
 
         self.assertEqual(mlgit_config[DATASETS]['git'], 'url')
-        self.assertEqual(mlgit_config[EntityType.MODELS.value]['git'], 'url')
+        self.assertEqual(mlgit_config[MODELS]['git'], 'url')
         self.assertNotEqual(mlgit_config[STORAGE_KEY], {})
 
     @pytest.mark.usefixtures('restore_config', 'switch_to_tmp_dir')
@@ -192,7 +185,7 @@ class ConfigTestCases(unittest.TestCase):
         self.assertTrue(os.path.isdir('.ml-git'))
         config = yaml_load('.ml-git/config.yaml')
         self.assertEqual(config[DATASETS]['git'], remote_default)
-        global_conf = {DATASETS: {'git': 'url'}, MODELS: {'git': 'url'}, EntityType.LABELS.value: {'git': new_remote}, STORAGE_KEY: {}}
+        global_conf = {DATASETS: {'git': 'url'}, MODELS: {'git': 'url'}, LABELS: {'git': new_remote}, STORAGE_KEY: {}}
 
         with mock.patch('ml_git.config.global_config_load', return_value=global_conf):
             save_global_config_in_local()

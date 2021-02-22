@@ -12,12 +12,9 @@ from unittest import mock
 import pytest
 
 from ml_git.admin import init_mlgit, remote_add, storage_add, clone_config_repository, storage_del, remote_del
-from ml_git.constants import STORAGE_KEY, EntityType, StorageType
+from ml_git.constants import STORAGE_KEY
 from ml_git.utils import yaml_load
-
-AZUREBLOBH = StorageType.AZUREBLOBH.value
-S3 = StorageType.S3.value
-DATASETS = EntityType.DATASETS.value
+from conftest import AZUREBLOBH, DATASETS, S3
 
 
 @pytest.mark.usefixtures('tmp_dir')

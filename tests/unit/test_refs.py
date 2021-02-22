@@ -9,11 +9,9 @@ import unittest
 import pytest
 
 from ml_git.config import config_load
-from ml_git.constants import EntityType
 from ml_git.refs import Refs
 from ml_git.utils import yaml_load
-
-DATASETS = EntityType.DATASETS.value
+from tests.unit.conftest import DATASETS
 
 
 @pytest.mark.usefixtures('tmp_dir')

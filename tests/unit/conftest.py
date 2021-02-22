@@ -15,12 +15,19 @@ import boto3
 import pytest
 from git import Repo
 
-from ml_git.config import config_load, StorageType
-from ml_git.constants import STORAGE_KEY
+from ml_git.config import config_load
+from ml_git.constants import STORAGE_KEY, StorageType, EntityType, MutabilityType
 
 test_scr = Path('./tests/unit/test_dir').resolve()
 
+AZUREBLOBH = StorageType.AZUREBLOBH.value
 S3H = StorageType.S3H.value
+S3 = StorageType.S3.value
+GDRIVEH = StorageType.GDRIVEH.value
+DATASETS = EntityType.DATASETS.value
+MODELS = EntityType.MODELS.value
+LABELS = EntityType.LABELS.value
+STRICT = MutabilityType.STRICT.value
 
 
 def create_tmp_test_dir(tmp_path):

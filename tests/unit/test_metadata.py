@@ -13,12 +13,12 @@ import pytest
 from git import GitError, Repo
 from prettytable import PrettyTable
 
-from ml_git.constants import STORAGE_KEY, EntityType
+from ml_git.constants import STORAGE_KEY
 from ml_git.metadata import Metadata
 from ml_git.repository import Repository
 from ml_git.utils import clear, yaml_load_str, yaml_load
 from ml_git.utils import yaml_save, ensure_path_exists
-from tests.unit.test_local import MODELS, DATASETS, LABELS, S3
+from tests.unit.conftest import MODELS, DATASETS, LABELS, S3
 
 files_mock = {'zdj7Wm99FQsJ7a4udnx36ZQNTy7h4Pao3XmRSfjo4sAbt9g74': {'1.jpg'},
               'zdj7WnVtg7ZgwzNxwmmDatnEoM3vbuszr3xcVuBYrcFD6XzmW': {'2.jpg'},
@@ -152,9 +152,9 @@ class MetadataTestCases(unittest.TestCase):
             'mlgit_path': './mdata',
             'mlgit_conf': 'config.yaml',
             'verbose': 'info',
-            EntityType.DATASETS.value: {'git': '', },
-            EntityType.LABELS.value: {'git': '', },
-            EntityType.MODELS.value: {'git': '', }, }
+            DATASETS: {'git': '', },
+            LABELS: {'git': '', },
+            MODELS: {'git': '', }, }
 
         m = Metadata('', self.test_dir, config, DATASETS)
         m.clone_config_repo()
@@ -163,7 +163,7 @@ class MetadataTestCases(unittest.TestCase):
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_test_dir')
     def test_blank_remote_url(self):
         config_cp = deepcopy(config)
-        config_cp[EntityType.DATASETS.value]['git'] = ''
+        config_cp[DATASETS]['git'] = ''
         m = Metadata(spec, self.test_dir, config_cp, DATASETS)
         self.assertRaises(GitError, m.validate_blank_remote_url)
         clear(m.path)

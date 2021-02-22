@@ -14,13 +14,25 @@ from zipfile import ZipFile
 
 from ruamel.yaml import YAML
 
-from ml_git.constants import GLOBAL_ML_GIT_CONFIG, Mutability, StorageType, STORAGE_KEY, EntityType
+from ml_git.constants import GLOBAL_ML_GIT_CONFIG, MutabilityType, StorageType, STORAGE_KEY, EntityType
 from ml_git.ml_git_message import output_messages
 from ml_git.utils import ensure_path_exists
 from tests.integration.commands import MLGIT_INIT, MLGIT_REMOTE_ADD, MLGIT_ENTITY_INIT, MLGIT_ADD, \
     MLGIT_STORAGE_ADD_WITH_TYPE, MLGIT_REMOTE_ADD_GLOBAL, MLGIT_STORAGE_ADD, MLGIT_STORAGE_ADD_WITHOUT_CREDENTIALS, \
     MLGIT_COMMIT, MLGIT_PUSH
 from tests.integration.output_messages import messages
+
+DATASETS = EntityType.DATASETS.value
+MODELS = EntityType.MODELS.value
+LABELS = EntityType.LABELS.value
+STRICT = MutabilityType.STRICT.value
+FLEXIBLE = MutabilityType.FLEXIBLE.value
+MUTABLE = MutabilityType.MUTABLE.value
+S3H = StorageType.S3H.value
+S3 = StorageType.S3.value
+AZUREBLOBH = StorageType.AZUREBLOBH.value
+GDRIVEH = StorageType.GDRIVEH.value
+SFTPH = StorageType.SFTPH.value
 
 PATH_TEST = os.path.join(os.getcwd(), 'tests', 'integration', '.test_env')
 ML_GIT_DIR = '.ml-git'
@@ -31,7 +43,7 @@ SFTP_BUCKET_PATH = os.path.join(PATH_TEST, 'sftp', 'mlgit')
 FAKE_SSH_KEY_PATH = os.path.join(os.getcwd(), 'tests', 'integration', 'fake_ssh_key', 'test_key')
 GIT_WRONG_REP = 'https://github.com/wrong_repository/wrong_repository.git'
 BUCKET_NAME = 'mlgit'
-STORAGE_TYPE = StorageType.S3H.value
+STORAGE_TYPE = S3H
 PROFILE = 'personal'
 CLONE_FOLDER = 'clone'
 ERROR_MESSAGE = 'ERROR'
@@ -40,18 +52,8 @@ MINIO_ENDPOINT_URL = 'http://127.0.0.1:9000'
 GDRIVE_LINKS = os.path.join(os.getcwd(), 'tests', 'integration', 'gdrive-files-links.json')
 GLOBAL_CONFIG_PATH = os.path.join(os.getcwd(), 'tests', 'integration', 'globalconfig')
 
-DATASETS = EntityType.DATASETS.value
 DATASET_NAME = 'datasets-ex'
 DATASET_TAG = 'computer-vision__images__datasets-ex__1'
-MODELS = EntityType.MODELS.value
-LABELS = EntityType.LABELS.value
-STRICT = Mutability.STRICT.value
-FLEXIBLE = Mutability.FLEXIBLE.value
-MUTABLE = Mutability.MUTABLE.value
-S3H = StorageType.S3H.value
-AZUREBLOBH = StorageType.AZUREBLOBH.value
-GDRIVEH = StorageType.GDRIVEH.value
-SFTPH = StorageType.SFTPH.value
 
 
 def get_yaml_processor(typ='safe', default_flow_style=False):
@@ -122,7 +124,7 @@ def init_repository(entity, self, version=1, storage_type=S3H, profile=PROFILE, 
 
     self.assertIn(messages[2] % (os.path.join(self.tmp_dir, GIT_PATH), entity), check_output(MLGIT_REMOTE_ADD % (entity, os.path.join(self.tmp_dir, GIT_PATH))))
 
-    if storage_type == StorageType.GDRIVEH.value:
+    if storage_type == GDRIVEH:
         self.assertIn(output_messages['INFO_ADD_STORAGE_WITHOUT_PROFILE'] % (storage_type, BUCKET_NAME),
                       check_output(MLGIT_STORAGE_ADD_WITH_TYPE % (BUCKET_NAME, profile, storage_type)))
     elif profile is not None:
@@ -145,7 +147,7 @@ def init_repository(entity, self, version=1, storage_type=S3H, profile=PROFILE, 
                 'files': 'MANIFEST.yaml',
                 STORAGE_KEY: '%s://mlgit' % storage_type
             },
-            'mutability': Mutability.STRICT.value,
+            'mutability': STRICT,
             'name': artifact_name,
             'version': version
         }
@@ -215,7 +217,7 @@ def create_git_clone_repo(git_dir, tmp_dir, git_path=GIT_PATH):
             'git': os.path.join(tmp_dir, git_path),
         },
         STORAGE_KEY: {
-            's3': {
+            S3: {
                 'mlgit-datasets': {
                     'region': 'us-east-1',
                     'aws-credentials': {'profile': 'default'}
@@ -237,7 +239,7 @@ def create_git_clone_repo(git_dir, tmp_dir, git_path=GIT_PATH):
     clear(master)
 
 
-def create_spec(self, model, tmpdir, version=1, mutability=Mutability.STRICT.value, storage_type=STORAGE_TYPE, artifact_name=None):
+def create_spec(self, model, tmpdir, version=1, mutability=STRICT, storage_type=STORAGE_TYPE, artifact_name=None):
     if not artifact_name:
         artifact_name = f'{model}-ex'
     spec = {

@@ -7,26 +7,26 @@ import os
 import unittest
 
 import pytest
-from ml_git.constants import StorageType, Mutability, STORAGE_KEY
+from ml_git.constants import STORAGE_KEY
 from ml_git.ml_git_message import output_messages
 
 from tests.integration.commands import MLGIT_CREATE, MLGIT_INIT
 from tests.integration.helper import check_output, ML_GIT_DIR, IMPORT_PATH, create_file, ERROR_MESSAGE, yaml_processor, \
-    create_zip_file, DATASETS, DATASET_NAME, MODELS, LABELS, STRICT, FLEXIBLE, MUTABLE
+    create_zip_file, DATASETS, DATASET_NAME, MODELS, LABELS, STRICT, FLEXIBLE, MUTABLE, GDRIVEH, AZUREBLOBH, S3H
 from tests.integration.output_messages import messages
 
 
 @pytest.mark.usefixtures('tmp_dir')
 class CreateAcceptanceTests(unittest.TestCase):
 
-    def create_command(self, entity_type, storage_type=StorageType.S3H.value):
+    def create_command(self, entity_type, storage_type=S3H):
         os.makedirs(os.path.join(self.tmp_dir, IMPORT_PATH))
         self.assertIn(messages[38], check_output(MLGIT_CREATE % (entity_type, entity_type + '-ex')
                                                  + ' --category=imgs --storage-type=' + storage_type + ' --bucket-name=minio'
                                                  + ' --version=1 --import="' + os.path.join(self.tmp_dir, IMPORT_PATH) +
-                                                 '" --mutability=' + Mutability.STRICT.value))
+                                                 '" --mutability=' + STRICT))
 
-    def check_folders(self, entity_type, storage_type=StorageType.S3H.value):
+    def check_folders(self, entity_type, storage_type=S3H):
         folder_data = os.path.join(self.tmp_dir, entity_type, entity_type + '-ex', 'data')
         spec = os.path.join(self.tmp_dir, entity_type, entity_type + '-ex', entity_type + '-ex.spec')
         readme = os.path.join(self.tmp_dir, entity_type, entity_type + '-ex', 'README.md')
@@ -44,7 +44,7 @@ class CreateAcceptanceTests(unittest.TestCase):
         self.assertTrue(os.path.exists(readme))
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
-    def _create_entity(self, entity_type, storage_type=StorageType.S3H.value):
+    def _create_entity(self, entity_type, storage_type=S3H):
         self.assertIn(messages[0], check_output(MLGIT_INIT))
         self.create_command(entity_type, storage_type)
         self.check_folders(entity_type, storage_type)
@@ -110,7 +110,7 @@ class CreateAcceptanceTests(unittest.TestCase):
         self.assertIn(ERROR_MESSAGE, check_output(MLGIT_CREATE % (entity_type, entity_type + '-ex')
                                                   + ' --category=imgs --storage-type=s3h --bucket-name=minio'
                                                   + ' --version=1 --import=' + IMPORT_PATH+'wrong'
-                                                  + ' --mutability=' + Mutability.STRICT.value))
+                                                  + ' --mutability=' + STRICT))
         self.assertFalse(os.path.exists(dataset_path))
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
@@ -122,15 +122,15 @@ class CreateAcceptanceTests(unittest.TestCase):
         self.assertIn(messages[88], check_output(MLGIT_CREATE % (entity_type, entity_type + '-ex')
                                                  + ' --category=imgs --storage-type=s3h --bucket-name=minio'
                                                  + ' --version=1 --import=' + IMPORT_PATH
-                                                 + ' --mutability=' + Mutability.STRICT.value))
+                                                 + ' --mutability=' + STRICT))
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_07_create_entity_with_gdriveh_storage(self):
-        self._create_entity(DATASETS, StorageType.GDRIVEH.value)
+        self._create_entity(DATASETS, GDRIVEH)
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_08_create_entity_with_azure_storage(self):
-        self._create_entity(DATASETS, StorageType.AZUREBLOBH.value)
+        self._create_entity(DATASETS, AZUREBLOBH)
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_09_create_with_import_and_import_url_options(self):
@@ -138,7 +138,7 @@ class CreateAcceptanceTests(unittest.TestCase):
         self.assertIn(messages[0], check_output(MLGIT_INIT))
         self.assertIn(messages[89], check_output(MLGIT_CREATE % (entity_type, entity_type + '-ex')
                                                  + ' --category=img --version=1 --import="import_path" --import-url="import_url"'
-                                                 + ' --mutability=' + Mutability.STRICT.value))
+                                                 + ' --mutability=' + STRICT))
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_10_create_with_import_url_without_credentials_path(self):
@@ -146,7 +146,7 @@ class CreateAcceptanceTests(unittest.TestCase):
         self.assertIn(messages[0], check_output(MLGIT_INIT))
         self.assertIn(messages[90], check_output(MLGIT_CREATE % (entity_type, entity_type + '-ex')
                                                  + ' --category=img --version=1 --import-url="import_url"'
-                                                 + ' --mutability=' + Mutability.STRICT.value))
+                                                 + ' --mutability=' + STRICT))
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_11_create_with_wrong_import_url(self):
@@ -154,7 +154,7 @@ class CreateAcceptanceTests(unittest.TestCase):
         self.assertIn(messages[0], check_output(MLGIT_INIT))
         self.assertIn(messages[91] % 'import_url', check_output(MLGIT_CREATE % (entity_type, entity_type + '-ex')
                                                                 + ' --category=img --version=1 --import-url="import_url" '
-                                                                  '--credentials-path=test' + ' --mutability=' + Mutability.STRICT.value))
+                                                                  '--credentials-path=test' + ' --mutability=' + STRICT))
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_12_create_with_unzip_option(self):
@@ -166,7 +166,7 @@ class CreateAcceptanceTests(unittest.TestCase):
         self.assertTrue(os.path.exists(os.path.join(import_path, 'file.zip')))
         self.assertIn(messages[92], check_output(MLGIT_CREATE % (entity_type, entity_type + '-ex')
                                                  + ' --category=imgs --import="' + import_path + '" --unzip'
-                                                 + ' --mutability=' + Mutability.STRICT.value))
+                                                 + ' --mutability=' + STRICT))
         folder_data = os.path.join(self.tmp_dir, entity_type, entity_type + '-ex', 'data', 'file')
         self.assertTrue(os.path.exists(folder_data))
         files = [f for f in os.listdir(folder_data)]
@@ -182,7 +182,7 @@ class CreateAcceptanceTests(unittest.TestCase):
         os.makedirs(os.path.join(self.tmp_dir, IMPORT_PATH))
         result = check_output(MLGIT_CREATE % (entity_type, entity_type + '-ex') + ' --category=imgs --storage-type=s3h --bucket-name=minio'
                               + ' --version-number=1 --import="' + os.path.join(self.tmp_dir, IMPORT_PATH) + '"'
-                              + ' --mutability=' + Mutability.STRICT.value)
+                              + ' --mutability=' + STRICT)
         self.assertIn(output_messages['ERROR_NO_SUCH_OPTION'] % '--version-number', result)
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
@@ -215,7 +215,7 @@ class CreateAcceptanceTests(unittest.TestCase):
         self.assertIn(messages[0], check_output(MLGIT_INIT))
         entity_dir = os.path.join('FolderA', 'FolderB')
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_CREATE % (DATASETS, DATASET_NAME)
-                                                     + ' --category=imgs --mutability=' + Mutability.STRICT.value
+                                                     + ' --category=imgs --mutability=' + STRICT
                                                      + ' --entity-dir=' + entity_dir))
         folder_data = os.path.join(self.tmp_dir, DATASETS, entity_dir, DATASET_NAME, 'data')
         self.assertTrue(os.path.exists(folder_data))

@@ -12,7 +12,6 @@ import botocore
 import pytest
 from moto import mock_s3
 
-from ml_git.constants import EntityType, Mutability, StorageType
 from ml_git.file_system.cache import Cache
 from ml_git.config import get_sample_config_spec, get_sample_spec
 from ml_git.file_system.hashfs import MultihashFS
@@ -22,6 +21,7 @@ from ml_git.file_system.local import LocalRepository
 from ml_git.sample import SampleValidate, SampleValidateException
 from ml_git.storages.s3_storage import S3Storage
 from ml_git.utils import yaml_load, yaml_save, ensure_path_exists, set_write_read
+from tests.unit.conftest import DATASETS, MODELS, STRICT, S3
 
 hs = {
     'zdj7WWsMkELZSGQGgpm5VieCWV8NxY5n5XEP73H4E7eeDMA3A',
@@ -51,12 +51,6 @@ bucket = {
 DATA_IMG_1 = os.path.join('data', 'imghires.jpg')
 DATA_IMG_2 = os.path.join('data', 'imghires2.jpg')
 HDATA_IMG_1 = os.path.join('hdata', 'imghires.jpg')
-
-DATASETS = EntityType.DATASETS.value
-MODELS = EntityType.MODELS.value
-LABELS = EntityType.LABELS.value
-STRICT = Mutability.STRICT.value
-S3 = StorageType.S3.value
 
 
 @mock_s3

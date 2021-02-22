@@ -8,9 +8,8 @@ import unittest
 
 import pytest
 
-from ml_git.constants import Mutability
 from tests.integration.commands import MLGIT_IMPORT, MLGIT_CREATE, MLGIT_INIT
-from tests.integration.helper import ML_GIT_DIR, CREDENTIALS_PATH, ERROR_MESSAGE, DATASETS, DATASET_NAME, GDRIVEH
+from tests.integration.helper import ML_GIT_DIR, CREDENTIALS_PATH, ERROR_MESSAGE, DATASETS, DATASET_NAME, GDRIVEH, STRICT
 from tests.integration.helper import check_output, clear, init_repository, add_file
 from tests.integration.output_messages import messages
 
@@ -83,7 +82,7 @@ class GdrivePushFilesAcceptanceTests(unittest.TestCase):
                                                  + ' --category=imgs --bucket-name=test'
                                                    ' --import-url=%s --credentials-path=%s '
                                                  % (self.gdrive_links['test-folder'], CREDENTIALS_PATH)
-                                                 + ' --mutability=%s' % Mutability.STRICT.value))
+                                                 + ' --mutability=%s' % STRICT))
 
         file_a_test_folder = os.path.join(DATASETS, DATASET_NAME, 'data', 'test-folder', 'A')
 
@@ -93,7 +92,7 @@ class GdrivePushFilesAcceptanceTests(unittest.TestCase):
                                                  + ' --category=imgs --bucket-name=test'
                                                    ' --import-url=%s --credentials-path=%s'
                                                  % (self.gdrive_links['B'], CREDENTIALS_PATH)
-                                                 + ' --mutability=%s' % Mutability.STRICT.value))
+                                                 + ' --mutability=%s' % STRICT))
 
         file_b = os.path.join(DATASETS, 'datasets-ex2', 'data', 'B')
 

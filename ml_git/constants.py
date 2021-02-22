@@ -60,14 +60,14 @@ V1_DATASETS_KEY = 'dataset'
 V1_MODELS_KEY = 'model'
 
 
-class Mutability(Enum):
+class MutabilityType(Enum):
     STRICT = 'strict'
     FLEXIBLE = 'flexible'
     MUTABLE = 'mutable'
 
     @staticmethod
     def to_list():
-        return list(map(lambda c: c.value, Mutability))
+        return [mutability.value for mutability in MutabilityType]
 
 
 @unique

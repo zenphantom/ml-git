@@ -17,7 +17,7 @@ from ml_git.file_system.objects import Objects
 from ml_git.file_system.local import LocalRepository
 from ml_git.storages.s3_storage import S3MultihashStorage, S3Storage
 from ml_git.utils import ensure_path_exists, yaml_save, yaml_load
-from ml_git.constants import StorageType
+from tests.unit.conftest import S3
 
 files_mock = {'zdj7Wm99FQsJ7a4udnx36ZQNTy7h4Pao3XmRSfjo4sAbt9g74': {'1.jpg'}}
 
@@ -31,8 +31,6 @@ bucket = {
 }
 bucketname = testbucketname
 bucketname_2 = testbucketname_2
-
-S3 = StorageType.S3.value
 
 
 @mock_s3

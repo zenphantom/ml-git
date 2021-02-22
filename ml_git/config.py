@@ -31,7 +31,7 @@ mlgit_config = {
     },
 
     STORAGE_KEY: {
-        's3': {
+        StorageType.S3.value: {
             'mlgit-datasets': {
                 'region': 'us-east-1',
                 'aws-credentials': {'profile': 'default'}

@@ -12,7 +12,7 @@ from ml_git.constants import STORAGE_KEY
 from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_STATUS, MLGIT_ADD, MLGIT_PUSH, MLGIT_COMMIT, MLGIT_INIT, \
     MLGIT_REMOTE_ADD, MLGIT_ENTITY_INIT, MLGIT_CHECKOUT, MLGIT_STORAGE_ADD_WITH_TYPE
-from tests.integration.helper import ML_GIT_DIR, GIT_PATH, BUCKET_NAME, PROFILE, STORAGE_TYPE, DATASETS, DATASET_NAME, STRICT
+from tests.integration.helper import ML_GIT_DIR, GIT_PATH, BUCKET_NAME, PROFILE, STORAGE_TYPE, DATASETS, DATASET_NAME, STRICT, S3H
 from tests.integration.helper import check_output, clear, init_repository, yaml_processor
 from tests.integration.output_messages import messages
 
@@ -51,7 +51,7 @@ class MetadataPersistenceTests(unittest.TestCase):
                 'categories': ['computer-vision', 'images'],
                 'manifest': {
                     'files': 'MANIFEST.yaml',
-                    STORAGE_KEY: 's3h://mlgit'
+                    STORAGE_KEY: '%s://mlgit' % S3H
                 },
                 'mutability': STRICT,
                 'name': 'datasets-ex',
