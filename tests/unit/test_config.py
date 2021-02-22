@@ -18,7 +18,7 @@ from ml_git.config import validate_config_spec_hash, get_sample_config_spec, get
     merge_local_with_global_config, mlgit_config, save_global_config_in_local, start_wizard_questions
 from ml_git.constants import BATCH_SIZE_VALUE, BATCH_SIZE, STORAGE_KEY
 from ml_git.utils import get_root_path, yaml_load
-from conftest import DATASETS, LABELS, MODELS, STRICT, S3H, S3, GDRIVEH
+from tests.unit.conftest import DATASETS, LABELS, MODELS, STRICT, S3H, S3, GDRIVEH
 
 
 class ConfigTestCases(unittest.TestCase):
