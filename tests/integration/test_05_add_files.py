@@ -163,7 +163,7 @@ class AddFilesAcceptanceTests(unittest.TestCase):
 
         self.create_csv_file(csv_file, {'Accuracy': 1, 'Recall': 2})
 
-        metrics_options = '--metrics-file={}'.format(csv_file)
+        metrics_options = '--metrics-file="{}"'.format(csv_file)
 
         self.assertIn(output_messages['INFO_ADDING_PATH'] % repo_type, check_output(MLGIT_ADD % (repo_type, entity_name, metrics_options)))
         index = os.path.join(ML_GIT_DIR, repo_type, 'index', 'metadata', entity_name, 'INDEX.yaml')

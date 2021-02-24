@@ -9,11 +9,11 @@ import unittest
 import pytest
 import os
 
-from ml_git.constants import STORAGE_KEY, EntityType
+from ml_git.constants import EntityType, StorageType, STORAGE_KEY, SPEC_EXTENSION
 from ml_git.spec import yaml_load, incr_version, is_valid_version, search_spec_file, SearchSpecException, spec_parse, \
     get_spec_file_dir, increment_version_in_spec, get_root_path, get_version, update_storage_spec, validate_bucket_name, \
     set_version_in_spec, get_entity_dir
-from ml_git.utils import yaml_save
+from ml_git.utils import yaml_save, ensure_path_exists
 
 testdir = 'specdata'
 
@@ -158,3 +158,21 @@ class SpecTestCases(unittest.TestCase):
         set_version_in_spec(3, tmpfile, EntityType.DATASETS.value)
         spec_hash = yaml_load(tmpfile)
         self.assertEqual(spec_hash[EntityType.DATASETS.value]['version'], 3)
+
+    def test_update_storage_spec_with_entity_dir(self):
+        entity_name = 'dataex'
+        entity_type = EntityType.DATASETS.value
+        dataset_without_dir_path = os.path.join(os.getcwd(), os.sep.join([entity_type, entity_name]))
+        dataset_path = os.path.join(os.getcwd(), os.sep.join([entity_type, 'folderA', 'folderB']))
+        ensure_path_exists(dataset_path)
+        shutil.move(dataset_without_dir_path, dataset_path)
+        spec_path = os.path.join(dataset_path, entity_name, entity_name + SPEC_EXTENSION)
+        entity_dir = os.sep.join(['folderA', 'folderB'])
+
+        update_storage_spec(entity_type, entity_name, StorageType.S3H.value, 'fakestorage', entity_dir)
+        spec = yaml_load(spec_path)
+        self.assertEqual(spec[entity_type]['manifest'][STORAGE_KEY], 's3h://fakestorage')
+
+        update_storage_spec(entity_type, entity_name, StorageType.S3H.value, 'some-bucket-name', entity_dir)
+        spec = yaml_load(spec_path)
+        self.assertEqual(spec[entity_type]['manifest'][STORAGE_KEY], 's3h://some-bucket-name')

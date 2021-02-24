@@ -48,7 +48,7 @@ class StatusShortModeAcceptanceTests(unittest.TestCase):
         os.makedirs(data_path, exist_ok=True)
         create_file(data_path, 'file', '0', '')
         self.assertRegex(check_output(MLGIT_STATUS_SHORT % (DATASETS, DATASET_NAME)),
-                         r'Changes to be committed:\s+Untracked files:(\s|.)*data/file(\s|.)*')
+                         r'Changes to be committed:\s+Untracked files:(\s|.)*data(\\|/)file(\s|.)*')
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_02_status_after_put_more_than_one_file_in_dataset(self):
@@ -68,7 +68,7 @@ class StatusShortModeAcceptanceTests(unittest.TestCase):
         create_file(data_path, 'file0', '0', '')
         self.assertIn(output_messages['INFO_ADDING_PATH'] % DATASETS, check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, '--bumpversion')))
         self.assertRegex(check_output(MLGIT_STATUS_SHORT % (DATASETS, DATASET_NAME)),
-                         r'Changes to be committed:(\s|.)*New file: data/file0(\s|.)*'
+                         r'Changes to be committed:(\s|.)*New file: data(\\|/)file0(\s|.)*'
                          r'Untracked files:\n\nCorrupted files:')
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
