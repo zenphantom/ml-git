@@ -14,7 +14,7 @@ import random
 
 
 def pool_factory(ctx_factory=None, nworkers=os.cpu_count() * 5, retry=2, pb_elts=None, pb_desc='units'):
-    log.debug('Create a worker pool with [%d] threads & retry strategy of [%d]' % (nworkers, retry),
+    log.debug(output_messages['DEBUG_CREATE_WORKER_POOL'] % (nworkers, retry),
               class_name=POOL_CLASS_NAME)
     ctxs = [ctx_factory() for i in range(nworkers)] if ctx_factory is not None else None
     return WorkerPool(nworkers=nworkers, pool_ctxs=ctxs, retry=retry, pb_elts=pb_elts, pb_desc=pb_desc)
@@ -36,7 +36,7 @@ class WorkerPool(object):
 
     def _retry_wait(self, retry):
         wait = 1 + 2 * random.randint(0, retry)
-        log.debug('Wait [%d] before next attempt' % wait, class_name=POOL_CLASS_NAME)
+        log.debug(output_messages['DEBUG_WAIT_BEFORE_NEXT_ATTEMP'] % wait, class_name=POOL_CLASS_NAME)
         time.sleep(wait)
 
     def _submit_fn(self, userfn, *args, **kwds):
@@ -57,12 +57,12 @@ class WorkerPool(object):
                     self._retry_wait(retry_cnt)
                     continue
                 else:
-                    log.error('Worker failure - [%s] -- [%d] attempts' % (e, retry_cnt), class_name=POOL_CLASS_NAME)
+                    log.error(output_messages['ERROR_WORKER_FAILURE'] % (e, retry_cnt), class_name=POOL_CLASS_NAME)
                     self._release_ctx(ctx)
                     raise e
             break
 
-        log.debug('Worker success at attempt [%d]' % (retry_cnt+1), class_name=POOL_CLASS_NAME)
+        log.debug(output_messages['DEBUG_WORKER_SUCESS'] % (retry_cnt+1), class_name=POOL_CLASS_NAME)
         self._release_ctx(ctx)
         self._progress()
 

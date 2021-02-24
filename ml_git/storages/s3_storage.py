@@ -132,7 +132,7 @@ class S3Storage(Storage):
         s3_resource = self._storage
 
         if not self.key_exists(key_path):
-            raise RuntimeError('Object [%s] not found' % key_path)
+            raise RuntimeError(output_messages['ERROR_OBJECT_NOT_FOUND'] % key_path)
 
         res = s3_resource.Object(bucket, key_path).get()
         return res['Body'].read()

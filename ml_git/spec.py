@@ -58,10 +58,10 @@ def incr_version(file, repotype=DATASETS):
     if is_valid_version(spec_hash, repotype):
         spec_hash[repotype]['version'] += 1
         utils.yaml_save(spec_hash, file)
-        log.debug('Version incremented to %s.' % spec_hash[repotype]['version'], class_name=ML_GIT_PROJECT_NAME)
+        log.debug(output_messages['DEBUG_VERSION_INCREMENTED_TO'] % spec_hash[repotype]['version'], class_name=ML_GIT_PROJECT_NAME)
         return spec_hash[repotype]['version']
     else:
-        log.error('Invalid version, could not increment.  File:\n     %s' % file, class_name=ML_GIT_PROJECT_NAME)
+        log.error(output_messages['ERROR_INVALID_VERSION_INCREMENT'] % file, class_name=ML_GIT_PROJECT_NAME)
         return -1
 
 
@@ -70,7 +70,7 @@ def get_version(file, repotype=DATASETS):
     if is_valid_version(spec_hash, repotype):
         return spec_hash[DATASETS]['version']
     else:
-        log.error('Invalid version, could not get.  File:\n     %s' % file, class_name=ML_GIT_PROJECT_NAME)
+        log.error(output_messages['ERROR_INVALID_VERSION_GET'] % file, class_name=ML_GIT_PROJECT_NAME)
         return -1
 
 
@@ -98,7 +98,7 @@ def set_version_in_spec(version_number, spec_path, repotype=DATASETS):
     spec_hash = utils.yaml_load(spec_path)
     spec_hash[repotype]['version'] = version_number
     utils.yaml_save(spec_hash, spec_path)
-    log.debug('Version changed to %s.' % spec_hash[repotype]['version'], class_name=ML_GIT_PROJECT_NAME)
+    log.debug(output_messages['DEBUG_VERSION_CHANGED_TO'] % spec_hash[repotype]['version'], class_name=ML_GIT_PROJECT_NAME)
 
 
 """When --bumpversion is specified during 'dataset add', this increments the version number in the right place"""
@@ -108,7 +108,7 @@ def increment_version_in_spec(entity_name, repotype=DATASETS):
     # Primary location: dataset/<the_dataset>/<the_dataset>.spec
     # Location: .ml-git/dataset/index/metadata/<the_dataset>/<the_dataset>.spec is linked to the primary location
     if entity_name is None:
-        log.error('No %s name provided, can\'t increment version.' % repotype, class_name=ML_GIT_PROJECT_NAME)
+        log.error(output_messages['ERROR_NO_NAME_PROVIDED'] % repotype, class_name=ML_GIT_PROJECT_NAME)
         return False
 
     if os.path.exists(entity_name):
@@ -157,7 +157,7 @@ def validate_bucket_name(spec, config):
     len_info = 2
 
     if len(values) != len_info:
-        log.error('Invalid bucket name in spec file.\n', CLASS_NAME=ML_GIT_PROJECT_NAME)
+        log.error(output_messages['ERROR_INVALID_BUCKET_NAME'], CLASS_NAME=ML_GIT_PROJECT_NAME)
         return False
 
     bucket_name = values[1]

@@ -16,6 +16,7 @@ from ml_git.log import init_logger
 from ml_git.spec import search_spec_file, spec_parse
 from ml_git.utils import get_root_path
 from ml_git.repository import Repository
+from ml_git.ml_git_message import output_messages
 
 init_logger()
 
@@ -23,19 +24,17 @@ init_logger()
 def get_repository_instance(repo_type):
     project_repo_type = 'project'
     if repo_type not in EntityType.to_list() and repo_type != project_repo_type:
-        raise RuntimeError('Invalid entity type. Valid values are: %s' % EntityType.to_list())
+        raise RuntimeError(output_messages['ERROR_INVALID_ENTITY_TYPE'] % EntityType.to_list())
     return Repository(config_load(), repo_type)
 
 
 def validate_sample(sampling):
     if 'group' in sampling or 'random' in sampling:
         if 'seed' not in sampling:
-            log.error('It is necessary to pass the attribute \'seed\' in \'sampling\'. Example: {\'group\': \'1:2\', '
-                      '\'seed\': \'10\'}.')
+            log.error(output_messages['ERROR_NECESSARY_ATTRIBUTE'])
             return False
     elif 'range' not in sampling:
-        log.error('To use the sampling option, you must pass a valid type of sampling (group, '
-                  'random or range).')
+        log.error(output_messages['ERROR_SAMPLING_OPTION'])
         return False
     return True
 
@@ -235,7 +234,7 @@ def init(entity):
         repo = get_repository_instance(entity)
         repo.init()
     else:
-        log.error('The type of entity entered is invalid. Valid types are: [repository, dataset, labels or model]')
+        log.error(output_messages['ERROR_INVALID_ENTERED_ENTITY_TYPE'])
 
 
 def storage_add(bucket_name, bucket_type=StorageType.S3H.value, credentials=None, global_configuration=False,

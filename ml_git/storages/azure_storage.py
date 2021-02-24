@@ -26,7 +26,7 @@ class AzureMultihashStorage(Storage, MultihashStorage):
         try:
             self._storage = BlobServiceClient.from_connection_string(self._account, connection_timeout=300)
         except Exception:
-            raise RuntimeError('Unable to connect to the Azure storage.')
+            raise RuntimeError(output_messages['INFO_UNABLE_AZURE_CONNECTION'])
 
     def bucket_exists(self):
         container = ContainerClient.from_connection_string(self._account, self._bucket, connection_timeout=300)
@@ -51,7 +51,7 @@ class AzureMultihashStorage(Storage, MultihashStorage):
                 blob_client.upload_blob(data)
         except Exception as e:
             if 'The specified blob already exists.' in str(e):
-                log.debug('The specified blob [%s] already exists.' % key_path)
+                log.debug(output_messages['DEBUG_BLOB_ALREADY_EXISTS'] % key_path)
                 return key_path
             raise e
         return key_path

@@ -74,7 +74,7 @@ class MultihashIndex(object):
         except Exception as e:
             self._full_idx.save_manifest_index()
             self._mf.save()
-            log.error('Error adding dir [%s] -- [%s]' % (args['dirpath'], e), class_name=MULTI_HASH_CLASS_NAME)
+            log.error(output_messages['ERROR_ADDING_DIR'] % (args['dirpath'], e), class_name=MULTI_HASH_CLASS_NAME)
             return False
         return True
 
@@ -115,14 +115,14 @@ class MultihashIndex(object):
                     # save the manifest of files added to index so far
                     self._full_idx.save_manifest_index()
                     self._mf.save()
-                    log.error('Error adding dir [%s] -- [%s]' % (base_path, e), class_name=MULTI_HASH_CLASS_NAME)
+                    log.error(output_messages['ERROR_ADDING_DIR'] % (base_path, e), class_name=MULTI_HASH_CLASS_NAME)
                     return
             self.wp.reset_futures()
         self._full_idx.save_manifest_index()
         self._mf.save()
 
     def add_metadata(self, basepath, filepath):
-        log.debug('Add file [%s] to ml-git index' % filepath, class_name=MULTI_HASH_CLASS_NAME)
+        log.debug(output_messages['DEBUG_ADD_FILE'] % filepath, class_name=MULTI_HASH_CLASS_NAME)
         fullpath = os.path.join(basepath, filepath)
 
         metadatapath = os.path.join(self._path, 'metadata', self._spec)
@@ -253,7 +253,7 @@ class FullIndex(object):
         try:
             findex[filename]['untime'] = time.time()
         except Exception:
-            log.debug('The file [{}] isn\'t in index'.format(filename), class_name=MULTI_HASH_CLASS_NAME)
+            log.debug(output_messages['DEBUG_FILE_NOT_INDEX'].format(filename), class_name=MULTI_HASH_CLASS_NAME)
         self._fidx.save()
 
     def remove_from_index_yaml(self, filenames):
@@ -288,10 +288,10 @@ class FullIndex(object):
     def check_and_update(self, key, value, hfs, filepath, fullpath, cache):
         st = os.stat(fullpath)
         if key == filepath and value['ctime'] == st.st_ctime and value['mtime'] == st.st_mtime:
-            log.debug('File [%s] already exists in ml-git repository' % filepath, class_name=MULTI_HASH_CLASS_NAME)
+            log.debug(output_messages['DEBUG_FILE_ALREADY_EXISTS_REPOSITORY'] % filepath, class_name=MULTI_HASH_CLASS_NAME)
             return None
         elif key == filepath and value['ctime'] != st.st_ctime or value['mtime'] != st.st_mtime:
-            log.debug('File [%s] was modified' % filepath, class_name=MULTI_HASH_CLASS_NAME)
+            log.debug(output_messages['DEBUG_FILE_WAS_MODIFIED'] % filepath, class_name=MULTI_HASH_CLASS_NAME)
             scid = hfs.get_scid(fullpath)
             if value['hash'] != scid:
                 scid_ret = self._update_file_status(cache, filepath, fullpath, scid, st, value)

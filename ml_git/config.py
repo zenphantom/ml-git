@@ -13,6 +13,7 @@ from ml_git import spec
 from ml_git.constants import FAKE_STORAGE, BATCH_SIZE_VALUE, BATCH_SIZE, StorageType, GLOBAL_ML_GIT_CONFIG, \
     PUSH_THREADS_COUNT, SPEC_EXTENSION, EntityType, STORAGE_KEY
 from ml_git.utils import getOrElse, yaml_load, yaml_save, get_root_path, yaml_load_str
+from ml_git.ml_git_message import output_messages
 
 push_threads = os.cpu_count()*5
 
@@ -182,7 +183,7 @@ def get_batch_size(config):
         batch_size = -1
 
     if batch_size <= 0:
-        raise RuntimeError('The batch size value is invalid in the config file for the [%s] key' % BATCH_SIZE)
+        raise RuntimeError(output_messages['ERROR_INVALID_BATCH_SIZE'] % BATCH_SIZE)
 
     return batch_size
 
@@ -371,7 +372,7 @@ def start_wizard_questions(repotype):
         storages_types = [item.value for item in StorageType]
         storage_type = input('Please specify the storage type ' + str(storages_types) + ': _ ').lower()
         if storage_type not in storages_types:
-            raise RuntimeError('Invalid storage type.')
+            raise RuntimeError(output_messages['ERROR_INVALID_STORAGE_TYPE'])
         bucket = input('Please specify the bucket name: _ ').lower()
         if storage_type in (StorageType.S3.value, StorageType.S3H.value):
             profile = input('Please specify the credentials: _ ').lower()
@@ -440,7 +441,6 @@ def get_push_threads_count(config):
     try:
         push_threads_count = int(config.get(PUSH_THREADS_COUNT, push_threads))
     except Exception:
-        raise RuntimeError('Invalid value in config file for the [%s] key. '
-                           'This is should be a integer number greater than 0.' % PUSH_THREADS_COUNT)
+        raise RuntimeError(output_messages['ERROR_INVALID_VALUE_IN_CONFIG'] % PUSH_THREADS_COUNT)
 
     return push_threads_count

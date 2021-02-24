@@ -80,7 +80,7 @@ class GoogleDriveStorage(Storage):
         try:
             file_info = self._storage.files().get(fileId=file_id).execute()
         except errors.HttpError as error:
-            log.error('%s' % error, class_name=GDRIVE_STORAGE)
+            log.error(output_messages['ERROR_MESSAGE'] % error, class_name=GDRIVE_STORAGE)
             return False
 
         if not file_info:
@@ -195,9 +195,9 @@ class GoogleDriveStorage(Storage):
     def import_file_from_url(self, path_dst, url):
         file_id = self.get_file_id_from_url(url)
         if not file_id:
-            raise RuntimeError('Invalid url: [%s]' % url)
+            raise RuntimeError(output_messages['INFO_INVALID_URL'] % url)
         if not self.get_by_id(path_dst, file_id):
-            raise RuntimeError('Failed to download file id: [%s]' % file_id)
+            raise RuntimeError(output_messages['ERROR_FILE_DOWNLOAD_FAILED'] % file_id)
 
     def get_file_id_from_url(self, url):
         url_parsed = urlparse(url)
