@@ -161,7 +161,7 @@ class SpecTestCases(unittest.TestCase):
 
     def test_update_storage_spec_with_entity_dir(self):
         entity_name = 'dataex'
-        entity_type = EntityType.DATASET.value
+        entity_type = EntityType.DATASETS.value
         dataset_without_dir_path = os.path.join(os.getcwd(), os.sep.join([entity_type, entity_name]))
         dataset_path = os.path.join(os.getcwd(), os.sep.join([entity_type, 'folderA', 'folderB']))
         ensure_path_exists(dataset_path)
