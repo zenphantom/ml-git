@@ -12,7 +12,6 @@ from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_COMMIT, MLGIT_ADD
 from tests.integration.helper import check_output, add_file, ML_GIT_DIR, entity_init, create_spec, create_file, \
     init_repository, move_entity_to_dir, ERROR_MESSAGE, DATASETS, LABELS, MODELS, DATASET_NAME
-from tests.integration.output_messages import messages
 
 
 @pytest.mark.usefixtures('tmp_dir')
@@ -21,7 +20,7 @@ class CommitFilesAcceptanceTests(unittest.TestCase):
     def _commit_entity(self, entity_type):
         entity_init(entity_type, self)
         add_file(self, entity_type, '--bumpversion', 'new')
-        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, entity_type, 'metadata'), entity_type + '-ex'),
+        self.assertIn(output_messages['INFO_COMMIT_REPO'] % (os.path.join(self.tmp_dir, ML_GIT_DIR, entity_type, 'metadata'), entity_type + '-ex'),
                       check_output(MLGIT_COMMIT % (entity_type, entity_type + '-ex', '')))
         HEAD = os.path.join(self.tmp_dir, ML_GIT_DIR, entity_type, 'refs', entity_type + '-ex', 'HEAD')
         self.assertTrue(os.path.exists(HEAD))
@@ -47,13 +46,13 @@ class CommitFilesAcceptanceTests(unittest.TestCase):
         os.makedirs(os.path.join(workspace, 'data'))
 
         create_file(workspace, 'file1', '0')
-        self.assertIn(messages[13] % DATASETS,
+        self.assertIn(output_messages['INFO_ADDING_PATH'] % DATASETS,
                       check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, "")))
-        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'metadata'), DATASET_NAME),
+        self.assertIn(output_messages['INFO_COMMIT_REPO'] % (os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'metadata'), DATASET_NAME),
                       check_output(MLGIT_COMMIT % (DATASETS, DATASET_NAME, '')))
 
         create_file(workspace, 'file2', '1')
-        self.assertIn(messages[13] % DATASETS,
+        self.assertIn(output_messages['INFO_ADDING_PATH'] % DATASETS,
                       check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, "")))
 
         self.assertIn(output_messages['ERROR_INVALID_VALUE_FOR'] % ('--version', '-10'),
@@ -62,7 +61,7 @@ class CommitFilesAcceptanceTests(unittest.TestCase):
         self.assertIn(output_messages['ERROR_INVALID_VALUE_FOR'] % ('--version', 'test'),
                       check_output(MLGIT_COMMIT % (DATASETS, DATASET_NAME, '--version=test')))
 
-        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'metadata'), DATASET_NAME),
+        self.assertIn(output_messages['INFO_COMMIT_REPO'] % (os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'metadata'), DATASET_NAME),
                       check_output(MLGIT_COMMIT % (DATASETS, DATASET_NAME, '--version=2')))
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
@@ -72,7 +71,7 @@ class CommitFilesAcceptanceTests(unittest.TestCase):
         workspace = os.path.join(self.tmp_dir, DATASETS, DATASET_NAME)
         os.makedirs(os.path.join(workspace, 'data'))
         create_file(workspace, 'file1', '0')
-        self.assertIn(messages[13] % DATASETS,
+        self.assertIn(output_messages['INFO_ADDING_PATH'] % DATASETS,
                       check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, "")))
 
         result = check_output(MLGIT_COMMIT % (DATASETS, DATASET_NAME, '--version-number=2'))
@@ -96,8 +95,9 @@ class CommitFilesAcceptanceTests(unittest.TestCase):
         self._commit_entity(entity_type)
         with open(os.path.join(self.tmp_dir, entity_type, entity_type + '-ex', 'newfile5'), 'wt') as z:
             z.write(str('0' * 100))
-        self.assertIn(messages[13] % DATASETS, check_output(MLGIT_ADD % (entity_type, entity_type+'-ex', '')))
-        self.assertIn(messages[104] % 'computer-vision__images__datasets-ex__2', check_output(MLGIT_COMMIT % (entity_type, entity_type+'-ex', '')))
+        self.assertIn(output_messages['INFO_ADDING_PATH'] % DATASETS, check_output(MLGIT_ADD % (entity_type, entity_type+'-ex', '')))
+        self.assertIn(output_messages['INFO_ALREADY_EXISTS'] % 'computer-vision__images__datasets-ex__2',
+                      check_output(MLGIT_COMMIT % (entity_type, entity_type+'-ex', '')))
         head_path = os.path.join(self.tmp_dir, ML_GIT_DIR, entity_type, 'refs', entity_type + '-ex', 'HEAD')
         self.assertTrue(os.path.exists(head_path))
 

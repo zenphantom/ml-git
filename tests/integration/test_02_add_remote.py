@@ -11,15 +11,14 @@ import pytest
 from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_INIT, MLGIT_REMOTE_ADD
 from tests.integration.helper import check_output, ML_GIT_DIR, GIT_PATH, yaml_processor, DATASETS, LABELS, MODELS
-from tests.integration.output_messages import messages
 
 
 @pytest.mark.usefixtures('tmp_dir')
 class AddRemoteAcceptanceTests(unittest.TestCase):
 
     def _add_remote(self, entity_type):
-        self.assertIn(messages[0], check_output(MLGIT_INIT))
-        self.assertIn(messages[2] % (os.path.join(self.tmp_dir, GIT_PATH), entity_type),
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'], check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_ADD_REMOTE'] % (os.path.join(self.tmp_dir, GIT_PATH), entity_type),
                       check_output(MLGIT_REMOTE_ADD % (entity_type, os.path.join(self.tmp_dir, GIT_PATH))))
         with open(os.path.join(self.tmp_dir, ML_GIT_DIR, 'config.yaml'), 'r') as c:
             config = yaml_processor.load(c)
@@ -39,14 +38,14 @@ class AddRemoteAcceptanceTests(unittest.TestCase):
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_04_add_remote_subfolder(self):
-        self.assertIn(messages[0], check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'], check_output(MLGIT_INIT))
         os.chdir(os.path.join(self.tmp_dir, ML_GIT_DIR))
-        self.assertIn(messages[2] % (GIT_PATH, DATASETS), check_output(MLGIT_REMOTE_ADD % (DATASETS, GIT_PATH)))
+        self.assertIn(output_messages['INFO_ADD_REMOTE'] % (GIT_PATH, DATASETS), check_output(MLGIT_REMOTE_ADD % (DATASETS, GIT_PATH)))
         self.check_remote_in_config(os.path.join('config.yaml'))
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_05_add_remote_uninitialized_directory(self):
-        self.assertIn(messages[34], check_output(MLGIT_REMOTE_ADD % (DATASETS, GIT_PATH)))
+        self.assertIn(output_messages['ERROR_NOT_IN_RESPOSITORY'], check_output(MLGIT_REMOTE_ADD % (DATASETS, GIT_PATH)))
         self.assertFalse(os.path.exists('.ml-git'))
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')

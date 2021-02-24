@@ -12,7 +12,7 @@ import pytest
 from tests.integration.helper import ML_GIT_DIR, create_spec, init_repository, ERROR_MESSAGE, MLGIT_ADD, \
     create_file, DATASETS, DATASET_NAME, MODELS, LABELS
 from tests.integration.helper import clear, check_output, add_file, entity_init, yaml_processor
-from tests.integration.output_messages import messages
+from ml_git.ml_git_message import output_messages
 
 
 @pytest.mark.usefixtures('tmp_dir')
@@ -51,7 +51,7 @@ class AddFilesAcceptanceTests(unittest.TestCase):
         create_spec(self, DATASETS, self.tmp_dir)
 
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, '')))
-        self.assertIn(messages[27], check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, '--bumpversion')))
+        self.assertIn(output_messages['INFO_NO_NEW_DATA_TO_ADD'], check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, '--bumpversion')))
 
     def _check_index(self, index, files_in, files_not_in):
         with open(index, 'r') as file:
@@ -72,7 +72,7 @@ class AddFilesAcceptanceTests(unittest.TestCase):
         with open(corrupted_file, 'wb') as z:
             z.write(b'0' * 0)
 
-        self.assertIn(messages[67], check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, '--bumpversion')))
+        self.assertIn(output_messages['INFO_CORRUPTED_CANNOT_BE_ADD'], check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, '--bumpversion')))
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_07_add_command_with_multiple_files(self):
@@ -87,14 +87,14 @@ class AddFilesAcceptanceTests(unittest.TestCase):
         create_file(workspace, 'file2', '1')
         create_file(workspace, 'file3', '1')
 
-        self.assertIn(messages[13] % DATASETS, check_output(MLGIT_ADD % (DATASETS, DATASET_NAME,
-                                                                         os.path.join('data', 'file1'))))
+        self.assertIn(output_messages['INFO_ADDING_PATH'] % DATASETS,
+                      check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, os.path.join('data', 'file1'))))
         index = os.path.join(ML_GIT_DIR, DATASETS, 'index', 'metadata', DATASET_NAME, 'INDEX.yaml')
         self._check_index(index, ['data/file1'], ['data/file2', 'data/file3'])
-        self.assertIn(messages[13] % DATASETS, check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, 'data')))
+        self.assertIn(output_messages['INFO_ADDING_PATH'] % DATASETS, check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, 'data')))
         self._check_index(index, ['data/file1', 'data/file2', 'data/file3'], [])
         create_file(workspace, 'file4', '0')
-        self.assertIn(messages[13] % DATASETS, check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, '')))
+        self.assertIn(output_messages['INFO_ADDING_PATH'] % DATASETS, check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, '')))
         self._check_index(index, ['data/file1', 'data/file2', 'data/file3', 'data/file4'], [])
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
@@ -112,7 +112,7 @@ class AddFilesAcceptanceTests(unittest.TestCase):
 
         metrics_options = '--metric Accuracy 1 --metric Recall 2'
 
-        self.assertIn(messages[13] % repo_type, check_output(MLGIT_ADD % (repo_type, entity_name, metrics_options)))
+        self.assertIn(output_messages['INFO_ADDING_PATH'] % repo_type, check_output(MLGIT_ADD % (repo_type, entity_name, metrics_options)))
         index = os.path.join(ML_GIT_DIR, repo_type, 'index', 'metadata', entity_name, 'INDEX.yaml')
         self._check_index(index, ['data/file1'], [])
 
@@ -137,7 +137,7 @@ class AddFilesAcceptanceTests(unittest.TestCase):
 
         metrics_options = '--metric Accuracy 1 --metric Recall 2'
 
-        self.assertIn(messages[13] % repo_type, check_output(MLGIT_ADD % (repo_type, DATASET_NAME, metrics_options)))
+        self.assertIn(output_messages['INFO_ADDING_PATH'] % repo_type, check_output(MLGIT_ADD % (repo_type, DATASET_NAME, metrics_options)))
         index = os.path.join(ML_GIT_DIR, repo_type, 'index', 'metadata', DATASET_NAME, 'INDEX.yaml')
         self._check_index(index, ['data/file1'], [])
 
@@ -165,7 +165,7 @@ class AddFilesAcceptanceTests(unittest.TestCase):
 
         metrics_options = '--metrics-file={}'.format(csv_file)
 
-        self.assertIn(messages[13] % repo_type, check_output(MLGIT_ADD % (repo_type, entity_name, metrics_options)))
+        self.assertIn(output_messages['INFO_ADDING_PATH'] % repo_type, check_output(MLGIT_ADD % (repo_type, entity_name, metrics_options)))
         index = os.path.join(ML_GIT_DIR, repo_type, 'index', 'metadata', entity_name, 'INDEX.yaml')
         self._check_index(index, ['data/file1'], [])
 

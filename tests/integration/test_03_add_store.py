@@ -13,14 +13,13 @@ from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_INIT, MLGIT_STORAGE_ADD, MLGIT_STORAGE_DEL, MLGIT_STORAGE_ADD_WITH_TYPE, \
     MLGIT_STORAGE_ADD_WITH_ENDPOINT, MLGIT_STORAGE_ADD_WITHOUT_CREDENTIALS
 from tests.integration.helper import check_output, ML_GIT_DIR, BUCKET_NAME, PROFILE, STORAGE_TYPE, yaml_processor
-from tests.integration.output_messages import messages
 
 
 @pytest.mark.usefixtures('tmp_dir')
 class AddStoreAcceptanceTests(unittest.TestCase):
 
     def _add_storage(self):
-        self.assertIn(messages[0], check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'], check_output(MLGIT_INIT))
         self.check_storage()
         self.assertIn(output_messages['INFO_ADD_STORAGE'] % (STORAGE_TYPE, BUCKET_NAME, PROFILE),
                       check_output(MLGIT_STORAGE_ADD % (BUCKET_NAME, PROFILE)))
@@ -53,7 +52,7 @@ class AddStoreAcceptanceTests(unittest.TestCase):
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_03_add_storage_subfolder(self):
-        self.assertIn(messages[0], check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'], check_output(MLGIT_INIT))
         with open(os.path.join(self.tmp_dir, ML_GIT_DIR, 'config.yaml'), 'r') as c:
             config = yaml_processor.load(c)
             self.assertNotIn('s3h', config[STORAGE_KEY])
@@ -64,7 +63,7 @@ class AddStoreAcceptanceTests(unittest.TestCase):
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_04_add_storage_uninitialized_directory(self):
-        self.assertIn(messages[6],
+        self.assertIn(output_messages['ERROR_NOT_IN_RESPOSITORY'],
                       check_output(MLGIT_STORAGE_ADD % (BUCKET_NAME, PROFILE)))
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
@@ -98,7 +97,7 @@ class AddStoreAcceptanceTests(unittest.TestCase):
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def add_storage_type(self, bucket, profile, storage_type):
-        self.assertIn(messages[0], check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'], check_output(MLGIT_INIT))
         result = check_output(MLGIT_STORAGE_ADD_WITH_TYPE % (bucket, profile, storage_type))
         if storage_type == STORAGE_TYPE:
             self.assertIn(output_messages['INFO_ADD_STORAGE'] % (storage_type, bucket, profile), result)
@@ -110,7 +109,7 @@ class AddStoreAcceptanceTests(unittest.TestCase):
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_09_add_storage_with_endpoint_url(self):
-        self.assertIn(messages[0], check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'], check_output(MLGIT_INIT))
         self.check_storage()
         endpoint = 'minio.endpoint.url'
         self.assertIn(output_messages['INFO_ADD_STORAGE'] % (STORAGE_TYPE, BUCKET_NAME, PROFILE),

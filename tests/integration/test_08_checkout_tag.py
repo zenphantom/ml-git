@@ -17,7 +17,6 @@ from tests.integration.helper import ML_GIT_DIR, MLGIT_INIT, MLGIT_REMOTE_ADD, M
     add_file, GIT_PATH, check_output, clear, init_repository, BUCKET_NAME, PROFILE, edit_config_yaml, \
     create_spec, set_write_read, STORAGE_TYPE, create_file, populate_entity_with_new_data, DATASETS, DATASET_NAME, MODELS, \
     LABELS, DATASET_TAG
-from tests.integration.output_messages import messages
 
 
 @pytest.mark.usefixtures('tmp_dir', 'aws_session')
@@ -29,14 +28,14 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
         add_file(self, entity, '', 'new')
         metadata_path = os.path.join(self.tmp_dir, ML_GIT_DIR, entity, 'metadata')
         workspace = os.path.join(self.tmp_dir, entity)
-        self.assertIn(messages[17] % (metadata_path, entity + '-ex'),
+        self.assertIn(output_messages['INFO_COMMIT_REPO'] % (metadata_path, entity + '-ex'),
                       check_output(MLGIT_COMMIT % (entity, entity + '-ex', '')))
         head_path = os.path.join(self.tmp_dir, ML_GIT_DIR, entity, 'refs', entity + '-ex', 'HEAD')
         self.assertTrue(os.path.exists(head_path))
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_PUSH % (entity, entity + '-ex')))
         clear(os.path.join(self.tmp_dir, ML_GIT_DIR, entity))
         clear(workspace)
-        self.assertIn(messages[8] % (
+        self.assertIn(output_messages['INFO_METADATA_INIT'] % (
             os.path.join(self.tmp_dir, GIT_PATH), os.path.join(self.tmp_dir, ML_GIT_DIR, entity, 'metadata')),
                       check_output(MLGIT_ENTITY_INIT % entity))
 
@@ -93,32 +92,32 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
     def test_03_group_sample_with_amount_parameter_greater_than_group_size(self):
         self.set_up_checkout(DATASETS)
         number_of_files_in_workspace = 0
-        self.assertIn(messages[21], check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG)
-                                                 + ' --sample-type=group --sampling=4:2 --seed=5'))
+        self.assertIn(output_messages['ERROR_AMOUNT_PARAMETER_SHOULD_BE_SMALLER_GROUP_SIZE'],
+                      check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG) + ' --sample-type=group --sampling=4:2 --seed=5'))
         self.check_amount_of_files(DATASETS, number_of_files_in_workspace)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_04_group_sample_with_amount_parameter_equal_to_group_size(self):
         self.set_up_checkout(DATASETS)
         number_of_files_in_workspace = 0
-        self.assertIn(messages[21], check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG)
-                                                 + ' --sample-type=group --sampling=2:2 --seed=5'))
+        self.assertIn(output_messages['ERROR_AMOUNT_PARAMETER_SHOULD_BE_SMALLER_GROUP_SIZE'],
+                      check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG) + ' --sample-type=group --sampling=2:2 --seed=5'))
         self.check_amount_of_files(DATASETS, number_of_files_in_workspace)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_05_group_sample_with_group_size_parameter_greater_than_list_size(self):
         self.set_up_checkout(DATASETS)
         number_of_files_in_workspace = 0
-        self.assertIn(messages[22], check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG)
-                                                 + ' --sample-type=group --sampling=2:30 --seed=5'))
+        self.assertIn(output_messages['ERROR_GROUP_SIZE_PARAMETER_SHOULD_BE_SMALLER_LIST_SIZE'],
+                      check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG) + ' --sample-type=group --sampling=2:30 --seed=5'))
         self.check_amount_of_files(DATASETS, number_of_files_in_workspace)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_06_group_sample_with_group_size_parameter_less_than_zero(self):
         self.set_up_checkout(DATASETS)
         number_of_files_in_workspace = 0
-        self.assertIn(messages[41], check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG)
-                                                 + ' --sample-type=group --sampling=-2:3 --seed=5'))
+        self.assertIn(output_messages['ERROR_AMOUNT_GROUP_REQUIRES_POSITIVE'],
+                      check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG) + ' --sample-type=group --sampling=-2:3 --seed=5'))
         self.check_amount_of_files(DATASETS, number_of_files_in_workspace)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
@@ -134,40 +133,40 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
     def test_08_range_sample_with_start_parameter_greater_than_stop(self):
         self.set_up_checkout(DATASETS)
         number_of_files_in_workspace = 0
-        self.assertIn(messages[23], check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG)
-                                                 + ' --sample-type=range --sampling=4:2:1'))
+        self.assertIn(output_messages['ERROR_START_PARAMETER_SHOULD_BE_SMALLER_THAN_STOP'],
+                      check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG) + ' --sample-type=range --sampling=4:2:1'))
         self.check_amount_of_files(DATASETS, number_of_files_in_workspace)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_09_range_sample_with_start_parameter_less_than_zero(self):
         self.set_up_checkout(DATASETS)
         number_of_files_in_workspace = 0
-        self.assertIn(messages[23], check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG)
-                                                 + ' --sample-type=range --sampling=3:2:1'))
+        self.assertIn(output_messages['ERROR_START_PARAMETER_SHOULD_BE_SMALLER_THAN_STOP'],
+                      check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG) + ' --sample-type=range --sampling=3:2:1'))
         self.check_amount_of_files(DATASETS, number_of_files_in_workspace)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_10_range_sample_with_step_parameter_greater_than_stop_parameter(self):
         self.set_up_checkout(DATASETS)
         number_of_files_in_workspace = 0
-        self.assertIn(messages[26], check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG)
-                                                 + ' --sample-type=range --sampling=1:3:4'))
+        self.assertIn(output_messages['ERROR_STEP_PARAMETER_SHOULD_BE_SMALLER_STOP'],
+                      check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG) + ' --sample-type=range --sampling=1:3:4'))
         self.check_amount_of_files(DATASETS, number_of_files_in_workspace)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_11_range_sample_with_start_parameter_equal_to_stop(self):
         self.set_up_checkout(DATASETS)
         number_of_files_in_workspace = 0
-        self.assertIn(messages[23], check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG)
-                                                 + ' --sample-type=range --sampling=2:2:1'))
+        self.assertIn(output_messages['ERROR_START_PARAMETER_SHOULD_BE_SMALLER_THAN_STOP'],
+                      check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG) + ' --sample-type=range --sampling=2:2:1'))
         self.check_amount_of_files(DATASETS, number_of_files_in_workspace)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_12_range_sample_with_stop_parameter_greater_than_file_list_size(self):
         self.set_up_checkout(DATASETS)
         number_of_files_in_workspace = 0
-        self.assertIn(messages[24], check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG)
-                                                 + ' --sample-type=range --sampling=2:30:1'))
+        self.assertIn(output_messages['ERROR_STOP_PARAMETER_SHOULD_BE_SMALLER_LIST_SIZE'],
+                      check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG) + ' --sample-type=range --sampling=2:30:1'))
         self.check_amount_of_files(DATASETS, number_of_files_in_workspace)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
@@ -184,8 +183,8 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
         self.set_up_checkout(DATASETS)
         number_of_files_in_workspace = 0
 
-        self.assertIn(messages[30], check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG)
-                                                 + ' --sample-type=random --sampling=2:2 --seed=3'))
+        self.assertIn(output_messages['ERROR_AMOUNT_PARAMETER_SHOULD_BE_SMALLER_FREQUENCY'],
+                      check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG) + ' --sample-type=random --sampling=2:2 --seed=3'))
         self.check_amount_of_files(DATASETS, number_of_files_in_workspace)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
@@ -193,8 +192,8 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
         self.set_up_checkout(DATASETS)
         number_of_files_in_workspace = 0
 
-        self.assertIn(messages[30], check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG)
-                                                 + ' --sample-type=random --sampling=4:2 --seed=3'))
+        self.assertIn(output_messages['ERROR_AMOUNT_PARAMETER_SHOULD_BE_SMALLER_FREQUENCY'],
+                      check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG) + ' --sample-type=random --sampling=4:2 --seed=3'))
         self.check_amount_of_files(DATASETS, number_of_files_in_workspace)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
@@ -202,8 +201,8 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
         self.set_up_checkout(DATASETS)
         number_of_files_in_workspace = 0
 
-        self.assertIn(messages[31], check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG)
-                                                 + ' --sample-type=random --sampling=2:10 --seed=3'))
+        self.assertIn(output_messages['ERROR_FREQUENCY_PARAMETER_SHOULD_BE_SMALLER_LIST_SIZE'],
+                      check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG) + ' --sample-type=random --sampling=2:10 --seed=3'))
         self.check_amount_of_files(DATASETS, number_of_files_in_workspace)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
@@ -211,8 +210,8 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
         self.set_up_checkout(DATASETS)
         number_of_files_in_workspace = 0
 
-        self.assertIn(messages[29], check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG)
-                                                 + ' --sample-type=random --sampling=2:0 --seed=3'))
+        self.assertIn(output_messages['ERROR_FREQUENCY_PARAMETER_SHOULD_BE_GREATER_ZERO'],
+                      check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG) + ' --sample-type=random --sampling=2:0 --seed=3'))
         self.check_amount_of_files(DATASETS, number_of_files_in_workspace)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
@@ -220,8 +219,8 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
         self.set_up_checkout(DATASETS)
         number_of_files_in_workspace = 0
 
-        self.assertIn(messages[28], check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG)
-                                                 + ' --sample-type=group --sampling=1:0 --seed=5'))
+        self.assertIn(output_messages['ERROR_GROUP_SIZE_PARAMETER_SHOULD_BE_GREATER_ZERO'],
+                      check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG) + ' --sample-type=group --sampling=1:0 --seed=5'))
         self.check_amount_of_files(DATASETS, number_of_files_in_workspace)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
@@ -229,19 +228,19 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
         self.set_up_checkout(DATASETS)
         number_of_files_in_workspace = 0
 
-        self.assertIn(messages[43], check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG)
-                                                 + ' --sample-type=group --sampling=0:1 --seed=5'))
+        self.assertIn(output_messages['ERROR_AMOUNT_PARAMETER_SHOULD_BE_GREATER_ZERO'],
+                      check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG) + ' --sample-type=group --sampling=0:1 --seed=5'))
         self.check_amount_of_files(DATASETS, number_of_files_in_workspace)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_20_model_related(self):
         git_server = os.path.join(self.tmp_dir, GIT_PATH)
 
-        self.assertIn(messages[0], check_output(MLGIT_INIT))
-        self.assertIn(messages[2] % (git_server, MODELS), check_output(MLGIT_REMOTE_ADD % (MODELS, git_server)))
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'], check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_ADD_REMOTE'] % (git_server, MODELS), check_output(MLGIT_REMOTE_ADD % (MODELS, git_server)))
         self.assertIn(output_messages['INFO_ADD_STORAGE'] % (STORAGE_TYPE, BUCKET_NAME, PROFILE),
                       check_output(MLGIT_STORAGE_ADD % (BUCKET_NAME, PROFILE)))
-        self.assertIn(messages[8] % (git_server, os.path.join(self.tmp_dir, '.ml-git', MODELS, 'metadata')),
+        self.assertIn(output_messages['INFO_METADATA_INIT'] % (git_server, os.path.join(self.tmp_dir, '.ml-git', MODELS, 'metadata')),
                       check_output(MLGIT_ENTITY_INIT % MODELS))
         edit_config_yaml(os.path.join(self.tmp_dir, '.ml-git'))
         workspace_model = os.path.join(MODELS, MODELS + '-ex')
@@ -251,10 +250,10 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
         with open(os.path.join(self.tmp_dir, workspace_model, 'file1'), 'wb') as z:
             z.write(b'0' * 1024)
 
-        self.assertIn(messages[2] % (git_server, DATASETS), check_output(MLGIT_REMOTE_ADD % (DATASETS, git_server)))
+        self.assertIn(output_messages['INFO_ADD_REMOTE'] % (git_server, DATASETS), check_output(MLGIT_REMOTE_ADD % (DATASETS, git_server)))
         self.assertIn(output_messages['INFO_ADD_STORAGE'] % (STORAGE_TYPE, BUCKET_NAME, PROFILE),
                       check_output(MLGIT_STORAGE_ADD % (BUCKET_NAME, PROFILE)))
-        self.assertIn(messages[8] % (git_server, os.path.join(self.tmp_dir, '.ml-git', DATASETS, 'metadata')),
+        self.assertIn(output_messages['INFO_METADATA_INIT'] % (git_server, os.path.join(self.tmp_dir, '.ml-git', DATASETS, 'metadata')),
                       check_output(MLGIT_ENTITY_INIT % DATASETS))
         edit_config_yaml(os.path.join(self.tmp_dir, '.ml-git'))
         workspace_dataset = os.path.join(DATASETS, DATASETS + '-ex')
@@ -264,15 +263,15 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
         with open(os.path.join(self.tmp_dir, workspace_dataset, 'file1'), 'wb') as z:
             z.write(b'0' * 1024)
 
-        self.assertIn(messages[13] % DATASETS, check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, '--bumpversion')))
-        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, '.ml-git', DATASETS, 'metadata'), DATASET_NAME),
+        self.assertIn(output_messages['INFO_ADDING_PATH'] % DATASETS, check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, '--bumpversion')))
+        self.assertIn(output_messages['INFO_COMMIT_REPO'] % (os.path.join(self.tmp_dir, '.ml-git', DATASETS, 'metadata'), DATASET_NAME),
                       check_output(MLGIT_COMMIT % (DATASETS, DATASET_NAME, '')))
-        self.assertIn(messages[47], check_output(MLGIT_PUSH % (DATASETS, DATASET_NAME)))
+        self.assertIn(output_messages['INFO_MLGIT_TWO_VALUES'], check_output(MLGIT_PUSH % (DATASETS, DATASET_NAME)))
 
-        self.assertIn(messages[2] % (git_server, LABELS), check_output(MLGIT_REMOTE_ADD % (LABELS, git_server)))
+        self.assertIn(output_messages['INFO_ADD_REMOTE'] % (git_server, LABELS), check_output(MLGIT_REMOTE_ADD % (LABELS, git_server)))
         self.assertIn(output_messages['INFO_ADD_STORAGE'] % (STORAGE_TYPE, BUCKET_NAME, PROFILE),
                       check_output(MLGIT_STORAGE_ADD % (BUCKET_NAME, PROFILE)))
-        self.assertIn(messages[8] % (git_server, os.path.join(self.tmp_dir, '.ml-git', LABELS, 'metadata')),
+        self.assertIn(output_messages['INFO_METADATA_INIT'] % (git_server, os.path.join(self.tmp_dir, '.ml-git', LABELS, 'metadata')),
                       check_output(MLGIT_ENTITY_INIT % LABELS))
         edit_config_yaml(os.path.join(self.tmp_dir, '.ml-git'))
         workspace_labels = os.path.join(LABELS, LABELS + '-ex')
@@ -282,16 +281,16 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
         with open(os.path.join(self.tmp_dir, workspace_labels, 'file1'), 'wb') as z:
             z.write(b'0' * 1024)
 
-        self.assertIn(messages[15], check_output(MLGIT_ADD % (LABELS, LABELS+'-ex', '--bumpversion')))
-        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, '.ml-git', LABELS, 'metadata'), LABELS+'-ex'),
+        self.assertIn(output_messages['INFO_ADDING_PATH_LABELS'], check_output(MLGIT_ADD % (LABELS, LABELS+'-ex', '--bumpversion')))
+        self.assertIn(output_messages['INFO_COMMIT_REPO'] % (os.path.join(self.tmp_dir, '.ml-git', LABELS, 'metadata'), LABELS+'-ex'),
                       check_output(MLGIT_COMMIT % (LABELS, LABELS+'-ex', '')))
-        self.assertIn(messages[47], check_output(MLGIT_PUSH % (LABELS, LABELS+'-ex')))
+        self.assertIn(output_messages['INFO_MLGIT_TWO_VALUES'], check_output(MLGIT_PUSH % (LABELS, LABELS+'-ex')))
 
-        self.assertIn(messages[14], check_output(MLGIT_ADD % (MODELS, MODELS+'-ex', '--bumpversion')))
-        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, '.ml-git', MODELS, 'metadata'), MODELS+'-ex'),
+        self.assertIn(output_messages['INFO_ADDING_PATH_MODELS'], check_output(MLGIT_ADD % (MODELS, MODELS+'-ex', '--bumpversion')))
+        self.assertIn(output_messages['INFO_COMMIT_REPO'] % (os.path.join(self.tmp_dir, '.ml-git', MODELS, 'metadata'), MODELS+'-ex'),
                       check_output(
                           MLGIT_COMMIT % (MODELS, MODELS+'-ex', '--dataset=datasets-ex') + ' --labels=labels-ex'))
-        self.assertIn(messages[47], check_output(MLGIT_PUSH % (MODELS, MODELS+'-ex')))
+        self.assertIn(output_messages['INFO_MLGIT_TWO_VALUES'], check_output(MLGIT_PUSH % (MODELS, MODELS+'-ex')))
         set_write_read(os.path.join(self.tmp_dir, workspace_model, 'file1'))
         set_write_read(os.path.join(self.tmp_dir, workspace_dataset, 'file1'))
         set_write_read(os.path.join(self.tmp_dir, workspace_labels, 'file1'))
@@ -303,7 +302,7 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
         clear(os.path.join(self.tmp_dir, '.ml-git', MODELS))
         clear(os.path.join(self.tmp_dir, '.ml-git', DATASETS))
         clear(os.path.join(self.tmp_dir, '.ml-git', LABELS))
-        self.assertIn(messages[8] % (git_server, os.path.join(self.tmp_dir, '.ml-git', MODELS, 'metadata')),
+        self.assertIn(output_messages['INFO_METADATA_INIT'] % (git_server, os.path.join(self.tmp_dir, '.ml-git', MODELS, 'metadata')),
                       check_output(MLGIT_ENTITY_INIT % MODELS))
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_CHECKOUT % (MODELS, 'computer-vision__images__models-ex__2')
                                                      + ' -d -l'))
@@ -317,7 +316,7 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
         output = check_output(MLGIT_CHECKOUT % (LABELS, 'computer-vision__images__labels-ex__1 --sample-type=group '
                                                         '--sampling=2:4 --seed=5'))
 
-        self.assertIn(messages[93], output)
+        self.assertIn(output_messages['INFO_NO_SUCH_OPTION'], output)
         self.assertFalse(os.path.exists(os.path.join(self.tmp_dir, LABELS)))
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
@@ -326,7 +325,7 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
         output = check_output(MLGIT_CHECKOUT % (MODELS, 'computer-vision__images__models-ex__1 --sample-type=group '
                                                         '--sampling=2:4 --seed=5'))
 
-        self.assertIn(messages[93], output)
+        self.assertIn(output_messages['INFO_NO_SUCH_OPTION'], output)
         self.assertFalse(os.path.exists(os.path.join(self.tmp_dir, MODELS)))
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
@@ -338,7 +337,7 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
         self.check_amount_of_files(DATASETS, number_of_files_in_workspace)
         workspace = os.path.join(self.tmp_dir, DATASETS, DATASET_NAME)
         create_file(workspace, 'new_file', '0', file_path='')
-        self.assertIn(messages[95], check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, '')))
+        self.assertIn(output_messages['INFO_CANNOT_ADD_NEW_DATA_AN_ENTITY'], check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, '')))
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_24_check_sampling_flag_after_checkout(self):
@@ -384,7 +383,7 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
 
         clear(os.path.join(self.tmp_dir, ML_GIT_DIR, entity))
         clear(workspace)
-        self.assertIn(messages[8] % (
+        self.assertIn(output_messages['INFO_METADATA_INIT'] % (
             os.path.join(self.tmp_dir, GIT_PATH), os.path.join(self.tmp_dir, ML_GIT_DIR, entity, 'metadata')),
                       check_output(MLGIT_ENTITY_INIT % entity))
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_CHECKOUT % (entity, 'computer-vision__images__datasets-ex__3')))

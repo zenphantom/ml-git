@@ -15,7 +15,7 @@ from tests.integration.commands import MLGIT_INIT, MLGIT_STORAGE_ADD, MLGIT_COMM
 from tests.integration.helper import check_output, BUCKET_NAME, PROFILE, ERROR_MESSAGE, init_repository, add_file, \
     ML_GIT_DIR, clear, GLOBAL_CONFIG_PATH, delete_global_config, \
     configure_global, DATASETS, DATASET_NAME, DATASET_TAG
-from tests.integration.output_messages import messages
+from ml_git.ml_git_message import output_messages
 
 
 @pytest.mark.usefixtures('tmp_dir', 'aws_session')
@@ -55,7 +55,7 @@ class APIAcceptanceTests(unittest.TestCase):
     @mock.patch.dict(os.environ, {'HOME': GLOBAL_CONFIG_PATH})
     def test_01_checkout_with_otf_option(self):
         self.set_up_checkout(DATASETS)
-        self.assertIn(messages[0], check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG)))
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'], check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG)))
         self.check_metadata()
         self.check_amount_of_files(DATASETS, 6)
 
@@ -66,7 +66,7 @@ class APIAcceptanceTests(unittest.TestCase):
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_INIT))
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_STORAGE_ADD % (BUCKET_NAME, PROFILE)))
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ENTITY_INIT % DATASETS))
-        self.assertNotIn(messages[98], check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG)))
+        self.assertNotIn(output_messages['INFO_INITIALIZING_PROJECT'], check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG)))
         self.check_metadata()
         self.check_amount_of_files(DATASETS, 6)
 
@@ -74,7 +74,7 @@ class APIAcceptanceTests(unittest.TestCase):
     @mock.patch.dict(os.environ, {'HOME': GLOBAL_CONFIG_PATH})
     def test_03_checkout_with_otf_fail(self):
         self.set_up_checkout(DATASETS)
-        self.assertIn(messages[98], check_output(MLGIT_CHECKOUT % (DATASETS, 'computer-vision__images__datasets-ex__2')))
+        self.assertIn(output_messages['INFO_INITIALIZING_PROJECT'], check_output(MLGIT_CHECKOUT % (DATASETS, 'computer-vision__images__datasets-ex__2')))
         entity_dir = os.path.join(self.tmp_dir, DATASETS, DATASET_NAME)
         self.assertFalse(os.path.exists(entity_dir))
 
@@ -83,6 +83,7 @@ class APIAcceptanceTests(unittest.TestCase):
     def test_04_checkout_with_otf_without_global(self):
         self.set_up_checkout(DATASETS)
         delete_global_config()
-        self.assertIn(messages[99], check_output(MLGIT_CHECKOUT % (DATASETS, 'computer-vision__images__datasets-ex__2')))
+        self.assertIn(output_messages['INFO_ARE_NOT_IN_INITIALIZED_PROJECT'],
+                      check_output(MLGIT_CHECKOUT % (DATASETS, 'computer-vision__images__datasets-ex__2')))
         entity_dir = os.path.join(self.tmp_dir, DATASETS, DATASET_NAME)
         self.assertFalse(os.path.exists(entity_dir))

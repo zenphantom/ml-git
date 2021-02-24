@@ -13,7 +13,7 @@ from tests.integration.commands import MLGIT_ADD, MLGIT_COMMIT, MLGIT_LOG
 from tests.integration.helper import ML_GIT_DIR, add_file, create_spec, delete_file, ERROR_MESSAGE, DATASETS, \
     DATASET_NAME, DATASET_TAG, MODELS, LABELS
 from tests.integration.helper import check_output, init_repository
-from tests.integration.output_messages import messages
+from ml_git.ml_git_message import output_messages
 
 
 @pytest.mark.usefixtures('tmp_dir')
@@ -28,8 +28,8 @@ class LogTests(unittest.TestCase):
         metrics_options = ''
         if with_metrics:
             metrics_options = '--metric Accuracy 1 --metric Recall 2'
-        self.assertIn(messages[13] % repo_type, check_output(MLGIT_ADD % (repo_type, entity, metrics_options)))
-        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, repo_type, 'metadata'), entity),
+        self.assertIn(output_messages['INFO_ADDING_PATH'] % repo_type, check_output(MLGIT_ADD % (repo_type, entity, metrics_options)))
+        self.assertIn(output_messages['INFO_COMMIT_REPO'] % (os.path.join(self.tmp_dir, ML_GIT_DIR, repo_type, 'metadata'), entity),
                       check_output(MLGIT_COMMIT % (repo_type, entity, '-m ' + self.COMMIT_MESSAGE)))
 
     @staticmethod
@@ -47,23 +47,23 @@ class LogTests(unittest.TestCase):
     def test_01_log(self):
         self.set_up_test()
         output = check_output(MLGIT_LOG % (DATASETS, DATASET_NAME, ''))
-        self.assertIn(messages[77] % DATASET_TAG, output)
-        self.assertIn(messages[78] % self.COMMIT_MESSAGE, output)
-        self.assertNotIn(messages[79] % 0, output)
-        self.assertNotIn(messages[80] % 0, output)
-        self.assertNotIn(messages[81], output)
-        self.assertNotIn(messages[82], output)
+        self.assertIn(output_messages['INFO_TAG'] % DATASET_TAG, output)
+        self.assertIn(output_messages['INFO_MESSAGE'] % self.COMMIT_MESSAGE, output)
+        self.assertNotIn(output_messages['INFO_FILES_TOTAL'] % 0, output)
+        self.assertNotIn(output_messages['INFO_WORKSPACE_SIZE'] % 0, output)
+        self.assertNotIn(output_messages['INFO_ADDED_FILES'], output)
+        self.assertNotIn(output_messages['INFO_DELETED_FILES'], output)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_02_log_with_stat(self):
         self.set_up_test()
         output = check_output(MLGIT_LOG % (DATASETS, DATASET_NAME, '--stat'))
-        self.assertIn(messages[79] % 0, output)
-        self.assertIn(messages[80] % 0, output)
-        self.assertNotIn(messages[81] % 0, output)
-        self.assertNotIn(messages[82] % 0, output)
-        self.assertNotIn(messages[83] % 0, output)
-        self.assertNotIn(messages[84] % 0, output)
+        self.assertIn(output_messages['INFO_FILES_TOTAL'] % 0, output)
+        self.assertIn(output_messages['INFO_WORKSPACE_SIZE'] % 0, output)
+        self.assertNotIn(output_messages['INFO_ADDED_FILES'] % 0, output)
+        self.assertNotIn(output_messages['INFO_DELETED_FILES'] % 0, output)
+        self.assertNotIn(output_messages['INFO_FILES_SIZE'] % 0, output)
+        self.assertNotIn(output_messages['INFO_AMOUNT_SIZE'] % 0, output)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_03_log_with_fullstat(self):
@@ -80,8 +80,8 @@ class LogTests(unittest.TestCase):
         for file in files:
             self.assertIn(file, output)
 
-        self.assertIn(messages[84] % amount_files, output)
-        self.assertIn(messages[83] % workspace_size, output)
+        self.assertIn(output_messages['INFO_AMOUNT_SIZE'] % amount_files, output)
+        self.assertIn(output_messages['INFO_FILES_SIZE'] % workspace_size, output)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_04_log_with_fullstat_files_added_and_deleted(self):
@@ -96,8 +96,8 @@ class LogTests(unittest.TestCase):
         add_file(self, DATASETS, '--bumpversion', 'img')
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_COMMIT % (DATASETS, DATASET_NAME, '')))
         output = check_output(MLGIT_LOG % (DATASETS, DATASET_NAME, '--fullstat'))
-        self.assertIn(messages[81] % added, output)
-        self.assertIn(messages[82] % deleted, output)
+        self.assertIn(output_messages['INFO_ADDED_FILES'] % added, output)
+        self.assertIn(output_messages['INFO_DELETED_FILES'] % deleted, output)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_05_log_metrics(self):
@@ -105,12 +105,12 @@ class LogTests(unittest.TestCase):
         entity = '{}-ex'.format(repo_type)
         self.set_up_test(repo_type, with_metrics=True)
         output = check_output(MLGIT_LOG % (repo_type, entity, ''))
-        self.assertIn(messages[77] % self.TAG.replace(DATASET_NAME, entity), output)
-        self.assertIn(messages[78] % self.COMMIT_MESSAGE, output)
-        self.assertNotIn(messages[79] % 0, output)
-        self.assertNotIn(messages[80] % 0, output)
-        self.assertNotIn(messages[81], output)
-        self.assertNotIn(messages[82], output)
+        self.assertIn(output_messages['INFO_TAG'] % self.TAG.replace(DATASET_NAME, entity), output)
+        self.assertIn(output_messages['INFO_MESSAGE'] % self.COMMIT_MESSAGE, output)
+        self.assertNotIn(output_messages['INFO_FILES_TOTAL'] % 0, output)
+        self.assertNotIn(output_messages['INFO_WORKSPACE_SIZE'] % 0, output)
+        self.assertNotIn(output_messages['INFO_ADDED_FILES'], output)
+        self.assertNotIn(output_messages['INFO_DELETED_FILES'], output)
         self.assertIn(self.create_metrics_table(), output)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
@@ -119,10 +119,10 @@ class LogTests(unittest.TestCase):
         entity = '{}-ex'.format(repo_type)
         self.set_up_test(repo_type, with_metrics=True)
         output = check_output(MLGIT_LOG % (repo_type, entity, ''))
-        self.assertIn(messages[77] % self.TAG.replace(DATASET_NAME, entity), output)
-        self.assertIn(messages[78] % self.COMMIT_MESSAGE, output)
-        self.assertNotIn(messages[79] % 0, output)
-        self.assertNotIn(messages[80] % 0, output)
-        self.assertNotIn(messages[81], output)
-        self.assertNotIn(messages[82], output)
+        self.assertIn(output_messages['INFO_TAG'] % self.TAG.replace(DATASET_NAME, entity), output)
+        self.assertIn(output_messages['INFO_MESSAGE'] % self.COMMIT_MESSAGE, output)
+        self.assertNotIn(output_messages['INFO_FILES_TOTAL'] % 0, output)
+        self.assertNotIn(output_messages['INFO_WORKSPACE_SIZE'] % 0, output)
+        self.assertNotIn(output_messages['INFO_ADDED_FILES'], output)
+        self.assertNotIn(output_messages['INFO_DELETED_FILES'], output)
         self.assertNotIn(self.create_metrics_table(), output)
