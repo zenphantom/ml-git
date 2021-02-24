@@ -152,7 +152,7 @@ class Repository(object):
 
         try:
             # adds chunks to ml-git Index
-            log.info('%s adding path [%s] to ml-git index' % (repo_type, path), class_name=REPOSITORY_CLASS_NAME)
+            log.info(output_messages['INFO_ADDING_PATH_TO'] % (repo_type, path), class_name=REPOSITORY_CLASS_NAME)
             with change_mask_for_routine(is_shared_objects):
                 idx = MultihashIndex(spec, index_path, objects_path, mutability, cache_path)
                 idx.add(path, manifest, file_path)
@@ -209,7 +209,7 @@ class Repository(object):
         if deleted is None and untracked_files is None and changed_files is None:
             return False
         elif len(deleted) == 0 and len(untracked_files) == 0 and len(changed_files) == 0:
-            log.info('There is no new data to add', class_name=REPOSITORY_CLASS_NAME)
+            log.info(output_messages['INFO_NO_NEW_DATA_TO_ADD'], class_name=REPOSITORY_CLASS_NAME)
             return False
         return True
 
@@ -226,7 +226,7 @@ class Repository(object):
             corrupted_files = repo.get_corrupted_files(spec)
             if corrupted_files is not None and len(corrupted_files) > 0:
                 print('\n')
-                log.warn('The following files cannot be added because they are corrupted:',
+                log.warn(output_messages['INFO_CORRUPTED_CANNOT_BE_ADD'],
                          class_name=REPOSITORY_CLASS_NAME)
                 for file in corrupted_files:
                     print('\t %s' % file)
@@ -251,7 +251,7 @@ class Repository(object):
         try:
             objects_path = get_objects_path(self.__config, repo_type)
             repo = LocalRepository(self.__config, objects_path, repo_type)
-            log.info('%s: status of ml-git index for [%s]' % (repo_type, spec), class_name=REPOSITORY_CLASS_NAME)
+            log.info(output_messages['INFO_STATUS_OF'] % (repo_type, spec), class_name=REPOSITORY_CLASS_NAME)
             new_files, deleted_files, untracked_files, corruped_files, changed_files = repo.status(spec, status_directory)
         except Exception as e:
             log.error(e, class_name=REPOSITORY_CLASS_NAME)
@@ -460,7 +460,7 @@ class Repository(object):
             err = match.group(1)
             log.error(err, class_name=REPOSITORY_CLASS_NAME)
             return
-        log.info('Create Tag Successfull', class_name=REPOSITORY_CLASS_NAME)
+        log.info(output_messages['INFO_CREATE_TAG_SUCCESS'], class_name=REPOSITORY_CLASS_NAME)
         # checkout at metadata repository at master version
         m.checkout()
         return True
@@ -621,7 +621,7 @@ class Repository(object):
         r = Refs(refs_path, spec, repo_type)
         tag, sha = r.head()
         if tag is None:
-            log.info('No HEAD for [%s]' % spec, class_name=LOCAL_REPOSITORY_CLASS_NAME)
+            log.info(output_messages['INFO_NO_HEAD_FOR'] % spec, class_name=LOCAL_REPOSITORY_CLASS_NAME)
             return
 
         m = Metadata('', metadata_path, self.__config, repo_type)
@@ -643,7 +643,7 @@ class Repository(object):
 
     def _initialize_repository_on_the_fly(self):
         if os.path.exists(get_global_config_path()):
-            log.info('Initializing the project with global settings', class_name=REPOSITORY_CLASS_NAME)
+            log.info(output_messages['INFO_INITIALIZING_PROJECT'], class_name=REPOSITORY_CLASS_NAME)
             init_mlgit()
             save_global_config_in_local()
             metadata_path = get_metadata_path(self.__config)
@@ -665,7 +665,7 @@ class Repository(object):
             try:
                 self.__repo_type = EntityType.DATASETS.value
                 m = Metadata('', metadata_path, self.__config, self.__repo_type)
-                log.info('Initializing related dataset download', class_name=REPOSITORY_CLASS_NAME)
+                log.info(output_messages['INFO_INITIALIZING_DATASET_DOWNLOAD'], class_name=REPOSITORY_CLASS_NAME)
                 if not m.check_exists():
                     m.init()
                 self._checkout(dt_tag, samples, options)
@@ -675,7 +675,7 @@ class Repository(object):
             try:
                 self.__repo_type = 'labels'
                 m = Metadata('', metadata_path, self.__config, self.__repo_type)
-                log.info('Initializing related labels download', class_name=REPOSITORY_CLASS_NAME)
+                log.info(output_messages['INFO_INITIALIZING_LABELS_DOWNLOAD'], class_name=REPOSITORY_CLASS_NAME)
                 if not m.check_exists():
                     m.init()
                 self._checkout(lb_tag, samples, options)
@@ -759,7 +759,7 @@ class Repository(object):
         cur_tag, _ = ref.branch()
 
         if cur_tag == tag:
-            log.info('already at tag [%s]' % tag, class_name=REPOSITORY_CLASS_NAME)
+            log.info(output_messages['INFO_ALREADY_TAG'] % tag, class_name=REPOSITORY_CLASS_NAME)
             return None, None
 
         local_rep = LocalRepository(self.__config, objects_path, repo_type)
@@ -955,7 +955,7 @@ class Repository(object):
                 log.error('Invalid mutability type.', class_name=REPOSITORY_CLASS_NAME)
                 return
         except Exception:
-            log.info('The spec does not have the \'mutability\' property set. Default: strict.',
+            log.info(output_messages['INFO_SPEC_NOT_HAVE_MUTABILITY'],
                      class_name=REPOSITORY_CLASS_NAME)
             return
 
@@ -1001,15 +1001,15 @@ class Repository(object):
                 destine_path = os.path.join(repo_type, kwargs['entity_dir'], artifact_name, 'data')
                 local.import_file_from_url(destine_path, import_url, StorageType.GDRIVE.value)
             if unzip_file:
-                log.info('Unzipping files', CLASS_NAME=REPOSITORY_CLASS_NAME)
+                log.info(output_messages['INFO_UNZIPPING_FILES'], CLASS_NAME=REPOSITORY_CLASS_NAME)
                 data_path = os.path.join(get_root_path(), repo_type, kwargs['entity_dir'], artifact_name, 'data')
                 unzip_files_in_directory(data_path)
-            log.info("Project Created.", CLASS_NAME=REPOSITORY_CLASS_NAME)
+            log.info(output_messages['INFO_PROJECT_CREATED'], CLASS_NAME=REPOSITORY_CLASS_NAME)
         except Exception as e:
             if not isinstance(e, PermissionError):
                 clear(os.path.join(repo_type, artifact_name))
             if isinstance(e, KeyboardInterrupt):
-                log.info("Create command aborted!", class_name=REPOSITORY_CLASS_NAME)
+                log.info(output_messages['INFO_CREATE_ABORTED'], class_name=REPOSITORY_CLASS_NAME)
             else:
                 log.error(e, CLASS_NAME=REPOSITORY_CLASS_NAME)
 

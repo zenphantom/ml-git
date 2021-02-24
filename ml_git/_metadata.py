@@ -44,7 +44,7 @@ class MetadataRepo(object):
 
     def init(self):
         try:
-            log.info('Metadata init [%s] @ [%s]' % (self.__git, self.__path), class_name=METADATA_MANAGER_CLASS_NAME)
+            log.info(output_messages['INFO_METADATA_INIT'] % (self.__git, self.__path), class_name=METADATA_MANAGER_CLASS_NAME)
             Repo.clone_from(self.__git, self.__path)
         except GitError as g:
             if 'fatal: repository \'\' does not exist' in g.stderr:
@@ -110,7 +110,7 @@ class MetadataRepo(object):
         return DEFAULT_BRANCH_FOR_EMPTY_REPOSITORY
 
     def update(self):
-        log.info('Pull [%s]' % self.__path, class_name=METADATA_MANAGER_CLASS_NAME)
+        log.info(output_messages['INFO_MLGIT_PULL'] % self.__path, class_name=METADATA_MANAGER_CLASS_NAME)
         repo = Repo(self.__path)
         self.validate_blank_remote_url()
         o = repo.remotes.origin

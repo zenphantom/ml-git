@@ -26,7 +26,7 @@ from ml_git.utils import yaml_load, yaml_save, RootPathException, clear, ensure_
 def init_mlgit():
     try:
         root_path = get_root_path()
-        log.info('You already are in a ml-git repository (%s)' % (os.path.join(root_path, ROOT_FILE_NAME)),
+        log.info(output_messages['INFO_ALREAD_IN_REPOSITORY'] % (os.path.join(root_path, ROOT_FILE_NAME)),
                  class_name=ADMIN_CLASS_NAME)
         return
     except Exception:

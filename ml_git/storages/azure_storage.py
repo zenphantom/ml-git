@@ -71,7 +71,7 @@ class AzureMultihashStorage(Storage, MultihashStorage):
 
     def list_files_from_path(self, path):
         bucket_response = self._storage.create_container(path)
-        log.info('\nListing blobs in container:' + path)
+        log.info(output_messages['INFO_LISTING_BLOBS'] + path)
         blob_list = bucket_response.list_blobs()
         return blob_list
 

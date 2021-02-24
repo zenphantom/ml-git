@@ -7,6 +7,7 @@ from ml_git import log
 from concurrent import futures
 from tqdm import tqdm
 from ml_git.constants import POOL_CLASS_NAME
+from ml_git.ml_git_message import output_messages
 import os
 import time
 import random
@@ -52,7 +53,7 @@ class WorkerPool(object):
             except Exception as e:
                 if retry_cnt < self._retry:
                     retry_cnt += 1
-                    log.warn('Worker exception - [%s] -- retry [%d]' % (e, retry_cnt), class_name=POOL_CLASS_NAME)
+                    log.warn(output_messages['WARN_WORKER_EXCEPTION'] % (e, retry_cnt), class_name=POOL_CLASS_NAME)
                     self._retry_wait(retry_cnt)
                     continue
                 else:

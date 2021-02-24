@@ -9,6 +9,7 @@ from ml_git import log
 from ml_git import utils
 from ml_git.constants import ML_GIT_PROJECT_NAME, SPEC_EXTENSION, EntityType, STORAGE_KEY
 from ml_git.utils import get_root_path, yaml_load
+from ml_git.ml_git_message import output_messages
 
 DATASETS = EntityType.DATASETS.value
 
@@ -133,7 +134,7 @@ def get_entity_tag(specpath, repotype, entity):
         spec = yaml_load(specpath)
         entity_tag = spec[repotype][entity]['tag']
     except Exception:
-        log.warn('Repository: the ' + entity + ' does not exist for related download.')
+        log.warn(output_messages['WARN_NOT_EXIST_FOR_RELATED_DOWNLOAD'] % entity)
     return entity_tag
 
 

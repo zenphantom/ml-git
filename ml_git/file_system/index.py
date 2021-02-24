@@ -16,6 +16,7 @@ from ml_git.file_system.hashfs import MultihashFS
 from ml_git.manifest import Manifest
 from ml_git.pool import pool_factory
 from ml_git.utils import ensure_path_exists, yaml_load, posix_path, set_read_only, get_file_size, run_function_per_group
+from ml_git.ml_git_message import output_messages
 
 
 class MultihashIndex(object):
@@ -47,7 +48,7 @@ class MultihashIndex(object):
                 elif os.path.isfile(fullpath):
                     self._add_single_file(path, manifestpath, f)
                 else:
-                    log.warn('[%s] Not found!' % fullpath, class_name=MULTI_HASH_CLASS_NAME)
+                    log.warn(output_messages['WARN_NOT_FOUND'] % fullpath, class_name=MULTI_HASH_CLASS_NAME)
         else:
             if os.path.isdir(path):
                 self._add_dir(path, manifestpath)
@@ -174,7 +175,7 @@ class MultihashIndex(object):
         return scid, filepath, previous_hash
 
     def get(self, objectkey, path, file):
-        log.info('Getting file [%s] from local index' % file, class_name=MULTI_HASH_CLASS_NAME)
+        log.info(output_messages['INFO_GETTING_FILE'] % file, class_name=MULTI_HASH_CLASS_NAME)
         dirs = os.path.dirname(file)
         fulldir = os.path.join(path, dirs)
         ensure_path_exists(fulldir)
@@ -315,8 +316,7 @@ class FullIndex(object):
                 os.unlink(file_path)
         elif bare_mode and self._mutability == Mutability.MUTABLE.value:
             print('\n')
-            log.warn('The file %s already exists in the repository. If you commit, the'
-                     ' file will be overwritten.' % filepath,
+            log.warn(output_messages['WARN_FILE_EXISTS_IN_REPOSITORY'] % filepath,
                      class_name=MULTI_HASH_CLASS_NAME)
         self.update_full_index(posix_path(filepath), fullpath, status, scid, prev_hash)
         return scid_ret

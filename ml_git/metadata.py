@@ -64,7 +64,7 @@ class Metadata(MetadataManager):
 
         ret = self.__commit_manifest(full_metadata_path, index_path, changed_files, mutability)
         if ret is False:
-            log.info('No files to commit for [%s]' % self._spec, class_name=METADATA_CLASS_NAME)
+            log.info(output_messages['INFO_NO_FILES_COMMIT_FOR'] % self._spec, class_name=METADATA_CLASS_NAME)
             return None, None
 
         try:
@@ -270,14 +270,14 @@ class Metadata(MetadataManager):
         if labels:
             self.initialize_metadata(LABELS)
 
-        log.info('Successfully loaded configuration files!', class_name=METADATA_CLASS_NAME)
+        log.info(output_messages['INFO_SUCCESS_LOAD_CONFIGURATION'], class_name=METADATA_CLASS_NAME)
 
     def initialize_metadata(self, entity_type):
         super(Metadata, self).__init__(self.__config, entity_type)
         try:
             self.init()
         except Exception as e:
-            log.warn('Could not initialize metadata for %s. %s' % (entity_type, e), class_name=METADATA_CLASS_NAME)
+            log.warn(output_messages['WARN_CANNOT_INITIALIZE_METADATA_FOR'] % (entity_type, e), class_name=METADATA_CLASS_NAME)
 
     def get_tag(self, entity, version):
         try:

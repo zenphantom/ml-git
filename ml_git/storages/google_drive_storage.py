@@ -172,7 +172,7 @@ class GoogleDriveStorage(Storage):
         file_info = self.get_file_info_by_name(key_path)
         if file_info:
             if file_info.get('trashed'):
-                log.info('File [{}] located in trash.'.format(key_path))
+                log.info(output_messages['INFO_FILE_LOCATED_TRASH'].format(key_path))
             return True
         return False
 

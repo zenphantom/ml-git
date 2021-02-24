@@ -352,7 +352,7 @@ class MultihashFS(HashFS):
     '''Checks integrity of all files under .ml-git/.../hashfs/'''
 
     def fsck(self, exclude=['log', 'metadata'], remove_corrupted=False):
-        log.info('Starting integrity check on [%s]' % self._path, class_name=HASH_FS_CLASS_NAME)
+        log.info(output_messages['INFO_STARTING_INTEGRITY_CHECK'] % self._path, class_name=HASH_FS_CLASS_NAME)
         corrupted_files = []
         corrupted_files_fullpaths = []
         self._check_files_integrity(corrupted_files, corrupted_files_fullpaths)
@@ -361,7 +361,7 @@ class MultihashFS(HashFS):
 
     def _remove_corrupted_files(self, corrupted_files_fullpaths, remove_corrupted):
         if remove_corrupted and len(corrupted_files_fullpaths) > 0:
-            log.info('Removing %s corrupted files' % len(corrupted_files_fullpaths), class_name=HASH_FS_CLASS_NAME)
+            log.info(output_messages['INFO_REMOVING_CORRUPTED_FILES'] % len(corrupted_files_fullpaths), class_name=HASH_FS_CLASS_NAME)
             self.__progress_bar = tqdm(total=len(corrupted_files_fullpaths), desc='files', unit='files',
                                        unit_scale=True, mininterval=1.0)
             for cor_file_fullpath in corrupted_files_fullpaths:

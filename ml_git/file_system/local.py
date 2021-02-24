@@ -63,7 +63,7 @@ class LocalRepository(MultihashFS):
         objs = idx.get_log()
 
         if objs is None or len(objs) == 0:
-            log.info('No blobs to push at this time.', class_name=LOCAL_REPOSITORY_CLASS_NAME)
+            log.info(output_messages['INFO_NO_BLOBS_TO_PUSH'], class_name=LOCAL_REPOSITORY_CLASS_NAME)
             return 0
 
         storage = storage_factory(self.__config, manifest[STORAGE_KEY])
@@ -441,7 +441,7 @@ class LocalRepository(MultihashFS):
         bare_path = os.path.join(index_manifest_path, 'bare')
         if bare:
             open(bare_path, 'w+')
-            log.info('Checkout in bare mode done.', class_name=LOCAL_REPOSITORY_CLASS_NAME)
+            log.info(output_messages['INFO_CHECKOUT_BARE_MODE'], class_name=LOCAL_REPOSITORY_CLASS_NAME)
         elif os.path.exists(bare_path):
             os.unlink(bare_path)
 
@@ -513,7 +513,7 @@ class LocalRepository(MultihashFS):
                     total_corrupted_files += len_corrupted_files
                     log.info(output_messages['INFO_FIXING_CORRUPTED_FILES_IN_STORAGE'], class_name=LOCAL_REPOSITORY_CLASS_NAME)
                     self._delete_corrupted_files(corrupted_files, retries, manifest)
-        log.info('Corrupted files: %d' % total_corrupted_files, class_name=LOCAL_REPOSITORY_CLASS_NAME)
+        log.info(output_messages['INFO_CORRUPTED_FILES'] % total_corrupted_files, class_name=LOCAL_REPOSITORY_CLASS_NAME)
 
     @staticmethod
     def _remote_fsck_ipld_future_process(futures, args):
@@ -634,12 +634,12 @@ class LocalRepository(MultihashFS):
         del wp_blob
 
         if submit_iplds_args['ipld_fixed'] > 0 or submit_blob_args['blob_fixed'] > 0:
-            log.info('remote-fsck -- fixed   : ipld[%d] / blob[%d]' % (
+            log.info(output_messages['INFO_REMOTE_FSCK_FIXED'] % (
                 submit_iplds_args['ipld_fixed'], submit_blob_args['blob_fixed']))
         if submit_iplds_args['ipld_unfixed'] > 0 or submit_blob_args['blob_unfixed'] > 0:
             log.error('remote-fsck -- unfixed : ipld[%d] / blob[%d]' % (
                 submit_iplds_args['ipld_unfixed'], submit_blob_args['blob_unfixed']))
-        log.info('remote-fsck -- total   : ipld[%d] / blob[%d]' % (submit_iplds_args['ipld'], submit_blob_args['blob']))
+        log.info(output_messages['INFO_REMOTE_FSCK_TOTAL'] % (submit_iplds_args['ipld'], submit_blob_args['blob']))
 
         return True
 
@@ -868,7 +868,7 @@ class LocalRepository(MultihashFS):
         except Exception:
             raise RuntimeError('File %s not found' % file)
         idx_yaml.update_index_unlock(file_path[len(path) + 1:])
-        log.info('The permissions for %s have been changed.' % file, class_name=LOCAL_REPOSITORY_CLASS_NAME)
+        log.info(output_messages['INFO_PERMISSIONS_CHANGED_FOR'] % file, class_name=LOCAL_REPOSITORY_CLASS_NAME)
 
     def change_config_storage(self, profile, bucket_name, storage_type=StorageType.S3.value, **kwargs):
         bucket = dict()
