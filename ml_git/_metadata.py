@@ -20,7 +20,7 @@ from ml_git.manifest import Manifest
 from ml_git.ml_git_message import output_messages
 from ml_git.spec import get_entity_dir
 from ml_git.utils import get_root_path, ensure_path_exists, yaml_load, RootPathException, get_yaml_str, yaml_load_str, \
-    clear
+    clear, posix_path
 
 
 class MetadataRepo(object):
@@ -347,14 +347,14 @@ class MetadataRepo(object):
     def __sort_tag_by_date(elem):
         return elem.commit.authored_date
 
-    def _get_spec_content(self, spec, tag, sha):
+    def _get_spec_content(self, spec, sha):
         entity_dir = get_entity_dir(self.__repo_type, spec, root_path=self.__path)
-        spec_path = '/'.join([entity_dir, spec + SPEC_EXTENSION])
+        spec_path = '/'.join([posix_path(entity_dir), spec + SPEC_EXTENSION])
 
         return yaml_load_str(self._get_spec_content_from_ref(sha, spec_path))
 
     def _get_metrics(self, spec, tag, sha):
-        spec_file = self._get_spec_content(spec, tag, sha)
+        spec_file = self._get_spec_content(spec, sha)
         metrics = spec_file[self.__repo_type].get(PERFORMANCE_KEY, {})
         metrics_table = PrettyTable()
         if not metrics:
