@@ -73,7 +73,7 @@ class PushFilesAcceptanceTests(unittest.TestCase):
         output = check_output(MLGIT_PUSH % ('dataset', 'dataset-ex'))
 
         self.assertIn(ERROR_MESSAGE, output)
-        self.assertIn(git_path, output)
+        self.assertIn(GIT_PATH, output)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_05_push_with_wrong_credentials_profile(self):
