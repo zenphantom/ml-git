@@ -122,7 +122,7 @@ class AddStoreAcceptanceTests(unittest.TestCase):
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_10_add_storage_without_credentials(self):
-        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'] % self.tmp_dir, check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
         self.check_storage()
         self.assertIn(output_messages['INFO_ADD_STORAGE_WITHOUT_PROFILE'] % (STORAGE_TYPE, BUCKET_NAME),
                       check_output(MLGIT_STORAGE_ADD_WITHOUT_CREDENTIALS % BUCKET_NAME))

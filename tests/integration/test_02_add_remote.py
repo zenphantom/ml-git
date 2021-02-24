@@ -50,7 +50,7 @@ class AddRemoteAcceptanceTests(unittest.TestCase):
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_06_change_remote_repository(self):
-        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'] % self.tmp_dir, check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
         self.assertIn(output_messages['INFO_ADD_REMOTE'] % (GIT_PATH, DATASETS), check_output(MLGIT_REMOTE_ADD % (DATASETS, GIT_PATH)))
         self.check_remote_in_config(os.path.join(ML_GIT_DIR, 'config.yaml'))
         output_message = check_output(MLGIT_REMOTE_ADD % (DATASETS, 'second_path'))

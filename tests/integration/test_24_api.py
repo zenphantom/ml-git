@@ -300,7 +300,7 @@ class APIAcceptanceTests(unittest.TestCase):
     def test_14_create_entity(self):
         entity_type = DATASETS
         storage_type = StorageType.S3H.value
-        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'] % self.tmp_dir, check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
         api.create(DATASETS, DATASET_NAME, categories=['computer-vision', 'images'], mutability='strict')
         self.check_created_folders(entity_type, storage_type)
 
@@ -308,7 +308,7 @@ class APIAcceptanceTests(unittest.TestCase):
     def test_15_create_entity_with_optional_arguments(self):
         entity_type = DATASETS
         storage_type = StorageType.AZUREBLOBH.value
-        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'] % self.tmp_dir, check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
         api.create(DATASETS, DATASET_NAME, categories=['computer-vision', 'images'],
                    version=5, storage_type=storage_type, bucket_name='test', mutability='strict')
         self.check_created_folders(entity_type, storage_type, version=5, bucket_name='test')
@@ -317,7 +317,7 @@ class APIAcceptanceTests(unittest.TestCase):
     def test_16_create_entity_with_import(self):
         entity_type = DATASETS
         IMPORT_PATH = 'src'
-        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'] % self.tmp_dir, check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
         import_path = os.path.join(self.tmp_dir, IMPORT_PATH)
         os.makedirs(import_path)
         create_zip_file(IMPORT_PATH, 3)
@@ -422,7 +422,7 @@ class APIAcceptanceTests(unittest.TestCase):
         try:
             entity_type = 'dataset_invalid'
             storage_type = StorageType.S3H.value
-            self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'] % self.tmp_dir, check_output(MLGIT_INIT))
+            self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
             api.create('dataset_invalid', DATASET_NAME, categories=['computer-vision', 'images'], mutability='strict')
             self.check_created_folders(entity_type, storage_type)
             self.assertTrue(False)

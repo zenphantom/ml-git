@@ -42,7 +42,7 @@ def init_mlgit():
 
     mlgit_config_save()
     root_path = get_root_path()
-    log.info(output_messages['INFO_INITIALIZED_PROJECT'] % (os.path.join(root_path, ROOT_FILE_NAME)),
+    log.info(output_messages['INFO_INITIALIZED_PROJECT_IN'] % (os.path.join(root_path, ROOT_FILE_NAME)),
              class_name=ADMIN_CLASS_NAME)
 
 

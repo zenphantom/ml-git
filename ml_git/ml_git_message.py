@@ -75,7 +75,8 @@ output_messages = {
     'DEBUG_FILE_NOT_CACHE': 'File is not in cache',
     'DEBUG_BLOB_ALREADY_EXISTS': 'The specified blob [%s] already exists.',
 
-    'INFO_INITIALIZED_PROJECT': 'Initialized empty ml-git repository in %s',
+    'INFO_INITIALIZED_PROJECT': 'Initialized empty ml-git repository in',
+    'INFO_INITIALIZED_PROJECT_IN': 'Initialized empty ml-git repository in %s',
     'INFO_ADD_REMOTE': 'Add remote repository [%s] for [%s]',
     'INFO_CHECKOUT_LATEST_TAG': 'Performing checkout on the entity\'s lastest tag (%s)',
     'INFO_CHECKOUT_TAG': 'Performing checkout in tag %s',
