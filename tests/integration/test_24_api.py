@@ -9,7 +9,7 @@ import unittest
 import pytest
 
 from ml_git import api
-from ml_git.constants import Mutability, StorageType, STORAGE_KEY
+from ml_git.constants import Mutability, StorageType, STORAGE_KEY, EntityType
 from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_INIT
 from tests.integration.helper import ML_GIT_DIR, check_output, init_repository, create_git_clone_repo, \
@@ -427,7 +427,7 @@ class APIAcceptanceTests(unittest.TestCase):
             self.check_created_folders(entity_type, storage_type)
             self.assertTrue(False)
         except Exception as e:
-            self.assertIn(output_messages['ERROR_INVALID_ENTITY_TYPE'], str(e))
+            self.assertIn(output_messages['ERROR_INVALID_ENTITY_TYPE'] % EntityType.to_list(), str(e))
 
     @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
     def test_28_checkout_tag_with_invalid_entity(self):
@@ -438,4 +438,4 @@ class APIAcceptanceTests(unittest.TestCase):
             self.check_metadata()
             self.assertTrue(False)
         except Exception as e:
-            self.assertIn(output_messages['ERROR_INVALID_ENTITY_TYPE'], str(e))
+            self.assertIn(output_messages['ERROR_INVALID_ENTITY_TYPE'] % EntityType.to_list(), str(e))

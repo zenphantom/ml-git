@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite errors="0" failures="6" hostname="DESKTOP-8LFE719" name="pytest" skipped="0" tests="9" time="468.772" timestamp="2021-02-25T10:45:21.478997"><testcase classname="tests.integration.test_07_push_files.PushFilesAcceptanceTests" file="tests\integration\test_07_push_files.py" line="44" name="test_01_push_files_to_dataset" time="48.092"><failure message="AssertionError: False is not true">self = &lt;tests.integration.test_07_push_files.PushFilesAcceptanceTests testMethod=test_01_push_files_to_dataset&gt;
+
+    @pytest.mark.usefixtures(&apos;start_local_git_server&apos;, &apos;switch_to_tmp_dir&apos;)
+    def test_01_push_files_to_dataset(self):
+&gt;       self._push_entity(DATASETS)
+
+C:\git\hp\ml-git\tests\integration\test_07_push_files.py:47: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\git\hp\ml-git\tests\integration\test_07_push_files.py:36: in _push_entity
+    self.check_metadata_after_push(entity_type)
+C:\git\hp\ml-git\tests\integration\test_07_push_files.py:42: in check_metadata_after_push
+    os.path.join(MINIO_BUCKET_PATH, &apos;zdj7WWjGAAJ8gdky5FKcVLfd63aiRUGb8fkc8We2bvsp9WW12&apos;)))
+E   AssertionError: False is not true</failure></testcase><testcase classname="tests.integration.test_07_push_files.PushFilesAcceptanceTests" file="tests\integration\test_07_push_files.py" line="48" name="test_02_push_files_to_labels" time="50.183"><failure message="AssertionError: False is not true">self = &lt;tests.integration.test_07_push_files.PushFilesAcceptanceTests testMethod=test_02_push_files_to_labels&gt;
+
+    @pytest.mark.usefixtures(&apos;start_local_git_server&apos;, &apos;switch_to_tmp_dir&apos;)
+    def test_02_push_files_to_labels(self):
+&gt;       self._push_entity(LABELS)
+
+C:\git\hp\ml-git\tests\integration\test_07_push_files.py:51: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\git\hp\ml-git\tests\integration\test_07_push_files.py:36: in _push_entity
+    self.check_metadata_after_push(entity_type)
+C:\git\hp\ml-git\tests\integration\test_07_push_files.py:42: in check_metadata_after_push
+    os.path.join(MINIO_BUCKET_PATH, &apos;zdj7WWjGAAJ8gdky5FKcVLfd63aiRUGb8fkc8We2bvsp9WW12&apos;)))
+E   AssertionError: False is not true</failure></testcase><testcase classname="tests.integration.test_07_push_files.PushFilesAcceptanceTests" file="tests\integration\test_07_push_files.py" line="52" name="test_03_push_files_to_model" time="57.158"><failure message="AssertionError: False is not true">self = &lt;tests.integration.test_07_push_files.PushFilesAcceptanceTests testMethod=test_03_push_files_to_model&gt;
+
+    @pytest.mark.usefixtures(&apos;start_local_git_server&apos;, &apos;switch_to_tmp_dir&apos;)
+    def test_03_push_files_to_model(self):
+&gt;       self._push_entity(MODELS)
+
+C:\git\hp\ml-git\tests\integration\test_07_push_files.py:55: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\git\hp\ml-git\tests\integration\test_07_push_files.py:36: in _push_entity
+    self.check_metadata_after_push(entity_type)
+C:\git\hp\ml-git\tests\integration\test_07_push_files.py:42: in check_metadata_after_push
+    os.path.join(MINIO_BUCKET_PATH, &apos;zdj7WWjGAAJ8gdky5FKcVLfd63aiRUGb8fkc8We2bvsp9WW12&apos;)))
+E   AssertionError: False is not true</failure></testcase><testcase classname="tests.integration.test_07_push_files.PushFilesAcceptanceTests" file="tests\integration\test_07_push_files.py" line="56" name="test_04_push_with_wrong_repository" time="34.661"><system-out>Handling error for C:\Users\Felip\AppData\Local\Temp\pytest-of-Felip\pytest-72\popen-gw0\test_04_push_with_wrong_reposi0\local_git_server.git\objects\10\0b93820ade4c16225673b4ca62bb3ade63c313
+(&lt;class &apos;PermissionError&apos;&gt;, PermissionError(13, &apos;Access is denied&apos;), &lt;traceback object at 0x000001C3DB7D3A08&gt;)
+Handling error for C:\Users\Felip\AppData\Local\Temp\pytest-of-Felip\pytest-72\popen-gw0\test_04_push_with_wrong_reposi0\local_git_server.git\objects\2b\e4028f22054e9505bd5faa2a4622f6d7efa003
+(&lt;class &apos;PermissionError&apos;&gt;, PermissionError(13, &apos;Access is denied&apos;), &lt;traceback object at 0x000001C3DB7D3E88&gt;)
+Handling error for C:\Users\Felip\AppData\Local\Temp\pytest-of-Felip\pytest-72\popen-gw0\test_04_push_with_wrong_reposi0\local_git_server.git\objects\39\62fa01f03650228999913e0ddd8b06b33a8716
+(&lt;class &apos;PermissionError&apos;&gt;, PermissionError(13, &apos;Access is denied&apos;), &lt;traceback object at 0x000001C3DB7D3248&gt;)
+</system-out></testcase><testcase classname="tests.integration.test_07_push_files.PushFilesAcceptanceTests" file="tests\integration\test_07_push_files.py" line="76" name="test_05_push_with_wrong_credentials_profile" time="47.870"><failure message="AssertionError: &apos;The AWS Access Key Id you provided does not exist in our records.&apos; not found in &apos;Could not connect to the endpoint URL: &quot;http://127.0.0.1:9000/mlgit&quot;\n\n\n\n\n\n\n\n&apos;">self = &lt;tests.integration.test_07_push_files.PushFilesAcceptanceTests testMethod=test_05_push_with_wrong_credentials_profile&gt;
+
+    @pytest.mark.usefixtures(&apos;start_local_git_server&apos;, &apos;switch_to_tmp_dir&apos;)
+    def test_05_push_with_wrong_credentials_profile(self):
+        entity_type = DATASETS
+        artifact_name = DATASET_NAME
+        init_repository(entity_type, self, profile=&apos;personal2&apos;)
+        add_file(self, entity_type, &apos;--bumpversion&apos;, &apos;new&apos;)
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_COMMIT % (entity_type,  artifact_name, &apos;&apos;)))
+&gt;       self.assertIn(output_messages[&apos;ERROR_AWS_KEY_NOT_EXIST&apos;], check_output(MLGIT_PUSH % (entity_type, artifact_name)))
+E       AssertionError: &apos;The AWS Access Key Id you provided does not exist in our records.&apos; not found in &apos;Could not connect to the endpoint URL: &quot;http://127.0.0.1:9000/mlgit&quot;\n\n\n\n\n\n\n\n&apos;
+
+C:\git\hp\ml-git\tests\integration\test_07_push_files.py:84: AssertionError</failure></testcase><testcase classname="tests.integration.test_07_push_files.PushFilesAcceptanceTests" file="tests\integration\test_07_push_files.py" line="90" name="test_06_push_with_environment_variables" time="50.821"><failure message="AssertionError: False is not true">self = &lt;tests.integration.test_07_push_files.PushFilesAcceptanceTests testMethod=test_06_push_with_environment_variables&gt;
+
+    @pytest.mark.usefixtures(&apos;start_local_git_server&apos;, &apos;switch_to_tmp_dir&apos;)
+    @mock.patch.dict(os.environ, {&apos;AWS_ACCESS_KEY_ID&apos;: &apos;fake_access_key&apos;})
+    @mock.patch.dict(os.environ, {&apos;AWS_SECRET_ACCESS_KEY&apos;: &apos;fake_secret_key&apos;})
+    def test_06_push_with_environment_variables(self):
+        entity_type = DATASETS
+        artifact_name = DATASET_NAME
+        self.set_up_push_without_profile()
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_PUSH % (entity_type, artifact_name)))
+&gt;       self.check_metadata_after_push(entity_type)
+
+C:\git\hp\ml-git\tests\integration\test_07_push_files.py:99: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\git\hp\ml-git\tests\integration\test_07_push_files.py:42: in check_metadata_after_push
+    os.path.join(MINIO_BUCKET_PATH, &apos;zdj7WWjGAAJ8gdky5FKcVLfd63aiRUGb8fkc8We2bvsp9WW12&apos;)))
+E   AssertionError: False is not true</failure></testcase><testcase classname="tests.integration.test_07_push_files.PushFilesAcceptanceTests" file="tests\integration\test_07_push_files.py" line="100" name="test_07_push_with_default_aws_config" time="36.257"><failure message="AssertionError: False is not true">self = &lt;tests.integration.test_07_push_files.PushFilesAcceptanceTests testMethod=test_07_push_with_default_aws_config&gt;
+
+    @pytest.mark.usefixtures(&apos;start_local_git_server&apos;, &apos;switch_to_tmp_dir&apos;)
+    @mock.patch.dict(os.environ, {&apos;AWS_SHARED_CREDENTIALS_FILE&apos;: os.path.join(Path(&apos;./tests/integration/.aws/credentials-default&apos;).resolve())})
+    def test_07_push_with_default_aws_config(self):
+        entity_type = DATASETS
+        artifact_name = DATASET_NAME
+        self.set_up_push_without_profile()
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_PUSH % (entity_type, artifact_name)))
+&gt;       self.check_metadata_after_push(entity_type)
+
+C:\git\hp\ml-git\tests\integration\test_07_push_files.py:108: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+C:\git\hp\ml-git\tests\integration\test_07_push_files.py:42: in check_metadata_after_push
+    os.path.join(MINIO_BUCKET_PATH, &apos;zdj7WWjGAAJ8gdky5FKcVLfd63aiRUGb8fkc8We2bvsp9WW12&apos;)))
+E   AssertionError: False is not true</failure></testcase><testcase classname="tests.integration.test_07_push_files.PushFilesAcceptanceTests" file="tests\integration\test_07_push_files.py" line="109" name="test_08_push_without_default_config" time="47.676"></testcase><testcase classname="tests.integration.test_07_push_files.PushFilesAcceptanceTests" file="tests\integration\test_07_push_files.py" line="118" name="test_09_push_entity_with_dir" time="55.543"></testcase></testsuite></testsuites>

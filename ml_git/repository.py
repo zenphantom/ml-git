@@ -181,7 +181,7 @@ class Repository(object):
 
         if repo_type not in type_list:
             with disable_exception_traceback():
-                raise RuntimeError(output_messages['ERROR_INVALID_ENTITY_TYPE'])
+                raise RuntimeError(output_messages['ERROR_INVALID_ENTITY_TYPE'] % EntityType.to_list())
 
     def _get_current_manifest_file(self, m, tag):
         manifest = ''
@@ -672,7 +672,7 @@ class Repository(object):
             if not os.path.exists(metadata_path):
                 Metadata('', metadata_path, self.__config, self.__repo_type).init()
             return metadata_path
-        raise RootPathException('You are not in an initialized ml-git repository and do not have a global configuration.')
+        raise RootPathException(output_messages['INFO_ARE_NOT_IN_INITIALIZED_PROJECT'])
 
     def checkout(self, tag, samples, options):
         try:

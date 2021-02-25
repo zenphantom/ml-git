@@ -285,6 +285,16 @@ output_messages = {
     'ERROR_AMOUNT_PARAMETER_SHOULD_BE_GREATER_ZERO': 'The amount parameter should be greater than zero.',
     'ERROR_NO_CURRENT_TAG_FOR': 'No current tag for [%s]. commit first.',
     'ERROR_MUTABILITY_CANNOT_CHANGE': 'Spec mutability cannot be changed.',
+    'ERROR_EMPTY_FILE_LIST': 'The file list is empty.',
+    'ERROR_START_PARAMETER_SHOULD_BE_GREATER_ZERO': 'The start parameter should be greater than or equal to zero.',
+    'ERROR_RANGE_SAMPLE_START_STOP': 'The --range-sample=<start:stop:step> or  --range-sample=<start:stop>:'
+                                      ' requires positive integer values. The stop parameter can be \'all\', \'-1\' or any integer greater than zero',
+    'ERROR_PARAMETER_CANNOT_BE_NONE': 'The sample parameter cannot be None',
+    'ERROR_WRONG_NAME': 'The entity name passed is wrong. Please check again',
+    'ERROR_TAG_INVALID_FORMAT': 'Tag %s invalid format.',
+    'ERROR_CANNOT_CREATE_AZURE_CONTAINER': 'Can\'t create Azure container.',
+    'ERROR_NOT_FOUND_BLOB': 'Blob not found!',
+    'ERROR_WORKER_POOL_EXCEPTION': 'worker pool exception',
 
     'WARN_HAS_CONFIGURED_REMOTE': 'YOU ALREADY HAS A CONFIGURED REMOTE. All data stored in this repository will be sent to the new one on the first push.',
     'WARN_STORAGE_NOT_IN_CONFIG': 'Storage [%s://%s] not found in configuration file.',

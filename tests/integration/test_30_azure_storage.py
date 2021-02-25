@@ -53,7 +53,7 @@ class AzureAcceptanceTests(unittest.TestCase):
             container = ContainerClient.from_connection_string(connection_string, container, connection_timeout=300)
             container.get_container_properties()
         except Exception:
-            raise Exception('Can\'t create Azure container.')
+            raise Exception(output_messages['ERROR_CANNOT_CREATE_AZURE_CONTAINER'])
         pass
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')

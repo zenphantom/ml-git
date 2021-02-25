@@ -27,7 +27,7 @@ def search_spec_file(repotype, spec, root_path=None):
     for root, dir, files in os.walk(root_path):
         if spec_file in files:
             return root, spec_file
-    raise SearchSpecException('The entity name passed is wrong. Please check again')
+    raise SearchSpecException(output_messages['ERROR_WRONG_NAME'])
 
 
 def get_entity_dir(repotype, spec, root_path=None):
@@ -42,7 +42,7 @@ def spec_parse(spec):
     sep = '__'
     specs = spec.split(sep)
     if len(specs) <= 1:
-        raise SearchSpecException('Tag %s invalid format.' % specs)
+        raise SearchSpecException(output_messages['ERROR_TAG_INVALID_FORMAT'] % specs)
     else:
         categories_path = os.sep.join(specs[:-1])
         specname = specs[-2]
