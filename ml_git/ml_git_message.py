@@ -198,6 +198,7 @@ output_messages = {
     'ERROR_PROJECT_NEED_BE_UPDATED': 'To continue using this project it is necessary to update it.',
     'ERROR_UNKNOWN_STORAGE_TYPE': 'Unknown data storage type [%s], choose one of these %s.',
     'ERROR_CORRPUTION_DETECTED': 'Corruption detected for chunk [%s] - got [%s]',
+    'ERROR_CORRPUTION_DETECTED_FOR': 'Corruption detected for chunk [%s]',
     'ERROR_DRIVE_PATH_NOT_FOUND': 'Drive path [%s] not found.',
     'ERROR_NOT_FOUND': '[%s] not found.',
     'ERROR_FILE_COULD_NOT_BE_UPLOADED': 'The file could not be uploaded: [%s]',

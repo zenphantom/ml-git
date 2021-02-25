@@ -78,8 +78,8 @@ class RemoteFsckAcceptanceTests(unittest.TestCase):
 
         output = check_output(MLGIT_REMOTE_FSCK % (DATASETS, DATASET_NAME) + ' --paranoid')
 
-        self.assertIn(output_messages['ERROR_CORRPUTION_DETECTED'] % self.file, output)
+        self.assertIn(output_messages['ERROR_CORRPUTION_DETECTED_FOR'] % self.file, output)
         self.assertIn(output_messages['INFO_REMOTE_FSCK_FIXED'] % (1, 0), output)
 
-        self.assertNotIn(output_messages['ERROR_CORRPUTION_DETECTED'], check_output(MLGIT_REMOTE_FSCK % (DATASETS, DATASET_NAME) + ' --paranoid'))
+        self.assertNotIn(output_messages['ERROR_CORRPUTION_DETECTED_FOR'], check_output(MLGIT_REMOTE_FSCK % (DATASETS, DATASET_NAME) + ' --paranoid'))
         self.assertTrue(os.path.exists(os.path.join(MINIO_BUCKET_PATH, self.file)))
