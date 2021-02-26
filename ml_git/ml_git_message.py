@@ -200,7 +200,7 @@ output_messages = {
     'ERROR_AZURE_CREDENTIALS_NOT_FOUND': 'Azure credentials could not be found. See the ml-git documentation for how to configure.',
     'ERROR_WITHOUT_STORAGE': 'No storage for [%s]',
     'ERROR_CONFIG_PROFILE_NOT_FOUND': 'The config profile (%s) could not be found',
-    'ERROR_BLOB_NOT_FOUND': 'Blob [%s] not found. exiting...',
+    'ERROR_BLOB_NOT_FOUND_EXITING': 'Blob [%s] not found. exiting...',
     'ERROR_ADDING_INTO_CACHE': '\n Error adding into cache dir [%s] -- [%s]',
     'ERROR_INVALID_REPOSITORY': 'Invalid ml-git repository!',
     'ERROR_NO_COMMIT_TO_BACK': 'There is no commit to go back. Do at least two commits.',

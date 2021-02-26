@@ -204,7 +204,7 @@ class LocalRepository(MultihashFS):
         for key in lkeys:
             # check file is in objects ; otherwise critical error (should have been fetched at step before)
             if self._exists(key) is False:
-                log.error(output_messages['ERROR_BLOB_NOT_FOUND'] % key, class_name=LOCAL_REPOSITORY_CLASS_NAME)
+                log.error(output_messages['ERROR_BLOB_NOT_FOUND_EXITING'] % key, class_name=LOCAL_REPOSITORY_CLASS_NAME)
                 return False
             args["wp"].submit(self._update_cache, args["cache"], key)
         futures = args["wp"].wait()
@@ -337,7 +337,7 @@ class LocalRepository(MultihashFS):
         for key in lkeys:
             # check file is in objects ; otherwise critical error (should have been fetched at step before)
             if self._exists(key) is False:
-                log.error(output_messages['ERROR_BLOB_NOT_FOUND'] % key, class_name=LOCAL_REPOSITORY_CLASS_NAME)
+                log.error(output_messages['ERROR_BLOB_NOT_FOUND_EXITING'] % key, class_name=LOCAL_REPOSITORY_CLASS_NAME)
                 return False
             args['wp'].submit(self._update_cache, args['cache'], key)
         futures = args['wp'].wait()
@@ -353,7 +353,7 @@ class LocalRepository(MultihashFS):
         for key in lkeys:
             # check file is in objects ; otherwise critical error (should have been fetched at step before)
             if self._exists(key) is False:
-                log.error(output_messages['ERROR_BLOB_NOT_FOUND'], class_name=LOCAL_REPOSITORY_CLASS_NAME)
+                log.error(output_messages['ERROR_BLOB_NOT_FOUND_EXITING'], class_name=LOCAL_REPOSITORY_CLASS_NAME)
                 return False
             args['wps'].submit(self._update_links_wspace, key, Status.u.name, args)
         futures = args['wps'].wait()
