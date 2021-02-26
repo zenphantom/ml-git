@@ -238,14 +238,14 @@ class MetadataTestCases(unittest.TestCase):
         m = Metadata(entity, self.test_dir, config, repo_type)
         m.init()
         ensure_path_exists(os.path.join(mdpath, specpath, entity))
-        spec_metadata_path = os.path.join(mdpath, specpath, entity) + '/model-ex.spec'
+        spec_metadata_path = os.path.join(mdpath, specpath, entity, 'model-ex.spec')
         shutil.copy('hdata/dataset-ex.spec', spec_metadata_path)
 
         spec_file = yaml_load(spec_metadata_path)
         spec_file[repo_type] = deepcopy(spec_file[DATASETS])
         del spec_file[DATASETS]
         spec_file[repo_type]['metrics'] = {'metric_1': 0, 'metric_2': 1}
-        yaml_save(spec_file,  spec_metadata_path)
+        yaml_save(spec_file, spec_metadata_path)
 
         tag = 'vision-computer__images__model-ex__1'
         sha = m.commit(spec_metadata_path, specpath)
