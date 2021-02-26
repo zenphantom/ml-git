@@ -99,11 +99,10 @@ class GdrivePushFilesAcceptanceTests(unittest.TestCase):
 
         self.assertTrue(os.path.exists(file_b))
 
-
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_04_create_with_wrong_import_url(self):
         entity_type = DATASETS
         self.assertIn(messages[0], check_output(MLGIT_INIT))
         self.assertIn(messages[91] % 'import_url', check_output(MLGIT_CREATE % (entity_type, entity_type + '-ex')
                                                                 + ' --category=img --version=1 --import-url="import_url" '
-                                                                  '--credentials-path=test' + ' --mutability=' + Mutability.STRICT.value))
+                                                                  '--credentials-path=' + CREDENTIALS_PATH + ' --mutability=' + Mutability.STRICT.value))
