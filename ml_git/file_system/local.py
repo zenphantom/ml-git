@@ -322,7 +322,7 @@ class LocalRepository(MultihashFS):
                 if full_posix_path not in mfiles:
                     set_write_read(os.path.join(root, file))
                     os.unlink(os.path.join(root, file))
-                    log.debug(output_messages['DEBUG_REMOVING_MESAGE'] % full_posix_path, class_name=LOCAL_REPOSITORY_CLASS_NAME)
+                    log.debug(output_messages['DEBUG_REMOVING'] % full_posix_path, class_name=LOCAL_REPOSITORY_CLASS_NAME)
 
     @staticmethod
     def _update_metadata(full_md_path, ws_path, spec_name):
@@ -481,7 +481,7 @@ class LocalRepository(MultihashFS):
         try:
             process_futures(files_future, wp_file)
         except Exception as e:
-            log.error(output_messages['ERROR_ERROR_TO_FETCH_FILE'] % e, class_name=LOCAL_REPOSITORY_CLASS_NAME)
+            log.error(output_messages['ERROR_TO_FETCH_FILE'] % e, class_name=LOCAL_REPOSITORY_CLASS_NAME)
             return False
         return True
 
@@ -542,7 +542,7 @@ class LocalRepository(MultihashFS):
         try:
             self._remote_fsck_ipld_future_process(ipld_futures, args)
         except Exception as e:
-            log.error(output_messages['ERROR_FSCK_TO_IPLD'] % e, class_name=LOCAL_REPOSITORY_CLASS_NAME)
+            log.error(output_messages['ERROR_TO_FSCK_IPLD'] % e, class_name=LOCAL_REPOSITORY_CLASS_NAME)
             return False
         return True
 
@@ -652,7 +652,7 @@ class LocalRepository(MultihashFS):
             if 'README.md' in unsaved_files:
                 unsaved_files.remove('README.md')
             if len(unsaved_files) > 0:
-                log.error(output_messages['ERROR_DISCARTED_LOCAL_CHANGES'])
+                log.error(output_messages['ERROR_DISCARDED_LOCAL_CHANGES'])
                 for file in unsaved_files:
                     print('\t%s' % file)
                 log.info(
@@ -825,7 +825,7 @@ class LocalRepository(MultihashFS):
             return res
         except ClientError as e:
             if e.response['Error']['Code'] == '404':
-                raise RuntimeError(output_messages['INFO_FILE_NOT_FOUND'] % path)
+                raise RuntimeError(output_messages['ERROR_FILE_NOT_FOUND'] % path)
             raise e
 
     def _import_files(self, path, directory, bucket, retry, file_object):
@@ -866,7 +866,7 @@ class LocalRepository(MultihashFS):
         try:
             set_write_read(file_path)
         except Exception:
-            raise RuntimeError(output_messages['INFO_FILE_NOT_FOUND'] % file)
+            raise RuntimeError(output_messages['ERROR_FILE_NOT_FOUND'] % file)
         idx_yaml.update_index_unlock(file_path[len(path) + 1:])
         log.info(output_messages['INFO_PERMISSIONS_CHANGED_FOR'] % file, class_name=LOCAL_REPOSITORY_CLASS_NAME)
 

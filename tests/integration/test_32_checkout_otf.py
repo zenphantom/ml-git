@@ -55,7 +55,7 @@ class APIAcceptanceTests(unittest.TestCase):
     @mock.patch.dict(os.environ, {'HOME': GLOBAL_CONFIG_PATH})
     def test_01_checkout_with_otf_option(self):
         self.set_up_checkout(DATASETS)
-        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'], check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG)))
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG)))
         self.check_metadata()
         self.check_amount_of_files(DATASETS, 6)
 

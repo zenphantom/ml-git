@@ -25,5 +25,5 @@ class ConfigAcceptanceTests(unittest.TestCase):
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_01_config_command(self):
-        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'], check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
         self.assertIn(self.expected_result, check_output(MLGIT_CONFIG))

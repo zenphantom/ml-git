@@ -46,7 +46,7 @@ class UnlockAcceptanceTests(unittest.TestCase):
         self.set_up_unlock(DATASETS, 'flexible')
 
         self.assertEqual(2, os.stat(self.file_path).st_nlink)
-        self.assertIn(output_messages['INFO_FILE_NOT_FOUND'] % 'data/file10',
+        self.assertIn(output_messages['ERROR_FILE_NOT_FOUND'] % 'data/file10',
                       check_output(MLGIT_UNLOCK % (DATASETS, DATASET_NAME, 'data/file10')))
         self.assertEqual(2, os.stat(self.file_path).st_nlink)
 

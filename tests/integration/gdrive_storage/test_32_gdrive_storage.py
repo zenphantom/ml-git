@@ -77,7 +77,7 @@ class GdrivePushFilesAcceptanceTests(unittest.TestCase):
 
     @pytest.mark.usefixtures('switch_to_tmp_dir_with_gdrive_credentials', 'start_local_git_server')
     def test_03_create_gdrive(self):
-        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'], check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
 
         self.assertIn(output_messages['INFO_PROJECT_CREATED'],
                       check_output(MLGIT_CREATE % (DATASETS, DATASET_NAME)

@@ -45,12 +45,12 @@ class CreateAcceptanceTests(unittest.TestCase):
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def _create_entity(self, entity_type, storage_type=StorageType.S3H.value):
-        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'], check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
         self.create_command(entity_type, storage_type)
         self.check_folders(entity_type, storage_type)
 
     def create_with_mutability(self, entity_type, mutability):
-        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'], check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
         self.assertIn(output_messages['INFO_PROJECT_CREATED'],
                       check_output(MLGIT_CREATE % (entity_type, entity_type + '-ex')
                       + ' --category=img --version=1 '
@@ -76,7 +76,7 @@ class CreateAcceptanceTests(unittest.TestCase):
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_04_create_import_with_subdir(self):
-        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'], check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
         sub_dir = os.path.join('subdir', 'subdir2')
         os.makedirs(os.path.join(self.tmp_dir, IMPORT_PATH, sub_dir))
 
@@ -137,7 +137,7 @@ class CreateAcceptanceTests(unittest.TestCase):
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_09_create_with_import_and_import_url_options(self):
         entity_type = DATASETS
-        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'], check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
         self.assertIn(output_messages['INFO_EXCLUSIVE_IMPORT_ARGUMENT'],
                       check_output(MLGIT_CREATE % (entity_type, entity_type + '-ex')
                       + ' --category=img --version=1 --import="import_path" --import-url="import_url"'
@@ -146,7 +146,7 @@ class CreateAcceptanceTests(unittest.TestCase):
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_10_create_with_import_url_without_credentials_path(self):
         entity_type = DATASETS
-        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'], check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
         self.assertIn(output_messages['INFO_EXCLUSIVE_CREDENTIALS_PATH_ARGUMENT'],
                       check_output(MLGIT_CREATE % (entity_type, entity_type + '-ex')
                       + ' --category=img --version=1 --import-url="import_url"'
@@ -155,7 +155,7 @@ class CreateAcceptanceTests(unittest.TestCase):
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_11_create_with_wrong_import_url(self):
         entity_type = DATASETS
-        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'], check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
         self.assertIn(output_messages['INFO_INVALID_URL'] % 'import_url',
                       check_output(MLGIT_CREATE % (entity_type, entity_type + '-ex')
                       + ' --category=img --version=1 --import-url="import_url" '
@@ -164,7 +164,7 @@ class CreateAcceptanceTests(unittest.TestCase):
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_12_create_with_unzip_option(self):
         entity_type = DATASETS
-        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'], check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
         import_path = os.path.join(self.tmp_dir, IMPORT_PATH)
         os.makedirs(import_path)
         create_zip_file(IMPORT_PATH, 3)
@@ -184,7 +184,7 @@ class CreateAcceptanceTests(unittest.TestCase):
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_12_create_with_deprecated_version_number(self):
         entity_type = DATASETS
-        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'], check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
         os.makedirs(os.path.join(self.tmp_dir, IMPORT_PATH))
         result = check_output(MLGIT_CREATE % (entity_type, entity_type + '-ex') + ' --category=imgs --storage-type=s3h --bucket-name=minio'
                               + ' --version-number=1 --import="' + os.path.join(self.tmp_dir, IMPORT_PATH) + '"'
@@ -212,13 +212,13 @@ class CreateAcceptanceTests(unittest.TestCase):
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_15_create_without_mutability_option(self):
         entity_type = DATASETS
-        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'], check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
         self.assertIn(output_messages['ERROR_MISSING_MUTABILITY'], check_output(MLGIT_CREATE % (entity_type, entity_type + '-ex')
                                                                                 + ' --category=img --version=1'))
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_16_create_with_entity_option(self):
-        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'], check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
         entity_dir = os.path.join('FolderA', 'FolderB')
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_CREATE % (DATASETS, DATASET_NAME)
                                                      + ' --category=imgs --mutability=' + Mutability.STRICT.value

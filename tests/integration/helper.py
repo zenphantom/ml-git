@@ -110,7 +110,7 @@ def init_repository(entity, self, version=1, storage_type='s3h', profile=PROFILE
     if os.path.exists(os.path.join(self.tmp_dir, ML_GIT_DIR)):
         self.assertIn(output_messages['INFO_ALREADY_IN_RESPOSITORY'], check_output(MLGIT_INIT))
     else:
-        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'], check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
 
     self.assertIn(output_messages['INFO_ADD_REMOTE'] % (os.path.join(self.tmp_dir, GIT_PATH), entity),
                   check_output(MLGIT_REMOTE_ADD % (entity, os.path.join(self.tmp_dir, GIT_PATH))))
@@ -165,9 +165,9 @@ def add_file(self, entity, bumpversion, name=None, artifact_name=None, file_cont
     if entity == DATASETS:
         self.assertIn(output_messages['INFO_ADDING_PATH'] % DATASETS, check_output(MLGIT_ADD % (entity, artifact_name, bumpversion)))
     elif entity == MODELS:
-        self.assertIn(output_messages['INFO_ADDING_PATH_MODELS'], check_output(MLGIT_ADD % (entity, artifact_name, bumpversion)))
+        self.assertIn(output_messages['INFO_ADDING_PATH'] % MODELS, check_output(MLGIT_ADD % (entity, artifact_name, bumpversion)))
     else:
-        self.assertIn(output_messages['INFO_ADDING_PATH_LABELS'], check_output(MLGIT_ADD % (entity, artifact_name, bumpversion)))
+        self.assertIn(output_messages['INFO_ADDING_PATH'] % LABELS, check_output(MLGIT_ADD % (entity, artifact_name, bumpversion)))
     metadata = os.path.join(self.tmp_dir, ML_GIT_DIR, entity, 'index', 'metadata', artifact_name)
     metadata_file = os.path.join(metadata, 'MANIFEST.yaml')
     index_file = os.path.join(metadata, 'INDEX.yaml')

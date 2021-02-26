@@ -53,7 +53,7 @@ class Metadata(MetadataManager):
     def commit_metadata(self, index_path, tags, commit_msg, changed_files, mutability, ws_path):
         spec_file = os.path.join(index_path, 'metadata', self._spec, self._spec + SPEC_EXTENSION)
         full_metadata_path, entity_sub_path, metadata = self._full_metadata_path(spec_file)
-        log.debug(output_messages['DEBUG_PATH'] % full_metadata_path, class_name=METADATA_CLASS_NAME)
+        log.debug(output_messages['DEBUG_METADATA_PATH'] % full_metadata_path, class_name=METADATA_CLASS_NAME)
 
         if full_metadata_path is None:
             return None, None
@@ -219,7 +219,7 @@ class Metadata(MetadataManager):
         repo_type = self.__repo_type
         cats = metadata[repo_type]['categories']
         if cats is None:
-            log.error(output_messages['ERROR_ENTITY_CATATEGOY'])
+            log.error(output_messages['ERROR_ENTITY_NEEDS_CATATEGORY'])
             return
         elif type(cats) is list:
             categories = sep.join(cats)
@@ -259,7 +259,7 @@ class Metadata(MetadataManager):
         labels = self.__config[LABELS]['git'] if LABELS in self.__config else ''
 
         if not (dataset or model or labels):
-            log.error(output_messages['ERROR_NO_REPOSITORY_FOUND'], class_name=METADATA_CLASS_NAME)
+            log.error(output_messages['ERROR_REPOSITORY_NOT_FOUND'], class_name=METADATA_CLASS_NAME)
             clear(ROOT_FILE_NAME)
             return
 

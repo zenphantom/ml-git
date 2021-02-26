@@ -22,19 +22,19 @@ class InitAcceptanceTests(unittest.TestCase):
         if os.path.exists(os.path.join(self.tmp_dir, ML_GIT_DIR)):
             self.assertIn(output_messages['INFO_ALREADY_IN_RESPOSITORY'], check_output(MLGIT_INIT))
         else:
-            self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'], check_output(MLGIT_INIT))
+            self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
         config = os.path.join(self.tmp_dir, ML_GIT_DIR, 'config.yaml')
         self.assertTrue(os.path.exists(config))
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_02_init_subfoldery(self):
-        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'], check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
         os.chdir('.ml-git')
         self.assertIn(output_messages['INFO_ALREADY_IN_RESPOSITORY'], check_output(MLGIT_INIT))
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_03_init_already_initialized_repository(self):
-        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'], check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
         self.assertIn(output_messages['INFO_ALREADY_IN_RESPOSITORY'], check_output(MLGIT_INIT))
 
     @pytest.mark.usefixtures('switch_to_folder_without_permissions')

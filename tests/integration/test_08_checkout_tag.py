@@ -236,7 +236,7 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
     def test_20_model_related(self):
         git_server = os.path.join(self.tmp_dir, GIT_PATH)
 
-        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'], check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
         self.assertIn(output_messages['INFO_ADD_REMOTE'] % (git_server, MODELS), check_output(MLGIT_REMOTE_ADD % (MODELS, git_server)))
         self.assertIn(output_messages['INFO_ADD_STORAGE'] % (STORAGE_TYPE, BUCKET_NAME, PROFILE),
                       check_output(MLGIT_STORAGE_ADD % (BUCKET_NAME, PROFILE)))
@@ -263,10 +263,12 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
         with open(os.path.join(self.tmp_dir, workspace_dataset, 'file1'), 'wb') as z:
             z.write(b'0' * 1024)
 
+        expected_push_result = '2.00/2.00'
+
         self.assertIn(output_messages['INFO_ADDING_PATH'] % DATASETS, check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, '--bumpversion')))
         self.assertIn(output_messages['INFO_COMMIT_REPO'] % (os.path.join(self.tmp_dir, '.ml-git', DATASETS, 'metadata'), DATASET_NAME),
                       check_output(MLGIT_COMMIT % (DATASETS, DATASET_NAME, '')))
-        self.assertIn(output_messages['INFO_MLGIT_TWO_VALUES'], check_output(MLGIT_PUSH % (DATASETS, DATASET_NAME)))
+        self.assertIn(expected_push_result, check_output(MLGIT_PUSH % (DATASETS, DATASET_NAME)))
 
         self.assertIn(output_messages['INFO_ADD_REMOTE'] % (git_server, LABELS), check_output(MLGIT_REMOTE_ADD % (LABELS, git_server)))
         self.assertIn(output_messages['INFO_ADD_STORAGE'] % (STORAGE_TYPE, BUCKET_NAME, PROFILE),
@@ -281,16 +283,16 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
         with open(os.path.join(self.tmp_dir, workspace_labels, 'file1'), 'wb') as z:
             z.write(b'0' * 1024)
 
-        self.assertIn(output_messages['INFO_ADDING_PATH_LABELS'], check_output(MLGIT_ADD % (LABELS, LABELS+'-ex', '--bumpversion')))
+        self.assertIn(output_messages['INFO_ADDING_PATH'] % LABELS, check_output(MLGIT_ADD % (LABELS, LABELS+'-ex', '--bumpversion')))
         self.assertIn(output_messages['INFO_COMMIT_REPO'] % (os.path.join(self.tmp_dir, '.ml-git', LABELS, 'metadata'), LABELS+'-ex'),
                       check_output(MLGIT_COMMIT % (LABELS, LABELS+'-ex', '')))
-        self.assertIn(output_messages['INFO_MLGIT_TWO_VALUES'], check_output(MLGIT_PUSH % (LABELS, LABELS+'-ex')))
+        self.assertIn(expected_push_result, check_output(MLGIT_PUSH % (LABELS, LABELS+'-ex')))
 
-        self.assertIn(output_messages['INFO_ADDING_PATH_MODELS'], check_output(MLGIT_ADD % (MODELS, MODELS+'-ex', '--bumpversion')))
+        self.assertIn(output_messages['INFO_ADDING_PATH'] % MODELS, check_output(MLGIT_ADD % (MODELS, MODELS+'-ex', '--bumpversion')))
         self.assertIn(output_messages['INFO_COMMIT_REPO'] % (os.path.join(self.tmp_dir, '.ml-git', MODELS, 'metadata'), MODELS+'-ex'),
                       check_output(
                           MLGIT_COMMIT % (MODELS, MODELS+'-ex', '--dataset=datasets-ex') + ' --labels=labels-ex'))
-        self.assertIn(output_messages['INFO_MLGIT_TWO_VALUES'], check_output(MLGIT_PUSH % (MODELS, MODELS+'-ex')))
+        self.assertIn(expected_push_result, check_output(MLGIT_PUSH % (MODELS, MODELS+'-ex')))
         set_write_read(os.path.join(self.tmp_dir, workspace_model, 'file1'))
         set_write_read(os.path.join(self.tmp_dir, workspace_dataset, 'file1'))
         set_write_read(os.path.join(self.tmp_dir, workspace_labels, 'file1'))

@@ -687,7 +687,7 @@ class Repository(object):
             try:
                 self.__repo_type = EntityType.DATASETS.value
                 m = Metadata('', metadata_path, self.__config, self.__repo_type)
-                log.info(output_messages['INFO_INITIALIZING_DATASET_DOWNLOAD'], class_name=REPOSITORY_CLASS_NAME)
+                log.info(output_messages['INFO_INITIALIZING_ENTITY_DOWNLOAD'] % self.__repo_type, class_name=REPOSITORY_CLASS_NAME)
                 if not m.check_exists():
                     m.init()
                 self._checkout(dt_tag, samples, options)
@@ -697,7 +697,7 @@ class Repository(object):
             try:
                 self.__repo_type = 'labels'
                 m = Metadata('', metadata_path, self.__config, self.__repo_type)
-                log.info(output_messages['INFO_INITIALIZING_LABELS_DOWNLOAD'], class_name=REPOSITORY_CLASS_NAME)
+                log.info(output_messages['INFO_INITIALIZING_ENTITY_DOWNLOAD'] % self.__repo_type, class_name=REPOSITORY_CLASS_NAME)
                 if not m.check_exists():
                     m.init()
                 self._checkout(lb_tag, samples, options)
