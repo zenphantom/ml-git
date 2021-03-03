@@ -96,6 +96,9 @@ output_messages = {
     'ERROR_AZURE_CREDENTIALS_NOT_FOUND': 'Azure credentials could not be found. See the ml-git documentation for how to configure.',
     'ERROR_WITHOUT_STORAGE': 'No storage for [%s]',
     'ERROR_CONFIG_PROFILE_NOT_FOUND': 'The config profile (%s) could not be found',
+    'ERROR_BUCKET_NOT_FOUND': 'Bucket [%s] not found.',
+    'ERROR_INVALID_URL': 'Invalid url: [%s]',
+    'ERROR_DOWNLOAD_FROM_URL_FAILED': 'Failed to download file id: [%s]',
 
     'WARN_HAS_CONFIGURED_REMOTE': 'YOU ALREADY HAS A CONFIGURED REMOTE. All data stored in this repository will be sent to the new one on the first push.',
     'WARN_STORAGE_NOT_IN_CONFIG': 'Storage [%s://%s] not found in configuration file.',

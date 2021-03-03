@@ -191,7 +191,7 @@ class GoogleDriveStorage(Storage):
 
     def list_files_from_path(self, path):
         if not self._drive_path_id:
-            raise RuntimeError('Bucket [%s] not found.' % self._drive_path)
+            raise RuntimeError(output_messages['ERROR_BUCKET_NOT_FOUND'] % self._drive_path)
         files_in_folder = self._storage.ListFile({
             'q': self.QUERY_FILE_BY_NAME.format(path, self._drive_path_id)}).GetList()
         return [file.get('title') for file in files_in_folder]
@@ -210,9 +210,9 @@ class GoogleDriveStorage(Storage):
     def import_file_from_url(self, path_dst, url):
         file_id = self.get_file_id_from_url(url)
         if not file_id:
-            raise RuntimeError('Invalid url: [%s]' % url)
+            raise RuntimeError(output_messages['ERROR_INVALID_URL'] % url)
         if not self.get_by_id(path_dst, file_id):
-            raise RuntimeError('Failed to download file id: [%s]' % file_id)
+            raise RuntimeError(output_messages['ERROR_DOWNLOAD_FROM_URL_FAILED'] % file_id)
 
     @staticmethod
     def get_file_id_from_url(url):
