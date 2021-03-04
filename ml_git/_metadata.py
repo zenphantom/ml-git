@@ -3,6 +3,7 @@
 SPDX-License-Identifier: GPL-2.0-only
 """
 import io
+import json
 import os
 import re
 import time
@@ -15,12 +16,12 @@ from ml_git import log
 from ml_git.config import get_metadata_path
 from ml_git.constants import METADATA_MANAGER_CLASS_NAME, HEAD_1, RGX_ADDED_FILES, RGX_DELETED_FILES, RGX_SIZE_FILES, \
     RGX_AMOUNT_FILES, TAG, AUTHOR, EMAIL, DATE, MESSAGE, ADDED, SIZE, AMOUNT, DELETED, SPEC_EXTENSION, \
-    DEFAULT_BRANCH_FOR_EMPTY_REPOSITORY, PERFORMANCE_KEY, EntityType
+    DEFAULT_BRANCH_FOR_EMPTY_REPOSITORY, PERFORMANCE_KEY, EntityType, FileType
 from ml_git.manifest import Manifest
 from ml_git.ml_git_message import output_messages
-from ml_git.spec import get_entity_dir
+from ml_git.spec import get_entity_dir, spec_parse
 from ml_git.utils import get_root_path, ensure_path_exists, yaml_load, RootPathException, get_yaml_str, yaml_load_str, \
-    clear, posix_path
+    clear, posix_path, create_csv_file
 
 
 class MetadataRepo(object):
@@ -367,14 +368,16 @@ class MetadataRepo(object):
             metrics_table.add_row([key, value])
         return '\n{}:\n{}'.format(PERFORMANCE_KEY, metrics_table.get_string())
 
-    def get_log_info(self, spec, fullstat=False, specialized_data_info=None):
-
+    def _get_ordered_entity_tags(self, spec):
         tags = self.list_tags(spec, True)
-        formatted = ''
         if len(tags) == 0:
             raise RuntimeError('No log found for entity [%s]' % spec)
-
         tags.sort(key=self.__sort_tag_by_date)
+        return tags
+
+    def get_log_info(self, spec, fullstat=False, specialized_data_info=None):
+        formatted = ''
+        tags = self._get_ordered_entity_tags(spec)
 
         for tag in tags:
             formatted += '\n' + self.get_formatted_log_info(tag, fullstat)
@@ -384,6 +387,79 @@ class MetadataRepo(object):
                 formatted += value
 
         return formatted
+
+    @staticmethod
+    def _get_related_entity_info(spec_file, entity_type):
+        related_entity = spec_file.get(entity_type, None)
+        if related_entity:
+            entity_tag = related_entity['tag']
+            _, entity_name, version = spec_parse(entity_tag)
+            return entity_tag, '{} - ({})'.format(entity_name, version)
+        return None, None
+
+    @staticmethod
+    def _create_tag_info_table(tag_info, metrics):
+        tag_table = PrettyTable()
+        tag_table.field_names = ['Name', 'Value']
+        tag_table.add_row([DATE, tag_info[DATE]])
+        tag_table.add_row(['Related dataset - (version)', tag_info['Related dataset - (version)']])
+        tag_table.add_row(['Related labels - (version)', tag_info['Related labels - (version)']])
+        for key, value in metrics.items():
+            tag_table.add_row([key, value])
+        return tag_table
+
+    def _get_tag_info(self, spec, tag):
+        spec_file = self._get_spec_content(spec, tag.commit)[self.__repo_type]
+        related_dataset_tag, related_dataset_info = self._get_related_entity_info(spec_file, EntityType.DATASETS.value)
+        related_labels_tag, related_labels_info = self._get_related_entity_info(spec_file, EntityType.LABELS.value)
+        tag_info = {
+            DATE: time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(tag.commit.authored_date)),
+            'Tag': tag.name,
+            'Related dataset - (version)': related_dataset_info,
+            'Related labels - (version)': related_labels_info}
+        metrics = spec_file.get(PERFORMANCE_KEY, {})
+        tag_info[PERFORMANCE_KEY] = metrics
+        tag_table = self._create_tag_info_table(tag_info, metrics)
+        return tag_info, tag_table
+
+    def get_metrics_info(self, entity_name):
+        tags = self._get_ordered_entity_tags(entity_name)
+        tags_info = []
+        for tag in tags:
+            tag_info, tag_info_table = self._get_tag_info(entity_name, tag)
+            tags_info.append(tag_info)
+            print('Tag: {}\n{}\n'.format(tag.name, tag_info_table.get_string()))
+        return tags_info
+
+    @staticmethod
+    def _format_data_for_csv(tag_infos):
+        csv_header = [DATE, 'Tag', 'Related dataset - (version)', 'Related labels - (version)']
+        for info in tag_infos:
+            for metric_key in info[PERFORMANCE_KEY]:
+                info[metric_key] = info[PERFORMANCE_KEY][metric_key]
+                if metric_key not in csv_header:
+                    csv_header.append(metric_key)
+        return csv_header, tag_infos
+
+    def export_metrics(self, entity_name, export_path, export_type, tags_info):
+        data = None
+        file_name = '{}-{}'.format(entity_name, PERFORMANCE_KEY)
+        file_path = os.path.join(export_path, file_name)
+        if export_type == FileType.JSON.value:
+            data = {'model_name': entity_name, 'tags_metrics': tags_info}
+            file_path += '.' + FileType.JSON.value
+            with open(file_path, 'w') as outfile:
+                json.dump(data, outfile)
+            log.info('The metrics were exported to the file: {}'.format(file_path))
+        elif export_type == FileType.CSV.value:
+            csv_header, data_formatted = self._format_data_for_csv(tags_info)
+            file_path += '.' + FileType.CSV.value
+            create_csv_file(file_path, csv_header, data_formatted)
+            log.info('The metrics were exported to the file: {}'.format(file_path))
+        else:
+            log.error('This type of file is not supported, '
+                      'use one of the following types: %s' % (FileType.to_list()))
+        return data
 
     @staticmethod
     def _get_spec_content_from_ref(ref, spec_path):

@@ -557,6 +557,28 @@ commands = [
 
     },
 
+    {
+        'name': 'metrics',
+
+        'callback': entity.metrics,
+
+        'groups': [entity.models],
+
+        'arguments': {
+            'ml-entity-name': {},
+        },
+
+        'options': {
+            '--export-to-path': {'required': False, 'help': help_msg.EXPORT_METRICS_TYPE},
+            '--export-type': {'required': False, 'default': 'json',
+                              'type': click.Choice(['csv', 'json'], case_sensitive=False),
+                              'help': help_msg.EXPORT_METRICS_TYPE}
+        },
+
+        'help': help_msg.METRICS_COMMAND
+
+    }
+
 ]
 
 

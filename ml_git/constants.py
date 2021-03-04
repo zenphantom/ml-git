@@ -96,3 +96,13 @@ class EntityType(Enum):
     @staticmethod
     def to_list():
         return [entity.value for entity in EntityType]
+
+
+@unique
+class FileType(Enum):
+    CSV = 'csv'
+    JSON = 'json'
+
+    @staticmethod
+    def to_list():
+        return [file.value for file in FileType]

@@ -1100,6 +1100,20 @@ class Repository(object):
 
         log.info(log_info, class_name=REPOSITORY_CLASS_NAME)
 
+    def get_models_metrics(self, entity_name, export_path, export_type):
+        try:
+            repo_type = self.__repo_type
+            self._check_is_valid_entity(repo_type, entity_name)
+            metadata_path = get_metadata_path(self.__config, repo_type)
+            metadata = Metadata(entity_name, metadata_path, self.__config, repo_type)
+            metrics_by_tag = metadata.get_metrics_info(entity_name)
+
+            if export_path:
+                metadata.export_metrics(entity_name, export_path, export_type, metrics_by_tag)
+        except Exception as e:
+            log.error(e, class_name=REPOSITORY_CLASS_NAME)
+            return
+
     def metadata_exists(self, entity):
         self.__repo_type = entity
         entity_metadata_path = get_metadata_path(self.__config, self.__repo_type)
