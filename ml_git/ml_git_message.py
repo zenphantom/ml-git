@@ -98,6 +98,7 @@ output_messages = {
     'ERROR_WITHOUT_STORAGE': 'No storage for [%s]',
     'ERROR_CONFIG_PROFILE_NOT_FOUND': 'The config profile (%s) could not be found',
     'ERROR_MISSING_EXPORT_PATH': 'Missing option "--export-path".  The argument `export_path` is required if `export-type` is used.',
+    'ERROR_INVALID_TYPE_OF_FILE': 'This type of file is not supported, use one of the following types: %s',
 
     'WARN_HAS_CONFIGURED_REMOTE': 'YOU ALREADY HAS A CONFIGURED REMOTE. All data stored in this repository will be sent to the new one on the first push.',
     'WARN_STORAGE_NOT_IN_CONFIG': 'Storage [%s://%s] not found in configuration file.',

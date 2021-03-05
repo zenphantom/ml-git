@@ -13,7 +13,8 @@ import pytest
 from git import GitError, Repo
 from prettytable import PrettyTable
 
-from ml_git.constants import STORAGE_KEY, EntityType, DATE, PERFORMANCE_KEY, FileType
+from ml_git.constants import STORAGE_KEY, EntityType, DATE, PERFORMANCE_KEY, FileType, TAG, RELATED_DATASET_TABLE_INFO, \
+    RELATED_LABELS_TABLE_INFO
 from ml_git.metadata import Metadata
 from ml_git.repository import Repository
 from ml_git.utils import clear, yaml_load_str, yaml_load
@@ -307,14 +308,14 @@ class MetadataTestCases(unittest.TestCase):
         test_table = PrettyTable()
         test_table.field_names = ['Name', 'Value']
         test_table.add_row([DATE, 'date'])
-        test_table.add_row(['Related dataset - (version)', '1'])
-        test_table.add_row(['Related labels - (version)', '2'])
+        test_table.add_row([RELATED_DATASET_TABLE_INFO, '1'])
+        test_table.add_row([RELATED_LABELS_TABLE_INFO, '2'])
         test_table.add_row(['accuracy', 10.0])
 
         entity_name = '{}-ex'.format(MODELS)
         m = Metadata(entity_name, self.test_dir, config, MODELS)
         m.init()
-        tag_info = {DATE: 'date', 'Related dataset - (version)': '1', 'Related labels - (version)': '2'}
+        tag_info = {DATE: 'date', RELATED_DATASET_TABLE_INFO: '1', RELATED_LABELS_TABLE_INFO: '2'}
         metrics = {'accuracy': 10.0}
         tag_table = m._create_tag_info_table(tag_info, metrics)
 
@@ -326,8 +327,7 @@ class MetadataTestCases(unittest.TestCase):
         m = Metadata(entity_name, self.test_dir, config, MODELS)
         m.init()
         tag_infos = [{PERFORMANCE_KEY: {'accuracy': 10.0}}]
-        expected_header = [DATE, 'Tag', 'Related dataset - (version)',
-                           'Related labels - (version)', 'accuracy']
+        expected_header = [DATE, TAG, RELATED_DATASET_TABLE_INFO, RELATED_LABELS_TABLE_INFO, 'accuracy']
         csv_header, output_info = m._format_data_for_csv(tag_infos)
         self.assertEqual(expected_header, csv_header)
         self.assertIn('accuracy', output_info[0])

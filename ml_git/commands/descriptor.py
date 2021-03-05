@@ -10,7 +10,7 @@ import click
 from ml_git.commands import entity, help_msg, storage
 from ml_git.commands.custom_options import MutuallyExclusiveOption, OptionRequiredIf, DeprecatedOptionsCommand
 from ml_git.commands.utils import set_verbose_mode
-from ml_git.constants import Mutability
+from ml_git.constants import Mutability, FileType
 
 commands = [
 
@@ -570,7 +570,7 @@ commands = [
 
         'options': {
             '--export-type': {'required': False, 'help': help_msg.EXPORT_METRICS_TYPE,
-                              'type': click.Choice(['csv', 'json'], case_sensitive=False)},
+                              'type': click.Choice(FileType.to_list(), case_sensitive=False)},
             '--export-path': {'help': help_msg.EXPORT_METRICS_PATH,
                               'cls': OptionRequiredIf, 'required_option': ['export-type']},
         },

@@ -16,7 +16,8 @@ from ml_git import log
 from ml_git.config import get_metadata_path
 from ml_git.constants import METADATA_MANAGER_CLASS_NAME, HEAD_1, RGX_ADDED_FILES, RGX_DELETED_FILES, RGX_SIZE_FILES, \
     RGX_AMOUNT_FILES, TAG, AUTHOR, EMAIL, DATE, MESSAGE, ADDED, SIZE, AMOUNT, DELETED, SPEC_EXTENSION, \
-    DEFAULT_BRANCH_FOR_EMPTY_REPOSITORY, PERFORMANCE_KEY, EntityType, FileType
+    DEFAULT_BRANCH_FOR_EMPTY_REPOSITORY, PERFORMANCE_KEY, EntityType, FileType, RELATED_DATASET_TABLE_INFO, \
+    RELATED_LABELS_TABLE_INFO
 from ml_git.manifest import Manifest
 from ml_git.ml_git_message import output_messages
 from ml_git.spec import get_entity_dir, spec_parse
@@ -402,8 +403,8 @@ class MetadataRepo(object):
         tag_table = PrettyTable()
         tag_table.field_names = ['Name', 'Value']
         tag_table.add_row([DATE, tag_info[DATE]])
-        tag_table.add_row(['Related dataset - (version)', tag_info['Related dataset - (version)']])
-        tag_table.add_row(['Related labels - (version)', tag_info['Related labels - (version)']])
+        tag_table.add_row([RELATED_DATASET_TABLE_INFO, tag_info[RELATED_DATASET_TABLE_INFO]])
+        tag_table.add_row([RELATED_LABELS_TABLE_INFO, tag_info[RELATED_LABELS_TABLE_INFO]])
         for key, value in metrics.items():
             tag_table.add_row([key, value])
         return tag_table
@@ -414,9 +415,9 @@ class MetadataRepo(object):
         related_labels_tag, related_labels_info = self._get_related_entity_info(spec_file, EntityType.LABELS.value)
         tag_info = {
             DATE: time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(tag.commit.authored_date)),
-            'Tag': tag.name,
-            'Related dataset - (version)': related_dataset_info,
-            'Related labels - (version)': related_labels_info}
+            TAG: tag.name,
+            RELATED_DATASET_TABLE_INFO: related_dataset_info,
+            RELATED_LABELS_TABLE_INFO: related_labels_info}
         metrics = spec_file.get(PERFORMANCE_KEY, {})
         tag_info[PERFORMANCE_KEY] = metrics
         tag_table = self._create_tag_info_table(tag_info, metrics)
@@ -428,12 +429,12 @@ class MetadataRepo(object):
         for tag in tags:
             tag_info, tag_info_table = self._get_tag_info(entity_name, tag)
             tags_info.append(tag_info)
-            print('Tag: {}\n{}\n'.format(tag.name, tag_info_table.get_string()))
+            print('{}: {}\n{}\n'.format(TAG, tag.name, tag_info_table.get_string()))
         return tags_info
 
     @staticmethod
     def _format_data_for_csv(tag_infos):
-        csv_header = [DATE, 'Tag', 'Related dataset - (version)', 'Related labels - (version)']
+        csv_header = [DATE, TAG, RELATED_DATASET_TABLE_INFO, RELATED_LABELS_TABLE_INFO]
         for info in tag_infos:
             for metric_key in info[PERFORMANCE_KEY]:
                 info[metric_key] = info[PERFORMANCE_KEY][metric_key]
@@ -457,8 +458,7 @@ class MetadataRepo(object):
             create_csv_file(file_path, csv_header, data_formatted)
             log.info(output_messages['INFO_METRICS_EXPORTED'].format(file_path))
         else:
-            log.error('This type of file is not supported, '
-                      'use one of the following types: %s' % (FileType.to_list()))
+            log.error(output_messages['ERROR_INVALID_TYPE_OF_FILE'] % (FileType.to_list()))
         return data
 
     @staticmethod

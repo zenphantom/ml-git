@@ -61,6 +61,8 @@ V1_MODELS_KEY = 'model'
 MANIFEST_KEY = 'manifest'
 STATUS_NEW_FILE = 'New file: '
 STATUS_DELETED_FILE = 'Deleted: '
+RELATED_DATASET_TABLE_INFO = 'Related dataset - (version)'
+RELATED_LABELS_TABLE_INFO = 'Related labels - (version)'
 
 
 class Mutability(Enum):

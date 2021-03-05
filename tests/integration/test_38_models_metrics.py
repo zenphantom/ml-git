@@ -5,14 +5,13 @@ SPDX-License-Identifier: GPL-2.0-only
 import csv
 import json
 import os
-import time
 import unittest
 from datetime import datetime
 
 import pytest
 from prettytable import PrettyTable
 
-from ml_git.constants import FileType
+from ml_git.constants import FileType, DATE, RELATED_DATASET_TABLE_INFO, RELATED_LABELS_TABLE_INFO, TAG
 from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_COMMIT, MLGIT_ADD, MLGIT_MODELS_METRICS
 from tests.integration.helper import ERROR_MESSAGE, create_spec, MODELS, init_repository, ML_GIT_DIR, create_file
@@ -52,9 +51,9 @@ class ModelsMetricsAcceptanceTests(unittest.TestCase):
     def _create_info_table(self, tag_version):
         test_table = PrettyTable()
         test_table.field_names = ['Name', 'Value']
-        test_table.add_row(['Date', self.TAG_TIMES[tag_version]])
-        test_table.add_row(['Related dataset - (version)', None])
-        test_table.add_row(['Related labels - (version)', None])
+        test_table.add_row([DATE, self.TAG_TIMES[tag_version]])
+        test_table.add_row([RELATED_DATASET_TABLE_INFO, None])
+        test_table.add_row([RELATED_LABELS_TABLE_INFO, None])
         test_table.add_row(['Accuracy', (tag_version + 1) * 10.0])
         test_table.add_row(['Recall', (tag_version + 1) * 10.0])
         return test_table.get_string()
@@ -86,8 +85,8 @@ class ModelsMetricsAcceptanceTests(unittest.TestCase):
             self.assertIn('model_name', data)
             self.assertIn('tags_metrics', data)
             self.assertEqual(len(data['tags_metrics']), 2)
-            self.assertEqual(data['tags_metrics'][0]['Tag'], self.TAG % 1)
-            self.assertEqual(data['tags_metrics'][1]['Tag'], self.TAG % 2)
+            self.assertEqual(data['tags_metrics'][0][TAG], self.TAG % 1)
+            self.assertEqual(data['tags_metrics'][1][TAG], self.TAG % 2)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_03_export_metrics_to_csv(self):
@@ -107,8 +106,8 @@ class ModelsMetricsAcceptanceTests(unittest.TestCase):
             line_count = 0
             for row in csv_reader:
                 if line_count == 0:
-                    headers_values = ['Date', 'Tag', 'Related dataset - (version)',
-                                      'Related labels - (version)', 'Accuracy', 'Recall']
+                    headers_values = [DATE, TAG, RELATED_DATASET_TABLE_INFO,
+                                      RELATED_LABELS_TABLE_INFO, 'Accuracy', 'Recall']
                     self.assertEqual(headers_values, row)
                     line_count += 1
                 else:
