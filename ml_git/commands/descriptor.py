@@ -569,10 +569,10 @@ commands = [
         },
 
         'options': {
-            '--export-to-path': {'required': False, 'help': help_msg.EXPORT_METRICS_TYPE},
-            '--export-type': {'required': False, 'default': 'json',
-                              'type': click.Choice(['csv', 'json'], case_sensitive=False),
-                              'help': help_msg.EXPORT_METRICS_TYPE}
+            '--export-type': {'required': False, 'help': help_msg.EXPORT_METRICS_TYPE,
+                              'type': click.Choice(['csv', 'json'], case_sensitive=False)},
+            '--export-path': {'help': help_msg.EXPORT_METRICS_PATH,
+                              'cls': OptionRequiredIf, 'required_option': ['export-type']},
         },
 
         'help': help_msg.METRICS_COMMAND

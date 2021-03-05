@@ -65,6 +65,7 @@ output_messages = {
     'INFO_PARANOID_MODE_ACTIVE': 'Paranoid mode is active - Downloading files: ',
     'INFO_FIXING_CORRUPTED_FILES_IN_STORAGE': 'Fixing corrupted files in remote storage',
     'INFO_EXPORTING_TAG': 'Exporting tag [%s] from [%s] to [%s].',
+    'INFO_METRICS_EXPORTED': 'The metrics were exported to the file: {}',
 
 
     'ERROR_WITHOUT_TAG_FOR_THIS_ENTITY': 'No entity with that name was found.',
@@ -96,6 +97,7 @@ output_messages = {
     'ERROR_AZURE_CREDENTIALS_NOT_FOUND': 'Azure credentials could not be found. See the ml-git documentation for how to configure.',
     'ERROR_WITHOUT_STORAGE': 'No storage for [%s]',
     'ERROR_CONFIG_PROFILE_NOT_FOUND': 'The config profile (%s) could not be found',
+    'ERROR_MISSING_EXPORT_PATH': 'Missing option "--export-path".  The argument `export_path` is required if `export-type` is used.',
 
     'WARN_HAS_CONFIGURED_REMOTE': 'YOU ALREADY HAS A CONFIGURED REMOTE. All data stored in this repository will be sent to the new one on the first push.',
     'WARN_STORAGE_NOT_IN_CONFIG': 'Storage [%s://%s] not found in configuration file.',

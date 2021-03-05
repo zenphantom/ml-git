@@ -258,6 +258,6 @@ def tag_del(**kwargs):
 def metrics(context, **kwargs):
     repo_type = context.parent.command.name
     entity_name = kwargs['ml_entity_name']
-    export_path = kwargs['export_to_path']
+    export_path = kwargs['export_path']
     export_type = kwargs['export_type']
     repositories[repo_type].get_models_metrics(entity_name, export_path, export_type)

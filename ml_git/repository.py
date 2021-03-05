@@ -19,7 +19,7 @@ from ml_git.config import get_index_path, get_objects_path, get_cache_path, get_
     get_global_config_path, save_global_config_in_local
 from ml_git.constants import REPOSITORY_CLASS_NAME, LOCAL_REPOSITORY_CLASS_NAME, HEAD, HEAD_1, Mutability, StorageType, \
     RGX_TAG_FORMAT, EntityType, MANIFEST_FILE, SPEC_EXTENSION, MANIFEST_KEY, STATUS_NEW_FILE, STATUS_DELETED_FILE, \
-    STORAGE_KEY
+    STORAGE_KEY, FileType
 from ml_git.file_system.cache import Cache
 from ml_git.file_system.hashfs import MultihashFS
 from ml_git.file_system.index import MultihashIndex, Status, FullIndex
@@ -1109,6 +1109,8 @@ class Repository(object):
             metrics_by_tag = metadata.get_metrics_info(entity_name)
 
             if export_path:
+                if not export_type:
+                    export_type = FileType.JSON.value
                 metadata.export_metrics(entity_name, export_path, export_type, metrics_by_tag)
         except Exception as e:
             log.error(e, class_name=REPOSITORY_CLASS_NAME)

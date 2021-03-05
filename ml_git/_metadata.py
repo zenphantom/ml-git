@@ -450,12 +450,12 @@ class MetadataRepo(object):
             file_path += '.' + FileType.JSON.value
             with open(file_path, 'w') as outfile:
                 json.dump(data, outfile)
-            log.info('The metrics were exported to the file: {}'.format(file_path))
+            log.info(output_messages['INFO_METRICS_EXPORTED'].format(file_path))
         elif export_type == FileType.CSV.value:
             csv_header, data_formatted = self._format_data_for_csv(tags_info)
             file_path += '.' + FileType.CSV.value
             create_csv_file(file_path, csv_header, data_formatted)
-            log.info('The metrics were exported to the file: {}'.format(file_path))
+            log.info(output_messages['INFO_METRICS_EXPORTED'].format(file_path))
         else:
             log.error('This type of file is not supported, '
                       'use one of the following types: %s' % (FileType.to_list()))
