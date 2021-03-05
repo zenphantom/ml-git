@@ -290,6 +290,7 @@ output_messages = {
     'ERROR_NOT_FOUND_BLOB': 'Blob not found!',
     'ERROR_WORKER_POOL_EXCEPTION': 'worker pool exception',
     'ERROR_FILE_NOT_FOUND': 'File %s not found',
+    'ERROR_GIT_REMOTE_AUTHENTICATION_FAILED': 'Authentication failed for git remote',
 
     'WARN_HAS_CONFIGURED_REMOTE': 'YOU ALREADY HAS A CONFIGURED REMOTE. All data stored in this repository will be sent to the new one on the first push.',
     'WARN_STORAGE_NOT_IN_CONFIG': 'Storage [%s://%s] not found in configuration file.',

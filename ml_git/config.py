@@ -307,7 +307,7 @@ def create_workspace_tree_structure(repo_type, artifact_name, categories, storag
     path = get_root_path()
     artifact_path = os.path.join(path, repo_type, entity_dir, artifact_name)
     if os.path.exists(artifact_path):
-        raise PermissionError('An entity with that name already exists.')
+        raise PermissionError(output_messages['INFO_ENTITY_NAME_EXISTS'])
     data_path = os.path.join(artifact_path, 'data')
     # import files from  the directory passed
     if imported_dir is not None:
