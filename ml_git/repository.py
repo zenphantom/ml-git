@@ -135,7 +135,7 @@ class Repository(object):
             return
 
         # Check tag before anything to avoid creating unstable state
-        log.debug(output_messages['DEBUG_TAG_CHECK_REPOSITORY'], class_name=REPOSITORY_CLASS_NAME)
+        log.debug(output_messages['DEBUG_TAG_CHECK'], class_name=REPOSITORY_CLASS_NAME)
 
         m = Metadata(spec, metadata_path, self.__config, repo_type)
 
@@ -195,11 +195,9 @@ class Repository(object):
     def _is_spec_valid(self, spec_path):
         spec_file = yaml_load(spec_path)
         if not validate_spec_hash(spec_file, self.__repo_type):
-            log.error(
-                'Invalid %s spec in %s.  It should look something like this:\n%s'
-                % (self.__repo_type, spec_path, get_sample_spec_doc('somebucket', self.__repo_type)),
-                class_name=REPOSITORY_CLASS_NAME
-            )
+            log.error(output_messages['ERROR_INVALID_SPEC_VALUE_IN'] %
+                      (self.__repo_type, spec_path, get_sample_spec_doc('somebucket', self.__repo_type)),
+                      class_name=REPOSITORY_CLASS_NAME)
             return False
         if not validate_bucket_name(spec_file[self.__repo_type], self.__config):
             return False
@@ -227,7 +225,7 @@ class Repository(object):
             corrupted_files = repo.get_corrupted_files(spec)
             if corrupted_files is not None and len(corrupted_files) > 0:
                 print('\n')
-                log.warn(output_messages['INFO_CORRUPTED_CANNOT_BE_ADD'],
+                log.warn(output_messages['WARN_CORRUPTED_CANNOT_BE_ADD'],
                          class_name=REPOSITORY_CLASS_NAME)
                 for file in corrupted_files:
                     print('\t %s' % file)

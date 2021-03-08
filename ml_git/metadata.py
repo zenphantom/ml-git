@@ -42,11 +42,7 @@ class Metadata(MetadataManager):
         # check if tag already exists in the ml-git repository
         tags = self._tag_exists(tag)
         if len(tags) > 0:
-            log.error(
-                'Tag [%s] already exists in the ml-git repository.\n  '
-                'Consider using --version parameter to set the version number for your [%s].'
-                % (tag, self.__repo_type), class_name=METADATA_CLASS_NAME
-            )
+            log.error(output_messages['ERROR_TAG_ALREADY_EXISTS_CONSIDER_USER_VERSION'] % (tag, self.__repo_type), class_name=METADATA_CLASS_NAME)
             return None, None, None
         return full_metadata_path, entity_sub_path, metadata
 
@@ -77,11 +73,7 @@ class Metadata(MetadataManager):
         # check if tag already exists in the ml-git repository
         tags = self._tag_exists(tag)
         if len(tags) > 0:
-            log.error(
-                'Tag [%s] already exists in the ml-git repository. '
-                'Consider using --bumpversion parameter to increment the version number for your dataset.' % tag,
-                class_name=METADATA_CLASS_NAME
-            )
+            log.error(output_messages['ERROR_TAG_ALREADY_EXISTS_CONSIDER_USER_VERSION'] % tag, class_name=METADATA_CLASS_NAME)
             for t in tags:
                 log.error(output_messages['ERROR_METADATA_MESSAGE'] % t)
             return None, None

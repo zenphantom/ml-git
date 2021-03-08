@@ -116,15 +116,10 @@ def increment_version_in_spec(entity_name, repotype=DATASETS):
         if increment_version != -1:
             return True
         else:
-            log.error(
-                '\nError incrementing version.  Please manually examine this file and make sure'
-                ' the version is an integer:\n'
-                '%s\n' % entity_name, class_name=ML_GIT_PROJECT_NAME)
+            log.error(output_messages['ERROR_INCREMENTING_VERSION'] % entity_name, class_name=ML_GIT_PROJECT_NAME)
             return False
     else:
-        log.error(
-            '\nCan\'t find  spec file to increment version.  Are you in the '
-            'root of the repo?\n     %s\n' % entity_name, class_name=ML_GIT_PROJECT_NAME)
+        log.error(output_messages['ERROR_SPEC_FILE_NOT_FOUND'] % entity_name, class_name=ML_GIT_PROJECT_NAME)
         return False
 
 

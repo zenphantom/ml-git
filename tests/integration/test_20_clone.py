@@ -40,7 +40,7 @@ class CloneTest(unittest.TestCase):
         with open(os.path.join(CLONE_FOLDER, 'file'), 'wt') as file:
             file.write('0' * 2048)
 
-        self.assertIn(output_messages['INFO_PATH_NOT_EMPTY'] % (os.path.join(self.tmp_dir, CLONE_FOLDER)),
+        self.assertIn(output_messages['ERROR_PATH_NOT_EMPTY'] % (os.path.join(self.tmp_dir, CLONE_FOLDER)),
                       check_output(MLGIT_CLONE % (self.GIT_CLONE, '--folder=' + CLONE_FOLDER)))
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
@@ -78,4 +78,5 @@ class CloneTest(unittest.TestCase):
     def test_08_clone_repository_with_wrong_configurations(self):
         os.makedirs(self.GIT_CLONE, exist_ok=True)
         create_git_clone_repo(self.GIT_CLONE, self.tmp_dir, 'wrong_git_path')
-        self.assertIn(output_messages['INFO_NOT_INITIALIZED_METADATA'] % DATASETS, check_output(MLGIT_CLONE % (self.GIT_CLONE, '--folder=' + CLONE_FOLDER)))
+        self.assertIn(output_messages['WARN_CANNOT_INITIALIZE_METADATA_FOR'] % DATASETS,
+                      check_output(MLGIT_CLONE % (self.GIT_CLONE, '--folder=' + CLONE_FOLDER)))

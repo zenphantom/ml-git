@@ -322,7 +322,7 @@ class LocalRepository(MultihashFS):
                 if full_posix_path not in mfiles:
                     set_write_read(os.path.join(root, file))
                     os.unlink(os.path.join(root, file))
-                    log.debug(output_messages['DEBUG_REMOVING'] % full_posix_path, class_name=LOCAL_REPOSITORY_CLASS_NAME)
+                    log.debug(output_messages['DEBUG_REMOVING_FILE'] % full_posix_path, class_name=LOCAL_REPOSITORY_CLASS_NAME)
 
     @staticmethod
     def _update_metadata(full_md_path, ws_path, spec_name):

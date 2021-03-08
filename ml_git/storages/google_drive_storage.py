@@ -80,7 +80,7 @@ class GoogleDriveStorage(Storage):
         try:
             file_info = self._storage.files().get(fileId=file_id).execute()
         except errors.HttpError as error:
-            log.error(output_messages['ERROR_MESSAGE'] % error, class_name=GDRIVE_STORAGE)
+            log.error(error, class_name=GDRIVE_STORAGE)
             return False
 
         if not file_info:

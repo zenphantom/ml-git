@@ -130,7 +130,7 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
 
         self._create_file_with_same_path()
 
-        self.assertIn(output_messages['INFO_FILE_ALREADY_EXISTS_REPOSITORY'] % 'data/file1',
+        self.assertIn(output_messages['WARN_FILE_EXISTS_IN_REPOSITORY'] % 'data/file1',
                       check_output(MLGIT_ADD % (entity_type, entity_type + '-ex', '--bumpversion')))
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_COMMIT % (entity_type, entity_type + '-ex', '')))
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_PUSH % (entity_type, entity_type + '-ex')))

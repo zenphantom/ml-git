@@ -53,7 +53,7 @@ class UpdateAcceptanceTests(unittest.TestCase):
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_04_update_with_git_error(self):
         init_repository(DATASETS, self)
-        self.assertTrue(output_messages['INFO_COULD_NOT_UPDATE_METADATA'], check_output(MLGIT_UPDATE % DATASETS))
+        self.assertTrue(output_messages['ERROR_METADATA_COULD_NOT_UPDATED'] % '', check_output(MLGIT_UPDATE % DATASETS))
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_05_update_all_entities(self):

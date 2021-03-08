@@ -171,7 +171,7 @@ def clone_config_repository(url, folder, track):
             project_dir = os.getcwd()
 
         if len(os.listdir(project_dir)) != 0:
-            log.error(output_messages['INFO_PATH_NOT_EMPTY']
+            log.error(output_messages['ERROR_PATH_NOT_EMPTY']
                       % project_dir, class_name=ADMIN_CLASS_NAME)
             return False
         Repo.clone_from(url, project_dir)

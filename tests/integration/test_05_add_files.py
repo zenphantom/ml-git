@@ -72,7 +72,7 @@ class AddFilesAcceptanceTests(unittest.TestCase):
         with open(corrupted_file, 'wb') as z:
             z.write(b'0' * 0)
 
-        self.assertIn(output_messages['INFO_CORRUPTED_CANNOT_BE_ADD'], check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, '--bumpversion')))
+        self.assertIn(output_messages['WARN_CORRUPTED_CANNOT_BE_ADD'], check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, '--bumpversion')))
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_07_add_command_with_multiple_files(self):

@@ -318,7 +318,7 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
         output = check_output(MLGIT_CHECKOUT % (LABELS, 'computer-vision__images__labels-ex__1 --sample-type=group '
                                                         '--sampling=2:4 --seed=5'))
 
-        self.assertIn(output_messages['INFO_NO_SUCH_OPTION'], output)
+        self.assertIn(output_messages['ERROR_NO_SUCH_OPTION'], output)
         self.assertFalse(os.path.exists(os.path.join(self.tmp_dir, LABELS)))
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
@@ -327,7 +327,7 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
         output = check_output(MLGIT_CHECKOUT % (MODELS, 'computer-vision__images__models-ex__1 --sample-type=group '
                                                         '--sampling=2:4 --seed=5'))
 
-        self.assertIn(output_messages['INFO_NO_SUCH_OPTION'], output)
+        self.assertIn(output_messages['ERROR_NO_SUCH_OPTION'], output)
         self.assertFalse(os.path.exists(os.path.join(self.tmp_dir, MODELS)))
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')

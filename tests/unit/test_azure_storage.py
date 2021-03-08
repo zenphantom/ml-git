@@ -32,7 +32,7 @@ def mock_get_blob_client(*args, **kwargs):
 def mock_download_blob(*args, **kwargs):
     if os.path.exists(os.path.join('test_dir/azure-test', 'think-hires.jpg')):
         return StorageStreamDownloader
-    raise Exception(output_messages['ERROR_NOT_FOUND_BLOB'])
+    raise Exception(output_messages['ERROR_BLOB_NOT_FOUND'])
 
 
 def mock_upload_blob(*args, **kwargs):
