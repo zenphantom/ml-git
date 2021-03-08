@@ -78,5 +78,5 @@ class CloneTest(unittest.TestCase):
     def test_08_clone_repository_with_wrong_configurations(self):
         os.makedirs(self.GIT_CLONE, exist_ok=True)
         create_git_clone_repo(self.GIT_CLONE, self.tmp_dir, 'wrong_git_path')
-        self.assertIn(output_messages['WARN_CANNOT_INITIALIZE_METADATA_FOR'] % DATASETS,
+        self.assertIn(output_messages['WARN_CANNOT_INITIALIZE_METADATA_FOR'] % (DATASETS, ''),
                       check_output(MLGIT_CLONE % (self.GIT_CLONE, '--folder=' + CLONE_FOLDER)))
