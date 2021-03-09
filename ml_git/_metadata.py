@@ -2,6 +2,7 @@
 © Copyright 2020 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
+import csv
 import io
 import json
 import os
@@ -442,21 +443,32 @@ class MetadataRepo(object):
                     csv_header.append(metric_key)
         return csv_header, tag_infos
 
+    @staticmethod
+    def _export_metrics_to_json(entity_name, file_path, tags_info):
+        data = {'model_name': entity_name, 'tags_metrics': tags_info}
+        file_path += '.' + FileType.JSON.value
+        with open(file_path, 'w') as outfile:
+            json.dump(data, outfile)
+        log.info(output_messages['INFO_METRICS_EXPORTED'].format(file_path))
+        return data
+
+    def _export_metrics_to_csv(self, file_path, tags_info):
+        csv_header, data_formatted = self._format_data_for_csv(tags_info)
+        file_path += '.' + FileType.CSV.value
+        create_csv_file(file_path, csv_header, data_formatted)
+        with open(file_path) as csv_file:
+            data = csv.reader(csv_file, delimiter=',')
+        log.info(output_messages['INFO_METRICS_EXPORTED'].format(file_path))
+        return data
+
     def export_metrics(self, entity_name, export_path, export_type, tags_info):
         data = None
         file_name = '{}-{}'.format(entity_name, PERFORMANCE_KEY)
         file_path = os.path.join(export_path, file_name)
         if export_type == FileType.JSON.value:
-            data = {'model_name': entity_name, 'tags_metrics': tags_info}
-            file_path += '.' + FileType.JSON.value
-            with open(file_path, 'w') as outfile:
-                json.dump(data, outfile)
-            log.info(output_messages['INFO_METRICS_EXPORTED'].format(file_path))
+            data = self._export_metrics_to_json(entity_name, file_path, tags_info)
         elif export_type == FileType.CSV.value:
-            csv_header, data_formatted = self._format_data_for_csv(tags_info)
-            file_path += '.' + FileType.CSV.value
-            create_csv_file(file_path, csv_header, data_formatted)
-            log.info(output_messages['INFO_METRICS_EXPORTED'].format(file_path))
+            self._export_metrics_to_csv(file_path, tags_info)
         else:
             log.error(output_messages['ERROR_INVALID_TYPE_OF_FILE'] % (FileType.to_list()))
         return data
