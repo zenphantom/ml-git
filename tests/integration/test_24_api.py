@@ -9,7 +9,8 @@ import unittest
 import pytest
 
 from ml_git import api
-from ml_git.constants import Mutability, StorageType, STORAGE_KEY
+from ml_git.constants import Mutability, StorageType, STORAGE_KEY, DATE, RELATED_DATASET_TABLE_INFO, \
+    RELATED_LABELS_TABLE_INFO, TAG
 from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_INIT
 from tests.integration.helper import ML_GIT_DIR, check_output, init_repository, create_git_clone_repo, \
@@ -439,3 +440,38 @@ class APIAcceptanceTests(unittest.TestCase):
             self.assertTrue(False)
         except Exception as e:
             self.assertIn(output_messages['ERROR_INVALID_ENTITY_TYPE'], str(e))
+
+    def _push_model_with_metrics(self, entity_name):
+        init_repository(MODELS, self)
+        workspace = os.path.join(self.tmp_dir, MODELS, entity_name)
+        api.create(MODELS, entity_name, categories=['computer-vision', 'images'],
+                   mutability=Mutability.STRICT.value, bucket_name='mlgit')
+        os.makedirs(os.path.join(workspace, 'data'), exist_ok=True)
+        self.create_file(workspace, 'file1', '0')
+
+        api.add(MODELS, entity_name, metric={'accuracy': 10.0,
+                                             'precision': 10.0})
+        api.commit(MODELS, entity_name)
+        api.push(MODELS, entity_name)
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
+    def test_29_models_metrics(self):
+        entity_name = '{}-ex'.format(MODELS)
+        model_tag = 'computer-vision__images__{}__1'.format(entity_name)
+        self._push_model_with_metrics(entity_name)
+        data_output = api.models_metrics(entity_name)
+        self.assertEquals(model_tag, data_output['tags_metrics'][0]['Tag'])
+        self.assertEquals(entity_name, data_output['model_name'])
+        expected_output = {'accuracy': 10.0, 'precision': 10.0}
+        self.assertEquals(expected_output, data_output['tags_metrics'][0]['metrics'])
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
+    def test_30_models_metrics_csv(self):
+        entity_name = '{}-ex'.format(MODELS)
+        model_tag = 'computer-vision__images__{}__1'.format(entity_name)
+        self._push_model_with_metrics(entity_name)
+        data_output = api.models_metrics(entity_name, export_type='csv')
+        header = '{},{},{},{},accuracy,precision'.format(DATE, TAG, RELATED_DATASET_TABLE_INFO, RELATED_LABELS_TABLE_INFO)
+        tag_values = '{},,,10.0,10.0'.format(model_tag)
+        self.assertIn(header, data_output.getvalue())
+        self.assertIn(tag_values, data_output.getvalue())

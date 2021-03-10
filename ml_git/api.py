@@ -11,7 +11,7 @@ from ml_git import admin
 from ml_git import log
 from ml_git.admin import init_mlgit
 from ml_git.config import config_load
-from ml_git.constants import EntityType, StorageType
+from ml_git.constants import EntityType, StorageType, FileType
 from ml_git.log import init_logger
 from ml_git.spec import search_spec_file, spec_parse
 from ml_git.utils import get_root_path
@@ -278,3 +278,25 @@ def remote_add(entity, remote_url, global_configuration=False):
 
     repo = get_repository_instance(entity)
     repo.repo_remote_add(entity, remote_url, global_configuration)
+
+
+def models_metrics(entity_name, export_path=None, export_type=FileType.JSON.value):
+    """Get metrics information for each tag of the entity.
+
+        Examples:
+            models_metrics('model-ex', export_type='csv')
+
+        Args:
+            entity_name (str): An ml-git entity name to identify a ML entity.
+            export_path(str, optional): Set the path to export metrics to a file.
+            export_type (str, optional): Choose the format of the file that will be generated with the metrics [default: json].
+    """
+
+    repo = get_repository_instance(EntityType.MODELS.value)
+    if export_path:
+        metrics_data = repo.get_models_metrics(entity_name, export_path, export_type)
+    else:
+        current_directory = os.getcwd()
+        with tempfile.TemporaryDirectory(dir=current_directory) as tempdir:
+            metrics_data = repo.get_models_metrics(entity_name, tempdir, export_type)
+    return metrics_data

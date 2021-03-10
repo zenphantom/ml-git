@@ -152,6 +152,25 @@ def init(entity):
 </details>
 
 <details>
+<summary><code> models metrics </code></summary>
+<br>
+
+```python
+def models_metrics(entity_name, export_path=None, export_type=FileType.JSON.value):
+    """Get metrics information for each tag of the entity.
+
+        Examples:
+            models_metrics('model-ex', export_type='csv')
+
+        Args:
+            entity_name (str): An ml-git entity name to identify a ML entity.
+            export_path(str, optional): Set the path to export metrics to a file.
+            export_type (str, optional): Choose the format of the file that will be generated with the metrics [default: json].
+    """
+```
+</details>
+
+<details>
 <summary><code> push </code></summary>
 <br>
 

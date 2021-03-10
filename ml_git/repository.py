@@ -1111,7 +1111,8 @@ class Repository(object):
             if export_path:
                 if not export_type:
                     export_type = FileType.JSON.value
-                metadata.export_metrics(entity_name, export_path, export_type, metrics_by_tag)
+                export_data = metadata.export_metrics(entity_name, export_path, export_type, metrics_by_tag)
+                return export_data
         except Exception as e:
             log.error(e, class_name=REPOSITORY_CLASS_NAME)
             return

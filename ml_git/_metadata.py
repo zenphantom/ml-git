@@ -2,7 +2,6 @@
 © Copyright 2020 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
-import csv
 import io
 import json
 import os
@@ -456,10 +455,9 @@ class MetadataRepo(object):
         csv_header, data_formatted = self._format_data_for_csv(tags_info)
         file_path += '.' + FileType.CSV.value
         create_csv_file(file_path, csv_header, data_formatted)
-        with open(file_path) as csv_file:
-            data = csv.reader(csv_file, delimiter=',')
         log.info(output_messages['INFO_METRICS_EXPORTED'].format(file_path))
-        return data
+        with open(file_path) as csv_file:
+            return io.StringIO(csv_file.read())
 
     def export_metrics(self, entity_name, export_path, export_type, tags_info):
         data = None
@@ -468,7 +466,7 @@ class MetadataRepo(object):
         if export_type == FileType.JSON.value:
             data = self._export_metrics_to_json(entity_name, file_path, tags_info)
         elif export_type == FileType.CSV.value:
-            self._export_metrics_to_csv(file_path, tags_info)
+            data = self._export_metrics_to_csv(file_path, tags_info)
         else:
             log.error(output_messages['ERROR_INVALID_TYPE_OF_FILE'] % (FileType.to_list()))
         return data
