@@ -340,6 +340,8 @@ class MetadataTestCases(unittest.TestCase):
 
         tag_infos = [{PERFORMANCE_KEY: {'accuracy': 10.0}}]
         data = m.export_metrics(entity_name, self.test_dir, FileType.CSV.value, tag_infos)
-        file_path = os.path.join(self.test_dir, '{}-metrics.{}'.format(entity_name, FileType.CSV.value))
+        file_path = os.path.join(self.test_dir, '{}-{}.{}'.format(entity_name, PERFORMANCE_KEY, FileType.CSV.value))
         self.assertTrue(os.path.exists(file_path))
-        self.assertEqual(None, data)
+        self.assertIn('{},{},{},{},accuracy'.format(DATE, TAG, RELATED_DATASET_TABLE_INFO, RELATED_LABELS_TABLE_INFO),
+                      data.getvalue())
+        self.assertIn(',,,,10.0', data.getvalue())
