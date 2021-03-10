@@ -455,22 +455,22 @@ class APIAcceptanceTests(unittest.TestCase):
         api.push(MODELS, entity_name)
 
     @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
-    def test_29_models_metrics(self):
+    def test_29_get_models_metrics(self):
         entity_name = '{}-ex'.format(MODELS)
         model_tag = 'computer-vision__images__{}__1'.format(entity_name)
         self._push_model_with_metrics(entity_name)
-        data_output = api.models_metrics(entity_name)
+        data_output = api.get_models_metrics(entity_name)
         self.assertEquals(model_tag, data_output['tags_metrics'][0]['Tag'])
         self.assertEquals(entity_name, data_output['model_name'])
         expected_output = {'accuracy': 10.0, 'precision': 10.0}
         self.assertEquals(expected_output, data_output['tags_metrics'][0]['metrics'])
 
     @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
-    def test_30_models_metrics_csv(self):
+    def test_30_get_models_metrics_csv(self):
         entity_name = '{}-ex'.format(MODELS)
         model_tag = 'computer-vision__images__{}__1'.format(entity_name)
         self._push_model_with_metrics(entity_name)
-        data_output = api.models_metrics(entity_name, export_type='csv')
+        data_output = api.get_models_metrics(entity_name, export_type='csv')
         header = '{},{},{},{},accuracy,precision'.format(DATE, TAG, RELATED_DATASET_TABLE_INFO, RELATED_LABELS_TABLE_INFO)
         tag_values = '{},,,10.0,10.0'.format(model_tag)
         self.assertIn(header, data_output.getvalue())

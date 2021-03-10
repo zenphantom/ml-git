@@ -280,11 +280,11 @@ def remote_add(entity, remote_url, global_configuration=False):
     repo.repo_remote_add(entity, remote_url, global_configuration)
 
 
-def models_metrics(entity_name, export_path=None, export_type=FileType.JSON.value):
+def get_models_metrics(entity_name, export_path=None, export_type=FileType.JSON.value):
     """Get metrics information for each tag of the entity.
 
         Examples:
-            models_metrics('model-ex', export_type='csv')
+            get_models_metrics('model-ex', export_type='csv')
 
         Args:
             entity_name (str): An ml-git entity name to identify a ML entity.
