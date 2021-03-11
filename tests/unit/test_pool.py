@@ -5,8 +5,8 @@ SPDX-License-Identifier: GPL-2.0-only
 
 import unittest
 
-from ml_git.pool import WorkerPool, process_futures
 from ml_git.ml_git_message import output_messages
+from ml_git.pool import WorkerPool, process_futures
 
 
 class Context(object):

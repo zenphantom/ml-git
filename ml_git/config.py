@@ -12,8 +12,8 @@ from halo import Halo
 from ml_git import spec
 from ml_git.constants import FAKE_STORAGE, BATCH_SIZE_VALUE, BATCH_SIZE, StorageType, GLOBAL_ML_GIT_CONFIG, \
     PUSH_THREADS_COUNT, SPEC_EXTENSION, EntityType, STORAGE_KEY
-from ml_git.utils import getOrElse, yaml_load, yaml_save, get_root_path, yaml_load_str
 from ml_git.ml_git_message import output_messages
+from ml_git.utils import getOrElse, yaml_load, yaml_save, get_root_path, yaml_load_str
 
 push_threads = os.cpu_count()*5
 

@@ -8,10 +8,10 @@ import unittest
 
 import pytest
 
+from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_COMMIT, MLGIT_LIST, MLGIT_INIT, MLGIT_REMOTE_ADD, MLGIT_ENTITY_INIT
 from tests.integration.helper import check_output, init_repository, add_file, GIT_PATH, \
     ERROR_MESSAGE, ML_GIT_DIR, DATASETS, LABELS, MODELS
-from ml_git.ml_git_message import output_messages
 
 
 @pytest.mark.usefixtures('tmp_dir')

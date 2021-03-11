@@ -9,11 +9,11 @@ import unittest
 import pytest
 from prettytable import PrettyTable
 
+from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_ADD, MLGIT_COMMIT, MLGIT_LOG
 from tests.integration.helper import ML_GIT_DIR, add_file, create_spec, delete_file, ERROR_MESSAGE, DATASETS, \
     DATASET_NAME, DATASET_TAG, MODELS, LABELS
 from tests.integration.helper import check_output, init_repository
-from ml_git.ml_git_message import output_messages
 
 
 @pytest.mark.usefixtures('tmp_dir')

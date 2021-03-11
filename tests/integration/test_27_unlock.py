@@ -9,10 +9,10 @@ from stat import S_IREAD, S_IRGRP, S_IROTH
 
 import pytest
 
+from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_ADD, MLGIT_UNLOCK
 from tests.integration.helper import check_output, ERROR_MESSAGE, DATASETS, DATASET_NAME
 from tests.integration.helper import create_spec, init_repository
-from ml_git.ml_git_message import output_messages
 
 
 @pytest.mark.usefixtures('tmp_dir')

@@ -12,7 +12,8 @@ import pytest
 from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_INIT, MLGIT_REMOTE_ADD, MLGIT_STORAGE_ADD, MLGIT_ENTITY_INIT
 from tests.integration.helper import ML_GIT_DIR, GIT_PATH, \
-    GIT_WRONG_REP, BUCKET_NAME, PROFILE, STORAGE_TYPE, GLOBAL_CONFIG_PATH, delete_global_config, DATASETS, LABELS, MODELS
+    GIT_WRONG_REP, BUCKET_NAME, PROFILE, STORAGE_TYPE, GLOBAL_CONFIG_PATH, delete_global_config, DATASETS, LABELS, \
+    MODELS
 from tests.integration.helper import check_output
 
 

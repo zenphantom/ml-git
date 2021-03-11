@@ -3,14 +3,16 @@
 SPDX-License-Identifier: GPL-2.0-only
 """
 
-from ml_git import log
+import os
+import random
+import time
 from concurrent import futures
+
 from tqdm import tqdm
+
+from ml_git import log
 from ml_git.constants import POOL_CLASS_NAME
 from ml_git.ml_git_message import output_messages
-import os
-import time
-import random
 
 
 def pool_factory(ctx_factory=None, nworkers=os.cpu_count() * 5, retry=2, pb_elts=None, pb_desc='units'):

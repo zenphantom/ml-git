@@ -8,8 +8,8 @@ import os
 from ml_git import log
 from ml_git import utils
 from ml_git.constants import ML_GIT_PROJECT_NAME, SPEC_EXTENSION, EntityType, STORAGE_KEY
-from ml_git.utils import get_root_path, yaml_load
 from ml_git.ml_git_message import output_messages
+from ml_git.utils import get_root_path, yaml_load
 
 DATASETS = EntityType.DATASETS.value
 

@@ -7,6 +7,7 @@ import os
 
 import toml
 from azure.storage.blob import BlobServiceClient, ContainerClient
+
 from ml_git import log
 from ml_git.constants import AZURE_STORAGE_NAME, StorageType, STORAGE_KEY
 from ml_git.ml_git_message import output_messages

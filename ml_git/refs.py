@@ -2,11 +2,12 @@
 © Copyright 2020 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
-from ml_git.utils import ensure_path_exists, yaml_save, yaml_load
+import os
+
 from ml_git import log
 from ml_git.constants import REFS_CLASS_NAME, EntityType
 from ml_git.ml_git_message import output_messages
-import os
+from ml_git.utils import ensure_path_exists, yaml_save, yaml_load
 
 
 class Refs(object):

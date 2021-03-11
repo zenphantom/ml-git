@@ -9,11 +9,12 @@ import os
 
 import multihash
 from cid import CIDv1
+from tqdm import tqdm
+
 from ml_git import log
 from ml_git.constants import HASH_FS_CLASS_NAME, LOCAL_REPOSITORY_CLASS_NAME, STORAGE_LOG
 from ml_git.ml_git_message import output_messages
 from ml_git.utils import json_load, ensure_path_exists, get_root_path, set_write_read
-from tqdm import tqdm
 
 '''implementation of a "hashdir" based filesystem
 Lack a few desirable properties of MultihashFS.

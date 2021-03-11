@@ -8,10 +8,10 @@ import unittest
 
 import pytest
 
+from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_COMMIT, MLGIT_PUSH, MLGIT_EXPORT
 from tests.integration.helper import ML_GIT_DIR, PROFILE, BUCKET_NAME, \
     check_output, init_repository, add_file, PATH_TEST, DATASETS, DATASET_NAME, MODELS, LABELS
-from ml_git.ml_git_message import output_messages
 
 
 @pytest.mark.usefixtures('tmp_dir', 'aws_session')
