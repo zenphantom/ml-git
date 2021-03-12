@@ -2,7 +2,6 @@
 © Copyright 2020 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
-import csv
 import io
 import json
 import os
@@ -424,13 +423,14 @@ class MetadataRepo(object):
         tag_table = self._create_tag_info_table(tag_info, metrics)
         return tag_info, tag_table
 
-    def get_metrics_info(self, entity_name):
+    def get_metrics_info(self, entity_name, export_path=None):
         tags = self._get_ordered_entity_tags(entity_name)
         tags_info = []
         for tag in tags:
             tag_info, tag_info_table = self._get_tag_info(entity_name, tag)
             tags_info.append(tag_info)
-            print('{}: {}\n{}\n'.format(TAG, tag.name, tag_info_table.get_string()))
+            if not export_path:
+                print('{}: {}\n{}\n'.format(TAG, tag.name, tag_info_table.get_string()))
         return tags_info
 
     @staticmethod
@@ -447,19 +447,19 @@ class MetadataRepo(object):
     def _export_metrics_to_json(entity_name, file_path, tags_info):
         data = {'model_name': entity_name, 'tags_metrics': tags_info}
         file_path += '.' + FileType.JSON.value
-        with open(file_path, 'w') as outfile:
-            json.dump(data, outfile)
         log.info(output_messages['INFO_METRICS_EXPORTED'].format(file_path))
-        return data
+        formatted_data = json.dumps(data)
+        with open(file_path, 'w') as outfile:
+            outfile.write(formatted_data)
+        return json.loads(formatted_data)
 
     def _export_metrics_to_csv(self, file_path, tags_info):
         csv_header, data_formatted = self._format_data_for_csv(tags_info)
         file_path += '.' + FileType.CSV.value
         create_csv_file(file_path, csv_header, data_formatted)
-        with open(file_path) as csv_file:
-            data = csv.reader(csv_file, delimiter=',')
         log.info(output_messages['INFO_METRICS_EXPORTED'].format(file_path))
-        return data
+        with open(file_path) as csv_file:
+            return io.StringIO(csv_file.read())
 
     def export_metrics(self, entity_name, export_path, export_type, tags_info):
         data = None
@@ -468,7 +468,7 @@ class MetadataRepo(object):
         if export_type == FileType.JSON.value:
             data = self._export_metrics_to_json(entity_name, file_path, tags_info)
         elif export_type == FileType.CSV.value:
-            self._export_metrics_to_csv(file_path, tags_info)
+            data = self._export_metrics_to_csv(file_path, tags_info)
         else:
             log.error(output_messages['ERROR_INVALID_TYPE_OF_FILE'] % (FileType.to_list()))
         return data

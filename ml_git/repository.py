@@ -1106,12 +1106,13 @@ class Repository(object):
             self._check_is_valid_entity(repo_type, entity_name)
             metadata_path = get_metadata_path(self.__config, repo_type)
             metadata = Metadata(entity_name, metadata_path, self.__config, repo_type)
-            metrics_by_tag = metadata.get_metrics_info(entity_name)
+            metrics_by_tag = metadata.get_metrics_info(entity_name, export_path)
 
             if export_path:
                 if not export_type:
                     export_type = FileType.JSON.value
-                metadata.export_metrics(entity_name, export_path, export_type, metrics_by_tag)
+                export_data = metadata.export_metrics(entity_name, export_path, export_type, metrics_by_tag)
+                return export_data
         except Exception as e:
             log.error(e, class_name=REPOSITORY_CLASS_NAME)
             return

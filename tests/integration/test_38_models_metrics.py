@@ -75,8 +75,8 @@ class ModelsMetricsAcceptanceTests(unittest.TestCase):
         self.set_up_test(repo_type)
         output = check_output(MLGIT_MODELS_METRICS %
                               (entity_name, '--export-path="{}" --export-type={}'.format(self.tmp_dir, FileType.JSON.value)))
-        self.assertIn(self.TAG % 1, output)
-        self.assertIn(self.TAG % 2, output)
+        self.assertNotIn(self.TAG % 1, output)
+        self.assertNotIn(self.TAG % 2, output)
         metrics_file_path = os.path.join(self.tmp_dir, '{}-metrics.{}'.format(entity_name, FileType.JSON.value))
         self.assertIn(output_messages['INFO_METRICS_EXPORTED'].format(self.tmp_dir), output)
         self.assertTrue(os.path.exists(metrics_file_path))
@@ -95,8 +95,8 @@ class ModelsMetricsAcceptanceTests(unittest.TestCase):
         self.set_up_test(repo_type)
         output = check_output(MLGIT_MODELS_METRICS %
                               (entity_name, '--export-path="{}" --export-type={}'.format(self.tmp_dir, FileType.CSV.value)))
-        self.assertIn(self.TAG % 1, output)
-        self.assertIn(self.TAG % 2, output)
+        self.assertNotIn(self.TAG % 1, output)
+        self.assertNotIn(self.TAG % 2, output)
         metrics_file_path = os.path.join(self.tmp_dir, '{}-metrics.{}'.format(entity_name, FileType.CSV.value))
         self.assertIn(output_messages['INFO_METRICS_EXPORTED'].format(self.tmp_dir), output)
         self.assertTrue(os.path.exists(metrics_file_path))
