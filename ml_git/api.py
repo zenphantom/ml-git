@@ -294,9 +294,9 @@ def get_models_metrics(entity_name, export_path=None, export_type=FileType.JSON.
 
     repo = get_repository_instance(EntityType.MODELS.value)
     if export_path:
-        metrics_data = repo.get_models_metrics(entity_name, export_path, export_type)
+        metrics_data = repo.get_models_metrics(entity_name, export_path, export_type, log_export_info=True)
     else:
         current_directory = os.getcwd()
         with tempfile.TemporaryDirectory(dir=current_directory) as tempdir:
-            metrics_data = repo.get_models_metrics(entity_name, tempdir, export_type)
+            metrics_data = repo.get_models_metrics(entity_name, tempdir, export_type, log_export_info=False)
     return metrics_data

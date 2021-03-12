@@ -1100,7 +1100,7 @@ class Repository(object):
 
         log.info(log_info, class_name=REPOSITORY_CLASS_NAME)
 
-    def get_models_metrics(self, entity_name, export_path, export_type):
+    def get_models_metrics(self, entity_name, export_path, export_type, log_export_info=True):
         try:
             repo_type = self.__repo_type
             self._check_is_valid_entity(repo_type, entity_name)
@@ -1111,7 +1111,7 @@ class Repository(object):
             if export_path:
                 if not export_type:
                     export_type = FileType.JSON.value
-                export_data = metadata.export_metrics(entity_name, export_path, export_type, metrics_by_tag)
+                export_data = metadata.export_metrics(entity_name, export_path, export_type, metrics_by_tag, log_export_info)
                 return export_data
         except Exception as e:
             log.error(e, class_name=REPOSITORY_CLASS_NAME)
