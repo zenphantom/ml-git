@@ -1106,7 +1106,7 @@ class Repository(object):
             self._check_is_valid_entity(repo_type, entity_name)
             metadata_path = get_metadata_path(self.__config, repo_type)
             metadata = Metadata(entity_name, metadata_path, self.__config, repo_type)
-            metrics_by_tag = metadata.get_metrics_info(entity_name)
+            metrics_by_tag = metadata.get_metrics_info(entity_name, export_path)
 
             if export_path:
                 if not export_type:
