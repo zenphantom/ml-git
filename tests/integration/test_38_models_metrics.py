@@ -26,8 +26,8 @@ class ModelsMetricsAcceptanceTests(unittest.TestCase):
     def _git_commit_time(self):
         os.chdir(os.path.join(ML_GIT_DIR, MODELS, 'metadata'))
         commit_time = check_output('git show -s --date=local --format=%at')
-        dt_object = datetime.fromtimestamp(int(commit_time))
-        date_time = dt_object.strftime("%Y-%m-%d %H:%M:%S")
+        date_object = datetime.fromtimestamp(int(commit_time))
+        date_time = date_object.strftime("%Y-%m-%d %H:%M:%S")
         self.TAG_TIMES.append(date_time)
         os.chdir(self.tmp_dir)
 
