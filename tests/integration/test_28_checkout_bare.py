@@ -10,7 +10,7 @@ import pytest
 
 from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_ADD, MLGIT_COMMIT, MLGIT_PUSH, MLGIT_UPDATE, MLGIT_CHECKOUT
-from tests.integration.helper import ML_GIT_DIR, ERROR_MESSAGE, DATASETS, DATASET_NAME, DATASET_TAG
+from tests.integration.helper import ML_GIT_DIR, ERROR_MESSAGE, DATASETS, DATASET_NAME, DATASET_TAG, STRICT, MUTABLE
 from tests.integration.helper import check_output, clear, init_repository, create_spec, create_file, yaml_processor
 
 
@@ -64,7 +64,7 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_01_checkout_bare(self):
         entity_type = DATASETS
-        self._create_entity_with_mutability(entity_type, 'strict')
+        self._create_entity_with_mutability(entity_type, STRICT)
         self._checkout_entity(entity_type)
         self.assertFalse(os.path.exists(os.path.join(self.tmp_dir, DATASETS, DATASET_NAME, 'data', 'file1')))
         self.check_bare_checkout(entity_type)
@@ -72,7 +72,7 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_02_push_file(self):
         entity_type = DATASETS
-        self._create_entity_with_mutability(entity_type, 'strict')
+        self._create_entity_with_mutability(entity_type, STRICT)
         self._checkout_entity(entity_type)
         self.assertFalse(os.path.exists(os.path.join(self.tmp_dir, DATASETS, DATASET_NAME, 'data', 'file1')))
         self.check_bare_checkout(entity_type)
@@ -103,7 +103,7 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_03_push_file_with_same_path_strict(self):
         entity_type = DATASETS
-        self._create_entity_with_mutability(entity_type, 'strict')
+        self._create_entity_with_mutability(entity_type, STRICT)
         self._checkout_entity(entity_type)
         self.check_bare_checkout(entity_type)
 
@@ -123,7 +123,7 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_04_push_file_with_same_path_mutable(self):
         entity_type = DATASETS
-        self._create_entity_with_mutability(entity_type, 'mutable')
+        self._create_entity_with_mutability(entity_type, MUTABLE)
         self._checkout_entity(entity_type)
 
         self.check_bare_checkout(entity_type)
@@ -147,7 +147,7 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_05_checkout_bare_in_older_tag(self):
         entity_type = DATASETS
-        self._create_entity_with_mutability(entity_type, 'strict')
+        self._create_entity_with_mutability(entity_type, STRICT)
         data_path = os.path.join(self.tmp_dir, entity_type, entity_type+'-ex')
         self._clear_path()
         self._checkout_entity(entity_type, tag='computer-vision__images__'+entity_type+'-ex__1')

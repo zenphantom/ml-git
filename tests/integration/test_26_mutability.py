@@ -10,7 +10,7 @@ import pytest
 
 from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_ADD, MLGIT_COMMIT, MLGIT_PUSH, MLGIT_UPDATE, MLGIT_CHECKOUT
-from tests.integration.helper import ML_GIT_DIR, create_spec, create_file, DATASETS, MODELS, LABELS, DATASET_TAG
+from tests.integration.helper import ML_GIT_DIR, create_spec, create_file, DATASETS, MODELS, LABELS, DATASET_TAG, STRICT, MUTABLE, FLEXIBLE
 from tests.integration.helper import check_output, clear, init_repository, ERROR_MESSAGE, yaml_processor
 
 
@@ -56,13 +56,13 @@ class MutabilityAcceptanceTests(unittest.TestCase):
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_01_mutability_strict_push(self):
         entity_type = DATASETS
-        self._create_entity_with_mutability(entity_type, 'strict')
+        self._create_entity_with_mutability(entity_type, STRICT)
         self._checkout_entity(entity_type)
 
         spec_with_categories = os.path.join(self.tmp_dir, entity_type, entity_type + '-ex', entity_type + '-ex.spec')
 
-        ws_spec = self._verify_mutability(entity_type, 'strict', spec_with_categories)
-        self._change_mutability(entity_type, 'flexible', spec_with_categories, ws_spec)
+        ws_spec = self._verify_mutability(entity_type, STRICT, spec_with_categories)
+        self._change_mutability(entity_type, FLEXIBLE, spec_with_categories, ws_spec)
 
         create_file(os.path.join(entity_type, entity_type+'-ex'), 'file2', '012')
 
@@ -71,13 +71,13 @@ class MutabilityAcceptanceTests(unittest.TestCase):
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_02_mutability_flexible_push(self):
         entity_type = MODELS
-        self._create_entity_with_mutability(entity_type, 'flexible')
+        self._create_entity_with_mutability(entity_type, FLEXIBLE)
         self._checkout_entity(entity_type, 'computer-vision__images__models-ex__1')
 
         spec_with_categories = os.path.join(self.tmp_dir, entity_type, entity_type + '-ex', entity_type + '-ex.spec')
 
-        ws_spec = self._verify_mutability(entity_type, 'flexible', spec_with_categories)
-        self._change_mutability(entity_type, 'strict', spec_with_categories, ws_spec)
+        ws_spec = self._verify_mutability(entity_type, FLEXIBLE, spec_with_categories)
+        self._change_mutability(entity_type, STRICT, spec_with_categories, ws_spec)
 
         create_file(os.path.join(self.tmp_dir, entity_type, entity_type+'-ex'), 'file2', '012')
 
@@ -86,13 +86,13 @@ class MutabilityAcceptanceTests(unittest.TestCase):
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_03_mutability_mutable_push(self):
         entity_type = LABELS
-        self._create_entity_with_mutability(entity_type, 'mutable')
+        self._create_entity_with_mutability(entity_type, MUTABLE)
         self._checkout_entity(entity_type, 'computer-vision__images__labels-ex__1')
 
         spec_with_categories = os.path.join(self.tmp_dir, entity_type,  entity_type + '-ex', entity_type + '-ex.spec')
 
-        ws_spec = self._verify_mutability(entity_type, 'mutable', spec_with_categories)
-        self._change_mutability(entity_type, 'strict', spec_with_categories, ws_spec)
+        ws_spec = self._verify_mutability(entity_type, MUTABLE, spec_with_categories)
+        self._change_mutability(entity_type, STRICT, spec_with_categories, ws_spec)
 
         create_file(os.path.join(self.tmp_dir, entity_type, entity_type+'-ex'), 'file2', '012')
 

@@ -160,10 +160,10 @@ def commit(entity, ml_entity_name, commit_message=None, related_dataset=None, re
     specs = dict()
 
     if related_dataset:
-        specs['datasets'] = related_dataset
+        specs[EntityType.DATASETS.value] = related_dataset
 
     if related_labels:
-        specs['labels'] = related_labels
+        specs[EntityType.LABELS.value] = related_labels
 
     repo.commit(ml_entity_name, specs, msg=commit_message)
 

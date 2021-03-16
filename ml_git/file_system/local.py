@@ -19,7 +19,7 @@ from ml_git import log
 from ml_git.config import get_index_path, get_objects_path, get_refs_path, get_index_metadata_path, \
     get_metadata_path, get_batch_size, get_push_threads_count
 from ml_git.constants import LOCAL_REPOSITORY_CLASS_NAME, STORAGE_FACTORY_CLASS_NAME, REPOSITORY_CLASS_NAME, \
-    Mutability, StorageType, SPEC_EXTENSION, MANIFEST_FILE, INDEX_FILE, EntityType, PERFORMANCE_KEY, STORAGE_KEY
+    MutabilityType, StorageType, SPEC_EXTENSION, MANIFEST_FILE, INDEX_FILE, EntityType, PERFORMANCE_KEY, STORAGE_KEY
 from ml_git.file_system.cache import Cache
 from ml_git.file_system.hashfs import MultihashFS
 from ml_git.file_system.index import MultihashIndex, FullIndex, Status
@@ -299,7 +299,7 @@ class LocalRepository(MultihashFS):
         for file in args['obj_files'][key]:
             args['mfiles'][file] = key
             file_path = convert_path(args['ws_path'], file)
-            if mutability == Mutability.STRICT.value or mutability == Mutability.FLEXIBLE.value:
+            if mutability == MutabilityType.STRICT.value or mutability == MutabilityType.FLEXIBLE.value:
                 args['cache'].ilink(key, file_path)
             else:
                 if os.path.exists(file_path):
@@ -409,7 +409,7 @@ class LocalRepository(MultihashFS):
 
         if not bare:
             cache = None
-            if mutability == Mutability.STRICT.value or mutability == Mutability.FLEXIBLE.value:
+            if mutability == MutabilityType.STRICT.value or mutability == MutabilityType.FLEXIBLE.value:
                 is_shared_cache = 'cache_path' in self.__config[self.__repo_type]
                 with change_mask_for_routine(is_shared_cache):
                     cache = Cache(cache_path)
@@ -1019,14 +1019,14 @@ class LocalRepository(MultihashFS):
         file_ws_spec = yaml_load(full_spec_path)
 
         try:
-            spec_mutability = file_ws_spec[repo_type].get('mutability', 'strict')
-            if spec_mutability not in Mutability.list():
+            spec_mutability = file_ws_spec[repo_type].get('mutability', MutabilityType.STRICT.value)
+            if spec_mutability not in MutabilityType.to_list():
                 log.error(output_messages['ERROR_INVALID_MUTABILITY_TYPE'], class_name=REPOSITORY_CLASS_NAME)
                 return None, False
             else:
                 return spec_mutability, check_update_mutability
         except Exception:
-            return Mutability.STRICT.value, check_update_mutability
+            return MutabilityType.STRICT.value, check_update_mutability
 
     @staticmethod
     def check_mutability_between_specs(repo_type, entity_dir, metadata_path, spec_path, spec):
@@ -1042,11 +1042,11 @@ class LocalRepository(MultihashFS):
             md_spec_mutability = None
             try:
                 if ws_spec_mutability is None:
-                    ws_spec_mutability = Mutability.STRICT.value
+                    ws_spec_mutability = MutabilityType.STRICT.value
                 if 'mutability' in file_md_spec[repo_type]:
                     md_spec_mutability = file_md_spec[repo_type]['mutability']
                 else:
-                    md_spec_mutability = Mutability.STRICT.value
+                    md_spec_mutability = MutabilityType.STRICT.value
                 return ws_spec_mutability == md_spec_mutability
             except Exception as e:
                 log.error(e, class_name=REPOSITORY_CLASS_NAME)

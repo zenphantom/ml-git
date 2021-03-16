@@ -10,7 +10,7 @@ from builtins import FileNotFoundError
 from enum import Enum
 
 from ml_git import log
-from ml_git.constants import MULTI_HASH_CLASS_NAME, Mutability, SPEC_EXTENSION, INDEX_FILE
+from ml_git.constants import MULTI_HASH_CLASS_NAME, MutabilityType, SPEC_EXTENSION, INDEX_FILE
 from ml_git.file_system.cache import Cache
 from ml_git.file_system.hashfs import MultihashFS
 from ml_git.manifest import Manifest
@@ -21,7 +21,7 @@ from ml_git.utils import ensure_path_exists, yaml_load, posix_path, set_read_onl
 
 class MultihashIndex(object):
 
-    def __init__(self, spec, index_path, object_path, mutability=Mutability.STRICT.value, cache_path=None):
+    def __init__(self, spec, index_path, object_path, mutability=MutabilityType.STRICT.value, cache_path=None):
         self._spec = spec
         self._path = index_path
         self._hfs = MultihashFS(object_path)
@@ -215,7 +215,7 @@ class MultihashIndex(object):
 
 
 class FullIndex(object):
-    def __init__(self, spec, index_path, mutability=Mutability.STRICT.value):
+    def __init__(self, spec, index_path, mutability=MutabilityType.STRICT.value):
         self._spec = spec
         self._path = index_path
         self._fidx = self._get_index(index_path)
@@ -238,7 +238,7 @@ class FullIndex(object):
         if previous_hash:
             obj['previous_hash'] = previous_hash
 
-        if self._mutability != Mutability.MUTABLE.value and os.path.isfile(fullpath):
+        if self._mutability != MutabilityType.MUTABLE.value and os.path.isfile(fullpath):
             set_read_only(fullpath)
         return obj
 
@@ -302,8 +302,8 @@ class FullIndex(object):
         status = Status.a.name
         prev_hash = value['hash']
         scid_ret = scid
-        is_flexible = self._mutability == Mutability.FLEXIBLE.value
-        is_strict = self._mutability == Mutability.STRICT.value
+        is_flexible = self._mutability == MutabilityType.FLEXIBLE.value
+        is_strict = self._mutability == MutabilityType.STRICT.value
         not_unlocked = value['mtime'] != st.st_mtime and 'untime' not in value
         bare_mode = os.path.exists(os.path.join(self._path, 'metadata', self._spec, 'bare'))
         if (is_flexible and not_unlocked) or is_strict:
@@ -314,7 +314,7 @@ class FullIndex(object):
             file_path = Cache(cache).get_keypath(value['hash'])
             if os.path.exists(file_path):
                 os.unlink(file_path)
-        elif bare_mode and self._mutability == Mutability.MUTABLE.value:
+        elif bare_mode and self._mutability == MutabilityType.MUTABLE.value:
             print('\n')
             log.warn(output_messages['WARN_FILE_EXISTS_IN_REPOSITORY'] % filepath,
                      class_name=MULTI_HASH_CLASS_NAME)

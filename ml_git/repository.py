@@ -17,7 +17,7 @@ from ml_git.config import get_index_path, get_objects_path, get_cache_path, get_
     validate_config_spec_hash, validate_spec_hash, get_sample_config_spec, get_sample_spec_doc, \
     get_index_metadata_path, create_workspace_tree_structure, start_wizard_questions, config_load, \
     get_global_config_path, save_global_config_in_local
-from ml_git.constants import REPOSITORY_CLASS_NAME, LOCAL_REPOSITORY_CLASS_NAME, HEAD, HEAD_1, Mutability, StorageType, \
+from ml_git.constants import REPOSITORY_CLASS_NAME, LOCAL_REPOSITORY_CLASS_NAME, HEAD, HEAD_1, MutabilityType, StorageType, \
     RGX_TAG_FORMAT, EntityType, MANIFEST_FILE, SPEC_EXTENSION, MANIFEST_KEY, STATUS_NEW_FILE, STATUS_DELETED_FILE, \
     STORAGE_KEY
 from ml_git.file_system.cache import Cache
@@ -216,7 +216,7 @@ class Repository(object):
     def create_hard_links_in_cache(self, cache_path, index_path, is_shared_cache, mutability, path, spec):
         mf = os.path.join(index_path, 'metadata', spec, MANIFEST_FILE)
         with change_mask_for_routine(is_shared_cache):
-            if mutability in [Mutability.STRICT.value, Mutability.FLEXIBLE.value]:
+            if mutability in [MutabilityType.STRICT.value, MutabilityType.FLEXIBLE.value]:
                 cache = Cache(cache_path, path, mf)
                 cache.update()
 
@@ -693,7 +693,7 @@ class Repository(object):
                 log.error(output_messages['ERROR_LOCALREPOSITORY_MESSAGE'] % e, class_name=REPOSITORY_CLASS_NAME)
         if lb_tag is not None:
             try:
-                self.__repo_type = 'labels'
+                self.__repo_type = EntityType.LABELS.value
                 m = Metadata('', metadata_path, self.__config, self.__repo_type)
                 log.info(output_messages['INFO_INITIALIZING_ENTITY_DOWNLOAD'] % self.__repo_type, class_name=REPOSITORY_CLASS_NAME)
                 if not m.check_exists():
@@ -971,7 +971,7 @@ class Repository(object):
 
         try:
             mutability = spec_file[repo_type]['mutability']
-            if mutability not in Mutability.list():
+            if mutability not in MutabilityType.to_list():
                 log.error(output_messages['ERROR_INVALID_MUTABILITY_TYPE'], class_name=REPOSITORY_CLASS_NAME)
                 return
         except Exception:
@@ -979,7 +979,7 @@ class Repository(object):
                      class_name=REPOSITORY_CLASS_NAME)
             return
 
-        if mutability != Mutability.STRICT.value:
+        if mutability != MutabilityType.STRICT.value:
             try:
                 local = LocalRepository(self.__config, objects_path, repo_type)
                 local.unlock_file(path, file_path, index_path, objects_path, spec, cache_path)
@@ -1016,7 +1016,7 @@ class Repository(object):
                 update_storage_spec(repo_type, artifact_name, storage_type, bucket, kwargs['entity_dir'])
                 remote_add(repo_type, git_repo)
             if import_url:
-                self.create_config_storage('gdrive', credentials_path)
+                self.create_config_storage(StorageType.GDRIVE.value, credentials_path)
                 local = LocalRepository(self.__config, get_objects_path(self.__config, repo_type))
                 destine_path = os.path.join(repo_type, kwargs['entity_dir'], artifact_name, 'data')
                 local.import_file_from_url(destine_path, import_url, StorageType.GDRIVE.value)

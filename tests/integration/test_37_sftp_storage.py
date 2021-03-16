@@ -12,20 +12,20 @@ from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_INIT, MLGIT_REMOTE_ADD, MLGIT_ENTITY_INIT, MLGIT_COMMIT, MLGIT_PUSH, \
     MLGIT_CHECKOUT, MLGIT_CREATE, MLGIT_ADD
 from tests.integration.helper import ERROR_MESSAGE, create_spec, add_file, ML_GIT_DIR, clear, SFTP_BUCKET_PATH, \
-    FAKE_SSH_KEY_PATH, DATASETS, DATASET_NAME
+    FAKE_SSH_KEY_PATH, DATASETS, DATASET_NAME, SFTPH, STRICT
 from tests.integration.helper import check_output, GIT_PATH
 
 
 @pytest.mark.usefixtures('tmp_dir', 'start_local_git_server', 'switch_to_tmp_dir')
 class SFTPAcceptanceTests(unittest.TestCase):
     repo_type = DATASETS
-    storage_type = 'sftph'
+    storage_type = SFTPH
     bucket = 'mlgit'
     workspace = os.path.join(DATASETS, DATASET_NAME)
 
     def set_up_push(self, create_know_file=False):
         os.makedirs(self.workspace)
-        create_spec(self, self.repo_type, self.tmp_dir, version=1, mutability='strict', storage_type=self.storage_type)
+        create_spec(self, self.repo_type, self.tmp_dir, version=1, mutability=STRICT, storage_type=self.storage_type)
 
         self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
         self.assertIn(output_messages['INFO_ADD_REMOTE'] % (GIT_PATH, self.repo_type),
