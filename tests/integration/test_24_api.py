@@ -9,7 +9,7 @@ import unittest
 import pytest
 
 from ml_git import api
-from ml_git.constants import Mutability, StorageType, STORAGE_KEY
+from ml_git.constants import Mutability, StorageType, STORAGE_KEY, EntityType
 from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_INIT
 from tests.integration.helper import ML_GIT_DIR, check_output, init_repository, create_git_clone_repo, \
@@ -300,7 +300,7 @@ class APIAcceptanceTests(unittest.TestCase):
     def test_14_create_entity(self):
         entity_type = DATASETS
         storage_type = StorageType.S3H.value
-        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'] % self.tmp_dir, check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
         api.create(DATASETS, DATASET_NAME, categories=['computer-vision', 'images'], mutability='strict')
         self.check_created_folders(entity_type, storage_type)
 
@@ -308,7 +308,7 @@ class APIAcceptanceTests(unittest.TestCase):
     def test_15_create_entity_with_optional_arguments(self):
         entity_type = DATASETS
         storage_type = StorageType.AZUREBLOBH.value
-        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'] % self.tmp_dir, check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
         api.create(DATASETS, DATASET_NAME, categories=['computer-vision', 'images'],
                    version=5, storage_type=storage_type, bucket_name='test', mutability='strict')
         self.check_created_folders(entity_type, storage_type, version=5, bucket_name='test')
@@ -317,7 +317,7 @@ class APIAcceptanceTests(unittest.TestCase):
     def test_16_create_entity_with_import(self):
         entity_type = DATASETS
         IMPORT_PATH = 'src'
-        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'] % self.tmp_dir, check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
         import_path = os.path.join(self.tmp_dir, IMPORT_PATH)
         os.makedirs(import_path)
         create_zip_file(IMPORT_PATH, 3)
@@ -422,12 +422,12 @@ class APIAcceptanceTests(unittest.TestCase):
         try:
             entity_type = 'dataset_invalid'
             storage_type = StorageType.S3H.value
-            self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'] % self.tmp_dir, check_output(MLGIT_INIT))
+            self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
             api.create('dataset_invalid', DATASET_NAME, categories=['computer-vision', 'images'], mutability='strict')
             self.check_created_folders(entity_type, storage_type)
             self.assertTrue(False)
         except Exception as e:
-            self.assertIn(output_messages['ERROR_INVALID_ENTITY_TYPE'], str(e))
+            self.assertIn(output_messages['ERROR_INVALID_ENTITY_TYPE'] % EntityType.to_list(), str(e))
 
     @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
     def test_28_checkout_tag_with_invalid_entity(self):
@@ -438,4 +438,4 @@ class APIAcceptanceTests(unittest.TestCase):
             self.check_metadata()
             self.assertTrue(False)
         except Exception as e:
-            self.assertIn(output_messages['ERROR_INVALID_ENTITY_TYPE'], str(e))
+            self.assertIn(output_messages['ERROR_INVALID_ENTITY_TYPE'] % EntityType.to_list(), str(e))

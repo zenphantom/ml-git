@@ -3,11 +3,11 @@
 SPDX-License-Identifier: GPL-2.0-only
 """
 
+import os
 import shutil
 import unittest
 
 import pytest
-import os
 
 from ml_git.constants import EntityType, StorageType, STORAGE_KEY, SPEC_EXTENSION
 from ml_git.spec import yaml_load, incr_version, is_valid_version, search_spec_file, SearchSpecException, spec_parse, \

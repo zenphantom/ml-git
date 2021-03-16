@@ -63,7 +63,7 @@ class LocalRepository(MultihashFS):
         objs = idx.get_log()
 
         if objs is None or len(objs) == 0:
-            log.info('No blobs to push at this time.', class_name=LOCAL_REPOSITORY_CLASS_NAME)
+            log.info(output_messages['INFO_NO_BLOBS_TO_PUSH'], class_name=LOCAL_REPOSITORY_CLASS_NAME)
             return 0
 
         storage = storage_factory(self.__config, manifest[STORAGE_KEY])
@@ -96,7 +96,7 @@ class LocalRepository(MultihashFS):
             except Exception as e:
                 if type(e) is FileNotFoundError:
                     files_not_found += 1
-                log.error('LocalRepository: fatal push error [%s]' % e, class_name=LOCAL_REPOSITORY_CLASS_NAME)
+                log.error(output_messages['ERROR_FATAL_PUSH'] % e, class_name=LOCAL_REPOSITORY_CLASS_NAME)
                 upload_errors = True
 
         if clear_on_fail and len(uploaded_files) > 0 and upload_errors:
@@ -132,11 +132,11 @@ class LocalRepository(MultihashFS):
             try:
                 future.result()
             except Exception as e:
-                log.error('Fatal delete error [%s]' % e, class_name=LOCAL_REPOSITORY_CLASS_NAME)
+                log.error(output_messages['ERROR_FATAL_DELETE'] % e, class_name=LOCAL_REPOSITORY_CLASS_NAME)
                 delete_errors = True
 
         if delete_errors:
-            log.error('It was not possible to delete all files', class_name=LOCAL_REPOSITORY_CLASS_NAME)
+            log.error(output_messages['ERROR_CANNOT_DELETE_ALL_FILES'], class_name=LOCAL_REPOSITORY_CLASS_NAME)
 
     def hashpath(self, path, key):
         obj_path = self._get_hashpath(key, path)
@@ -145,7 +145,7 @@ class LocalRepository(MultihashFS):
         return obj_path
 
     def _fetch_ipld(self, ctx, key):
-        log.debug('Getting ipld key [%s]' % key, class_name=LOCAL_REPOSITORY_CLASS_NAME)
+        log.debug(output_messages['DEBUG_GETTING_IPLD_KEY'] % key, class_name=LOCAL_REPOSITORY_CLASS_NAME)
         if self._exists(key) is False:
             key_path = self.get_keypath(key)
             self._fetch_ipld_remote(ctx, key, key_path)
@@ -154,13 +154,13 @@ class LocalRepository(MultihashFS):
     def _fetch_ipld_remote(self, ctx, key, key_path):
         storage = ctx
         ensure_path_exists(os.path.dirname(key_path))
-        log.debug('Downloading ipld [%s]' % key, class_name=LOCAL_REPOSITORY_CLASS_NAME)
+        log.debug(output_messages['DEBUG_DOWNLOADING_IPLD'] % key, class_name=LOCAL_REPOSITORY_CLASS_NAME)
         if storage.get(key_path, key) is False:
-            raise RuntimeError('Error download ipld [%s]' % key)
+            raise RuntimeError(output_messages['ERROR_DOWNLOADING_IPLD'] % key)
         return key
 
     def _fetch_ipld_to_path(self, ctx, key, hash_fs):
-        log.debug('Getting ipld key [%s]' % key, class_name=LOCAL_REPOSITORY_CLASS_NAME)
+        log.debug(output_messages['DEBUG_GETTING_IPLD_KEY'] % key, class_name=LOCAL_REPOSITORY_CLASS_NAME)
         if hash_fs._exists(key) is False:
             key_path = hash_fs.get_keypath(key)
             try:
@@ -173,7 +173,7 @@ class LocalRepository(MultihashFS):
         links = self.load(key)
         for olink in links['Links']:
             key = olink['Hash']
-            log.debug('Getting blob [%s]' % key, class_name=LOCAL_REPOSITORY_CLASS_NAME)
+            log.debug(output_messages['DEBUG_GETTING_BLOB'] % key, class_name=LOCAL_REPOSITORY_CLASS_NAME)
             if self._exists(key) is False:
                 key_path = self.get_keypath(key)
                 self._fetch_blob_remote(ctx, key, key_path)
@@ -184,7 +184,7 @@ class LocalRepository(MultihashFS):
             links = hash_fs.load(key)
             for olink in links['Links']:
                 key = olink['Hash']
-                log.debug('Getting blob [%s]' % key, class_name=LOCAL_REPOSITORY_CLASS_NAME)
+                log.debug(output_messages['DEBUG_GETTING_BLOB'] % key, class_name=LOCAL_REPOSITORY_CLASS_NAME)
                 if hash_fs._exists(key) is False:
                     key_path = hash_fs.get_keypath(key)
                     self._fetch_blob_remote(ctx, key, key_path)
@@ -195,23 +195,23 @@ class LocalRepository(MultihashFS):
     def _fetch_blob_remote(self, ctx, key, key_path):
         storage = ctx
         ensure_path_exists(os.path.dirname(key_path))
-        log.debug('Downloading blob [%s]' % key, class_name=LOCAL_REPOSITORY_CLASS_NAME)
+        log.debug(output_messages['DEBUG_DOWNLOADING_BLOB'] % key, class_name=LOCAL_REPOSITORY_CLASS_NAME)
         if storage.get(key_path, key) is False:
-            raise RuntimeError('error download blob [%s]' % key)
+            raise RuntimeError(output_messages['ERROR_DOWNLOAD_BLOG'] % key)
         return True
 
     def adding_to_cache_dir(self, lkeys, args):
         for key in lkeys:
             # check file is in objects ; otherwise critical error (should have been fetched at step before)
             if self._exists(key) is False:
-                log.error("Blob [%s] not found. exiting..." % key, class_name=LOCAL_REPOSITORY_CLASS_NAME)
+                log.error(output_messages['ERROR_BLOB_NOT_FOUND_EXITING'] % key, class_name=LOCAL_REPOSITORY_CLASS_NAME)
                 return False
             args["wp"].submit(self._update_cache, args["cache"], key)
         futures = args["wp"].wait()
         try:
             process_futures(futures, args["wp"])
         except Exception as e:
-            log.error("\n Error adding into cache dir [%s] -- [%s]" % (args["cache_path"], e),
+            log.error(output_messages['ERROR_ADDING_INTO_CACHE'] % (args["cache_path"], e),
                       class_name=LOCAL_REPOSITORY_CLASS_NAME)
             return False
         return True
@@ -237,7 +237,7 @@ class LocalRepository(MultihashFS):
         entity_dir = os.path.relpath(spec_path, metadata_path)
         spec = yaml_load(os.path.join(spec_path, spec_file))
         if repo_type not in spec:
-            log.error('No spec file found. You need to initialize an entity (dataset|model|label) first',
+            log.error(output_messages['ERROR_NO_SPEC_FILE_FOUND'],
                       class_name=LOCAL_REPOSITORY_CLASS_NAME)
             return False
         manifest = spec[repo_type]['manifest']
@@ -322,7 +322,7 @@ class LocalRepository(MultihashFS):
                 if full_posix_path not in mfiles:
                     set_write_read(os.path.join(root, file))
                     os.unlink(os.path.join(root, file))
-                    log.debug('Removing %s' % full_posix_path, class_name=LOCAL_REPOSITORY_CLASS_NAME)
+                    log.debug(output_messages['DEBUG_REMOVING_FILE'] % full_posix_path, class_name=LOCAL_REPOSITORY_CLASS_NAME)
 
     @staticmethod
     def _update_metadata(full_md_path, ws_path, spec_name):
@@ -337,14 +337,14 @@ class LocalRepository(MultihashFS):
         for key in lkeys:
             # check file is in objects ; otherwise critical error (should have been fetched at step before)
             if self._exists(key) is False:
-                log.error('Blob [%s] not found. exiting...' % key, class_name=LOCAL_REPOSITORY_CLASS_NAME)
+                log.error(output_messages['ERROR_BLOB_NOT_FOUND_EXITING'] % key, class_name=LOCAL_REPOSITORY_CLASS_NAME)
                 return False
             args['wp'].submit(self._update_cache, args['cache'], key)
         futures = args['wp'].wait()
         try:
             process_futures(futures, args['wp'])
         except Exception as e:
-            log.error('\n Error adding into cache dir [%s] -- [%s]' % (args['cache_path'], e),
+            log.error(output_messages['ERROR_ADDING_INTO_CACHE'] % (args['cache_path'], e),
                       class_name=LOCAL_REPOSITORY_CLASS_NAME)
             return False
         return True
@@ -353,14 +353,14 @@ class LocalRepository(MultihashFS):
         for key in lkeys:
             # check file is in objects ; otherwise critical error (should have been fetched at step before)
             if self._exists(key) is False:
-                log.error('Blob [%s] not found. exiting...', class_name=LOCAL_REPOSITORY_CLASS_NAME)
+                log.error(output_messages['ERROR_BLOB_NOT_FOUND_EXITING'], class_name=LOCAL_REPOSITORY_CLASS_NAME)
                 return False
             args['wps'].submit(self._update_links_wspace, key, Status.u.name, args)
         futures = args['wps'].wait()
         try:
             process_futures(futures, args['wps'])
         except Exception as e:
-            log.error('Error adding into workspace dir [%s] -- [%s]' % (args['ws_path'], e),
+            log.error(output_messages['ERROR_ADDING_INTO_WORKSPACE'] % (args['ws_path'], e),
                       class_name=LOCAL_REPOSITORY_CLASS_NAME)
             return False
         return True
@@ -375,7 +375,7 @@ class LocalRepository(MultihashFS):
                 obj_files = set_files
                 if is_checkout:
                     open(sampling_flag, 'a').close()
-                    log.debug('A flag was created to save that the checkout was carried out with sample',
+                    log.debug(output_messages['DEBUG_FLAG_WAS_CREATED'],
                               class_name=LOCAL_REPOSITORY_CLASS_NAME)
             elif os.path.exists(sampling_flag) and is_checkout:
                 os.unlink(sampling_flag)
@@ -441,7 +441,7 @@ class LocalRepository(MultihashFS):
         bare_path = os.path.join(index_manifest_path, 'bare')
         if bare:
             open(bare_path, 'w+')
-            log.info('Checkout in bare mode done.', class_name=LOCAL_REPOSITORY_CLASS_NAME)
+            log.info(output_messages['INFO_CHECKOUT_BARE_MODE'], class_name=LOCAL_REPOSITORY_CLASS_NAME)
         elif os.path.exists(bare_path):
             os.unlink(bare_path)
 
@@ -459,7 +459,7 @@ class LocalRepository(MultihashFS):
 
     def _pool_remote_fsck_blob(self, ctx, obj):
         if self._exists(obj) is False:
-            log.debug('LocalRepository: ipld [%s] not present for full verification' % obj)
+            log.debug(output_messages['DEBUG_IPLD_NOT_PRESENT'] % obj)
             return {None: None}
 
         rets = []
@@ -481,7 +481,7 @@ class LocalRepository(MultihashFS):
         try:
             process_futures(files_future, wp_file)
         except Exception as e:
-            log.error('Error to fetch file -- [%s]' % e, class_name=LOCAL_REPOSITORY_CLASS_NAME)
+            log.error(output_messages['ERROR_TO_FETCH_FILE'] % e, class_name=LOCAL_REPOSITORY_CLASS_NAME)
             return False
         return True
 
@@ -513,7 +513,7 @@ class LocalRepository(MultihashFS):
                     total_corrupted_files += len_corrupted_files
                     log.info(output_messages['INFO_FIXING_CORRUPTED_FILES_IN_STORAGE'], class_name=LOCAL_REPOSITORY_CLASS_NAME)
                     self._delete_corrupted_files(corrupted_files, retries, manifest)
-        log.info('Corrupted files: %d' % total_corrupted_files, class_name=LOCAL_REPOSITORY_CLASS_NAME)
+        log.info(output_messages['INFO_CORRUPTED_FILES'] % total_corrupted_files, class_name=LOCAL_REPOSITORY_CLASS_NAME)
 
     @staticmethod
     def _remote_fsck_ipld_future_process(futures, args):
@@ -542,7 +542,7 @@ class LocalRepository(MultihashFS):
         try:
             self._remote_fsck_ipld_future_process(ipld_futures, args)
         except Exception as e:
-            log.error('LocalRepository: Error to fsck ipld -- [%s]' % e, class_name=LOCAL_REPOSITORY_CLASS_NAME)
+            log.error(output_messages['ERROR_TO_FSCK_IPLD'] % e, class_name=LOCAL_REPOSITORY_CLASS_NAME)
             return False
         return True
 
@@ -570,7 +570,7 @@ class LocalRepository(MultihashFS):
         try:
             self._remote_fsck_blobs_future_process(futures, args)
         except Exception as e:
-            log.error('LocalRepository: Error to fsck blob -- [%s]' % e, class_name=LOCAL_REPOSITORY_CLASS_NAME)
+            log.error(output_messages['ERROR_FSCK_BLOB'] % e, class_name=LOCAL_REPOSITORY_CLASS_NAME)
             return False
         args['wp'].reset_futures()
         return True
@@ -634,12 +634,12 @@ class LocalRepository(MultihashFS):
         del wp_blob
 
         if submit_iplds_args['ipld_fixed'] > 0 or submit_blob_args['blob_fixed'] > 0:
-            log.info('remote-fsck -- fixed   : ipld[%d] / blob[%d]' % (
+            log.info(output_messages['INFO_REMOTE_FSCK_FIXED'] % (
                 submit_iplds_args['ipld_fixed'], submit_blob_args['blob_fixed']))
         if submit_iplds_args['ipld_unfixed'] > 0 or submit_blob_args['blob_unfixed'] > 0:
-            log.error('remote-fsck -- unfixed : ipld[%d] / blob[%d]' % (
+            log.error(output_messages['ERROR_REMOTE_FSCK_UNFIXED'] % (
                 submit_iplds_args['ipld_unfixed'], submit_blob_args['blob_unfixed']))
-        log.info('remote-fsck -- total   : ipld[%d] / blob[%d]' % (submit_iplds_args['ipld'], submit_blob_args['blob']))
+        log.info(output_messages['INFO_REMOTE_FSCK_TOTAL'] % (submit_iplds_args['ipld'], submit_blob_args['blob']))
 
         return True
 
@@ -652,7 +652,7 @@ class LocalRepository(MultihashFS):
             if 'README.md' in unsaved_files:
                 unsaved_files.remove('README.md')
             if len(unsaved_files) > 0:
-                log.error('Your local changes to the following files would be discarded: ')
+                log.error(output_messages['ERROR_DISCARDED_LOCAL_CHANGES'])
                 for file in unsaved_files:
                     print('\t%s' % file)
                 log.info(
@@ -813,7 +813,7 @@ class LocalRepository(MultihashFS):
         try:
             self._import_files(path, os.path.join(self.__repo_type, directory), storage_string, retry, file_object)
         except Exception as e:
-            log.error('Fatal downloading error [%s]' % e, class_name=LOCAL_REPOSITORY_CLASS_NAME)
+            log.error(output_messages['ERROR_FATAL_DOWNLOADING'] % e, class_name=LOCAL_REPOSITORY_CLASS_NAME)
 
     @staticmethod
     def _import_path(ctx, path, dir):
@@ -825,7 +825,7 @@ class LocalRepository(MultihashFS):
             return res
         except ClientError as e:
             if e.response['Error']['Code'] == '404':
-                raise RuntimeError('File %s not found' % path)
+                raise RuntimeError(output_messages['ERROR_FILE_NOT_FOUND'] % path)
             raise e
 
     def _import_files(self, path, directory, bucket, retry, file_object):
@@ -838,7 +838,7 @@ class LocalRepository(MultihashFS):
         if not obj:
             files = storage.list_files_from_path(path)
             if not len(files):
-                raise RuntimeError('Path %s not found' % path)
+                raise RuntimeError(output_messages['ERROR_PATH_NOT_FOUND'] % path)
         else:
             files = [path]
         wp = pool_factory(ctx_factory=lambda: storage_factory(self.__config, bucket),
@@ -862,13 +862,13 @@ class LocalRepository(MultihashFS):
                 os.unlink(file_path)
                 shutil.copy2(cache_file, file_path)
         except Exception:
-            log.debug('File is not in cache', class_name=LOCAL_REPOSITORY_CLASS_NAME)
+            log.debug(output_messages['DEBUG_FILE_NOT_CACHE'], class_name=LOCAL_REPOSITORY_CLASS_NAME)
         try:
             set_write_read(file_path)
         except Exception:
-            raise RuntimeError('File %s not found' % file)
+            raise RuntimeError(output_messages['ERROR_FILE_NOT_FOUND'] % file)
         idx_yaml.update_index_unlock(file_path[len(path) + 1:])
-        log.info('The permissions for %s have been changed.' % file, class_name=LOCAL_REPOSITORY_CLASS_NAME)
+        log.info(output_messages['INFO_PERMISSIONS_CHANGED_FOR'] % file, class_name=LOCAL_REPOSITORY_CLASS_NAME)
 
     def change_config_storage(self, profile, bucket_name, storage_type=StorageType.S3.value, **kwargs):
         bucket = dict()
@@ -889,7 +889,7 @@ class LocalRepository(MultihashFS):
         try:
             process_futures(export_futures, args['wp'])
         except Exception as e:
-            log.error('Error to export files -- [%s]' % e, class_name=LOCAL_REPOSITORY_CLASS_NAME)
+            log.error(output_messages['ERROR_EXPORT_FILES'] % e, class_name=LOCAL_REPOSITORY_CLASS_NAME)
             return False
         return True
 
@@ -901,7 +901,7 @@ class LocalRepository(MultihashFS):
         spec = yaml_load(spec_path)
 
         if self.__repo_type not in spec:
-            log.error('No spec file found. You need to initialize an entity (dataset|model|label) first',
+            log.error(output_messages['ERROR_NO_SPEC_FILE_FOUND'],
                       class_name=LOCAL_REPOSITORY_CLASS_NAME)
             return
 
@@ -938,7 +938,7 @@ class LocalRepository(MultihashFS):
         try:
             return json.loads(ipld_bytes)
         except Exception:
-            raise RuntimeError('Invalid IPLD [%s]' % key)
+            raise RuntimeError(output_messages['ERROR_INVALID_IPLD'] % key)
 
     @staticmethod
     def _mount_blobs(ctx, links):
@@ -1021,7 +1021,7 @@ class LocalRepository(MultihashFS):
         try:
             spec_mutability = file_ws_spec[repo_type].get('mutability', 'strict')
             if spec_mutability not in Mutability.list():
-                log.error('Invalid mutability type.', class_name=REPOSITORY_CLASS_NAME)
+                log.error(output_messages['ERROR_INVALID_MUTABILITY_TYPE'], class_name=REPOSITORY_CLASS_NAME)
                 return None, False
             else:
                 return spec_mutability, check_update_mutability

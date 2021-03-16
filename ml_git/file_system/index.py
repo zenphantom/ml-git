@@ -10,10 +10,11 @@ from builtins import FileNotFoundError
 from enum import Enum
 
 from ml_git import log
-from ml_git.file_system.cache import Cache
 from ml_git.constants import MULTI_HASH_CLASS_NAME, Mutability, SPEC_EXTENSION, INDEX_FILE
+from ml_git.file_system.cache import Cache
 from ml_git.file_system.hashfs import MultihashFS
 from ml_git.manifest import Manifest
+from ml_git.ml_git_message import output_messages
 from ml_git.pool import pool_factory
 from ml_git.utils import ensure_path_exists, yaml_load, posix_path, set_read_only, get_file_size, run_function_per_group
 
@@ -47,7 +48,7 @@ class MultihashIndex(object):
                 elif os.path.isfile(fullpath):
                     self._add_single_file(path, manifestpath, f)
                 else:
-                    log.warn('[%s] Not found!' % fullpath, class_name=MULTI_HASH_CLASS_NAME)
+                    log.warn(output_messages['WARN_NOT_FOUND'] % fullpath, class_name=MULTI_HASH_CLASS_NAME)
         else:
             if os.path.isdir(path):
                 self._add_dir(path, manifestpath)
@@ -73,7 +74,7 @@ class MultihashIndex(object):
         except Exception as e:
             self._full_idx.save_manifest_index()
             self._mf.save()
-            log.error('Error adding dir [%s] -- [%s]' % (args['dirpath'], e), class_name=MULTI_HASH_CLASS_NAME)
+            log.error(output_messages['ERROR_ADDING_DIR'] % (args['dirpath'], e), class_name=MULTI_HASH_CLASS_NAME)
             return False
         return True
 
@@ -114,14 +115,14 @@ class MultihashIndex(object):
                     # save the manifest of files added to index so far
                     self._full_idx.save_manifest_index()
                     self._mf.save()
-                    log.error('Error adding dir [%s] -- [%s]' % (base_path, e), class_name=MULTI_HASH_CLASS_NAME)
+                    log.error(output_messages['ERROR_ADDING_DIR'] % (base_path, e), class_name=MULTI_HASH_CLASS_NAME)
                     return
             self.wp.reset_futures()
         self._full_idx.save_manifest_index()
         self._mf.save()
 
     def add_metadata(self, basepath, filepath):
-        log.debug('Add file [%s] to ml-git index' % filepath, class_name=MULTI_HASH_CLASS_NAME)
+        log.debug(output_messages['DEBUG_ADD_FILE'] % filepath, class_name=MULTI_HASH_CLASS_NAME)
         fullpath = os.path.join(basepath, filepath)
 
         metadatapath = os.path.join(self._path, 'metadata', self._spec)
@@ -174,7 +175,7 @@ class MultihashIndex(object):
         return scid, filepath, previous_hash
 
     def get(self, objectkey, path, file):
-        log.info('Getting file [%s] from local index' % file, class_name=MULTI_HASH_CLASS_NAME)
+        log.info(output_messages['INFO_GETTING_FILE'] % file, class_name=MULTI_HASH_CLASS_NAME)
         dirs = os.path.dirname(file)
         fulldir = os.path.join(path, dirs)
         ensure_path_exists(fulldir)
@@ -252,7 +253,7 @@ class FullIndex(object):
         try:
             findex[filename]['untime'] = time.time()
         except Exception:
-            log.debug('The file [{}] isn\'t in index'.format(filename), class_name=MULTI_HASH_CLASS_NAME)
+            log.debug(output_messages['DEBUG_FILE_NOT_INDEX'].format(filename), class_name=MULTI_HASH_CLASS_NAME)
         self._fidx.save()
 
     def remove_from_index_yaml(self, filenames):
@@ -287,10 +288,10 @@ class FullIndex(object):
     def check_and_update(self, key, value, hfs, filepath, fullpath, cache):
         st = os.stat(fullpath)
         if key == filepath and value['ctime'] == st.st_ctime and value['mtime'] == st.st_mtime:
-            log.debug('File [%s] already exists in ml-git repository' % filepath, class_name=MULTI_HASH_CLASS_NAME)
+            log.debug(output_messages['DEBUG_FILE_ALREADY_EXISTS_REPOSITORY'] % filepath, class_name=MULTI_HASH_CLASS_NAME)
             return None
         elif key == filepath and value['ctime'] != st.st_ctime or value['mtime'] != st.st_mtime:
-            log.debug('File [%s] was modified' % filepath, class_name=MULTI_HASH_CLASS_NAME)
+            log.debug(output_messages['DEBUG_FILE_WAS_MODIFIED'] % filepath, class_name=MULTI_HASH_CLASS_NAME)
             scid = hfs.get_scid(fullpath)
             if value['hash'] != scid:
                 scid_ret = self._update_file_status(cache, filepath, fullpath, scid, st, value)
@@ -315,8 +316,7 @@ class FullIndex(object):
                 os.unlink(file_path)
         elif bare_mode and self._mutability == Mutability.MUTABLE.value:
             print('\n')
-            log.warn('The file %s already exists in the repository. If you commit, the'
-                     ' file will be overwritten.' % filepath,
+            log.warn(output_messages['WARN_FILE_EXISTS_IN_REPOSITORY'] % filepath,
                      class_name=MULTI_HASH_CLASS_NAME)
         self.update_full_index(posix_path(filepath), fullpath, status, scid, prev_hash)
         return scid_ret

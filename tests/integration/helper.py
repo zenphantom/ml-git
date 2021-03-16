@@ -20,7 +20,6 @@ from ml_git.utils import ensure_path_exists
 from tests.integration.commands import MLGIT_INIT, MLGIT_REMOTE_ADD, MLGIT_ENTITY_INIT, MLGIT_ADD, \
     MLGIT_STORAGE_ADD_WITH_TYPE, MLGIT_REMOTE_ADD_GLOBAL, MLGIT_STORAGE_ADD, MLGIT_STORAGE_ADD_WITHOUT_CREDENTIALS, \
     MLGIT_COMMIT, MLGIT_PUSH
-from tests.integration.output_messages import messages
 
 PATH_TEST = os.path.join(os.getcwd(), 'tests', 'integration', '.test_env')
 ML_GIT_DIR = '.ml-git'
@@ -109,11 +108,12 @@ def init_repository(entity, self, version=1, storage_type='s3h', profile=PROFILE
     if not artifact_name:
         artifact_name = f'{entity}-ex'
     if os.path.exists(os.path.join(self.tmp_dir, ML_GIT_DIR)):
-        self.assertIn(messages[1], check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_ALREADY_IN_RESPOSITORY'], check_output(MLGIT_INIT))
     else:
-        self.assertIn(messages[0], check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
 
-    self.assertIn(messages[2] % (os.path.join(self.tmp_dir, GIT_PATH), entity), check_output(MLGIT_REMOTE_ADD % (entity, os.path.join(self.tmp_dir, GIT_PATH))))
+    self.assertIn(output_messages['INFO_ADD_REMOTE'] % (os.path.join(self.tmp_dir, GIT_PATH), entity),
+                  check_output(MLGIT_REMOTE_ADD % (entity, os.path.join(self.tmp_dir, GIT_PATH))))
 
     if storage_type == StorageType.GDRIVEH.value:
         self.assertIn(output_messages['INFO_ADD_STORAGE_WITHOUT_PROFILE'] % (storage_type, BUCKET_NAME),
@@ -125,7 +125,7 @@ def init_repository(entity, self, version=1, storage_type='s3h', profile=PROFILE
         self.assertIn(output_messages['INFO_ADD_STORAGE_WITHOUT_PROFILE'] % (storage_type, BUCKET_NAME),
                       check_output(MLGIT_STORAGE_ADD_WITHOUT_CREDENTIALS % BUCKET_NAME))
 
-    self.assertIn(messages[8] % (os.path.join(self.tmp_dir, GIT_PATH), os.path.join(self.tmp_dir, ML_GIT_DIR, entity, 'metadata')),
+    self.assertIn(output_messages['INFO_METADATA_INIT'] % (os.path.join(self.tmp_dir, GIT_PATH), os.path.join(self.tmp_dir, ML_GIT_DIR, entity, 'metadata')),
                   check_output(MLGIT_ENTITY_INIT % entity))
 
     edit_config_yaml(os.path.join(self.tmp_dir, ML_GIT_DIR), storage_type)
@@ -163,11 +163,11 @@ def add_file(self, entity, bumpversion, name=None, artifact_name=None, file_cont
         z.write(str(file_content * 100))
     # Create assert do ml-git add
     if entity == DATASETS:
-        self.assertIn(messages[13] % DATASETS, check_output(MLGIT_ADD % (entity, artifact_name, bumpversion)))
+        self.assertIn(output_messages['INFO_ADDING_PATH'] % DATASETS, check_output(MLGIT_ADD % (entity, artifact_name, bumpversion)))
     elif entity == MODELS:
-        self.assertIn(messages[14], check_output(MLGIT_ADD % (entity, artifact_name, bumpversion)))
+        self.assertIn(output_messages['INFO_ADDING_PATH'] % MODELS, check_output(MLGIT_ADD % (entity, artifact_name, bumpversion)))
     else:
-        self.assertIn(messages[15], check_output(MLGIT_ADD % (entity, artifact_name, bumpversion)))
+        self.assertIn(output_messages['INFO_ADDING_PATH'] % LABELS, check_output(MLGIT_ADD % (entity, artifact_name, bumpversion)))
     metadata = os.path.join(self.tmp_dir, ML_GIT_DIR, entity, 'index', 'metadata', artifact_name)
     metadata_file = os.path.join(metadata, 'MANIFEST.yaml')
     index_file = os.path.join(metadata, 'INDEX.yaml')

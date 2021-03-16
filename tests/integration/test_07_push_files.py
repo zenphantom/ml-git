@@ -16,7 +16,6 @@ from ml_git.utils import ensure_path_exists
 from tests.integration.commands import MLGIT_COMMIT, MLGIT_PUSH
 from tests.integration.helper import ML_GIT_DIR, MINIO_BUCKET_PATH, GIT_PATH, DATASETS, LABELS, MODELS, DATASET_NAME
 from tests.integration.helper import check_output, clear, init_repository, add_file, ERROR_MESSAGE
-from tests.integration.output_messages import messages
 
 
 @pytest.mark.usefixtures('tmp_dir', 'aws_session')
@@ -27,7 +26,7 @@ class PushFilesAcceptanceTests(unittest.TestCase):
         init_repository(entity_type, self)
         add_file(self, entity_type, '--bumpversion', 'new', file_content='0')
         metadata_path = os.path.join(self.tmp_dir, ML_GIT_DIR, entity_type, 'metadata')
-        self.assertIn(messages[17] % (metadata_path, entity_type + '-ex'),
+        self.assertIn(output_messages['INFO_COMMIT_REPO'] % (metadata_path, entity_type + '-ex'),
                       check_output(MLGIT_COMMIT % (entity_type, entity_type + '-ex', '')))
 
         HEAD = os.path.join(self.tmp_dir, ML_GIT_DIR, entity_type, 'refs', entity_type+'-ex', 'HEAD')
@@ -60,7 +59,7 @@ class PushFilesAcceptanceTests(unittest.TestCase):
         init_repository(DATASETS, self)
         add_file(self, DATASETS, '--bumpversion', 'new')
         metadata_path = os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'metadata')
-        self.assertIn(messages[17] % (metadata_path, DATASET_NAME),
+        self.assertIn(output_messages['INFO_COMMIT_REPO'] % (metadata_path, DATASET_NAME),
                       check_output(MLGIT_COMMIT % (DATASETS,  DATASET_NAME, '')))
 
         HEAD = os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'refs', DATASET_NAME, 'HEAD')
