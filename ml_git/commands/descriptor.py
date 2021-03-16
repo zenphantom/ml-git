@@ -10,7 +10,7 @@ import click
 from ml_git.commands import entity, help_msg, storage
 from ml_git.commands.custom_options import MutuallyExclusiveOption, OptionRequiredIf, DeprecatedOptionsCommand
 from ml_git.commands.utils import set_verbose_mode
-from ml_git.constants import Mutability
+from ml_git.constants import MutabilityType, StorageType
 
 commands = [
 
@@ -351,8 +351,8 @@ commands = [
             '--path': {'default': None, 'help': help_msg.PATH_OPTION},
             '--object': {'default': None, 'help': help_msg.OBJECT_OPTION},
             '--storage-type': {
-                'default': 's3', 'help': help_msg.STORAGE_TYPE,
-                'type': click.Choice(['s3', 'gdrive'])
+                'default': StorageType.S3.value, 'help': help_msg.STORAGE_TYPE,
+                'type': click.Choice([StorageType.S3.value, StorageType.GDRIVE.value])
             },
             '--endpoint-url': {'default': '', 'help': help_msg.ENDPOINT_URL},
         },
@@ -442,10 +442,10 @@ commands = [
 
         'options': {
             '--category': {'required': True, 'multiple': True, 'help': help_msg.CATEGORY_OPTION},
-            '--mutability': {'required': True, 'type': click.Choice(Mutability.list()), 'help': help_msg.MUTABILITY},
+            '--mutability': {'required': True, 'type': click.Choice(MutabilityType.to_list()), 'help': help_msg.MUTABILITY},
             '--storage-type': {
-                'type': click.Choice(['s3h', 'azureblobh', 'gdriveh', 'sftph']),
-                'help': help_msg.STORAGE_TYPE, 'default': 's3h'
+                'type': click.Choice(StorageType.to_list()),
+                'help': help_msg.STORAGE_TYPE, 'default': StorageType.S3H.value
             },
             '--version': {'help': help_msg.VERSION_NUMBER, 'default': 1},
             '--import': {'help': help_msg.IMPORT_OPTION,
@@ -519,8 +519,8 @@ commands = [
         'options': {
             '--credentials': {'help': help_msg.STORAGE_CREDENTIALS},
             '--region': {'help': help_msg.STORAGE_REGION},
-            '--type': {'default': 's3h',
-                       'type': click.Choice(['s3h', 's3', 'azureblobh', 'gdriveh', 'sftph'],
+            '--type': {'default': StorageType.S3H.value,
+                       'type': click.Choice(StorageType.to_list(),
                                             case_sensitive=True),
                        'help': help_msg.STORAGE_TYPE},
             '--endpoint-url': {'help': help_msg.ENDPOINT_URL},
@@ -546,8 +546,8 @@ commands = [
         },
 
         'options': {
-            '--type': {'default': 's3h',
-                       'type': click.Choice(['s3h', 's3', 'azureblobh', 'gdriveh'],
+            '--type': {'default': StorageType.S3H.value,
+                       'type': click.Choice(StorageType.to_list(),
                                             case_sensitive=True),
                        'help': help_msg.STORAGE_TYPE},
             ('--global', '-g'): {'is_flag': True, 'default': False, 'help': help_msg.GLOBAL_OPTION},

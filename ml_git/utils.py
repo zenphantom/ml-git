@@ -156,10 +156,10 @@ def get_root_path():
         except StopIteration:
             parent = current_path.parent
             if parent == current_path:
-                raise RootPathException('You are not in an initialized ml-git repository.')
+                raise RootPathException(output_messages['ERROR_NOT_IN_RESPOSITORY'])
             else:
                 current_path = parent
-    raise RootPathException('You are not in an initialized ml-git repository.')
+    raise RootPathException(output_messages['ERROR_NOT_IN_RESPOSITORY'])
 
 
 # function created to clear directory

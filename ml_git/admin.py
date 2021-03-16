@@ -26,15 +26,14 @@ from ml_git.utils import yaml_load, yaml_save, RootPathException, clear, ensure_
 def init_mlgit():
     try:
         root_path = get_root_path()
-        log.info('You already are in a ml-git repository (%s)' % (os.path.join(root_path, ROOT_FILE_NAME)),
-                 class_name=ADMIN_CLASS_NAME)
+        log.info(output_messages['INFO_ALREADY_IN_RESPOSITORY'], class_name=ADMIN_CLASS_NAME)
         return
     except Exception:
         pass
     try:
         os.mkdir('.ml-git')
     except PermissionError:
-        log.error('Permission denied. You need write permission to initialize ml-git in this directory.',
+        log.error(output_messages['ERROR_PERMISSION_DENIED_INITIALIZE_DIRECTORY'],
                   class_name=ADMIN_CLASS_NAME)
         return
     except FileExistsError:
@@ -42,7 +41,7 @@ def init_mlgit():
 
     mlgit_config_save()
     root_path = get_root_path()
-    log.info('Initialized empty ml-git repository in %s' % (os.path.join(root_path, ROOT_FILE_NAME)),
+    log.info(output_messages['INFO_INITIALIZED_PROJECT_IN'] % (os.path.join(root_path, ROOT_FILE_NAME)),
              class_name=ADMIN_CLASS_NAME)
 
 
@@ -157,7 +156,7 @@ def storage_del(storage_type, bucket, global_conf=False):
 def clone_config_repository(url, folder, track):
     try:
         if get_root_path():
-            log.error('You are in initialized ml-git project.', class_name=ADMIN_CLASS_NAME)
+            log.error(output_messages['ERROR_IN_INTIALIZED_PROJECT'], class_name=ADMIN_CLASS_NAME)
             return False
     except RootPathException:
         pass
@@ -172,7 +171,7 @@ def clone_config_repository(url, folder, track):
             project_dir = os.getcwd()
 
         if len(os.listdir(project_dir)) != 0:
-            log.error('The path [%s] is not an empty directory. Consider using --folder to create an empty folder.'
+            log.error(output_messages['ERROR_PATH_NOT_EMPTY']
                       % project_dir, class_name=ADMIN_CLASS_NAME)
             return False
         Repo.clone_from(url, project_dir)
@@ -208,7 +207,7 @@ def check_successfully_clone(project_dir, git_dir):
         get_root_path()
     except RootPathException:
         clear(project_dir)
-        log.error('Wrong minimal configuration files!', class_name=ADMIN_CLASS_NAME)
+        log.error(output_messages['ERROR_MINIMAL_CONFIGURATION'], class_name=ADMIN_CLASS_NAME)
         clear(git_dir)
         return False
     return True

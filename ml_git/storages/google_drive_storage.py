@@ -106,7 +106,7 @@ class GoogleDriveStorage(Storage):
             file_info = self._storage.CreateFile({'id': file_id})
             file_info.FetchMetadata(fields='id,mimeType,title')
         except errors.HttpError as error:
-            log.error('%s' % error, class_name=GDRIVE_STORAGE)
+            log.error(error, class_name=GDRIVE_STORAGE)
             return False
 
         if not file_info:
@@ -212,7 +212,7 @@ class GoogleDriveStorage(Storage):
         if not file_id:
             raise RuntimeError(output_messages['ERROR_INVALID_URL'] % url)
         if not self.get_by_id(path_dst, file_id):
-            raise RuntimeError(output_messages['ERROR_DOWNLOAD_FROM_URL_FAILED'] % file_id)
+            raise RuntimeError(output_messages['ERROR_FILE_DOWNLOAD_FAILED'] % file_id)
 
     @staticmethod
     def get_file_id_from_url(url):
