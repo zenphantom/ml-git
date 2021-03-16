@@ -7,9 +7,9 @@ import unittest
 
 import pytest
 
+from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_INIT, MLGIT_CONFIG
 from tests.integration.helper import check_output
-from tests.integration.output_messages import messages
 
 
 @pytest.mark.usefixtures('tmp_dir')
@@ -25,5 +25,5 @@ class ConfigAcceptanceTests(unittest.TestCase):
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_01_config_command(self):
-        self.assertIn(messages[0], check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
         self.assertIn(self.expected_result, check_output(MLGIT_CONFIG))

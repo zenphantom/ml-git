@@ -14,15 +14,14 @@ from tests.integration.commands import MLGIT_PUSH, MLGIT_COMMIT, MLGIT_INIT, MLG
 from tests.integration.helper import ML_GIT_DIR, MLGIT_ENTITY_INIT, ERROR_MESSAGE, \
     add_file, GIT_PATH, check_output, clear, init_repository, yaml_processor, MINIO_BUCKET_PATH, DATASETS, MODELS, \
     LABELS
-from tests.integration.output_messages import messages
 
 
 @pytest.mark.usefixtures('tmp_dir', 'aws_session')
 class RemoteDelAcceptanceTests(unittest.TestCase):
 
     def _add_remote(self, entity_type):
-        self.assertIn(messages[0], check_output(MLGIT_INIT))
-        self.assertIn(messages[2] % (os.path.join(self.tmp_dir, GIT_PATH), entity_type),
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_ADD_REMOTE'] % (os.path.join(self.tmp_dir, GIT_PATH), entity_type),
                       check_output(MLGIT_REMOTE_ADD % (entity_type, os.path.join(self.tmp_dir, GIT_PATH))))
         with open(os.path.join(self.tmp_dir, ML_GIT_DIR, 'config.yaml'), 'r') as c:
             config = yaml_processor.load(c)
@@ -44,7 +43,7 @@ class RemoteDelAcceptanceTests(unittest.TestCase):
         init_repository(entity_type, self)
         add_file(self, entity_type, '', 'new')
         metadata_path = os.path.join(self.tmp_dir, ML_GIT_DIR, entity_type, 'metadata')
-        self.assertIn(messages[17] % (metadata_path, entity_type + '-ex'),
+        self.assertIn(output_messages['INFO_COMMIT_REPO'] % (metadata_path, entity_type + '-ex'),
                       check_output(MLGIT_COMMIT % (entity_type, entity_type + '-ex', '')))
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_PUSH % (entity_type, entity_type + '-ex')))
 
@@ -55,7 +54,7 @@ class RemoteDelAcceptanceTests(unittest.TestCase):
 
     def _check_update_output(self, output, *entities):
         for entity in entities:
-            self.assertIn(messages[37] % os.path.join(self.tmp_dir, ML_GIT_DIR, entity, 'metadata'),
+            self.assertIn(output_messages['INFO_MLGIT_PULL'] % os.path.join(self.tmp_dir, ML_GIT_DIR, entity, 'metadata'),
                           output)
 
     def set_up_checkout(self, entity):
@@ -63,14 +62,14 @@ class RemoteDelAcceptanceTests(unittest.TestCase):
         add_file(self, entity, '', 'new')
         metadata_path = os.path.join(self.tmp_dir, ML_GIT_DIR, entity, 'metadata')
         workspace = os.path.join(self.tmp_dir, entity)
-        self.assertIn(messages[17] % (metadata_path, entity + '-ex'),
+        self.assertIn(output_messages['INFO_COMMIT_REPO'] % (metadata_path, entity + '-ex'),
                       check_output(MLGIT_COMMIT % (entity, entity + '-ex', '')))
         head_path = os.path.join(self.tmp_dir, ML_GIT_DIR, entity, 'refs', entity + '-ex', 'HEAD')
         self.assertTrue(os.path.exists(head_path))
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_PUSH % (entity, entity + '-ex')))
         clear(os.path.join(self.tmp_dir, ML_GIT_DIR, entity))
         clear(workspace)
-        self.assertIn(messages[8] % (
+        self.assertIn(output_messages['INFO_METADATA_INIT'] % (
             os.path.join(self.tmp_dir, GIT_PATH), os.path.join(self.tmp_dir, ML_GIT_DIR, entity, 'metadata')),
                       check_output(MLGIT_ENTITY_INIT % entity))
 
@@ -129,7 +128,7 @@ class RemoteDelAcceptanceTests(unittest.TestCase):
         init_repository(entity_type, self)
         add_file(self, entity_type, '--bumpversion', 'new', file_content='0')
         metadata_path = os.path.join(self.tmp_dir, ML_GIT_DIR, entity_type, 'metadata')
-        self.assertIn(messages[17] % (metadata_path, entity_type + '-ex'),
+        self.assertIn(output_messages['INFO_COMMIT_REPO'] % (metadata_path, entity_type + '-ex'),
                       check_output(MLGIT_COMMIT % (entity_type, entity_type + '-ex', '')))
 
         head_file = os.path.join(self.tmp_dir, ML_GIT_DIR, entity_type, 'refs', entity_type+'-ex', 'HEAD')

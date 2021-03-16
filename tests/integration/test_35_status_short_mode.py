@@ -8,11 +8,11 @@ import unittest
 
 import pytest
 
+from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_COMMIT, MLGIT_PUSH, MLGIT_ENTITY_INIT, MLGIT_STATUS_SHORT, MLGIT_ADD, \
     MLGIT_CHECKOUT
 from tests.integration.helper import ML_GIT_DIR, GIT_PATH, ERROR_MESSAGE, DATASETS, DATASET_NAME, DATASET_TAG
 from tests.integration.helper import check_output, clear, init_repository, create_file
-from tests.integration.output_messages import messages
 
 
 @pytest.mark.usefixtures('tmp_dir', 'aws_session')
@@ -29,15 +29,15 @@ class StatusShortModeAcceptanceTests(unittest.TestCase):
         os.makedirs(data_path, exist_ok=True)
         create_file(data_path, 'file', '0', '')
         create_file(data_path, 'file2', '0', '')
-        self.assertIn(messages[13] % DATASETS, check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, '')))
-        self.assertIn(messages[17] % (metadata_path, entity + '-ex'),
+        self.assertIn(output_messages['INFO_ADDING_PATH'] % DATASETS, check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, '')))
+        self.assertIn(output_messages['INFO_COMMIT_REPO'] % (metadata_path, entity + '-ex'),
                       check_output(MLGIT_COMMIT % (entity, entity + '-ex', '')))
         HEAD = os.path.join(self.tmp_dir, ML_GIT_DIR, entity, 'refs', entity + '-ex', 'HEAD')
         self.assertTrue(os.path.exists(HEAD))
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_PUSH % (entity, entity + '-ex')))
         clear(os.path.join(self.tmp_dir, ML_GIT_DIR, entity))
         clear(workspace)
-        self.assertIn(messages[8] % (
+        self.assertIn(output_messages['INFO_METADATA_INIT'] % (
             os.path.join(self.tmp_dir, GIT_PATH), os.path.join(self.tmp_dir, ML_GIT_DIR, entity, 'metadata')),
                       check_output(MLGIT_ENTITY_INIT % entity))
 
@@ -66,7 +66,7 @@ class StatusShortModeAcceptanceTests(unittest.TestCase):
         data_path = os.path.join(self.tmp_dir, DATASETS, DATASET_NAME, 'data')
         os.makedirs(data_path, exist_ok=True)
         create_file(data_path, 'file0', '0', '')
-        self.assertIn(messages[13] % DATASETS, check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, '--bumpversion')))
+        self.assertIn(output_messages['INFO_ADDING_PATH'] % DATASETS, check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, '--bumpversion')))
         self.assertRegex(check_output(MLGIT_STATUS_SHORT % (DATASETS, DATASET_NAME)),
                          r'Changes to be committed:(\s|.)*New file: data(\\|/)file0(\s|.)*'
                          r'Untracked files:\n\nCorrupted files:')
@@ -81,7 +81,7 @@ class StatusShortModeAcceptanceTests(unittest.TestCase):
         create_file(data_path, 'file2', '0', '')
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, '--bumpversion')))
 
-        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'metadata'),  DATASET_NAME),
+        self.assertIn(output_messages['INFO_COMMIT_REPO'] % (os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'metadata'),  DATASET_NAME),
                       check_output(MLGIT_COMMIT % (DATASETS, DATASET_NAME, '')))
         self.assertRegex(check_output(MLGIT_STATUS_SHORT % (DATASETS, DATASET_NAME)),
                          r'Changes to be committed:\s+Untracked files:')

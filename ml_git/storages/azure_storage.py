@@ -7,6 +7,7 @@ import os
 
 import toml
 from azure.storage.blob import BlobServiceClient, ContainerClient
+
 from ml_git import log
 from ml_git.constants import AZURE_STORAGE_NAME, StorageType, STORAGE_KEY
 from ml_git.ml_git_message import output_messages
@@ -26,7 +27,7 @@ class AzureMultihashStorage(Storage, MultihashStorage):
         try:
             self._storage = BlobServiceClient.from_connection_string(self._account, connection_timeout=300)
         except Exception:
-            raise RuntimeError('Unable to connect to the Azure storage.')
+            raise RuntimeError(output_messages['INFO_UNABLE_AZURE_CONNECTION'])
 
     def bucket_exists(self):
         container = ContainerClient.from_connection_string(self._account, self._bucket, connection_timeout=300)
@@ -51,7 +52,7 @@ class AzureMultihashStorage(Storage, MultihashStorage):
                 blob_client.upload_blob(data)
         except Exception as e:
             if 'The specified blob already exists.' in str(e):
-                log.debug('The specified blob [%s] already exists.' % key_path)
+                log.debug(output_messages['DEBUG_BLOB_ALREADY_EXISTS'] % key_path)
                 return key_path
             raise e
         return key_path
@@ -71,7 +72,7 @@ class AzureMultihashStorage(Storage, MultihashStorage):
 
     def list_files_from_path(self, path):
         bucket_response = self._storage.create_container(path)
-        log.info('\nListing blobs in container:' + path)
+        log.info(output_messages['INFO_LISTING_BLOBS'] + path)
         blob_list = bucket_response.list_blobs()
         return blob_list
 
