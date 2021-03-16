@@ -50,7 +50,7 @@ class SFtpStorage(Storage):
     def put(self, key_path, file_path):
         self._storage.put(file_path, self._bucket + '/' + key_path)
         version = None
-        log.debug(output_messages['INFO_PUT_STORED'] % (file_path, self._bucket, key_path, version), class_name=SFTPSTORE_NAME)
+        log.debug(output_messages['INFO_FILE_STORED_IN_BUCKET'] % (file_path, self._bucket, key_path, version), class_name=SFTPSTORE_NAME)
         return key_path
 
     def get(self, file_path, reference):

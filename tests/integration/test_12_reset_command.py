@@ -13,7 +13,6 @@ from ml_git.utils import ensure_path_exists
 from tests.integration.commands import MLGIT_ADD, MLGIT_COMMIT, MLGIT_RESET, MLGIT_STATUS
 from tests.integration.helper import ML_GIT_DIR, move_entity_to_dir, DATASETS, DATASET_NAME
 from tests.integration.helper import check_output, init_repository, ERROR_MESSAGE, create_file
-from tests.integration.output_messages import messages
 
 
 @pytest.mark.usefixtures('tmp_dir')
@@ -24,11 +23,11 @@ class ResetAcceptanceTests(unittest.TestCase):
         init_repository(DATASETS, self)
         create_file(os.path.join(DATASETS, DATASET_NAME), 'file1', '0', '')
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, '--bumpversion')))
-        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'metadata'), DATASET_NAME),
+        self.assertIn(output_messages['INFO_COMMIT_REPO'] % (os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'metadata'), DATASET_NAME),
                       check_output(MLGIT_COMMIT % (DATASETS, DATASET_NAME, '')))
         create_file(os.path.join(DATASETS, DATASET_NAME), 'file2', '0', '')
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, '--bumpversion')))
-        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'metadata'), DATASET_NAME),
+        self.assertIn(output_messages['INFO_COMMIT_REPO'] % (os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'metadata'), DATASET_NAME),
                       check_output(MLGIT_COMMIT % (DATASETS, DATASET_NAME, '')))
 
     def _check_dir(self, tag):

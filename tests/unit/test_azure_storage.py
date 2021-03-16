@@ -9,6 +9,8 @@ from unittest import mock
 
 import pytest
 from azure.storage.blob import BlobServiceClient, BlobClient, StorageStreamDownloader
+
+from ml_git.ml_git_message import output_messages
 from ml_git.storages.azure_storage import AzureMultihashStorage
 from ml_git.utils import ensure_path_exists
 
@@ -31,7 +33,7 @@ def mock_get_blob_client(*args, **kwargs):
 def mock_download_blob(*args, **kwargs):
     if os.path.exists(os.path.join('test_dir/azure-test', 'think-hires.jpg')):
         return StorageStreamDownloader
-    raise Exception('Blob not found!')
+    raise Exception(output_messages['ERROR_BLOB_NOT_FOUND'])
 
 
 def mock_upload_blob(*args, **kwargs):

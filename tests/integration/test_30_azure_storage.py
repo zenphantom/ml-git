@@ -15,7 +15,6 @@ from tests.integration.commands import MLGIT_INIT, MLGIT_REMOTE_ADD, MLGIT_ENTIT
     MLGIT_CHECKOUT
 from tests.integration.helper import ML_GIT_DIR, ERROR_MESSAGE, DATASETS, DATASET_NAME, DATASET_TAG, STRICT, AZUREBLOBH
 from tests.integration.helper import check_output, clear, GIT_PATH, create_spec, add_file
-from tests.integration.output_messages import messages
 
 
 @pytest.mark.usefixtures('tmp_dir', 'start_local_git_server', 'switch_to_tmp_dir')
@@ -32,8 +31,8 @@ class AzureAcceptanceTests(unittest.TestCase):
         os.makedirs(self.workspace)
         create_spec(self, self.repo_type, self.tmp_dir, version=1, mutability=STRICT, storage_type=self.storage_type)
 
-        self.assertIn(messages[0], check_output(MLGIT_INIT))
-        self.assertIn(messages[2] % (GIT_PATH, self.repo_type),
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_ADD_REMOTE'] % (GIT_PATH, self.repo_type),
                       check_output(MLGIT_REMOTE_ADD % (self.repo_type, GIT_PATH)))
         self.assertIn(output_messages['INFO_ADD_STORAGE_WITHOUT_PROFILE'] % (self.storage_type, self.bucket),
                       check_output('ml-git repository storage add %s --type=%s' %
@@ -42,7 +41,7 @@ class AzureAcceptanceTests(unittest.TestCase):
 
         add_file(self, self.repo_type, '', 'new')
         metadata_path = os.path.join(ML_GIT_DIR, DATASETS, 'metadata')
-        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, metadata_path), DATASET_NAME),
+        self.assertIn(output_messages['INFO_COMMIT_REPO'] % (os.path.join(self.tmp_dir, metadata_path), DATASET_NAME),
                       check_output(MLGIT_COMMIT % (self.repo_type, DATASET_NAME, '')))
         HEAD = os.path.join(ML_GIT_DIR, DATASETS, 'refs', DATASET_NAME, 'HEAD')
         self.assertTrue(os.path.exists(HEAD))
@@ -54,14 +53,14 @@ class AzureAcceptanceTests(unittest.TestCase):
             container = ContainerClient.from_connection_string(connection_string, container, connection_timeout=300)
             container.get_container_properties()
         except Exception:
-            raise Exception('Can\'t create Azure container.')
+            raise Exception(output_messages['ERROR_CANNOT_CREATE_AZURE_CONTAINER'])
         pass
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_01_create_azure_storage(self):
         self.create_bucket(self.dev_store_account_, self.bucket)
-        self.assertIn(messages[0], check_output(MLGIT_INIT))
-        self.assertIn(messages[2] % (GIT_PATH, self.repo_type), check_output(MLGIT_REMOTE_ADD % (self.repo_type, GIT_PATH)))
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_ADD_REMOTE'] % (GIT_PATH, self.repo_type), check_output(MLGIT_REMOTE_ADD % (self.repo_type, GIT_PATH)))
         self.assertIn(output_messages['INFO_ADD_STORAGE_WITHOUT_PROFILE'] % (self.storage_type, self.bucket),
                       check_output('ml-git repository storage add %s --type=%s' %
                                    (self.bucket, self.storage_type)))
@@ -80,8 +79,8 @@ class AzureAcceptanceTests(unittest.TestCase):
         os.makedirs(self.workspace)
         create_spec(self, self.repo_type, self.tmp_dir, version=1, mutability=STRICT, storage_type=self.storage_type)
 
-        self.assertIn(messages[0], check_output(MLGIT_INIT))
-        self.assertIn(messages[2] % (GIT_PATH, self.repo_type),
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_ADD_REMOTE'] % (GIT_PATH, self.repo_type),
                       check_output(MLGIT_REMOTE_ADD % (self.repo_type, GIT_PATH)))
         self.assertIn(output_messages['INFO_ADD_STORAGE_WITHOUT_PROFILE'] % (self.storage_type, self.bucket),
                       check_output('ml-git repository storage add %s --type=%s' %
@@ -90,7 +89,7 @@ class AzureAcceptanceTests(unittest.TestCase):
 
         add_file(self, self.repo_type, '', 'new')
         metadata_path = os.path.join(ML_GIT_DIR, DATASETS, 'metadata')
-        self.assertIn(messages[17] %
+        self.assertIn(output_messages['INFO_COMMIT_REPO'] %
                       (os.path.join(self.tmp_dir, metadata_path), DATASET_NAME),
                       check_output(MLGIT_COMMIT % (self.repo_type, DATASET_NAME, '')))
         HEAD = os.path.join(ML_GIT_DIR, DATASETS, 'refs', DATASET_NAME, 'HEAD')
@@ -115,10 +114,10 @@ class AzureAcceptanceTests(unittest.TestCase):
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_04_push_without_credentials(self):
         self.set_up_push()
-        self.assertIn(messages[102], check_output(MLGIT_PUSH % (self.repo_type, DATASET_NAME)))
+        self.assertIn(output_messages['ERROR_AZURE_CREDENTIALS_NOT_FOUND'], check_output(MLGIT_PUSH % (self.repo_type, DATASET_NAME)))
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     @mock.patch.dict(os.environ, {'AZURE_STORAGE_CONNECTION_STRING': 'wrong_connection_string'})
     def test_05_push_with_wrong_connection_credential(self):
         self.set_up_push()
-        self.assertIn(messages[103], check_output(MLGIT_PUSH % (self.repo_type, DATASET_NAME)))
+        self.assertIn(output_messages['INFO_UNABLE_AZURE_CONNECTION'], check_output(MLGIT_PUSH % (self.repo_type, DATASET_NAME)))

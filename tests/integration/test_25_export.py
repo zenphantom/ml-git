@@ -8,10 +8,10 @@ import unittest
 
 import pytest
 
+from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_COMMIT, MLGIT_PUSH, MLGIT_EXPORT
 from tests.integration.helper import ML_GIT_DIR, PROFILE, BUCKET_NAME, \
     check_output, init_repository, add_file, PATH_TEST, DATASETS, DATASET_NAME, MODELS, LABELS, S3H, S3
-from tests.integration.output_messages import messages
 
 
 @pytest.mark.usefixtures('tmp_dir', 'aws_session')
@@ -21,7 +21,7 @@ class ExportTagAcceptanceTests(unittest.TestCase):
         init_repository(repotype, self)
         add_file(self, repotype, '', repotype)
         file_in_storage = os.path.join(PATH_TEST, 'data', 'mlgit', repotype+'file0')
-        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, repotype, 'metadata'), entity),
+        self.assertIn(output_messages['INFO_COMMIT_REPO'] % (os.path.join(self.tmp_dir, ML_GIT_DIR, repotype, 'metadata'), entity),
                       check_output(MLGIT_COMMIT % (repotype, entity, '')))
 
         self.assertFalse(os.path.exists(file_in_storage))
@@ -29,7 +29,7 @@ class ExportTagAcceptanceTests(unittest.TestCase):
         check_output(MLGIT_PUSH % (repotype, entity))
         storage = '%s://mlgit' % S3H
         tag = 'computer-vision__images__%s__1' % entity
-        self.assertIn(messages[66] % (tag, storage, '%s://mlgit' % S3), check_output(MLGIT_EXPORT % (
+        self.assertIn(output_messages['INFO_EXPORTING_TAG'] % (tag, storage, '%s://mlgit' % S3), check_output(MLGIT_EXPORT % (
             repotype, ' {} {} --credentials={} --endpoint=http://127.0.0.1:9000'.format(tag, BUCKET_NAME, PROFILE))))
 
         self.assertTrue(os.path.exists(file_in_storage))

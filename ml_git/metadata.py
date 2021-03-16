@@ -42,18 +42,14 @@ class Metadata(MetadataManager):
         # check if tag already exists in the ml-git repository
         tags = self._tag_exists(tag)
         if len(tags) > 0:
-            log.error(
-                'Tag [%s] already exists in the ml-git repository.\n  '
-                'Consider using --version parameter to set the version number for your [%s].'
-                % (tag, self.__repo_type), class_name=METADATA_CLASS_NAME
-            )
+            log.error(output_messages['ERROR_TAG_ALREADY_EXISTS_CONSIDER_USER_VERSION'] % (tag, self.__repo_type), class_name=METADATA_CLASS_NAME)
             return None, None, None
         return full_metadata_path, entity_sub_path, metadata
 
     def commit_metadata(self, index_path, tags, commit_msg, changed_files, mutability, ws_path):
         spec_file = os.path.join(index_path, 'metadata', self._spec, self._spec + SPEC_EXTENSION)
         full_metadata_path, entity_sub_path, metadata = self._full_metadata_path(spec_file)
-        log.debug('Metadata path [%s]' % full_metadata_path, class_name=METADATA_CLASS_NAME)
+        log.debug(output_messages['DEBUG_METADATA_PATH'] % full_metadata_path, class_name=METADATA_CLASS_NAME)
 
         if full_metadata_path is None:
             return None, None
@@ -64,7 +60,7 @@ class Metadata(MetadataManager):
 
         ret = self.__commit_manifest(full_metadata_path, index_path, changed_files, mutability)
         if ret is False:
-            log.info('No files to commit for [%s]' % self._spec, class_name=METADATA_CLASS_NAME)
+            log.info(output_messages['INFO_NO_FILES_COMMIT_FOR'] % self._spec, class_name=METADATA_CLASS_NAME)
             return None, None
 
         try:
@@ -77,13 +73,9 @@ class Metadata(MetadataManager):
         # check if tag already exists in the ml-git repository
         tags = self._tag_exists(tag)
         if len(tags) > 0:
-            log.error(
-                'Tag [%s] already exists in the ml-git repository. '
-                'Consider using --bumpversion parameter to increment the version number for your dataset.' % tag,
-                class_name=METADATA_CLASS_NAME
-            )
+            log.error(output_messages['ERROR_TAG_ALREADY_EXISTS_CONSIDER_USER_VERSION'] % tag, class_name=METADATA_CLASS_NAME)
             for t in tags:
-                log.error('\t%s' % t)
+                log.error(output_messages['ERROR_METADATA_MESSAGE'] % t)
             return None, None
 
         if commit_msg is not None and len(commit_msg) > 0:
@@ -91,7 +83,7 @@ class Metadata(MetadataManager):
         else:
             # generates a commit message
             msg = self.metadata_message(metadata)
-        log.debug('Commit message [%s]' % msg, class_name=METADATA_CLASS_NAME)
+        log.debug(output_messages['DEBUG_COMMIT_MESSAGE'] % msg, class_name=METADATA_CLASS_NAME)
         sha = self.commit(entity_sub_path, msg)
         self.tag_add(tag)
         return str(tag), str(sha)
@@ -99,7 +91,7 @@ class Metadata(MetadataManager):
     def metadata_subpath(self, metadata):
         sep = os.sep
         path = self.__metadata_spec(metadata, sep)
-        log.debug('Dataset path: %s' % path, class_name=METADATA_CLASS_NAME)
+        log.debug(output_messages['DEBUG_DATASET_PATH'] % path, class_name=METADATA_CLASS_NAME)
         return path
 
     def _full_metadata_path(self, spec_file):
@@ -117,7 +109,7 @@ class Metadata(MetadataManager):
         # Append index/files/MANIFEST.yaml to .ml-git/dataset/metadata/ <categories>/MANIFEST.yaml
         idx_path = os.path.join(index_path, 'metadata', self._spec, MANIFEST_FILE)
         if os.path.exists(idx_path) is False:
-            log.error('No manifest file found in [%s]' % idx_path, class_name=METADATA_CLASS_NAME)
+            log.error(output_messages['ERROR_NO_MANIFEST_FILE_FOUND'] % idx_path, class_name=METADATA_CLASS_NAME)
             return False
         full_path = os.path.join(full_metadata_path, MANIFEST_FILE)
         mobj = Manifest(full_path)
@@ -137,7 +129,7 @@ class Metadata(MetadataManager):
 
     def __commit_metadata(self, full_metadata_path, index_path, metadata, specs, ws_path):
         idx_path = os.path.join(index_path, 'metadata', self._spec)
-        log.debug('Commit spec [%s] to ml-git metadata' % self._spec, class_name=METADATA_CLASS_NAME)
+        log.debug(output_messages['DEBUG_COMMIT_SPEC'] % self._spec, class_name=METADATA_CLASS_NAME)
         # saves README.md if any
         readme = 'README.md'
         src_readme = os.path.join(idx_path, readme)
@@ -146,7 +138,7 @@ class Metadata(MetadataManager):
             try:
                 shutil.copy2(src_readme, dst_readme)
             except Exception as e:
-                log.error('Could not find file README.md. Entity repository must have README.md file',
+                log.error(output_messages['ERROR_COULD_NOT_FIND_README'],
                           class_name=METADATA_CLASS_NAME)
                 raise e
         amount, workspace_size = self._get_amount_and_size_of_workspace_files(full_metadata_path, ws_path)
@@ -219,7 +211,7 @@ class Metadata(MetadataManager):
         repo_type = self.__repo_type
         cats = metadata[repo_type]['categories']
         if cats is None:
-            log.error('You must place at least one category in the entity .spec file')
+            log.error(output_messages['ERROR_ENTITY_NEEDS_CATATEGORY'])
             return
         elif type(cats) is list:
             categories = sep.join(cats)
@@ -230,7 +222,7 @@ class Metadata(MetadataManager):
         try:
             return sep.join([categories, metadata[repo_type]['name']])
         except Exception:
-            log.error('Error: invalid dataset spec (Missing name). It should look something like this:\n%s'
+            log.error(output_messages['ERROR_INVALID_DATASET_SPEC']
                       % (get_sample_spec_doc('somebucket', repo_type)))
             return None
 
@@ -242,7 +234,7 @@ class Metadata(MetadataManager):
 
         tag = sep.join([tag, str(metadata[repo_type]['version'])])
 
-        log.debug('New tag created [%s]' % tag, class_name=METADATA_CLASS_NAME)
+        log.debug(output_messages['DEBUG_NEW_TAG_CREATED'] % tag, class_name=METADATA_CLASS_NAME)
         return tag
 
     def metadata_message(self, metadata):
@@ -259,7 +251,7 @@ class Metadata(MetadataManager):
         labels = self.__config[LABELS]['git'] if LABELS in self.__config else ''
 
         if not (dataset or model or labels):
-            log.error('No repositories found, verify your configurations!', class_name=METADATA_CLASS_NAME)
+            log.error(output_messages['ERROR_REPOSITORY_NOT_FOUND'], class_name=METADATA_CLASS_NAME)
             clear(ROOT_FILE_NAME)
             return
 
@@ -270,14 +262,14 @@ class Metadata(MetadataManager):
         if labels:
             self.initialize_metadata(LABELS)
 
-        log.info('Successfully loaded configuration files!', class_name=METADATA_CLASS_NAME)
+        log.info(output_messages['INFO_SUCCESS_LOAD_CONFIGURATION'], class_name=METADATA_CLASS_NAME)
 
     def initialize_metadata(self, entity_type):
         super(Metadata, self).__init__(self.__config, entity_type)
         try:
             self.init()
         except Exception as e:
-            log.warn('Could not initialize metadata for %s. %s' % (entity_type, e), class_name=METADATA_CLASS_NAME)
+            log.warn(output_messages['WARN_CANNOT_INITIALIZE_METADATA_FOR'] % (entity_type, e), class_name=METADATA_CLASS_NAME)
 
     def get_tag(self, entity, version):
         try:

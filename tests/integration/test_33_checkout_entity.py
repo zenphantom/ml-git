@@ -12,7 +12,8 @@ import pytest
 from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_CHECKOUT, MLGIT_PUSH, MLGIT_COMMIT, MLGIT_ADD
 from tests.integration.helper import ML_GIT_DIR, MLGIT_ENTITY_INIT, ERROR_MESSAGE, \
-    add_file, GIT_PATH, check_output, clear, init_repository, create_file, move_entity_to_dir, DATASETS, DATASET_NAME, DATASET_TAG
+    add_file, GIT_PATH, check_output, clear, init_repository, create_file, move_entity_to_dir, DATASETS, DATASET_NAME, \
+    DATASET_TAG
 
 
 @pytest.mark.usefixtures('tmp_dir', 'aws_session')

@@ -12,7 +12,6 @@ from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_COMMIT, MLGIT_UPDATE, MLGIT_PUSH, MLGIT_REPOSITORY_UPDATE, MLGIT_INIT
 from tests.integration.helper import ML_GIT_DIR, init_repository, add_file, ERROR_MESSAGE, DATASETS, MODELS, LABELS
 from tests.integration.helper import check_output
-from tests.integration.output_messages import messages
 
 
 @pytest.mark.usefixtures('tmp_dir', 'aws_session')
@@ -25,14 +24,14 @@ class UpdateAcceptanceTests(unittest.TestCase):
 
     def _check_update_output(self, output, *entities):
         for entity in entities:
-            self.assertIn(messages[37] % os.path.join(self.tmp_dir, ML_GIT_DIR, entity, 'metadata'),
+            self.assertIn(output_messages['INFO_MLGIT_PULL'] % os.path.join(self.tmp_dir, ML_GIT_DIR, entity, 'metadata'),
                           output)
 
     def _setup_update_entity(self, entity_type):
         init_repository(entity_type, self)
         add_file(self, entity_type, '', 'new')
         metadata_path = os.path.join(self.tmp_dir, ML_GIT_DIR, entity_type, 'metadata')
-        self.assertIn(messages[17] % (metadata_path, entity_type + '-ex'),
+        self.assertIn(output_messages['INFO_COMMIT_REPO'] % (metadata_path, entity_type + '-ex'),
                       check_output(MLGIT_COMMIT % (entity_type, entity_type + '-ex', '')))
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_PUSH % (entity_type, entity_type + '-ex')))
 
@@ -54,7 +53,7 @@ class UpdateAcceptanceTests(unittest.TestCase):
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_04_update_with_git_error(self):
         init_repository(DATASETS, self)
-        self.assertTrue(messages[105], check_output(MLGIT_UPDATE % DATASETS))
+        self.assertTrue(output_messages['ERROR_METADATA_COULD_NOT_UPDATED'] % '', check_output(MLGIT_UPDATE % DATASETS))
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_05_update_all_entities(self):
@@ -77,4 +76,4 @@ class UpdateAcceptanceTests(unittest.TestCase):
         self._setup_update_entity(MODELS)
         response = check_output(MLGIT_REPOSITORY_UPDATE)
         self._check_update_output(response, DATASETS, MODELS)
-        self.assertNotIn(messages[37] % os.path.join(self.tmp_dir, ML_GIT_DIR, LABELS, 'metadata'), response)
+        self.assertNotIn(output_messages['INFO_MLGIT_PULL'] % os.path.join(self.tmp_dir, ML_GIT_DIR, LABELS, 'metadata'), response)

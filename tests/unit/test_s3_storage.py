@@ -13,8 +13,8 @@ import pytest
 from moto import mock_s3
 
 from ml_git.file_system.index import MultihashIndex, FullIndex
-from ml_git.file_system.objects import Objects
 from ml_git.file_system.local import LocalRepository
+from ml_git.file_system.objects import Objects
 from ml_git.storages.s3_storage import S3MultihashStorage, S3Storage
 from ml_git.utils import ensure_path_exists, yaml_save, yaml_load
 from tests.unit.conftest import S3
