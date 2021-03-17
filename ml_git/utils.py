@@ -348,3 +348,13 @@ def check_metadata_directories():
     if v1_dataset_path_exists or v1_model_path_exists or not validate_config_keys(config):
         update_project(v1_dataset_path_exists, v1_model_path_exists, root_path)
         log.info(output_messages['INFO_PROJECT_UPDATE_SUCCESSFULLY'])
+
+
+def singleton(cls):
+    instances = {}
+
+    def instance(*args, **kwargs):
+        if cls not in instances:
+            instances[cls] = cls(*args, **kwargs)
+        return instances[cls]
+    return instance

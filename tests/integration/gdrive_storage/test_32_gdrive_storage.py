@@ -97,3 +97,11 @@ class GdrivePushFilesAcceptanceTests(unittest.TestCase):
         file_b = os.path.join(DATASETS, 'datasets-ex2', 'data', 'B')
 
         self.assertTrue(os.path.exists(file_b))
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir')
+    def test_04_create_with_wrong_import_url(self):
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
+        self.assertIn(output_messages['ERROR_INVALID_URL'] % 'import_url',
+                      check_output(MLGIT_CREATE % (DATASETS, DATASET_NAME)
+                      + ' --category=img --version=1 --import-url="import_url" '
+                      + '--credentials-path=' + CREDENTIALS_PATH + ' --mutability=' + STRICT))
