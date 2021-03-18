@@ -76,7 +76,7 @@ Commands:
 
 ### Basic commands
 
-<details>
+<details markdown="1">
 <summary><code>ml-git clone &lt;repository-url&gt;</code></summary>
 <br>
 
@@ -103,7 +103,7 @@ $ ml-git clone https://github.com/user/ml_git_configuration_file_example.git --t
 
 </details>
 
-<details>
+<details markdown="1">
 <summary><code>ml-git &lt;ml-entity&gt; create</code></summary>
 This command will help you to start a new project, it creates your project artifact metadata:
 
@@ -118,7 +118,7 @@ Demonstration video:
 
 </details>
 
-<details>
+<details markdown="1">
 <summary><code>ml-git &lt;ml-entity&gt; status</code></summary>
 Show changes in project workspace:
 
@@ -133,7 +133,7 @@ Demonstration video:
 
 </details>
 
-<details>
+<details markdown="1">
 <summary><code>ml-git &lt;ml-entity&gt; add</code></summary>
 Add new files to index:
 
@@ -159,7 +159,7 @@ Demonstration video:
 
 
 </details>
-<details>
+<details markdown="1">
 <summary><code>ml-git &lt;ml-entity&gt; commit</code></summary>
 Consolidate added files in the index to repository:
 
@@ -173,7 +173,7 @@ Demonstration video:
 
 
 </details>
-<details>
+<details markdown="1">
 <summary><code>ml-git &lt;ml-entity&gt; push</code></summary>
 Upload metadata to remote repository and send [chunks](docs/mlgit_internals.md) to storage:
 
@@ -187,7 +187,7 @@ Demonstration video:
 
 
 </details>
-<details>
+<details markdown="1">
 <summary><code>ml-git &lt;ml-entity&gt; checkout</code></summary>
 Change workspace and metadata to versioned ml-entity tag:
 

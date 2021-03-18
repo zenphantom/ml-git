@@ -7,26 +7,26 @@ import os
 import unittest
 
 import pytest
-from ml_git.constants import StorageType, Mutability, STORAGE_KEY
-from ml_git.ml_git_message import output_messages
 
+from ml_git.constants import STORAGE_KEY
+from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_CREATE, MLGIT_INIT
 from tests.integration.helper import check_output, ML_GIT_DIR, IMPORT_PATH, create_file, ERROR_MESSAGE, yaml_processor, \
-    create_zip_file, DATASETS, DATASET_NAME, MODELS, LABELS
-from tests.integration.output_messages import messages
+    create_zip_file, DATASETS, DATASET_NAME, MODELS, LABELS, STRICT, FLEXIBLE, MUTABLE, GDRIVEH, AZUREBLOBH, S3H
 
 
 @pytest.mark.usefixtures('tmp_dir')
 class CreateAcceptanceTests(unittest.TestCase):
 
-    def create_command(self, entity_type, storage_type=StorageType.S3H.value):
+    def create_command(self, entity_type, storage_type=S3H):
         os.makedirs(os.path.join(self.tmp_dir, IMPORT_PATH))
-        self.assertIn(messages[38], check_output(MLGIT_CREATE % (entity_type, entity_type + '-ex')
-                                                 + ' --category=imgs --storage-type=' + storage_type + ' --bucket-name=minio'
-                                                 + ' --version=1 --import="' + os.path.join(self.tmp_dir, IMPORT_PATH) +
-                                                 '" --mutability=' + Mutability.STRICT.value))
+        self.assertIn(output_messages['INFO_PROJECT_CREATED'],
+                      check_output(MLGIT_CREATE % (entity_type, entity_type + '-ex')
+                      + ' --category=imgs --storage-type=' + storage_type + ' --bucket-name=minio'
+                      + ' --version=1 --import="' + os.path.join(self.tmp_dir, IMPORT_PATH) +
+                      '" --mutability=' + STRICT))
 
-    def check_folders(self, entity_type, storage_type=StorageType.S3H.value):
+    def check_folders(self, entity_type, storage_type=S3H):
         folder_data = os.path.join(self.tmp_dir, entity_type, entity_type + '-ex', 'data')
         spec = os.path.join(self.tmp_dir, entity_type, entity_type + '-ex', entity_type + '-ex.spec')
         readme = os.path.join(self.tmp_dir, entity_type, entity_type + '-ex', 'README.md')
@@ -44,16 +44,17 @@ class CreateAcceptanceTests(unittest.TestCase):
         self.assertTrue(os.path.exists(readme))
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
-    def _create_entity(self, entity_type, storage_type=StorageType.S3H.value):
-        self.assertIn(messages[0], check_output(MLGIT_INIT))
+    def _create_entity(self, entity_type, storage_type=S3H):
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
         self.create_command(entity_type, storage_type)
         self.check_folders(entity_type, storage_type)
 
     def create_with_mutability(self, entity_type, mutability):
-        self.assertIn(messages[0], check_output(MLGIT_INIT))
-        self.assertIn(messages[38], check_output(MLGIT_CREATE % (entity_type, entity_type + '-ex')
-                                                 + ' --category=img --version=1 '
-                                                   '--credentials-path=test --mutability=' + mutability))
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_PROJECT_CREATED'],
+                      check_output(MLGIT_CREATE % (entity_type, entity_type + '-ex')
+                      + ' --category=img --version=1 '
+                      '--credentials-path=test --mutability=' + mutability))
         spec = os.path.join(self.tmp_dir, DATASETS, DATASET_NAME, DATASET_NAME+'.spec')
         with open(spec, 'r') as s:
             spec_file = yaml_processor.load(s)
@@ -75,11 +76,11 @@ class CreateAcceptanceTests(unittest.TestCase):
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_04_create_import_with_subdir(self):
-        self.assertIn(messages[0], check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
         sub_dir = os.path.join('subdir', 'subdir2')
         os.makedirs(os.path.join(self.tmp_dir, IMPORT_PATH, sub_dir))
 
-        self.assertIn(messages[38], check_output(
+        self.assertIn(output_messages['INFO_PROJECT_CREATED'], check_output(
             'ml-git datasets create datasets-ex --category=imgs --storage-type=s3h --bucket-name=minio '
             '--version=1 --import="%s" --mutability=strict' % os.path.join(self.tmp_dir, IMPORT_PATH)))
 
@@ -110,7 +111,7 @@ class CreateAcceptanceTests(unittest.TestCase):
         self.assertIn(ERROR_MESSAGE, check_output(MLGIT_CREATE % (entity_type, entity_type + '-ex')
                                                   + ' --category=imgs --storage-type=s3h --bucket-name=minio'
                                                   + ' --version=1 --import=' + IMPORT_PATH+'wrong'
-                                                  + ' --mutability=' + Mutability.STRICT.value))
+                                                  + ' --mutability=' + STRICT))
         self.assertFalse(os.path.exists(dataset_path))
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
@@ -119,54 +120,50 @@ class CreateAcceptanceTests(unittest.TestCase):
 
         self._create_entity(DATASETS)
 
-        self.assertIn(messages[88], check_output(MLGIT_CREATE % (entity_type, entity_type + '-ex')
-                                                 + ' --category=imgs --storage-type=s3h --bucket-name=minio'
-                                                 + ' --version=1 --import=' + IMPORT_PATH
-                                                 + ' --mutability=' + Mutability.STRICT.value))
+        self.assertIn(output_messages['INFO_ENTITY_NAME_EXISTS'],
+                      check_output(MLGIT_CREATE % (entity_type, entity_type + '-ex')
+                      + ' --category=imgs --storage-type=s3h --bucket-name=minio'
+                      + ' --version=1 --import=' + IMPORT_PATH
+                      + ' --mutability=' + STRICT))
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_07_create_entity_with_gdriveh_storage(self):
-        self._create_entity(DATASETS, StorageType.GDRIVEH.value)
+        self._create_entity(DATASETS, GDRIVEH)
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_08_create_entity_with_azure_storage(self):
-        self._create_entity(DATASETS, StorageType.AZUREBLOBH.value)
+        self._create_entity(DATASETS, AZUREBLOBH)
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_09_create_with_import_and_import_url_options(self):
         entity_type = DATASETS
-        self.assertIn(messages[0], check_output(MLGIT_INIT))
-        self.assertIn(messages[89], check_output(MLGIT_CREATE % (entity_type, entity_type + '-ex')
-                                                 + ' --category=img --version=1 --import="import_path" --import-url="import_url"'
-                                                 + ' --mutability=' + Mutability.STRICT.value))
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_EXCLUSIVE_IMPORT_ARGUMENT'],
+                      check_output(MLGIT_CREATE % (entity_type, entity_type + '-ex')
+                      + ' --category=img --version=1 --import="import_path" --import-url="import_url"'
+                      + ' --mutability=' + STRICT))
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_10_create_with_import_url_without_credentials_path(self):
         entity_type = DATASETS
-        self.assertIn(messages[0], check_output(MLGIT_INIT))
-        self.assertIn(messages[90], check_output(MLGIT_CREATE % (entity_type, entity_type + '-ex')
-                                                 + ' --category=img --version=1 --import-url="import_url"'
-                                                 + ' --mutability=' + Mutability.STRICT.value))
-
-    @pytest.mark.usefixtures('switch_to_tmp_dir')
-    def test_11_create_with_wrong_import_url(self):
-        entity_type = DATASETS
-        self.assertIn(messages[0], check_output(MLGIT_INIT))
-        self.assertIn(messages[91] % 'import_url', check_output(MLGIT_CREATE % (entity_type, entity_type + '-ex')
-                                                                + ' --category=img --version=1 --import-url="import_url" '
-                                                                  '--credentials-path=test' + ' --mutability=' + Mutability.STRICT.value))
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_EXCLUSIVE_CREDENTIALS_PATH_ARGUMENT'],
+                      check_output(MLGIT_CREATE % (entity_type, entity_type + '-ex')
+                      + ' --category=img --version=1 --import-url="import_url"'
+                      + ' --mutability=' + STRICT))
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_12_create_with_unzip_option(self):
         entity_type = DATASETS
-        self.assertIn(messages[0], check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
         import_path = os.path.join(self.tmp_dir, IMPORT_PATH)
         os.makedirs(import_path)
         create_zip_file(IMPORT_PATH, 3)
         self.assertTrue(os.path.exists(os.path.join(import_path, 'file.zip')))
-        self.assertIn(messages[92], check_output(MLGIT_CREATE % (entity_type, entity_type + '-ex')
-                                                 + ' --category=imgs --import="' + import_path + '" --unzip'
-                                                 + ' --mutability=' + Mutability.STRICT.value))
+        self.assertIn(output_messages['INFO_UNZIPPING_FILES'],
+                      check_output(MLGIT_CREATE % (entity_type, entity_type + '-ex')
+                      + ' --category=imgs --import="' + import_path + '" --unzip'
+                      + ' --mutability=' + STRICT))
         folder_data = os.path.join(self.tmp_dir, entity_type, entity_type + '-ex', 'data', 'file')
         self.assertTrue(os.path.exists(folder_data))
         files = [f for f in os.listdir(folder_data)]
@@ -178,44 +175,44 @@ class CreateAcceptanceTests(unittest.TestCase):
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_12_create_with_deprecated_version_number(self):
         entity_type = DATASETS
-        self.assertIn(messages[0], check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
         os.makedirs(os.path.join(self.tmp_dir, IMPORT_PATH))
         result = check_output(MLGIT_CREATE % (entity_type, entity_type + '-ex') + ' --category=imgs --storage-type=s3h --bucket-name=minio'
                               + ' --version-number=1 --import="' + os.path.join(self.tmp_dir, IMPORT_PATH) + '"'
-                              + ' --mutability=' + Mutability.STRICT.value)
+                              + ' --mutability=' + STRICT)
         self.assertIn(output_messages['ERROR_NO_SUCH_OPTION'] % '--version-number', result)
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_13_create_with_mutability_mutable(self):
         entity_type = DATASETS
-        mutability = 'mutable'
+        mutability = MUTABLE
         self.create_with_mutability(entity_type, mutability)
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_14_create_with_mutability_flexible(self):
         entity_type = DATASETS
-        mutability = 'flexible'
+        mutability = FLEXIBLE
         self.create_with_mutability(entity_type, mutability)
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_15_create_with_mutability_strict(self):
         entity_type = DATASETS
-        mutability = 'strict'
+        mutability = STRICT
         self.create_with_mutability(entity_type, mutability)
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_15_create_without_mutability_option(self):
         entity_type = DATASETS
-        self.assertIn(messages[0], check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
         self.assertIn(output_messages['ERROR_MISSING_MUTABILITY'], check_output(MLGIT_CREATE % (entity_type, entity_type + '-ex')
                                                                                 + ' --category=img --version=1'))
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_16_create_with_entity_option(self):
-        self.assertIn(messages[0], check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
         entity_dir = os.path.join('FolderA', 'FolderB')
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_CREATE % (DATASETS, DATASET_NAME)
-                                                     + ' --category=imgs --mutability=' + Mutability.STRICT.value
+                                                     + ' --category=imgs --mutability=' + STRICT
                                                      + ' --entity-dir=' + entity_dir))
         folder_data = os.path.join(self.tmp_dir, DATASETS, entity_dir, DATASET_NAME, 'data')
         self.assertTrue(os.path.exists(folder_data))

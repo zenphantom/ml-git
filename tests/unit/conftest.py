@@ -16,9 +16,20 @@ import pytest
 from git import Repo
 
 from ml_git.config import config_load
-from ml_git.constants import STORAGE_KEY
+from ml_git.constants import STORAGE_KEY, StorageType, EntityType, MutabilityType, FileType
 
 test_scr = Path('./tests/unit/test_dir').resolve()
+
+AZUREBLOBH = StorageType.AZUREBLOBH.value
+S3H = StorageType.S3H.value
+S3 = StorageType.S3.value
+GDRIVEH = StorageType.GDRIVEH.value
+DATASETS = EntityType.DATASETS.value
+MODELS = EntityType.MODELS.value
+LABELS = EntityType.LABELS.value
+STRICT = MutabilityType.STRICT.value
+CSV = FileType.CSV.value
+JSON = FileType.JSON.value
 
 
 def create_tmp_test_dir(tmp_path):
@@ -133,7 +144,7 @@ def yaml_str_sample(request):
 def yaml_obj_sample(request):
     obj = {
         STORAGE_KEY: {
-            's3h': {
+            S3H: {
                 'bucket_test': {
                     'aws-credentials': {
                         'profile': 'profile_test'

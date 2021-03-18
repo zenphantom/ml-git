@@ -14,13 +14,26 @@ from zipfile import ZipFile
 
 from ruamel.yaml import YAML
 
-from ml_git.constants import GLOBAL_ML_GIT_CONFIG, Mutability, StorageType, STORAGE_KEY, EntityType
+from ml_git.constants import GLOBAL_ML_GIT_CONFIG, MutabilityType, StorageType, STORAGE_KEY, EntityType, FileType
 from ml_git.ml_git_message import output_messages
 from ml_git.utils import ensure_path_exists
 from tests.integration.commands import MLGIT_INIT, MLGIT_REMOTE_ADD, MLGIT_ENTITY_INIT, MLGIT_ADD, \
     MLGIT_STORAGE_ADD_WITH_TYPE, MLGIT_REMOTE_ADD_GLOBAL, MLGIT_STORAGE_ADD, MLGIT_STORAGE_ADD_WITHOUT_CREDENTIALS, \
     MLGIT_COMMIT, MLGIT_PUSH
-from tests.integration.output_messages import messages
+
+DATASETS = EntityType.DATASETS.value
+MODELS = EntityType.MODELS.value
+LABELS = EntityType.LABELS.value
+STRICT = MutabilityType.STRICT.value
+FLEXIBLE = MutabilityType.FLEXIBLE.value
+MUTABLE = MutabilityType.MUTABLE.value
+S3H = StorageType.S3H.value
+S3 = StorageType.S3.value
+AZUREBLOBH = StorageType.AZUREBLOBH.value
+GDRIVEH = StorageType.GDRIVEH.value
+SFTPH = StorageType.SFTPH.value
+CSV = FileType.CSV.value
+JSON = FileType.JSON.value
 
 PATH_TEST = os.path.join(os.getcwd(), 'tests', 'integration', '.test_env')
 ML_GIT_DIR = '.ml-git'
@@ -31,7 +44,7 @@ SFTP_BUCKET_PATH = os.path.join(PATH_TEST, 'sftp', 'mlgit')
 FAKE_SSH_KEY_PATH = os.path.join(os.getcwd(), 'tests', 'integration', 'fake_ssh_key', 'test_key')
 GIT_WRONG_REP = 'https://github.com/wrong_repository/wrong_repository.git'
 BUCKET_NAME = 'mlgit'
-STORAGE_TYPE = StorageType.S3H.value
+STORAGE_TYPE = S3H
 PROFILE = 'personal'
 CLONE_FOLDER = 'clone'
 ERROR_MESSAGE = 'ERROR'
@@ -40,11 +53,8 @@ MINIO_ENDPOINT_URL = 'http://127.0.0.1:9000'
 GDRIVE_LINKS = os.path.join(os.getcwd(), 'tests', 'integration', 'gdrive-files-links.json')
 GLOBAL_CONFIG_PATH = os.path.join(os.getcwd(), 'tests', 'integration', 'globalconfig')
 
-DATASETS = EntityType.DATASETS.value
 DATASET_NAME = 'datasets-ex'
 DATASET_TAG = 'computer-vision__images__datasets-ex__1'
-MODELS = EntityType.MODELS.value
-LABELS = EntityType.LABELS.value
 
 
 def get_yaml_processor(typ='safe', default_flow_style=False):
@@ -105,17 +115,18 @@ def check_output(command):
     return subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, shell=True).stdout
 
 
-def init_repository(entity, self, version=1, storage_type='s3h', profile=PROFILE, artifact_name=None, category='images'):
+def init_repository(entity, self, version=1, storage_type=S3H, profile=PROFILE, artifact_name=None, category='images'):
     if not artifact_name:
         artifact_name = f'{entity}-ex'
     if os.path.exists(os.path.join(self.tmp_dir, ML_GIT_DIR)):
-        self.assertIn(messages[1], check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_ALREADY_IN_RESPOSITORY'], check_output(MLGIT_INIT))
     else:
-        self.assertIn(messages[0], check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
 
-    self.assertIn(messages[2] % (os.path.join(self.tmp_dir, GIT_PATH), entity), check_output(MLGIT_REMOTE_ADD % (entity, os.path.join(self.tmp_dir, GIT_PATH))))
+    self.assertIn(output_messages['INFO_ADD_REMOTE'] % (os.path.join(self.tmp_dir, GIT_PATH), entity),
+                  check_output(MLGIT_REMOTE_ADD % (entity, os.path.join(self.tmp_dir, GIT_PATH))))
 
-    if storage_type == StorageType.GDRIVEH.value:
+    if storage_type == GDRIVEH:
         self.assertIn(output_messages['INFO_ADD_STORAGE_WITHOUT_PROFILE'] % (storage_type, BUCKET_NAME),
                       check_output(MLGIT_STORAGE_ADD_WITH_TYPE % (BUCKET_NAME, profile, storage_type)))
     elif profile is not None:
@@ -125,7 +136,7 @@ def init_repository(entity, self, version=1, storage_type='s3h', profile=PROFILE
         self.assertIn(output_messages['INFO_ADD_STORAGE_WITHOUT_PROFILE'] % (storage_type, BUCKET_NAME),
                       check_output(MLGIT_STORAGE_ADD_WITHOUT_CREDENTIALS % BUCKET_NAME))
 
-    self.assertIn(messages[8] % (os.path.join(self.tmp_dir, GIT_PATH), os.path.join(self.tmp_dir, ML_GIT_DIR, entity, 'metadata')),
+    self.assertIn(output_messages['INFO_METADATA_INIT'] % (os.path.join(self.tmp_dir, GIT_PATH), os.path.join(self.tmp_dir, ML_GIT_DIR, entity, 'metadata')),
                   check_output(MLGIT_ENTITY_INIT % entity))
 
     edit_config_yaml(os.path.join(self.tmp_dir, ML_GIT_DIR), storage_type)
@@ -138,7 +149,7 @@ def init_repository(entity, self, version=1, storage_type='s3h', profile=PROFILE
                 'files': 'MANIFEST.yaml',
                 STORAGE_KEY: '%s://mlgit' % storage_type
             },
-            'mutability': Mutability.STRICT.value,
+            'mutability': STRICT,
             'name': artifact_name,
             'version': version
         }
@@ -163,11 +174,11 @@ def add_file(self, entity, bumpversion, name=None, artifact_name=None, file_cont
         z.write(str(file_content * 100))
     # Create assert do ml-git add
     if entity == DATASETS:
-        self.assertIn(messages[13] % DATASETS, check_output(MLGIT_ADD % (entity, artifact_name, bumpversion)))
+        self.assertIn(output_messages['INFO_ADDING_PATH'] % DATASETS, check_output(MLGIT_ADD % (entity, artifact_name, bumpversion)))
     elif entity == MODELS:
-        self.assertIn(messages[14], check_output(MLGIT_ADD % (entity, artifact_name, bumpversion)))
+        self.assertIn(output_messages['INFO_ADDING_PATH'] % MODELS, check_output(MLGIT_ADD % (entity, artifact_name, bumpversion)))
     else:
-        self.assertIn(messages[15], check_output(MLGIT_ADD % (entity, artifact_name, bumpversion)))
+        self.assertIn(output_messages['INFO_ADDING_PATH'] % LABELS, check_output(MLGIT_ADD % (entity, artifact_name, bumpversion)))
     metadata = os.path.join(self.tmp_dir, ML_GIT_DIR, entity, 'index', 'metadata', artifact_name)
     metadata_file = os.path.join(metadata, 'MANIFEST.yaml')
     index_file = os.path.join(metadata, 'INDEX.yaml')
@@ -183,7 +194,7 @@ def delete_file(workspace_path, delete_files):
                 os.unlink(os.path.join(root, file_name))
 
 
-def edit_config_yaml(ml_git_dir, storage_type='s3h'):
+def edit_config_yaml(ml_git_dir, storage_type=S3H):
     with open(os.path.join(ml_git_dir, 'config.yaml'), 'r') as config_file:
         config = yaml_processor.load(config_file)
         config[STORAGE_KEY][storage_type]['mlgit']['endpoint-url'] = MINIO_ENDPOINT_URL
@@ -208,7 +219,7 @@ def create_git_clone_repo(git_dir, tmp_dir, git_path=GIT_PATH):
             'git': os.path.join(tmp_dir, git_path),
         },
         STORAGE_KEY: {
-            's3': {
+            S3: {
                 'mlgit-datasets': {
                     'region': 'us-east-1',
                     'aws-credentials': {'profile': 'default'}
@@ -230,7 +241,7 @@ def create_git_clone_repo(git_dir, tmp_dir, git_path=GIT_PATH):
     clear(master)
 
 
-def create_spec(self, model, tmpdir, version=1, mutability='strict', storage_type=STORAGE_TYPE, artifact_name=None):
+def create_spec(self, model, tmpdir, version=1, mutability=STRICT, storage_type=STORAGE_TYPE, artifact_name=None):
     if not artifact_name:
         artifact_name = f'{model}-ex'
     spec = {
@@ -292,7 +303,7 @@ def configure_global(self, entity_type):
     clear(os.path.join(self.tmp_dir, ML_GIT_DIR))
 
 
-def edit_global_config_yaml(storage_type='s3h'):
+def edit_global_config_yaml(storage_type=S3H):
     with open(os.path.join(GLOBAL_CONFIG_PATH, GLOBAL_ML_GIT_CONFIG), 'r') as config_file:
         config = yaml_processor.load(config_file)
         config[STORAGE_KEY][storage_type]['mlgit']['endpoint-url'] = MINIO_ENDPOINT_URL

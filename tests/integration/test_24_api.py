@@ -9,13 +9,13 @@ import unittest
 import pytest
 
 from ml_git import api
-from ml_git.constants import Mutability, StorageType, STORAGE_KEY, DATE, RELATED_DATASET_TABLE_INFO, \
+from ml_git.constants import EntityType, STORAGE_KEY, DATE, RELATED_DATASET_TABLE_INFO, \
     RELATED_LABELS_TABLE_INFO, TAG
 from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_INIT
 from tests.integration.helper import ML_GIT_DIR, check_output, init_repository, create_git_clone_repo, \
     clear, yaml_processor, create_zip_file, CLONE_FOLDER, GIT_PATH, BUCKET_NAME, PROFILE, STORAGE_TYPE, DATASETS, \
-    DATASET_NAME, LABELS, MODELS
+    DATASET_NAME, LABELS, MODELS, STRICT, S3H, AZUREBLOBH, GDRIVEH, CSV
 
 
 @pytest.mark.usefixtures('tmp_dir', 'aws_session')
@@ -51,9 +51,9 @@ class APIAcceptanceTests(unittest.TestCase):
                 'categories': ['computer-vision', 'images'],
                 'manifest': {
                     'files': 'MANIFEST.yaml',
-                    STORAGE_KEY: 's3h://mlgit'
+                    STORAGE_KEY: '%s://mlgit' % S3H
                 },
-                'mutability': Mutability.STRICT.value,
+                'mutability': STRICT,
                 'name': DATASET_NAME,
                 'version': 9
             }
@@ -280,7 +280,7 @@ class APIAcceptanceTests(unittest.TestCase):
 
         self.assertEqual('computer-vision__images__datasets-ex__2', spec[LABELS][DATASETS]['tag'])
 
-    def check_created_folders(self, entity_type, storage_type=StorageType.S3H.value, version=1, bucket_name='fake_storage'):
+    def check_created_folders(self, entity_type, storage_type=S3H, version=1, bucket_name='fake_storage'):
         folder_data = os.path.join(self.tmp_dir, entity_type, entity_type + '-ex', 'data')
         spec = os.path.join(self.tmp_dir, entity_type, entity_type + '-ex', entity_type + '-ex.spec')
         readme = os.path.join(self.tmp_dir, entity_type, entity_type + '-ex', 'README.md')
@@ -299,34 +299,29 @@ class APIAcceptanceTests(unittest.TestCase):
 
     @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
     def test_14_create_entity(self):
-        entity_type = DATASETS
-        storage_type = StorageType.S3H.value
-        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'] % self.tmp_dir, check_output(MLGIT_INIT))
-        api.create(DATASETS, DATASET_NAME, categories=['computer-vision', 'images'], mutability='strict')
-        self.check_created_folders(entity_type, storage_type)
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
+        api.create(DATASETS, DATASET_NAME, categories=['computer-vision', 'images'], mutability=STRICT)
+        self.check_created_folders(DATASETS, S3H)
 
     @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
     def test_15_create_entity_with_optional_arguments(self):
-        entity_type = DATASETS
-        storage_type = StorageType.AZUREBLOBH.value
-        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'] % self.tmp_dir, check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
         api.create(DATASETS, DATASET_NAME, categories=['computer-vision', 'images'],
-                   version=5, storage_type=storage_type, bucket_name='test', mutability='strict')
-        self.check_created_folders(entity_type, storage_type, version=5, bucket_name='test')
+                   version=5, storage_type=AZUREBLOBH, bucket_name='test', mutability=STRICT)
+        self.check_created_folders(DATASETS, AZUREBLOBH, version=5, bucket_name='test')
 
     @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
     def test_16_create_entity_with_import(self):
-        entity_type = DATASETS
         IMPORT_PATH = 'src'
-        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'] % self.tmp_dir, check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
         import_path = os.path.join(self.tmp_dir, IMPORT_PATH)
         os.makedirs(import_path)
         create_zip_file(IMPORT_PATH, 3)
         self.assertTrue(os.path.exists(os.path.join(import_path, 'file.zip')))
-        api.create(entity_type, entity_type+'-ex', categories=['computer-vision', 'images'],
-                   unzip=True, import_path=import_path, mutability='strict')
-        self.check_created_folders(entity_type, StorageType.S3H.value)
-        folder_data = os.path.join(self.tmp_dir, entity_type, entity_type + '-ex', 'data', 'file')
+        api.create(DATASETS, DATASETS+'-ex', categories=['computer-vision', 'images'],
+                   unzip=True, import_path=import_path, mutability=STRICT)
+        self.check_created_folders(DATASETS, S3H)
+        folder_data = os.path.join(self.tmp_dir, DATASETS, DATASETS + '-ex', 'data', 'file')
         self.assertTrue(os.path.exists(folder_data))
         files = [f for f in os.listdir(folder_data)]
         self.assertIn('file0.txt', files)
@@ -365,38 +360,36 @@ class APIAcceptanceTests(unittest.TestCase):
         api.init('repository')
         with open(os.path.join(self.tmp_dir, ML_GIT_DIR, 'config.yaml'), 'r') as c:
             config = yaml_processor.load(c)
-            self.assertNotIn('s3h', config[STORAGE_KEY])
+            self.assertNotIn(S3H, config[STORAGE_KEY])
         api.storage_add(bucket_name=BUCKET_NAME, credentials=PROFILE)
         with open(os.path.join(self.tmp_dir, ML_GIT_DIR, 'config.yaml'), 'r') as c:
             config = yaml_processor.load(c)
-            self.assertEqual(PROFILE, config[STORAGE_KEY]['s3h'][BUCKET_NAME]['aws-credentials']['profile'])
+            self.assertEqual(PROFILE, config[STORAGE_KEY][S3H][BUCKET_NAME]['aws-credentials']['profile'])
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_22_add_storage_azure_type(self):
-        bucket_type = 'azureblobh'
         bucket_name = 'container_azure'
         api.init('repository')
         with open(os.path.join(self.tmp_dir, ML_GIT_DIR, 'config.yaml'), 'r') as c:
             config = yaml_processor.load(c)
-            self.assertNotIn(bucket_type, config[STORAGE_KEY])
-        api.storage_add(bucket_name=bucket_name, bucket_type=bucket_type)
+            self.assertNotIn(AZUREBLOBH, config[STORAGE_KEY])
+        api.storage_add(bucket_name=bucket_name, bucket_type=AZUREBLOBH)
         with open(os.path.join(self.tmp_dir, ML_GIT_DIR, 'config.yaml'), 'r') as c:
             config = yaml_processor.load(c)
-            self.assertIn(bucket_name, config[STORAGE_KEY][bucket_type])
+            self.assertIn(bucket_name, config[STORAGE_KEY][AZUREBLOBH])
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_23_add_storage_gdrive_type(self):
-        bucket_type = 'gdriveh'
         bucket_name = 'my-drive'
         profile = 'path-to-credentials'
         api.init('repository')
         with open(os.path.join(self.tmp_dir, ML_GIT_DIR, 'config.yaml'), 'r') as c:
             config = yaml_processor.load(c)
-            self.assertNotIn(bucket_type, config[STORAGE_KEY])
-        api.storage_add(bucket_name=bucket_name, bucket_type=bucket_type, credentials=profile)
+            self.assertNotIn(GDRIVEH, config[STORAGE_KEY])
+        api.storage_add(bucket_name=bucket_name, bucket_type=GDRIVEH, credentials=profile)
         with open(os.path.join(self.tmp_dir, ML_GIT_DIR, 'config.yaml'), 'r') as c:
             config = yaml_processor.load(c)
-            self.assertEqual(profile, config[STORAGE_KEY][bucket_type][bucket_name]['credentials-path'])
+            self.assertEqual(profile, config[STORAGE_KEY][GDRIVEH][bucket_name]['credentials-path'])
 
     def _initialize_entity(self, entity_type, git=GIT_PATH):
         api.init('repository')
@@ -422,13 +415,12 @@ class APIAcceptanceTests(unittest.TestCase):
     def test_27_create_with_invalid_entity(self):
         try:
             entity_type = 'dataset_invalid'
-            storage_type = StorageType.S3H.value
-            self.assertIn(output_messages['INFO_INITIALIZED_PROJECT'] % self.tmp_dir, check_output(MLGIT_INIT))
-            api.create('dataset_invalid', DATASET_NAME, categories=['computer-vision', 'images'], mutability='strict')
-            self.check_created_folders(entity_type, storage_type)
+            self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
+            api.create('dataset_invalid', DATASET_NAME, categories=['computer-vision', 'images'], mutability=STRICT)
+            self.check_created_folders(entity_type, S3H)
             self.assertTrue(False)
         except Exception as e:
-            self.assertIn(output_messages['ERROR_INVALID_ENTITY_TYPE'], str(e))
+            self.assertIn(output_messages['ERROR_INVALID_ENTITY_TYPE'] % EntityType.to_list(), str(e))
 
     @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
     def test_28_checkout_tag_with_invalid_entity(self):
@@ -439,13 +431,13 @@ class APIAcceptanceTests(unittest.TestCase):
             self.check_metadata()
             self.assertTrue(False)
         except Exception as e:
-            self.assertIn(output_messages['ERROR_INVALID_ENTITY_TYPE'], str(e))
+            self.assertIn(output_messages['ERROR_INVALID_ENTITY_TYPE'] % EntityType.to_list(), str(e))
 
     def _push_model_with_metrics(self, entity_name):
         init_repository(MODELS, self)
         workspace = os.path.join(self.tmp_dir, MODELS, entity_name)
         api.create(MODELS, entity_name, categories=['computer-vision', 'images'],
-                   mutability=Mutability.STRICT.value, bucket_name='mlgit')
+                   mutability=STRICT, bucket_name='mlgit')
         os.makedirs(os.path.join(workspace, 'data'), exist_ok=True)
         self.create_file(workspace, 'file1', '0')
 
@@ -470,7 +462,7 @@ class APIAcceptanceTests(unittest.TestCase):
         entity_name = '{}-ex'.format(MODELS)
         model_tag = 'computer-vision__images__{}__1'.format(entity_name)
         self._push_model_with_metrics(entity_name)
-        data_output = api.get_models_metrics(entity_name, export_type='csv')
+        data_output = api.get_models_metrics(entity_name, export_type=CSV)
         header = '{},{},{},{},accuracy,precision'.format(DATE, TAG, RELATED_DATASET_TABLE_INFO, RELATED_LABELS_TABLE_INFO)
         tag_values = '{},,,10.0,10.0'.format(model_tag)
         self.assertIn(header, data_output.getvalue())
