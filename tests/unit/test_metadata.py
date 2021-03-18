@@ -224,7 +224,7 @@ class MetadataTestCases(unittest.TestCase):
 
         sha = m.commit(spec_metadata_path, specpath)
         m.tag_add(sha)
-        specs = m.get_specs_to_compare(specpath, DATASETS)
+        specs = m.get_specs_to_compare(specpath)
         spec_file = yaml_load(spec_metadata_path)
         for c, v in specs:
             self.assertEqual(c, spec_file[DATASETS]['manifest'])
@@ -252,7 +252,7 @@ class MetadataTestCases(unittest.TestCase):
         sha = m.commit(spec_metadata_path, specpath)
         m.tag_add(tag)
 
-        metrics = m._get_metrics(entity, tag, sha)
+        metrics = m._get_metrics(entity, sha)
 
         test_table = PrettyTable()
         test_table.field_names = ['Name', 'Value']
@@ -285,7 +285,7 @@ class MetadataTestCases(unittest.TestCase):
         sha = m.commit(spec_metadata_path, specpath)
         m.tag_add(tag)
 
-        metrics = m._get_metrics(entity, tag, sha)
+        metrics = m._get_metrics(entity, sha)
 
         self.assertEqual(metrics, '')
 
