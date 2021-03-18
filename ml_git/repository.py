@@ -17,7 +17,7 @@ from ml_git.config import get_index_path, get_objects_path, get_cache_path, get_
     validate_config_spec_hash, validate_spec_hash, get_sample_config_spec, get_sample_spec_doc, \
     get_index_metadata_path, create_workspace_tree_structure, start_wizard_questions, config_load, \
     get_global_config_path, save_global_config_in_local
-from ml_git.constants import REPOSITORY_CLASS_NAME, LOCAL_REPOSITORY_CLASS_NAME, HEAD, HEAD_1, Mutability, StorageType, \
+from ml_git.constants import REPOSITORY_CLASS_NAME, LOCAL_REPOSITORY_CLASS_NAME, HEAD, HEAD_1, MutabilityType, StorageType, \
     RGX_TAG_FORMAT, EntityType, MANIFEST_FILE, SPEC_EXTENSION, MANIFEST_KEY, STATUS_NEW_FILE, STATUS_DELETED_FILE, \
     STORAGE_KEY, FileType
 from ml_git.file_system.cache import Cache
@@ -87,7 +87,7 @@ class Repository(object):
         is_shared_cache = 'cache_path' in self.__config[repo_type]
 
         if not validate_config_spec_hash(self.__config):
-            log.error('.ml-git/config.yaml invalid. It should look something like this:\n%s'
+            log.error(output_messages['ERROR_INVALID_YAML_CONFIG']
                       % get_yaml_str(get_sample_config_spec('somebucket', 'someprofile', 'someregion')),
                       class_name=REPOSITORY_CLASS_NAME)
             return None
@@ -104,13 +104,13 @@ class Repository(object):
             mutability, check_mutability = repo.get_mutability_from_spec(spec, repo_type)
             sampling_flag = os.path.exists(os.path.join(index_path, 'metadata', spec, 'sampling'))
             if sampling_flag:
-                log.error('You cannot add new data to an entity that is based on a checkout with the --sampling option.',
+                log.error(output_messages['INFO_CANNOT_ADD_NEW_DATA_AN_ENTITY'],
                           class_name=REPOSITORY_CLASS_NAME)
                 return
             if not mutability:
                 return
             if not check_mutability:
-                log.error('Spec mutability cannot be changed.', class_name=REPOSITORY_CLASS_NAME)
+                log.error(output_messages['ERROR_MUTABILITY_CANNOT_CHANGE'], class_name=REPOSITORY_CLASS_NAME)
                 return
             if not self._has_new_data(repo, spec):
                 return None
@@ -135,12 +135,12 @@ class Repository(object):
             return
 
         # Check tag before anything to avoid creating unstable state
-        log.debug('Repository: check if tag already exists', class_name=REPOSITORY_CLASS_NAME)
+        log.debug(output_messages['DEBUG_TAG_CHECK'], class_name=REPOSITORY_CLASS_NAME)
 
         m = Metadata(spec, metadata_path, self.__config, repo_type)
 
         if not m.check_exists():
-            log.error('The %s has not been initialized' % self.__repo_type, class_name=REPOSITORY_CLASS_NAME)
+            log.error(output_messages['ERROR_NOT_INITIALIZED'] % self.__repo_type, class_name=REPOSITORY_CLASS_NAME)
             return
 
         try:
@@ -153,7 +153,7 @@ class Repository(object):
 
         try:
             # adds chunks to ml-git Index
-            log.info('%s adding path [%s] to ml-git index' % (repo_type, path), class_name=REPOSITORY_CLASS_NAME)
+            log.info(output_messages['INFO_ADDING_PATH_TO'] % (repo_type, path), class_name=REPOSITORY_CLASS_NAME)
             with change_mask_for_routine(is_shared_objects):
                 idx = MultihashIndex(spec, index_path, objects_path, mutability, cache_path)
                 idx.add(path, manifest, file_path)
@@ -181,7 +181,7 @@ class Repository(object):
 
         if repo_type not in type_list:
             with disable_exception_traceback():
-                raise RuntimeError(output_messages['ERROR_INVALID_ENTITY_TYPE'])
+                raise RuntimeError(output_messages['ERROR_INVALID_ENTITY_TYPE'] % EntityType.to_list())
 
     def _get_current_manifest_file(self, m, tag):
         manifest = ''
@@ -195,11 +195,9 @@ class Repository(object):
     def _is_spec_valid(self, spec_path):
         spec_file = yaml_load(spec_path)
         if not validate_spec_hash(spec_file, self.__repo_type):
-            log.error(
-                'Invalid %s spec in %s.  It should look something like this:\n%s'
-                % (self.__repo_type, spec_path, get_sample_spec_doc('somebucket', self.__repo_type)),
-                class_name=REPOSITORY_CLASS_NAME
-            )
+            log.error(output_messages['ERROR_INVALID_SPEC_VALUE_IN'] %
+                      (self.__repo_type, spec_path, get_sample_spec_doc('somebucket', self.__repo_type)),
+                      class_name=REPOSITORY_CLASS_NAME)
             return False
         if not validate_bucket_name(spec_file[self.__repo_type], self.__config):
             return False
@@ -210,7 +208,7 @@ class Repository(object):
         if deleted is None and untracked_files is None and changed_files is None:
             return False
         elif len(deleted) == 0 and len(untracked_files) == 0 and len(changed_files) == 0:
-            log.info('There is no new data to add', class_name=REPOSITORY_CLASS_NAME)
+            log.info(output_messages['INFO_NO_NEW_DATA_TO_ADD'], class_name=REPOSITORY_CLASS_NAME)
             return False
         return True
 
@@ -218,7 +216,7 @@ class Repository(object):
     def create_hard_links_in_cache(self, cache_path, index_path, is_shared_cache, mutability, path, spec):
         mf = os.path.join(index_path, 'metadata', spec, MANIFEST_FILE)
         with change_mask_for_routine(is_shared_cache):
-            if mutability in [Mutability.STRICT.value, Mutability.FLEXIBLE.value]:
+            if mutability in [MutabilityType.STRICT.value, MutabilityType.FLEXIBLE.value]:
                 cache = Cache(cache_path, path, mf)
                 cache.update()
 
@@ -227,7 +225,7 @@ class Repository(object):
             corrupted_files = repo.get_corrupted_files(spec)
             if corrupted_files is not None and len(corrupted_files) > 0:
                 print('\n')
-                log.warn('The following files cannot be added because they are corrupted:',
+                log.warn(output_messages['WARN_CORRUPTED_CANNOT_BE_ADD'],
                          class_name=REPOSITORY_CLASS_NAME)
                 for file in corrupted_files:
                     print('\t %s' % file)
@@ -256,9 +254,9 @@ class Repository(object):
         try:
             objects_path = get_objects_path(self.__config, repo_type)
             repo = LocalRepository(self.__config, objects_path, repo_type)
-            log.info('%s: status of ml-git index for [%s]' % (repo_type, spec), class_name=REPOSITORY_CLASS_NAME)
             path, spec_file = search_spec_file(self.__repo_type, spec)
             plugin_caller = self.__load_plugin_caller(path, spec_file)
+            log.info(output_messages['INFO_STATUS_OF'] % (repo_type, spec), class_name=REPOSITORY_CLASS_NAME)
             new_files, deleted_files, untracked_files, corruped_files, changed_files = repo.status(spec, status_directory)
             specialized_plugin_data = plugin_caller.call(GET_STATUS_OUTPUT, path, untracked_files, new_files, full_option)
         except Exception as e:
@@ -353,7 +351,7 @@ class Repository(object):
                 return
 
             if not check_mutability:
-                log.error('Spec mutability cannot be changed.', class_name=REPOSITORY_CLASS_NAME)
+                log.error(output_messages['ERROR_MUTABILITY_CANNOT_CHANGE'], class_name=REPOSITORY_CLASS_NAME)
                 return
         except Exception as e:
             log.error(e, class_name=REPOSITORY_CLASS_NAME)
@@ -380,18 +378,18 @@ class Repository(object):
             idx.add_metadata(path, file)
 
         # Check tag before anything to avoid creating unstable state
-        log.debug('Check if tag already exists', class_name=REPOSITORY_CLASS_NAME)
+        log.debug(output_messages['DEBUG_TAG_CHECK'], class_name=REPOSITORY_CLASS_NAME)
         m = Metadata(spec, metadata_path, self.__config, repo_type)
 
         if not m.check_exists():
-            log.error('The %s has not been initialized' % self.__repo_type, class_name=REPOSITORY_CLASS_NAME)
+            log.error(output_messages['ERROR_NOT_INITIALIZED'] % self.__repo_type, class_name=REPOSITORY_CLASS_NAME)
             return
 
         full_metadata_path, entity_sub_path, metadata = m.tag_exists(index_path)
         if metadata is None:
             return None
 
-        log.debug('%s -> %s' % (index_path, objects_path), class_name=REPOSITORY_CLASS_NAME)
+        log.debug(output_messages['DEBUG_MESSAGE_VALUE'] % (index_path, objects_path), class_name=REPOSITORY_CLASS_NAME)
         # commit objects in index to ml-git objects
         o = Objects(spec, objects_path)
         changed_files, deleted_files = o.commit_index(index_path, path)
@@ -429,7 +427,7 @@ class Repository(object):
             metadata_path = get_metadata_path(self.__config, repo_type)
             m = Metadata('', metadata_path, self.__config, repo_type)
             if not m.check_exists():
-                raise RuntimeError('The %s doesn\'t have been initialized.' % self.__repo_type)
+                raise RuntimeError(output_messages['INFO_NOT_INITIALIZED'] % self.__repo_type)
             m.checkout()
             m.list(title='ML ' + repo_type)
         except GitError as g:
@@ -454,15 +452,15 @@ class Repository(object):
             return False
 
         if curtag is None:
-            log.error('No current tag for [%s]. commit first.' % spec, class_name=REPOSITORY_CLASS_NAME)
+            log.error(output_messages['ERROR_NO_CURRENT_TAG_FOR'] % spec, class_name=REPOSITORY_CLASS_NAME)
             return False
         utag = UsrTag(curtag, usr_tag)
 
         # Check if usrtag exists before creating it
-        log.debug('Check if tag [%s] already exists' % utag, class_name=REPOSITORY_CLASS_NAME)
+        log.debug(output_messages['DEBUG_TAG_CHECK_FOR'] % utag, class_name=REPOSITORY_CLASS_NAME)
         m = Metadata(spec, metadata_path, self.__config, repo_type)
         if m._usrtag_exists(utag) is True:
-            log.error('Tag [%s] already exists.' % utag, class_name=REPOSITORY_CLASS_NAME)
+            log.error(output_messages['ERROR_TAG_ALREADY_EXISTS'] % utag, class_name=REPOSITORY_CLASS_NAME)
             return False
 
         # ensure metadata repository is at the current tag/sha version
@@ -483,7 +481,7 @@ class Repository(object):
             err = match.group(1)
             log.error(err, class_name=REPOSITORY_CLASS_NAME)
             return
-        log.info('Create Tag Successfull', class_name=REPOSITORY_CLASS_NAME)
+        log.info(output_messages['INFO_CREATE_TAG_SUCCESS'], class_name=REPOSITORY_CLASS_NAME)
         # checkout at metadata repository at master version
         m.checkout()
         return True
@@ -513,11 +511,10 @@ class Repository(object):
         met = Metadata(spec, metadata_path, self.__config, repo_type)
         fields = met.git_user_config()
         if None in fields.values():
-            log.error('Your name and email address need to be configured in git. '
-                      'Please see the commands below:', class_name=REPOSITORY_CLASS_NAME)
+            log.error(output_messages['ERROR_NAME_EMAIL_CONFIGURATION'], class_name=REPOSITORY_CLASS_NAME)
 
-            log.error('git config --global user.name \'Your Name\'', class_name=REPOSITORY_CLASS_NAME)
-            log.error('git config --global user.email you@example.com', class_name=REPOSITORY_CLASS_NAME)
+            log.error(output_messages['ERROR_USERNAME_CONFIG'], class_name=REPOSITORY_CLASS_NAME)
+            log.error(output_messages['ERROR_USEREMAIL_CONFIG'], class_name=REPOSITORY_CLASS_NAME)
             return
         if met.fetch() is False:
             return
@@ -556,7 +553,7 @@ class Repository(object):
             m = Metadata('', metadata_path, self.__config, repo_type)
             m.update()
         except GitError as error:
-            log.error('Could not update metadata. Check your remote configuration. %s' % error.stderr, class_name=REPOSITORY_CLASS_NAME)
+            log.error(output_messages['ERROR_METADATA_COULD_NOT_UPDATED'] % error.stderr, class_name=REPOSITORY_CLASS_NAME)
         except Exception as e:
             log.error(e, class_name=REPOSITORY_CLASS_NAME)
 
@@ -644,7 +641,7 @@ class Repository(object):
         r = Refs(refs_path, spec, repo_type)
         tag, sha = r.head()
         if tag is None:
-            log.info('No HEAD for [%s]' % spec, class_name=LOCAL_REPOSITORY_CLASS_NAME)
+            log.info(output_messages['INFO_NO_HEAD_FOR'] % spec, class_name=LOCAL_REPOSITORY_CLASS_NAME)
             return
 
         m = Metadata('', metadata_path, self.__config, repo_type)
@@ -660,20 +657,20 @@ class Repository(object):
         # check if tag already exists in the ml-git repository
         tags = md._tag_exists(tag)
         if len(tags) == 0:
-            log.error('Tag [%s] does not exist in this repository' % tag, class_name=LOCAL_REPOSITORY_CLASS_NAME)
+            log.error(output_messages['ERROR_TAG_NOT_EXISTS_REPOSITORY'] % tag, class_name=LOCAL_REPOSITORY_CLASS_NAME)
             return False
         return True
 
     def _initialize_repository_on_the_fly(self):
         if os.path.exists(get_global_config_path()):
-            log.info('Initializing the project with global settings', class_name=REPOSITORY_CLASS_NAME)
+            log.info(output_messages['INFO_INITIALIZING_PROJECT'], class_name=REPOSITORY_CLASS_NAME)
             init_mlgit()
             save_global_config_in_local()
             metadata_path = get_metadata_path(self.__config)
             if not os.path.exists(metadata_path):
                 Metadata('', metadata_path, self.__config, self.__repo_type).init()
             return metadata_path
-        raise RootPathException('You are not in an initialized ml-git repository and do not have a global configuration.')
+        raise RootPathException(output_messages['INFO_ARE_NOT_IN_INITIALIZED_PROJECT'])
 
     def checkout(self, tag, samples, options):
         try:
@@ -688,22 +685,22 @@ class Repository(object):
             try:
                 self.__repo_type = EntityType.DATASETS.value
                 m = Metadata('', metadata_path, self.__config, self.__repo_type)
-                log.info('Initializing related dataset download', class_name=REPOSITORY_CLASS_NAME)
+                log.info(output_messages['INFO_INITIALIZING_ENTITY_DOWNLOAD'] % self.__repo_type, class_name=REPOSITORY_CLASS_NAME)
                 if not m.check_exists():
                     m.init()
                 self._checkout(dt_tag, samples, options)
             except Exception as e:
-                log.error('LocalRepository: [%s]' % e, class_name=REPOSITORY_CLASS_NAME)
+                log.error(output_messages['ERROR_LOCALREPOSITORY_MESSAGE'] % e, class_name=REPOSITORY_CLASS_NAME)
         if lb_tag is not None:
             try:
-                self.__repo_type = 'labels'
+                self.__repo_type = EntityType.LABELS.value
                 m = Metadata('', metadata_path, self.__config, self.__repo_type)
-                log.info('Initializing related labels download', class_name=REPOSITORY_CLASS_NAME)
+                log.info(output_messages['INFO_INITIALIZING_ENTITY_DOWNLOAD'] % self.__repo_type, class_name=REPOSITORY_CLASS_NAME)
                 if not m.check_exists():
                     m.init()
                 self._checkout(lb_tag, samples, options)
             except Exception as e:
-                log.error('LocalRepository: [%s]' % e, class_name=REPOSITORY_CLASS_NAME)
+                log.error(output_messages['ERROR_LOCALREPOSITORY_MESSAGE'] % e, class_name=REPOSITORY_CLASS_NAME)
 
     '''Performs a fsck on remote storage w.r.t. some specific ML artefact version'''
 
@@ -782,7 +779,7 @@ class Repository(object):
         cur_tag, _ = ref.branch()
 
         if cur_tag == tag:
-            log.info('already at tag [%s]' % tag, class_name=REPOSITORY_CLASS_NAME)
+            log.info(output_messages['INFO_ALREADY_TAG'] % tag, class_name=REPOSITORY_CLASS_NAME)
             return None, None
 
         local_rep = LocalRepository(self.__config, objects_path, repo_type)
@@ -793,7 +790,7 @@ class Repository(object):
         try:
             self._checkout_ref(tag)
         except Exception:
-            log.error('Unable to checkout to %s' % tag, class_name=REPOSITORY_CLASS_NAME)
+            log.error(output_messages['ERROR_UNABLE_CHECKOUT'] % tag, class_name=REPOSITORY_CLASS_NAME)
             return None, None
 
         entity_dir = get_entity_dir(repo_type, spec_name, root_path=metadata_path)
@@ -820,15 +817,15 @@ class Repository(object):
         except OSError as e:
             self._checkout_ref()
             if e.errno == errno.ENOSPC:
-                log.error('There is not enough space in the disk. Remove some files and try again.',
+                log.error(output_messages['ERROR_NOT_DISK_SPACE'],
                           class_name=REPOSITORY_CLASS_NAME)
             else:
-                log.error('An error occurred while creating the files into workspace: %s \n.' % e,
+                log.error(output_messages['ERROR_WHILE_CREATING_FILES'] % e,
                           class_name=REPOSITORY_CLASS_NAME)
                 return None, None
         except Exception as e:
             self._checkout_ref()
-            log.error('An error occurred while creating the files into workspace: %s \n.' % e,
+            log.error(output_messages['ERROR_WHILE_CREATING_FILES'] % e,
                       class_name=REPOSITORY_CLASS_NAME)
             return None, None
 
@@ -951,7 +948,7 @@ class Repository(object):
         repo_type = self.__repo_type
 
         if not validate_config_spec_hash(self.__config):
-            log.error('.ml-git/config.yaml invalid.  It should look something like this:\n%s'
+            log.error(output_messages['ERROR_INVALID_YAML_CONFIG']
                       % get_yaml_str(get_sample_config_spec('somebucket', 'someprofile', 'someregion')),
                       class_name=REPOSITORY_CLASS_NAME)
             return None
@@ -974,15 +971,15 @@ class Repository(object):
 
         try:
             mutability = spec_file[repo_type]['mutability']
-            if mutability not in Mutability.list():
-                log.error('Invalid mutability type.', class_name=REPOSITORY_CLASS_NAME)
+            if mutability not in MutabilityType.to_list():
+                log.error(output_messages['ERROR_INVALID_MUTABILITY_TYPE'], class_name=REPOSITORY_CLASS_NAME)
                 return
         except Exception:
-            log.info('The spec does not have the \'mutability\' property set. Default: strict.',
+            log.info(output_messages['INFO_SPEC_NOT_HAVE_MUTABILITY'],
                      class_name=REPOSITORY_CLASS_NAME)
             return
 
-        if mutability != Mutability.STRICT.value:
+        if mutability != MutabilityType.STRICT.value:
             try:
                 local = LocalRepository(self.__config, objects_path, repo_type)
                 local.unlock_file(path, file_path, index_path, objects_path, spec, cache_path)
@@ -990,7 +987,7 @@ class Repository(object):
                 log.error(e, class_name=REPOSITORY_CLASS_NAME)
                 return
         else:
-            log.error('You cannot use this command for this entity because mutability cannot be strict.',
+            log.error(output_messages['INFO_MUTABILITY_CANNOT_BE_STRICT'],
                       class_name=REPOSITORY_CLASS_NAME)
 
     def create_config_storage(self, storage_type, credentials_path):
@@ -1019,20 +1016,20 @@ class Repository(object):
                 update_storage_spec(repo_type, artifact_name, storage_type, bucket, kwargs['entity_dir'])
                 remote_add(repo_type, git_repo)
             if import_url:
-                self.create_config_storage('gdrive', credentials_path)
+                self.create_config_storage(StorageType.GDRIVE.value, credentials_path)
                 local = LocalRepository(self.__config, get_objects_path(self.__config, repo_type))
                 destine_path = os.path.join(repo_type, kwargs['entity_dir'], artifact_name, 'data')
                 local.import_file_from_url(destine_path, import_url, StorageType.GDRIVE.value)
             if unzip_file:
-                log.info('Unzipping files', CLASS_NAME=REPOSITORY_CLASS_NAME)
+                log.info(output_messages['INFO_UNZIPPING_FILES'], CLASS_NAME=REPOSITORY_CLASS_NAME)
                 data_path = os.path.join(get_root_path(), repo_type, kwargs['entity_dir'], artifact_name, 'data')
                 unzip_files_in_directory(data_path)
-            log.info("Project Created.", CLASS_NAME=REPOSITORY_CLASS_NAME)
+            log.info(output_messages['INFO_PROJECT_CREATED'], CLASS_NAME=REPOSITORY_CLASS_NAME)
         except Exception as e:
             if not isinstance(e, PermissionError):
                 clear(os.path.join(repo_type, artifact_name))
             if isinstance(e, KeyboardInterrupt):
-                log.info("Create command aborted!", class_name=REPOSITORY_CLASS_NAME)
+                log.info(output_messages['INFO_CREATE_ABORTED'], class_name=REPOSITORY_CLASS_NAME)
             else:
                 log.error(e, CLASS_NAME=REPOSITORY_CLASS_NAME)
 
@@ -1049,7 +1046,7 @@ class Repository(object):
             if not self._tag_exists(tag):
                 return None, None
         except InvalidGitRepositoryError:
-            log.error('You are not in an initialized ml-git repository.', class_name=LOCAL_REPOSITORY_CLASS_NAME)
+            log.error(output_messages['ERROR_NOT_IN_RESPOSITORY'], class_name=LOCAL_REPOSITORY_CLASS_NAME)
             return None, None
         except Exception as e:
             log.error(e, class_name=LOCAL_REPOSITORY_CLASS_NAME)
@@ -1058,7 +1055,7 @@ class Repository(object):
         try:
             self._checkout_ref(tag)
         except Exception:
-            log.error('Unable to checkout to %s' % tag, class_name=REPOSITORY_CLASS_NAME)
+            log.error(output_messages['ERROR_UNABLE_CHECKOUT'] % tag, class_name=REPOSITORY_CLASS_NAME)
             return None, None
 
         local = LocalRepository(self.__config, get_objects_path(self.__config, self.__repo_type), self.__repo_type)

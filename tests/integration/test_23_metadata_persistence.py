@@ -12,9 +12,8 @@ from ml_git.constants import STORAGE_KEY
 from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_STATUS, MLGIT_ADD, MLGIT_PUSH, MLGIT_COMMIT, MLGIT_INIT, \
     MLGIT_REMOTE_ADD, MLGIT_ENTITY_INIT, MLGIT_CHECKOUT, MLGIT_STORAGE_ADD_WITH_TYPE
-from tests.integration.helper import ML_GIT_DIR, GIT_PATH, BUCKET_NAME, PROFILE, STORAGE_TYPE, DATASETS, DATASET_NAME
+from tests.integration.helper import ML_GIT_DIR, GIT_PATH, BUCKET_NAME, PROFILE, STORAGE_TYPE, DATASETS, DATASET_NAME, STRICT, S3H
 from tests.integration.helper import check_output, clear, init_repository, yaml_processor
-from tests.integration.output_messages import messages
 
 
 @pytest.mark.usefixtures('tmp_dir', 'aws_session')
@@ -26,7 +25,7 @@ class MetadataPersistenceTests(unittest.TestCase):
         self.assertRegex(check_output(MLGIT_STATUS % (DATASETS, DATASET_NAME)),
                          r'Changes to be committed:\n\nUntracked files:\n\tdatasets-ex.spec\n\nCorrupted files')
 
-        self.assertIn(messages[13] % DATASETS, check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, '')))
+        self.assertIn(output_messages['INFO_ADDING_PATH'] % DATASETS, check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, '')))
 
         readme = os.path.join(DATASETS, DATASET_NAME, 'README.md')
 
@@ -36,7 +35,7 @@ class MetadataPersistenceTests(unittest.TestCase):
         self.assertRegex(check_output(MLGIT_STATUS % (DATASETS, DATASET_NAME)),
                          r'Changes to be committed:\n\tNew file: datasets-ex.spec\n\nUntracked files:\n\tREADME.md\n\nCorrupted files')
 
-        self.assertIn(messages[13] % DATASETS, check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, '')))
+        self.assertIn(output_messages['INFO_ADDING_PATH'] % DATASETS, check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, '')))
 
         status = check_output(MLGIT_STATUS % (DATASETS, DATASET_NAME))
 
@@ -47,13 +46,13 @@ class MetadataPersistenceTests(unittest.TestCase):
             file.write('NEW2')
 
         spec = {
-            'datasets': {
+            DATASETS: {
                 'categories': ['computer-vision', 'images'],
                 'manifest': {
                     'files': 'MANIFEST.yaml',
-                    STORAGE_KEY: 's3h://mlgit'
+                    STORAGE_KEY: '%s://mlgit' % S3H
                 },
-                'mutability': 'strict',
+                'mutability': STRICT,
                 'name': 'datasets-ex',
                 'version': 16
             }
@@ -70,9 +69,9 @@ class MetadataPersistenceTests(unittest.TestCase):
         self.assertNotIn('new file: datasets-ex.spec', status)
         self.assertIn('datasets-ex.spec', status)
 
-        self.assertIn(messages[13] % DATASETS, check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, '')))
+        self.assertIn(output_messages['INFO_ADDING_PATH'] % DATASETS, check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, '')))
 
-        self.assertIn(messages[17] % (os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'metadata'), DATASET_NAME),
+        self.assertIn(output_messages['INFO_COMMIT_REPO'] % (os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'metadata'), DATASET_NAME),
                       check_output(MLGIT_COMMIT % (DATASETS, DATASET_NAME, '')))
 
         self.assertIn('No blobs', check_output(MLGIT_PUSH % (DATASETS, DATASET_NAME)))
@@ -83,11 +82,11 @@ class MetadataPersistenceTests(unittest.TestCase):
         clear(ML_GIT_DIR)
         clear(DATASETS)
 
-        self.assertIn(messages[0], check_output(MLGIT_INIT))
-        self.assertIn(messages[2] % (GIT_PATH, DATASETS), check_output(MLGIT_REMOTE_ADD % (DATASETS, GIT_PATH)))
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_ADD_REMOTE'] % (GIT_PATH, DATASETS), check_output(MLGIT_REMOTE_ADD % (DATASETS, GIT_PATH)))
         self.assertIn(output_messages['INFO_ADD_STORAGE'] % (STORAGE_TYPE, BUCKET_NAME, PROFILE),
                       check_output(MLGIT_STORAGE_ADD_WITH_TYPE % (BUCKET_NAME, PROFILE, STORAGE_TYPE)))
-        self.assertIn(messages[8] % (GIT_PATH, os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'metadata')),
+        self.assertIn(output_messages['INFO_METADATA_INIT'] % (GIT_PATH, os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'metadata')),
                       check_output(MLGIT_ENTITY_INIT % DATASETS))
 
         check_output(MLGIT_CHECKOUT % (DATASETS, 'computer-vision__images__datasets-ex__17'))

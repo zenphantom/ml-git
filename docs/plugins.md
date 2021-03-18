@@ -4,7 +4,7 @@ Data specialization plugins are resources that can be added to ml-git providing 
 
 ## Plugin contracts
 
-<details>
+<details markdown="1">
 <summary><code> add_metadata </code></summary>
 </br>
 

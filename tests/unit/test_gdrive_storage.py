@@ -18,6 +18,6 @@ class GdriveStoreTestCases(unittest.TestCase):
         folder_url = 'https://drive.google.com/drive/folders/id_2?usp=sharing'
         download_url = 'https://drive.google.com/uc?id=id_3'
 
-        self.assertEqual(GoogleDriveStorage.get_file_id_from_url(GoogleDriveStorage, file_url), 'id_1')
-        self.assertEqual(GoogleDriveStorage.get_file_id_from_url(GoogleDriveStorage, folder_url), 'id_2')
-        self.assertEqual(GoogleDriveStorage.get_file_id_from_url(GoogleDriveStorage, download_url), 'id_3')
+        self.assertEqual(GoogleDriveStorage.get_file_id_from_url(file_url), 'id_1')
+        self.assertEqual(GoogleDriveStorage.get_file_id_from_url(folder_url), 'id_2')
+        self.assertEqual(GoogleDriveStorage.get_file_id_from_url(download_url), 'id_3')

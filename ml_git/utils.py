@@ -157,10 +157,10 @@ def get_root_path():
         except StopIteration:
             parent = current_path.parent
             if parent == current_path:
-                raise RootPathException('You are not in an initialized ml-git repository.')
+                raise RootPathException(output_messages['ERROR_NOT_IN_RESPOSITORY'])
             else:
                 current_path = parent
-    raise RootPathException('You are not in an initialized ml-git repository.')
+    raise RootPathException(output_messages['ERROR_NOT_IN_RESPOSITORY'])
 
 
 # function created to clear directory
@@ -362,3 +362,13 @@ def create_csv_file(file_path, header, data_entries):
                 entry_data.append(entry.get(key, ''))
             row_list.append(entry_data)
         writer.writerows(row_list)
+
+
+def singleton(cls):
+    instances = {}
+
+    def instance(*args, **kwargs):
+        if cls not in instances:
+            instances[cls] = cls(*args, **kwargs)
+        return instances[cls]
+    return instance

@@ -1,6 +1,6 @@
 # ml-git commands #
 
-<details>
+<details markdown="1">
 <summary><code> ml-git --help </code></summary>
 <br>
 
@@ -25,14 +25,14 @@ $ ml-git --help
 
 </details>
 
-<details>
+<details markdown="1">
 <summary><code> ml-git --version </code></summary>
 
 Displays the installed version of ml-git.
 
 </details>
 
-<details>
+<details markdown="1">
 <summary><code> ml-git &lt;ml-entity&gt; add </code></summary>
 <br>
 
@@ -70,7 +70,7 @@ ml-git allows you to enter a metrics file or the metrics themselves on the comma
 
 </details>
 
-<details>
+<details markdown="1">
 <summary><code> ml-git &lt;ml-entity&gt; branch </code></summary>
 <br>
 
@@ -99,7 +99,7 @@ Both are the same representation. One is human-readable and is also used interna
 
 </details>
 
-<details>
+<details markdown="1">
 <summary><code> ml-git &lt;ml-entity&gt; checkout </code></summary>
 <br>
 
@@ -144,7 +144,7 @@ Note:
 
 </details>
 
-<details>
+<details markdown="1">
 <summary><code> ml-git &lt;ml-entity&gt; commit </code></summary>
 <br>
 
@@ -185,7 +185,7 @@ Same for ML model, one can specify which dataset and label set that have been us
 
 </details>
 
-<details>
+<details markdown="1">
 <summary><code> ml-git &lt;ml-entity&gt; create </code></summary>
 <br>
 
@@ -233,7 +233,7 @@ ml-git datasets create imagenet8 --storage-type=s3h --category=computer-vision -
 
 </details>
 
-<details>
+<details markdown="1">
 <summary><code> ml-git &lt;ml-entity&gt; export </code></summary>
 <br>
 
@@ -259,7 +259,7 @@ $ ml-git datasets export computer-vision__images__faces__fddb__1 minio
 
 </details>
 
-<details>
+<details markdown="1">
 <summary><code> ml-git &lt;ml-entity&gt; fetch </code></summary>
 <br>
 
@@ -296,7 +296,7 @@ ml-git datasets fetch computer-vision__images__faces__fddb__1
 
 </details>
 
-<details>
+<details markdown="1">
 <summary><code> ml-git &lt;ml-entity&gt; fsck </code></summary>
 <br>
 
@@ -325,7 +325,7 @@ in the future, fsck should be able to fix some errors of detected corruption.
 
 </details>
 
-<details>
+<details markdown="1">
 <summary><code> ml-git &lt;ml-entity&gt; import </code></summary>
 <br>
 
@@ -359,7 +359,7 @@ $ ml-git datasets import gdrive-folder --storage-type=gdrive --object=file_to_do
 
 </details>
 
-<details>
+<details markdown="1">
 <summary><code> ml-git &lt;ml-entity&gt; init </code></summary>
 <br>
 
@@ -382,7 +382,7 @@ It initializes the metadata by pulling all metadata to the local repository.
 
 </details>
 
-<details>
+<details markdown="1">
 <summary><code> ml-git &lt;ml-entity&gt; metrics </code></summary>
 <br>
 
@@ -411,7 +411,7 @@ This command is only available for model entities.
 
 </details>
 
-<details>
+<details markdown="1">
 <summary><code> ml-git &lt;ml-entity&gt; list </code></summary>
 <br>
 
@@ -438,7 +438,7 @@ ML dataset
 </details>
 
 
-<details>
+<details markdown="1">
 <summary><code>ml-git &lt;ml-entity&gt; log </code></summary>
 <br>
 
@@ -463,7 +463,7 @@ ml-git datasets log dataset-ex
 
 
 
-<details>
+<details markdown="1">
 <summary><code> ml-git &lt;ml-entity&gt; push </code></summary>
 <br>
 
@@ -492,7 +492,7 @@ This command will perform a 2-step operations:
 
 </details>
 
-<details>
+<details markdown="1">
 <summary><code> ml-git &lt;ml-entity&gt; remote-fsck </code></summary>
 <br>
 
@@ -527,7 +527,7 @@ This ml-git command will basically try to:
 
 </details>
 
-<details>
+<details markdown="1">
 <summary><code> ml-git &lt;ml-entity&gt; reset </code></summary>
 <br>
 
@@ -580,7 +580,7 @@ else:
 
 </details>
 
-<details>
+<details markdown="1">
 <summary><code> ml-git &lt;ml-entity&gt; show </code></summary>
 <br>
 
@@ -609,7 +609,7 @@ version: 1
 
 </details>
 
-<details>
+<details markdown="1">
 <summary><code> ml-git &lt;ml-entity&gt; status </code></summary>
 <br>
 
@@ -631,7 +631,7 @@ $ ml-git datasets status dataset-ex
 
 </details>
 
-<details>
+<details markdown="1">
 <summary><code> ml-git &lt;ml-entity&gt; tag add</code></summary>
 <br>
 
@@ -651,7 +651,7 @@ $ ml-git datasets tag add dataset-ex my_tag
 
 </details>
 
-<details>
+<details markdown="1">
 <summary><code> ml-git &lt;ml-entity&gt; tag list </code></summary>
 <br>
 
@@ -671,7 +671,7 @@ $ ml-git datasets tag list dataset-ex
 
 </details>
 
-<details>
+<details markdown="1">
 <summary><code> ml-git &lt;ml-entity&gt; update </code></summary>
 <br>
 
@@ -692,7 +692,7 @@ $ ml-git datasets update
 This command enables one to have the visibility of what has been shared since the last update (new ML entity, new versions).
 </details>
 
-<details>
+<details markdown="1">
 <summary><code> ml-git &lt;ml-entity&gt; unlock </code></summary>
 <br>
 
@@ -720,7 +720,7 @@ You should only use this command for the flexible mutability option.
 </details>
 
 
-<details>
+<details markdown="1">
 <summary><code> ml-git clone &lt;repository-url&gt; </code></summary>
 <br>
 
@@ -742,7 +742,7 @@ $ ml-git clone https://git@github.com/mlgit-repository
 
 </details>
 
-<details>
+<details markdown="1">
 <summary><code> ml-git login </code></summary>
 <br>
 
@@ -770,7 +770,7 @@ ml-git login
 
 </details>
 
-<details>
+<details markdown="1">
 <summary><code> ml-git repository config </code></summary>
 <br>
 
@@ -798,7 +798,7 @@ change the default configuration to adapt for her needs.
 
 </details>
 
-<details>
+<details markdown="1">
 <summary><code> ml-git repository gc </code></summary>
 <br>
 
@@ -815,7 +815,7 @@ This command will remove unnecessary files contained in the cache and objects di
 
 </details>
 
-<details>
+<details markdown="1">
 <summary><code> ml-git repository init </code></summary>
 <br>
 
@@ -837,7 +837,7 @@ This is the first command you need to run to initialize a ml-git project. It wil
 
 </details>
 
-<details>
+<details markdown="1">
 <summary><code> ml-git repository remote &lt;ml-entity&gt; add </code></summary>
 <br>
 
@@ -857,7 +857,7 @@ $ ml-git repository remote dataset add https://git@github.com/mlgit-datasets
 
 </details>
 
-<details>
+<details markdown="1">
 <summary><code> ml-git repository remote &lt;ml-entity&gt; del </code></summary>
 <br>
 
@@ -877,7 +877,7 @@ $ ml-git repository remote dataset del
 
 </details>
 
-<details>
+<details markdown="1">
 <summary><code> ml-git repository storage add </code></summary>
 <br>
 
@@ -910,7 +910,7 @@ Use this command to add a data storage to a ml-git project.
 
 </details>
 
-<details>
+<details markdown="1">
 <summary><code> ml-git repository storage del </code></summary>
 <br>
 
@@ -932,7 +932,7 @@ $ ml-git repository storage del minio
 
 </details>
 
-<details>
+<details markdown="1">
 <summary><code> ml-git repository update </code></summary>
 <br>
 
