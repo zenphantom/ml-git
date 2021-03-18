@@ -2,7 +2,7 @@
 © Copyright 2020 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
-
+import csv
 import os
 import shutil
 import sys
@@ -18,7 +18,7 @@ from ml_git.constants import ROOT_FILE_NAME, V1_STORAGE_KEY, STORAGE_KEY, V1_DAT
 from ml_git.utils import json_load, yaml_load, yaml_save, RootPathException, get_root_path, change_mask_for_routine, \
     ensure_path_exists, yaml_load_str, get_yaml_str, run_function_per_group, unzip_files_in_directory, \
     remove_from_workspace, group_files_by_path, remove_other_files, remove_unnecessary_files, change_keys_in_config, \
-    update_directories_to_plural, validate_config_keys
+    update_directories_to_plural, validate_config_keys, create_csv_file
 from tests.unit.conftest import DATASETS, MODELS, S3H, S3
 
 
@@ -261,3 +261,29 @@ class UtilsTestCases(unittest.TestCase):
         self.assertFalse(validate_config_keys(yaml.safe_load(config % (DATASETS, MODELS, V1_STORAGE_KEY))))
         self.assertFalse(validate_config_keys(yaml.safe_load(config % (DATASETS, V1_MODELS_KEY, STORAGE_KEY))))
         self.assertFalse(validate_config_keys(yaml.safe_load(config % (V1_DATASETS_KEY, MODELS, STORAGE_KEY))))
+
+    def test_create_csv_file(self):
+        csv_file_path = os.path.join(self.tmp_dir, 'metrics-file.csv')
+        header = ['Name', 'Value']
+        lines = [{'Name': 'line1', 'Value': 'line1'}, {'Name': 'line2', 'Value': 'line2'},
+                 {'Name': 'line2'}]
+        self.assertFalse(os.path.exists(csv_file_path))
+        create_csv_file(csv_file_path, header, lines)
+        self.assertTrue(os.path.exists(csv_file_path))
+
+        with open(csv_file_path) as csv_file:
+            csv_reader = csv.reader(csv_file, delimiter=',')
+            line_count = 0
+            for row in csv_reader:
+                if line_count == 0:
+                    self.assertEqual(header, row)
+                    line_count += 1
+                else:
+                    line_index = line_count - 1
+                    if line_count == 3:
+                        row_values = [lines[line_index]['Name'], '']
+                    else:
+                        row_values = [lines[line_index]['Name'], lines[line_index]['Value']]
+                    self.assertEqual(row_values, row)
+                    line_count += 1
+            self.assertEqual(4, line_count)

@@ -383,6 +383,35 @@ It initializes the metadata by pulling all metadata to the local repository.
 </details>
 
 <details markdown="1">
+<summary><code> ml-git &lt;ml-entity&gt; metrics </code></summary>
+<br>
+
+```
+Usage: ml-git models metrics [OPTIONS] ML_ENTITY_NAME
+
+  Shows metrics information for each tag of the entity.
+
+Options:
+  --export-path TEXT        Set the path to export metrics to a file. NOTE:
+                            This option is required if --export-type is used.
+  --export-type [csv|json]  Choose the format of the file that will be
+                            generated with the metrics [default: json].
+  --verbose                 Debug mode
+```
+
+Example:
+```
+$ ml-git models metrics model-ex
+```
+
+Note:
+```
+This command is only available for model entities.
+```
+
+</details>
+
+<details markdown="1">
 <summary><code> ml-git &lt;ml-entity&gt; list </code></summary>
 <br>
 

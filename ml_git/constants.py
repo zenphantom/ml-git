@@ -61,6 +61,8 @@ V1_MODELS_KEY = 'model'
 MANIFEST_KEY = 'manifest'
 STATUS_NEW_FILE = 'New file: '
 STATUS_DELETED_FILE = 'Deleted: '
+RELATED_DATASET_TABLE_INFO = 'Related dataset - (version)'
+RELATED_LABELS_TABLE_INFO = 'Related labels - (version)'
 
 
 class MutabilityType(Enum):
@@ -96,3 +98,13 @@ class EntityType(Enum):
     @staticmethod
     def to_list():
         return [entity.value for entity in EntityType]
+
+
+@unique
+class FileType(Enum):
+    CSV = 'csv'
+    JSON = 'json'
+
+    @staticmethod
+    def to_list():
+        return [file.value for file in FileType]

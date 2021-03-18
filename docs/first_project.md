@@ -478,13 +478,14 @@ models:
   version: 1
 ```
 
-You can check the metrics added to the spec by executing the log command.
+You can view metrics for all tags for that entity by running the following command:
 
 ```
-$ ml-git models log imagenet-model
+$ ml-git models metrics imagenet-model
 ```
 
-[![asciicast](https://asciinema.org/a/Fs4qaPXXDTK1sapmAvnyeXp3n.svg)](https://asciinema.org/a/Fs4qaPXXDTK1sapmAvnyeXp3n)
+[![asciicast](https://asciinema.org/a/D5Fng853vi8uNKghdrFKunKYb.svg)](https://asciinema.org/a/D5Fng853vi8uNKghdrFKunKYb)
+
 ## <a name="download-dataset">Downloading a dataset</a> ##
 
 We assume there is an existing ml-git repository with a few ML datasets under its management and you'd like to download one of the existing datasets.

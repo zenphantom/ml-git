@@ -100,6 +100,7 @@ output_messages = {
     'INFO_PARANOID_MODE_ACTIVE': 'Paranoid mode is active - Downloading files: ',
     'INFO_FIXING_CORRUPTED_FILES_IN_STORAGE': 'Fixing corrupted files in remote storage',
     'INFO_EXPORTING_TAG': 'Exporting tag [%s] from [%s] to [%s].',
+    'INFO_METRICS_EXPORTED': 'The metrics were exported to the file: {}',
     'INFO_ALREADY_IN_RESPOSITORY': 'You already are in a ml-git repository',
     'INFO_ADDING_PATH': '%s adding path',
     'INFO_MLGIT_PULL': 'Pull [%s]',
@@ -164,6 +165,8 @@ output_messages = {
     'ERROR_ENTITY_NOT_FOUND': 'Entity type [%s] not found in your configuration file.',
     'ERROR_REMOTE_NOT_FOUND': 'Remote URL not found.',
     'ERROR_MISSING_MUTABILITY': 'Missing option "--mutability".  Choose from:\n\tstrict,\n\tflexible,\n\tmutable.',
+    'ERROR_MISSING_EXPORT_PATH': 'Missing option "--export-path".  The argument `export_path` is required if `export-type` is used.',
+    'ERROR_INVALID_TYPE_OF_FILE': 'This type of file is not supported, use one of the following types: %s',
     'ERROR_SPEC_WITHOUT_MUTABILITY': 'You need to define a mutability type when creating a new entity. '
                                      'Your spec should look something like this:' + doc,
     'ERROR_AWS_KEY_NOT_EXIST': 'The AWS Access Key Id you provided does not exist in our records.',

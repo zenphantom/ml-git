@@ -10,7 +10,7 @@ import click
 from ml_git.commands import entity, help_msg, storage
 from ml_git.commands.custom_options import MutuallyExclusiveOption, OptionRequiredIf, DeprecatedOptionsCommand
 from ml_git.commands.utils import set_verbose_mode
-from ml_git.constants import MutabilityType, StorageType
+from ml_git.constants import MutabilityType, StorageType, FileType
 
 commands = [
 
@@ -556,6 +556,28 @@ commands = [
         'help': 'Delete a storage BUCKET_NAME from ml-git.'
 
     },
+
+    {
+        'name': 'metrics',
+
+        'callback': entity.metrics,
+
+        'groups': [entity.models],
+
+        'arguments': {
+            'ml-entity-name': {},
+        },
+
+        'options': {
+            '--export-type': {'required': False, 'help': help_msg.EXPORT_METRICS_TYPE,
+                              'type': click.Choice(FileType.to_list(), case_sensitive=False)},
+            '--export-path': {'help': help_msg.EXPORT_METRICS_PATH,
+                              'cls': OptionRequiredIf, 'required_option': ['export-type']},
+        },
+
+        'help': help_msg.METRICS_COMMAND
+
+    }
 
 ]
 

@@ -3,6 +3,7 @@
 SPDX-License-Identifier: GPL-2.0-only
 """
 import bisect
+import csv
 import itertools
 import json
 import os
@@ -348,6 +349,19 @@ def check_metadata_directories():
     if v1_dataset_path_exists or v1_model_path_exists or not validate_config_keys(config):
         update_project(v1_dataset_path_exists, v1_model_path_exists, root_path)
         log.info(output_messages['INFO_PROJECT_UPDATE_SUCCESSFULLY'])
+
+
+def create_csv_file(file_path, header, data_entries):
+    with open(file_path, 'w', newline='') as file:
+        writer = csv.writer(file)
+        row_list = list()
+        row_list.append(header)
+        for entry in data_entries:
+            entry_data = []
+            for key in header:
+                entry_data.append(entry.get(key, ''))
+            row_list.append(entry_data)
+        writer.writerows(row_list)
 
 
 def singleton(cls):

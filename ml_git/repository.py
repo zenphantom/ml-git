@@ -19,7 +19,7 @@ from ml_git.config import get_index_path, get_objects_path, get_cache_path, get_
     get_global_config_path, save_global_config_in_local
 from ml_git.constants import REPOSITORY_CLASS_NAME, LOCAL_REPOSITORY_CLASS_NAME, HEAD, HEAD_1, MutabilityType, StorageType, \
     RGX_TAG_FORMAT, EntityType, MANIFEST_FILE, SPEC_EXTENSION, MANIFEST_KEY, STATUS_NEW_FILE, STATUS_DELETED_FILE, \
-    STORAGE_KEY
+    STORAGE_KEY, FileType
 from ml_git.file_system.cache import Cache
 from ml_git.file_system.hashfs import MultihashFS
 from ml_git.file_system.index import MultihashIndex, Status, FullIndex
@@ -1095,6 +1095,23 @@ class Repository(object):
             log_info = '{}\n{}'.format(log_info, workspace_info)
 
         log.info(log_info, class_name=REPOSITORY_CLASS_NAME)
+
+    def get_models_metrics(self, entity_name, export_path, export_type):
+        try:
+            repo_type = self.__repo_type
+            self._check_is_valid_entity(repo_type, entity_name)
+            metadata_path = get_metadata_path(self.__config, repo_type)
+            metadata = Metadata(entity_name, metadata_path, self.__config, repo_type)
+            metrics_by_tag = metadata.get_metrics_info(entity_name, export_path)
+
+            if export_path:
+                if not export_type:
+                    export_type = FileType.JSON.value
+                export_data = metadata.export_metrics(entity_name, export_path, export_type, metrics_by_tag)
+                return export_data
+        except Exception as e:
+            log.error(e, class_name=REPOSITORY_CLASS_NAME)
+            return
 
     def metadata_exists(self, entity):
         self.__repo_type = entity
