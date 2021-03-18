@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-2.0-only
 
 import unittest
 
+from ml_git.ml_git_message import output_messages
 from ml_git.pool import WorkerPool, process_futures
 
 
@@ -25,7 +26,7 @@ def job_no_ctx(abc, bcd, exc=False):
     if exc is True and nexc < 2:
         print('nexc : %d %s' % (nexc, exc))
         nexc += 1
-        raise Exception('worker pool exception')
+        raise Exception(output_messages['ERROR_WORKER_POOL_EXCEPTION'])
     return abc * bcd
 
 

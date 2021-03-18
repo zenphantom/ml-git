@@ -11,6 +11,7 @@ import boto3
 import multihash
 from botocore.client import ClientError, Config
 from cid import CIDv1
+
 from ml_git import log
 from ml_git.config import get_key
 from ml_git.constants import STORAGE_FACTORY_CLASS_NAME, S3STORAGE_NAME, S3_MULTI_HASH_STORAGE_NAME, StorageType
@@ -132,7 +133,7 @@ class S3Storage(Storage):
         s3_resource = self._storage
 
         if not self.key_exists(key_path):
-            raise RuntimeError('Object [%s] not found' % key_path)
+            raise RuntimeError(output_messages['ERROR_OBJECT_NOT_FOUND'] % key_path)
 
         res = s3_resource.Object(bucket, key_path).get()
         return res['Body'].read()

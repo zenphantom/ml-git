@@ -124,6 +124,7 @@ def add(context, **kwargs):
 
 def commit(context, **kwargs):
     repo_type = context.parent.command.name
+    linked_dataset_key = 'dataset'
     msg = kwargs['message']
     version = kwargs['version']
     run_fsck = kwargs['fsck']
@@ -132,10 +133,10 @@ def commit(context, **kwargs):
     labels_tag = None
 
     if repo_type == MODELS:
-        dataset_tag = kwargs['dataset']
-        labels_tag = kwargs['labels']
+        dataset_tag = kwargs[linked_dataset_key]
+        labels_tag = kwargs[EntityType.LABELS.value]
     elif repo_type == LABELS:
-        dataset_tag = kwargs['dataset']
+        dataset_tag = kwargs[linked_dataset_key]
     tags = {}
     if dataset_tag is not None:
         tags[EntityType.DATASETS.value] = dataset_tag

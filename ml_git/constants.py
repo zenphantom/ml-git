@@ -63,14 +63,14 @@ STATUS_NEW_FILE = 'New file: '
 STATUS_DELETED_FILE = 'Deleted: '
 
 
-class Mutability(Enum):
+class MutabilityType(Enum):
     STRICT = 'strict'
     FLEXIBLE = 'flexible'
     MUTABLE = 'mutable'
 
     @staticmethod
-    def list():
-        return list(map(lambda c: c.value, Mutability))
+    def to_list():
+        return [mutability.value for mutability in MutabilityType]
 
 
 @unique

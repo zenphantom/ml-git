@@ -37,24 +37,24 @@ class MetadataRepo(object):
             raise e
         except Exception as e:
             if str(e) == '\'Metadata\' object has no attribute \'_MetadataRepo__git\'':
-                log.error('You are not in an initialized ml-git repository.', class_name=METADATA_MANAGER_CLASS_NAME)
+                log.error(output_messages['ERROR_NOT_IN_RESPOSITORY'], class_name=METADATA_MANAGER_CLASS_NAME)
             else:
                 log.error(e, class_name=METADATA_MANAGER_CLASS_NAME)
             return
 
     def init(self):
         try:
-            log.info('Metadata init [%s] @ [%s]' % (self.__git, self.__path), class_name=METADATA_MANAGER_CLASS_NAME)
+            log.info(output_messages['INFO_METADATA_INIT'] % (self.__git, self.__path), class_name=METADATA_MANAGER_CLASS_NAME)
             Repo.clone_from(self.__git, self.__path)
         except GitError as g:
             if 'fatal: repository \'\' does not exist' in g.stderr:
-                raise GitError('Unable to find remote repository. Add the remote first.')
+                raise GitError(output_messages['ERROR_UNABLE_TO_FIND_REMOTE_REPOSITORY'])
             elif 'Repository not found' in g.stderr:
-                raise GitError('Unable to find ' + self.__git + '. Check the remote repository used.')
+                raise GitError(output_messages['ERROR_UNABLE_TO_FIND'] % self.__git)
             elif 'already exists and is not an empty directory' in g.stderr:
-                raise GitError('The path [%s] already exists and is not an empty directory.' % self.__path)
+                raise GitError(output_messages['ERROR_PATH_ALREAD_EXISTS'] % self.__path)
             elif 'Authentication failed' in g.stderr:
-                raise GitError('Authentication failed for git remote')
+                raise GitError(output_messages['ERROR_GIT_REMOTE_AUTHENTICATION_FAILED'])
             else:
                 raise GitError(g.stderr)
             return
@@ -69,7 +69,7 @@ class MetadataRepo(object):
             raise e
 
     def check_exists(self):
-        log.debug('Metadata check existence [%s] @ [%s]' % (self.__git, self.__path),
+        log.debug(output_messages['DEBUG_METADATA_CHECK_EXISTENCE'] % (self.__git, self.__path),
                   class_name=METADATA_MANAGER_CLASS_NAME)
         try:
             Repo(self.__path)
@@ -110,14 +110,14 @@ class MetadataRepo(object):
         return DEFAULT_BRANCH_FOR_EMPTY_REPOSITORY
 
     def update(self):
-        log.info('Pull [%s]' % self.__path, class_name=METADATA_MANAGER_CLASS_NAME)
+        log.info(output_messages['INFO_MLGIT_PULL'] % self.__path, class_name=METADATA_MANAGER_CLASS_NAME)
         repo = Repo(self.__path)
         self.validate_blank_remote_url()
         o = repo.remotes.origin
         o.pull('--tags')
 
     def commit(self, file, msg):
-        log.info('Commit repo[%s] --- file[%s]' % (self.__path, file), class_name=METADATA_MANAGER_CLASS_NAME)
+        log.info(output_messages['INFO_COMMIT_REPO'] % (self.__path, file), class_name=METADATA_MANAGER_CLASS_NAME)
         repo = Repo(self.__path)
         repo.index.add([file])
         return repo.index.commit(msg)
@@ -128,17 +128,17 @@ class MetadataRepo(object):
 
     @Halo(text='Pushing metadata to the git repository', spinner='dots')
     def push(self):
-        log.debug('Push [%s]' % self.__path, class_name=METADATA_MANAGER_CLASS_NAME)
+        log.debug(output_messages['DEBUG_PUSH'] % self.__path, class_name=METADATA_MANAGER_CLASS_NAME)
         repo = Repo(self.__path)
         try:
             self.validate_blank_remote_url()
             for i in repo.remotes.origin.push(tags=True):
                 if (i.flags & PushInfo.ERROR) == PushInfo.ERROR:
-                    raise RuntimeError('Error on push metadata to git repository. Please update your mlgit project!')
+                    raise RuntimeError(output_messages['ERROR_PUSH_METADATA'])
 
             for i in repo.remotes.origin.push():
                 if (i.flags & PushInfo.ERROR) == PushInfo.ERROR:
-                    raise RuntimeError('Error on push metadata to git repository. Please update your mlgit project!')
+                    raise RuntimeError(output_messages['ERROR_PUSH_METADATA'])
         except GitError as e:
             err = e.stderr
             match = re.search("stderr: 'fatal:((?:.|\\s)*)'", err)
@@ -148,7 +148,7 @@ class MetadataRepo(object):
 
     def fetch(self):
         try:
-            log.debug(' fetch [%s]' % self.__path, class_name=METADATA_MANAGER_CLASS_NAME)
+            log.debug(output_messages['DEBUG_FETCH'] % self.__path, class_name=METADATA_MANAGER_CLASS_NAME)
             repo = Repo(self.__path)
             self.validate_blank_remote_url()
             repo.remotes.origin.fetch()
@@ -172,7 +172,7 @@ class MetadataRepo(object):
                     tags.append(tag)
 
         except Exception:
-            log.error('Invalid ml-git repository!', class_name=METADATA_MANAGER_CLASS_NAME)
+            log.error(output_messages['ERROR_INVALID_REPOSITORY'], class_name=METADATA_MANAGER_CLASS_NAME)
         return tags
 
     def delete_tag(self, tag):
@@ -243,7 +243,7 @@ class MetadataRepo(object):
         if output != (title + '\n'):
             print(output)
         else:
-            log.error('You don\'t have any entity being managed.')
+            log.error(output_messages['ERROR_NONE_ENTITY_MANAGED'])
 
     @staticmethod
     def metadata_print(metadata_file, spec_name):
@@ -308,7 +308,7 @@ class MetadataRepo(object):
             repo.head.reset(HEAD_1, index=True, working_tree=True, paths=None)
         except GitError as g:
             if 'Failed to resolve \'HEAD~1\' as a valid revision.' in g.stderr:
-                log.error('There is no commit to go back. Do at least two commits.',
+                log.error(output_messages['ERROR_NO_COMMIT_TO_BACK'],
                           class_name=METADATA_MANAGER_CLASS_NAME)
             raise g
         # delete the associated tag
@@ -372,7 +372,7 @@ class MetadataRepo(object):
         tags = self.list_tags(spec, True)
         formatted = ''
         if len(tags) == 0:
-            raise RuntimeError('No log found for entity [%s]' % spec)
+            raise RuntimeError(output_messages['ERROR_NO_ENTITY_LOG'] % spec)
 
         tags.sort(key=self.__sort_tag_by_date)
 
