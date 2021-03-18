@@ -353,7 +353,7 @@ class MetadataRepo(object):
 
         return yaml_load_str(self._get_spec_content_from_ref(sha, spec_path))
 
-    def _get_metrics(self, spec, tag, sha):
+    def _get_metrics(self, spec, sha):
         spec_file = self._get_spec_content(spec, sha)
         metrics = spec_file[self.__repo_type].get(PERFORMANCE_KEY, {})
         metrics_table = PrettyTable()
@@ -378,7 +378,7 @@ class MetadataRepo(object):
 
         for tag in tags:
             formatted += '\n' + self.get_formatted_log_info(tag, fullstat)
-            formatted += self._get_metrics(spec, tag.name, tag.commit)
+            formatted += self._get_metrics(spec, tag.commit)
             if specialized_data_info:
                 value = next(specialized_data_info, '')
                 formatted += value
@@ -390,12 +390,14 @@ class MetadataRepo(object):
         entity_spec = ref.tree / spec_path
         return io.BytesIO(entity_spec.data_stream.read())
 
-    def get_specs_to_compare(self, spec, entity, entity_dir=''):
+    def get_specs_to_compare(self, spec):
+        entity = self.__repo_type
         spec_manifest_key = 'manifest'
         tags = self.list_tags(spec, True)
 
+        entity_dir = get_entity_dir(entity, spec, root_path=self.__path)
+        spec_path = '/'.join([posix_path(entity_dir), spec + SPEC_EXTENSION])
         for tag in tags:
-            spec_path = '/'.join([entity_dir, spec, spec + SPEC_EXTENSION])
             current_ref = tag.commit
             parents = current_ref.parents
             base_spec = {entity: {spec_manifest_key: {}}}
