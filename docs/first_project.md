@@ -61,7 +61,7 @@ For a basic ml-git repository, you need to add a remote repository for metadata 
 
 ```
 $ ml-git repository remote dataset add git@github.com:example/your-mlgit-datasets.git
-$ ml-git repository store add mlgit-datasets --credentials=mlgit
+$ ml-git repository storage add mlgit-datasets --credentials=mlgit
 ```
 
 Last but not least, initialize the metadata repository.
@@ -78,7 +78,7 @@ For a basic ml-git repository, you need to add a remote repository for metadata 
 
 ```
 $ ml-git dataset remote add git@github.com:example/your-mlgit-datasets.git
-$ ml-git store add mlgit-datasets --credentials=mlgit --endpoint-url=<minio-endpoint-url>
+$ ml-git storage add mlgit-datasets --credentials=mlgit --endpoint-url=<minio-endpoint-url>
 ```
 
 After that initialize the metadata repository.
@@ -131,7 +131,7 @@ Ml-git expects any dataset to be specified under _dataset/_ directory of your pr
 To create this specification file for a new entity you must run the following command:
 
 ```
-$ ml-git dataset create imagenet8 --category=computer-vision --category=images --mutability=strict --store-type=s3h --bucket-name=mlgit-datasets --version=1 
+$ ml-git dataset create imagenet8 --category=computer-vision --category=images --mutability=strict --storage-type=s3h --bucket-name=mlgit-datasets --version=1 
 ```
 
 After that a file must have been created in dataset/imagenet8/imagenet8.spec and should look like this:
@@ -139,7 +139,7 @@ After that a file must have been created in dataset/imagenet8/imagenet8.spec and
 To create this specification file for a new entity you must run the following command:
 
 ```
-$ ml-git dataset create imagenet8 --category=computer-vision --category=images --store-type=s3h --bucket-name=mlgit-datasets --version=1 
+$ ml-git dataset create imagenet8 --category=computer-vision --category=images --storage-type=s3h --bucket-name=mlgit-datasets --version=1 
 ```
 
 After that a file must have been created in dataset/imagenet8/imagenet8.spec and should look like this:
