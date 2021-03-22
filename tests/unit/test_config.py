@@ -16,7 +16,7 @@ from ml_git.config import validate_config_spec_hash, get_sample_config_spec, get
     get_index_path, get_objects_path, get_cache_path, get_metadata_path, import_dir, \
     extract_storage_info_from_list, create_workspace_tree_structure, get_batch_size, merge_conf, \
     merge_local_with_global_config, mlgit_config, save_global_config_in_local, start_wizard_questions
-from ml_git.constants import BATCH_SIZE_VALUE, BATCH_SIZE, STORAGE_KEY
+from ml_git.constants import BATCH_SIZE_VALUE, BATCH_SIZE, STORAGE_CONFIG_KEY, STORAGE_SPEC_KEY
 from ml_git.utils import get_root_path, yaml_load
 from tests.unit.conftest import DATASETS, LABELS, MODELS, STRICT, S3H, S3, GDRIVEH
 
@@ -30,7 +30,7 @@ class ConfigTestCases(unittest.TestCase):
 
         # Same but with s3 instead of s3h
         spec = get_sample_config_spec('somebucket', 'someprofile', 'someregion')
-        spec[STORAGE_KEY][S3] = spec[STORAGE_KEY].pop(S3H)
+        spec[STORAGE_CONFIG_KEY][S3] = spec[STORAGE_CONFIG_KEY].pop(S3H)
         self.assertTrue(validate_config_spec_hash(spec))
 
         # None or empty cases
@@ -39,10 +39,10 @@ class ConfigTestCases(unittest.TestCase):
 
         # Missing elements
         spec = get_sample_config_spec('somebucket', 'someprofile', 'someregion')
-        spec[STORAGE_KEY].pop(S3H)
+        spec[STORAGE_CONFIG_KEY].pop(S3H)
         self.assertFalse(validate_config_spec_hash(spec))
         spec = get_sample_config_spec('somebucket', 'someprofile', 'someregion')
-        spec.pop(STORAGE_KEY)
+        spec.pop(STORAGE_CONFIG_KEY)
         self.assertFalse(validate_config_spec_hash(spec))
 
     def test_validate_dataset_spec_hash(self):
@@ -77,7 +77,7 @@ class ConfigTestCases(unittest.TestCase):
 
         # Missing storage
         spec = get_sample_spec('somebucket')
-        spec[DATASETS]['manifest'].pop(STORAGE_KEY)
+        spec[DATASETS]['manifest'].pop(STORAGE_SPEC_KEY)
         self.assertFalse(validate_spec_hash(spec))
 
         # Missing manifest
@@ -85,7 +85,7 @@ class ConfigTestCases(unittest.TestCase):
 
         # Bad bucket URL format
         spec = get_sample_spec('somebucket')
-        spec[DATASETS]['manifest'][STORAGE_KEY] = 'invalid'
+        spec[DATASETS]['manifest'][STORAGE_SPEC_KEY] = 'invalid'
         self.assertFalse(validate_spec_hash(spec))
 
         # Missing and empty dataset name
@@ -137,7 +137,7 @@ class ConfigTestCases(unittest.TestCase):
 
         spec_path = os.path.join(os.getcwd(), os.sep.join(['repotype', 'artefact_name', 'artefact_name.spec']))
         spec1 = yaml_load(spec_path)
-        self.assertEqual(spec1['repotype']['manifest'][STORAGE_KEY], 's3h://minio')
+        self.assertEqual(spec1['repotype']['manifest'][STORAGE_SPEC_KEY], 's3h://minio')
         self.assertEqual(spec1['repotype']['name'], 'artefact_name')
         self.assertEqual(spec1['repotype']['mutability'], STRICT)
         self.assertEqual(spec1['repotype']['version'], 2)
@@ -160,22 +160,22 @@ class ConfigTestCases(unittest.TestCase):
 
     def test_merge_conf(self):
         local_conf = {DATASETS: {'git': ''}}
-        global_conf = {DATASETS: {'git': 'url'}, MODELS: {'git': 'url'}, STORAGE_KEY: {}}
+        global_conf = {DATASETS: {'git': 'url'}, MODELS: {'git': 'url'}, STORAGE_CONFIG_KEY: {}}
         merge_conf(local_conf, global_conf)
         self.assertEqual(local_conf[DATASETS]['git'], 'url')
         self.assertEqual(local_conf[MODELS]['git'], 'url')
-        self.assertTrue(STORAGE_KEY in local_conf)
+        self.assertTrue(STORAGE_CONFIG_KEY in local_conf)
 
     @pytest.mark.usefixtures('restore_config')
     def test_merge_local_with_global_config(self):
-        global_conf = {DATASETS: {'git': 'url'}, MODELS: {'git': 'url'}, STORAGE_KEY: {}}
+        global_conf = {DATASETS: {'git': 'url'}, MODELS: {'git': 'url'}, STORAGE_CONFIG_KEY: {}}
 
         with mock.patch('ml_git.config.global_config_load', return_value=global_conf):
             merge_local_with_global_config()
 
         self.assertEqual(mlgit_config[DATASETS]['git'], 'url')
         self.assertEqual(mlgit_config[MODELS]['git'], 'url')
-        self.assertNotEqual(mlgit_config[STORAGE_KEY], {})
+        self.assertNotEqual(mlgit_config[STORAGE_CONFIG_KEY], {})
 
     @pytest.mark.usefixtures('restore_config', 'switch_to_tmp_dir')
     def test_save_global_config_in_local(self):
@@ -185,7 +185,7 @@ class ConfigTestCases(unittest.TestCase):
         self.assertTrue(os.path.isdir('.ml-git'))
         config = yaml_load('.ml-git/config.yaml')
         self.assertEqual(config[DATASETS]['git'], remote_default)
-        global_conf = {DATASETS: {'git': 'url'}, MODELS: {'git': 'url'}, LABELS: {'git': new_remote}, STORAGE_KEY: {}}
+        global_conf = {DATASETS: {'git': 'url'}, MODELS: {'git': 'url'}, LABELS: {'git': new_remote}, STORAGE_CONFIG_KEY: {}}
 
         with mock.patch('ml_git.config.global_config_load', return_value=global_conf):
             save_global_config_in_local()

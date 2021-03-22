@@ -9,7 +9,7 @@ from git import Repo, GitCommandError
 
 from ml_git import log
 from ml_git.config import mlgit_config_save, get_global_config_path
-from ml_git.constants import ROOT_FILE_NAME, CONFIG_FILE, ADMIN_CLASS_NAME, StorageType, STORAGE_KEY
+from ml_git.constants import ROOT_FILE_NAME, CONFIG_FILE, ADMIN_CLASS_NAME, StorageType, STORAGE_CONFIG_KEY
 from ml_git.ml_git_message import output_messages
 from ml_git.storages.store_utils import get_bucket_region
 from ml_git.utils import get_root_path
@@ -110,23 +110,23 @@ def storage_add(storage_type, bucket, credentials_profile, global_conf=False, en
         log.error(e, class_name=ADMIN_CLASS_NAME)
         return
 
-    if STORAGE_KEY not in conf:
-        conf[STORAGE_KEY] = {}
-    if storage_type not in conf[STORAGE_KEY]:
-        conf[STORAGE_KEY][storage_type] = {}
-    conf[STORAGE_KEY][storage_type][bucket] = {}
+    if STORAGE_CONFIG_KEY not in conf:
+        conf[STORAGE_CONFIG_KEY] = {}
+    if storage_type not in conf[STORAGE_CONFIG_KEY]:
+        conf[STORAGE_CONFIG_KEY][storage_type] = {}
+    conf[STORAGE_CONFIG_KEY][storage_type][bucket] = {}
     if storage_type in [StorageType.S3.value, StorageType.S3H.value]:
-        conf[STORAGE_KEY][storage_type][bucket]['aws-credentials'] = {}
-        conf[STORAGE_KEY][storage_type][bucket]['aws-credentials']['profile'] = credentials_profile
-        conf[STORAGE_KEY][storage_type][bucket]['region'] = region
-        conf[STORAGE_KEY][storage_type][bucket]['endpoint-url'] = endpoint_url
+        conf[STORAGE_CONFIG_KEY][storage_type][bucket]['aws-credentials'] = {}
+        conf[STORAGE_CONFIG_KEY][storage_type][bucket]['aws-credentials']['profile'] = credentials_profile
+        conf[STORAGE_CONFIG_KEY][storage_type][bucket]['region'] = region
+        conf[STORAGE_CONFIG_KEY][storage_type][bucket]['endpoint-url'] = endpoint_url
     elif storage_type in [StorageType.GDRIVEH.value]:
-        conf[STORAGE_KEY][storage_type][bucket]['credentials-path'] = credentials_profile
+        conf[STORAGE_CONFIG_KEY][storage_type][bucket]['credentials-path'] = credentials_profile
     elif storage_type in [StorageType.SFTPH.value]:
-        conf[STORAGE_KEY][storage_type][bucket]['endpoint-url'] = endpoint_url
-        conf[STORAGE_KEY][storage_type][bucket]['username'] = sftp_configs['username']
-        conf[STORAGE_KEY][storage_type][bucket]['private-key'] = sftp_configs['private_key']
-        conf[STORAGE_KEY][storage_type][bucket]['port'] = sftp_configs['port']
+        conf[STORAGE_CONFIG_KEY][storage_type][bucket]['endpoint-url'] = endpoint_url
+        conf[STORAGE_CONFIG_KEY][storage_type][bucket]['username'] = sftp_configs['username']
+        conf[STORAGE_CONFIG_KEY][storage_type][bucket]['private-key'] = sftp_configs['private_key']
+        conf[STORAGE_CONFIG_KEY][storage_type][bucket]['port'] = sftp_configs['port']
     yaml_save(conf, file)
 
 
@@ -141,13 +141,13 @@ def storage_del(storage_type, bucket, global_conf=False):
         log.error(e, class_name=ADMIN_CLASS_NAME)
         return
 
-    storage_exists = STORAGE_KEY in conf and storage_type in conf[STORAGE_KEY] and bucket in conf[STORAGE_KEY][storage_type]
+    storage_exists = STORAGE_CONFIG_KEY in conf and storage_type in conf[STORAGE_CONFIG_KEY] and bucket in conf[STORAGE_CONFIG_KEY][storage_type]
 
     if not storage_exists:
         log.warn(output_messages['WARN_STORAGE_NOT_IN_CONFIG'] % (storage_type, bucket), class_name=ADMIN_CLASS_NAME)
         return
 
-    del conf[STORAGE_KEY][storage_type][bucket]
+    del conf[STORAGE_CONFIG_KEY][storage_type][bucket]
     log.info(output_messages['INFO_REMOVED_STORAGE'] % (storage_type, bucket), class_name=ADMIN_CLASS_NAME)
 
     yaml_save(conf, config_path)

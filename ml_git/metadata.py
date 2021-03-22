@@ -12,7 +12,7 @@ from ml_git import log
 from ml_git._metadata import MetadataManager
 from ml_git.config import get_refs_path, get_sample_spec_doc
 from ml_git.constants import METADATA_CLASS_NAME, LOCAL_REPOSITORY_CLASS_NAME, ROOT_FILE_NAME, MutabilityType, \
-    SPEC_EXTENSION, MANIFEST_FILE, EntityType, STORAGE_KEY
+    SPEC_EXTENSION, MANIFEST_FILE, EntityType, STORAGE_SPEC_KEY
 from ml_git.manifest import Manifest
 from ml_git.ml_git_message import output_messages
 from ml_git.plugin_interface.data_plugin_constants import ADD_METADATA
@@ -146,7 +146,7 @@ class Metadata(MetadataManager):
         metadata[self.__repo_type]['manifest']['files'] = MANIFEST_FILE
         metadata[self.__repo_type]['manifest']['size'] = humanize.naturalsize(workspace_size)
         metadata[self.__repo_type]['manifest']['amount'] = amount
-        storage = metadata[self.__repo_type]['manifest'][STORAGE_KEY]
+        storage = metadata[self.__repo_type]['manifest'][STORAGE_SPEC_KEY]
 
         manifest = metadata[self.__repo_type]['manifest']
         PluginCaller(manifest).call(ADD_METADATA, ws_path, manifest)

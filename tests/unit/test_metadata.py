@@ -13,8 +13,8 @@ import pytest
 from git import GitError, Repo
 from prettytable import PrettyTable
 
-from ml_git.constants import STORAGE_KEY, DATE, PERFORMANCE_KEY, TAG, RELATED_DATASET_TABLE_INFO, \
-    RELATED_LABELS_TABLE_INFO
+from ml_git.constants import DATE, PERFORMANCE_KEY, TAG, RELATED_DATASET_TABLE_INFO, \
+    RELATED_LABELS_TABLE_INFO, STORAGE_SPEC_KEY, STORAGE_CONFIG_KEY
 from ml_git.metadata import Metadata
 from ml_git.repository import Repository
 from ml_git.utils import clear, yaml_load_str, yaml_load
@@ -48,7 +48,7 @@ config = {
     },
 
 
-    STORAGE_KEY: {
+    STORAGE_CONFIG_KEY: {
         S3: {
             'mlgit-datasets': {
                 'region': 'us-east-1',
@@ -65,7 +65,7 @@ metadata_config = {
         'categories': 'images',
         'manifest': {
             'files': 'MANIFEST.yaml',
-            STORAGE_KEY: 's3h://ml-git-datasets'
+            STORAGE_SPEC_KEY: 's3h://ml-git-datasets'
         },
         'name': 'dataset_ex',
         'version': 1

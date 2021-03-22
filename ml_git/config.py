@@ -11,7 +11,7 @@ from halo import Halo
 
 from ml_git import spec
 from ml_git.constants import FAKE_STORAGE, BATCH_SIZE_VALUE, BATCH_SIZE, StorageType, GLOBAL_ML_GIT_CONFIG, \
-    PUSH_THREADS_COUNT, SPEC_EXTENSION, EntityType, STORAGE_KEY
+    PUSH_THREADS_COUNT, SPEC_EXTENSION, EntityType, STORAGE_CONFIG_KEY, STORAGE_SPEC_KEY
 from ml_git.ml_git_message import output_messages
 from ml_git.utils import getOrElse, yaml_load, yaml_save, get_root_path, yaml_load_str
 
@@ -31,7 +31,7 @@ mlgit_config = {
         'git': '',
     },
 
-    STORAGE_KEY: {
+    STORAGE_CONFIG_KEY: {
         StorageType.S3.value: {
             'mlgit-datasets': {
                 'region': 'us-east-1',
@@ -132,7 +132,7 @@ def mlgit_config_save(mlgit_file=__get_conf_filepath()):
         EntityType.DATASETS.value: mlgit_config[EntityType.DATASETS.value],
         EntityType.MODELS.value: mlgit_config[EntityType.MODELS.value],
         EntityType.LABELS.value: mlgit_config[EntityType.LABELS.value],
-        STORAGE_KEY: mlgit_config[STORAGE_KEY],
+        STORAGE_CONFIG_KEY: mlgit_config[STORAGE_CONFIG_KEY],
         'batch_size': mlgit_config['batch_size']
     }
     return yaml_save(config, mlgit_file)
@@ -147,7 +147,7 @@ def save_global_config_in_local(mlgit_file=__get_conf_filepath()):
         EntityType.DATASETS.value: mlgit_config[EntityType.DATASETS.value],
         EntityType.MODELS.value: mlgit_config[EntityType.MODELS.value],
         EntityType.LABELS.value: mlgit_config[EntityType.LABELS.value],
-        STORAGE_KEY: mlgit_config[STORAGE_KEY],
+        STORAGE_CONFIG_KEY: mlgit_config[STORAGE_CONFIG_KEY],
         'batch_size': mlgit_config['batch_size']
     }
     return yaml_save(config, mlgit_file)
@@ -214,13 +214,13 @@ def get_refs_path(config, type=EntityType.DATASETS.value):
 
 def get_sample_config_spec(bucket, profile, region):
     doc = '''
-      storage:
+      %s:
         s3h:
           %s:
             aws-credentials:
               profile: %s
             region: %s
-    ''' % (bucket, profile, region)
+    ''' % (STORAGE_CONFIG_KEY, bucket, profile, region)
     c = yaml_load_str(doc)
     return c
 
@@ -228,13 +228,13 @@ def get_sample_config_spec(bucket, profile, region):
 def validate_config_spec_hash(config):
     if not config:
         return False
-    if STORAGE_KEY not in config:
+    if STORAGE_CONFIG_KEY not in config:
         return False
-    storages = valid_storages(config[STORAGE_KEY])
+    storages = valid_storages(config[STORAGE_CONFIG_KEY])
     if not storages:
         return False
     for storage in storages:
-        if not validate_bucket_config(config[STORAGE_KEY][storage], storage):
+        if not validate_bucket_config(config[STORAGE_CONFIG_KEY][storage], storage):
             return False
     return True
 
@@ -286,10 +286,10 @@ def validate_spec_hash(the_hash, repotype=EntityType.DATASETS.value):
     if the_hash[repotype]['categories'] == {}:
         return False
 
-    if STORAGE_KEY not in the_hash[repotype]['manifest']:
+    if STORAGE_SPEC_KEY not in the_hash[repotype]['manifest']:
         return False
 
-    if not validate_spec_string(the_hash[repotype]['manifest'][STORAGE_KEY]):
+    if not validate_spec_string(the_hash[repotype]['manifest'][STORAGE_SPEC_KEY]):
         return False
 
     if 'name' not in the_hash[repotype]:
@@ -324,7 +324,7 @@ def create_workspace_tree_structure(repo_type, artifact_name, categories, storag
         repo_type: {
             'categories': categories,
             'manifest': {
-                STORAGE_KEY: storage
+                STORAGE_SPEC_KEY: storage
             },
             'name': artifact_name,
             'mutability': mutability,
@@ -345,7 +345,7 @@ def create_workspace_tree_structure(repo_type, artifact_name, categories, storag
 def start_wizard_questions(repotype):
     print('_ Current configured storages _')
     print('   ')
-    storage = config_load()[STORAGE_KEY]
+    storage = config_load()[STORAGE_CONFIG_KEY]
     count = 1
     # temporary map with number as key and a array with storage type and bucket as values
     temp_map = {}

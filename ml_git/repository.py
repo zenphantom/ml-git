@@ -17,9 +17,10 @@ from ml_git.config import get_index_path, get_objects_path, get_cache_path, get_
     validate_config_spec_hash, validate_spec_hash, get_sample_config_spec, get_sample_spec_doc, \
     get_index_metadata_path, create_workspace_tree_structure, start_wizard_questions, config_load, \
     get_global_config_path, save_global_config_in_local
-from ml_git.constants import REPOSITORY_CLASS_NAME, LOCAL_REPOSITORY_CLASS_NAME, HEAD, HEAD_1, MutabilityType, StorageType, \
+from ml_git.constants import REPOSITORY_CLASS_NAME, LOCAL_REPOSITORY_CLASS_NAME, HEAD, HEAD_1, MutabilityType, \
+    StorageType, \
     RGX_TAG_FORMAT, EntityType, MANIFEST_FILE, SPEC_EXTENSION, MANIFEST_KEY, STATUS_NEW_FILE, STATUS_DELETED_FILE, \
-    STORAGE_KEY, FileType
+    FileType, STORAGE_CONFIG_KEY
 from ml_git.file_system.cache import Cache
 from ml_git.file_system.hashfs import MultihashFS
 from ml_git.file_system.index import MultihashIndex, Status, FullIndex
@@ -992,7 +993,7 @@ class Repository(object):
 
     def create_config_storage(self, storage_type, credentials_path):
         bucket = {'credentials-path': credentials_path}
-        self.__config[STORAGE_KEY][storage_type] = {storage_type: bucket}
+        self.__config[STORAGE_CONFIG_KEY][storage_type] = {storage_type: bucket}
 
     def create(self, kwargs):
         artifact_name = kwargs['artifact_name']

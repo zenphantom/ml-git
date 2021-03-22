@@ -14,7 +14,7 @@ import humanize
 import pytest
 import yaml
 
-from ml_git.constants import ROOT_FILE_NAME, V1_STORAGE_KEY, STORAGE_KEY, V1_DATASETS_KEY, V1_MODELS_KEY
+from ml_git.constants import ROOT_FILE_NAME, V1_STORAGE_KEY, V1_DATASETS_KEY, V1_MODELS_KEY, STORAGE_CONFIG_KEY
 from ml_git.utils import json_load, yaml_load, yaml_save, RootPathException, get_root_path, change_mask_for_routine, \
     ensure_path_exists, yaml_load_str, get_yaml_str, run_function_per_group, unzip_files_in_directory, \
     remove_from_workspace, group_files_by_path, remove_other_files, remove_unnecessary_files, change_keys_in_config, \
@@ -38,16 +38,16 @@ class UtilsTestCases(unittest.TestCase):
         self.assertFalse(bool(yal))
         yal = yaml_load('./udata/data.yaml')
         self.assertTrue(bool(yal))
-        self.assertEqual(yal[STORAGE_KEY][S3]['mlgit-datasets']['region'], 'us-east-1')
+        self.assertEqual(yal[STORAGE_CONFIG_KEY][S3]['mlgit-datasets']['region'], 'us-east-1')
 
     def test_yaml_load_str(self):
         obj = yaml_load_str(self.yaml_str_sample)
-        self.assertEqual(obj[STORAGE_KEY][S3H]['bucket_test']['aws-credentials']['profile'], 'profile_test')
-        self.assertEqual(obj[STORAGE_KEY][S3H]['bucket_test']['region'], 'region_test')
+        self.assertEqual(obj[STORAGE_CONFIG_KEY][S3H]['bucket_test']['aws-credentials']['profile'], 'profile_test')
+        self.assertEqual(obj[STORAGE_CONFIG_KEY][S3H]['bucket_test']['region'], 'region_test')
 
     def test_get_yaml_str(self):
-        self.assertEqual(self.yaml_obj_sample[STORAGE_KEY][S3H]['bucket_test']['aws-credentials']['profile'], 'profile_test')
-        self.assertEqual(self.yaml_obj_sample[STORAGE_KEY][S3H]['bucket_test']['region'], 'region_test')
+        self.assertEqual(self.yaml_obj_sample[STORAGE_CONFIG_KEY][S3H]['bucket_test']['aws-credentials']['profile'], 'profile_test')
+        self.assertEqual(self.yaml_obj_sample[STORAGE_CONFIG_KEY][S3H]['bucket_test']['region'], 'region_test')
         self.assertEqual(get_yaml_str(self.yaml_obj_sample), self.yaml_str_sample)
 
     def test_yaml_save(self):
@@ -210,13 +210,13 @@ class UtilsTestCases(unittest.TestCase):
            git: fake_git_repository
         model:
            git: fake_git_repository
-        %s:
+        store:
             s3:
                 mlgit-datasets:
                     aws-credentials:
                         profile: mlgit
                     region: us-east-1
-        """ % STORAGE_KEY
+        """
         config_path = os.path.join(self.tmp_dir, ROOT_FILE_NAME, 'config.yaml')
         os.makedirs(os.path.join(self.tmp_dir, ROOT_FILE_NAME), exist_ok=True)
         with open(config_path, 'w') as config_yaml:
@@ -228,7 +228,7 @@ class UtilsTestCases(unittest.TestCase):
         self.assertNotIn(V1_MODELS_KEY, conf)
         self.assertIn(MODELS, conf)
         self.assertNotIn(V1_STORAGE_KEY, conf)
-        self.assertIn(STORAGE_KEY, conf)
+        self.assertIn(STORAGE_CONFIG_KEY, conf)
 
     def test_update_directories_to_plural(self):
         data_path = os.path.join(self.tmp_dir, V1_DATASETS_KEY)
@@ -256,11 +256,11 @@ class UtilsTestCases(unittest.TestCase):
                         profile: mlgit
                     region: us-east-1
         """
-        self.assertTrue(validate_config_keys(yaml.safe_load(config % (DATASETS, MODELS, STORAGE_KEY))))
+        self.assertTrue(validate_config_keys(yaml.safe_load(config % (DATASETS, MODELS, STORAGE_CONFIG_KEY))))
         self.assertFalse(validate_config_keys(yaml.safe_load(config % (V1_DATASETS_KEY, V1_MODELS_KEY, V1_STORAGE_KEY))))
         self.assertFalse(validate_config_keys(yaml.safe_load(config % (DATASETS, MODELS, V1_STORAGE_KEY))))
-        self.assertFalse(validate_config_keys(yaml.safe_load(config % (DATASETS, V1_MODELS_KEY, STORAGE_KEY))))
-        self.assertFalse(validate_config_keys(yaml.safe_load(config % (V1_DATASETS_KEY, MODELS, STORAGE_KEY))))
+        self.assertFalse(validate_config_keys(yaml.safe_load(config % (DATASETS, V1_MODELS_KEY, STORAGE_CONFIG_KEY))))
+        self.assertFalse(validate_config_keys(yaml.safe_load(config % (V1_DATASETS_KEY, MODELS, STORAGE_CONFIG_KEY))))
 
     def test_create_csv_file(self):
         csv_file_path = os.path.join(self.tmp_dir, 'metrics-file.csv')

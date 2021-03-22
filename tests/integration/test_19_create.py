@@ -8,7 +8,7 @@ import unittest
 
 import pytest
 
-from ml_git.constants import STORAGE_KEY
+from ml_git.constants import STORAGE_SPEC_KEY
 from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_CREATE, MLGIT_INIT
 from tests.integration.helper import check_output, ML_GIT_DIR, IMPORT_PATH, create_file, ERROR_MESSAGE, yaml_processor, \
@@ -32,7 +32,7 @@ class CreateAcceptanceTests(unittest.TestCase):
         readme = os.path.join(self.tmp_dir, entity_type, entity_type + '-ex', 'README.md')
         with open(spec, 'r') as s:
             spec_file = yaml_processor.load(s)
-            self.assertEqual(spec_file[entity_type]['manifest'][STORAGE_KEY], storage_type + '://minio')
+            self.assertEqual(spec_file[entity_type]['manifest'][STORAGE_SPEC_KEY], storage_type + '://minio')
             self.assertEqual(spec_file[entity_type]['name'], entity_type + '-ex')
             self.assertEqual(spec_file[entity_type]['version'], 1)
         with open(os.path.join(self.tmp_dir, ML_GIT_DIR, 'config.yaml'), 'r') as y:
@@ -89,7 +89,7 @@ class CreateAcceptanceTests(unittest.TestCase):
         readme = os.path.join(self.tmp_dir, DATASETS, DATASET_NAME, 'README.md')
         with open(spec, 'r') as s:
             spec_file = yaml_processor.load(s)
-            self.assertEqual(spec_file[DATASETS]['manifest'][STORAGE_KEY], 's3h://minio')
+            self.assertEqual(spec_file[DATASETS]['manifest'][STORAGE_SPEC_KEY], 's3h://minio')
             self.assertEqual(spec_file[DATASETS]['name'], DATASET_NAME)
             self.assertEqual(spec_file[DATASETS]['version'], 1)
         with open(os.path.join(self.tmp_dir, ML_GIT_DIR, 'config.yaml'), 'r') as y:

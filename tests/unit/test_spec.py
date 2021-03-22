@@ -9,7 +9,7 @@ import unittest
 
 import pytest
 
-from ml_git.constants import EntityType, StorageType, STORAGE_KEY, SPEC_EXTENSION
+from ml_git.constants import EntityType, StorageType, SPEC_EXTENSION, STORAGE_SPEC_KEY, STORAGE_CONFIG_KEY
 from ml_git.spec import yaml_load, incr_version, is_valid_version, search_spec_file, SearchSpecException, spec_parse, \
     get_spec_file_dir, increment_version_in_spec, get_root_path, get_version, update_storage_spec, validate_bucket_name, \
     set_version_in_spec, get_entity_dir
@@ -126,11 +126,11 @@ class SpecTestCases(unittest.TestCase):
 
         update_storage_spec(DATASETS, 'dataex', S3H, 'fakestorage')
         spec1 = yaml_load(spec_path)
-        self.assertEqual(spec1[DATASETS]['manifest'][STORAGE_KEY], 's3h://fakestorage')
+        self.assertEqual(spec1[DATASETS]['manifest'][STORAGE_SPEC_KEY], 's3h://fakestorage')
 
         update_storage_spec(DATASETS, 'dataex', S3H, 'some-bucket-name')
         spec2 = yaml_load(spec_path)
-        self.assertEqual(spec2[DATASETS]['manifest'][STORAGE_KEY], 's3h://some-bucket-name')
+        self.assertEqual(spec2[DATASETS]['manifest'][STORAGE_SPEC_KEY], 's3h://some-bucket-name')
 
     def test_validate_bucket_name(self):
         repo_type = DATASETS
@@ -141,9 +141,9 @@ class SpecTestCases(unittest.TestCase):
         spec_bucket_name_not_in_config = yaml_load(os.path.join(testdir, 'valid.spec'))
         self.assertFalse(validate_bucket_name(spec_bucket_name_not_in_config[repo_type], config))
 
-        storage = config[STORAGE_KEY][S3]
-        del config[STORAGE_KEY][S3]
-        config[STORAGE_KEY][S3H] = storage
+        storage = config[STORAGE_CONFIG_KEY][S3]
+        del config[STORAGE_CONFIG_KEY][S3]
+        config[STORAGE_CONFIG_KEY][S3H] = storage
 
         spec_with_bucket_in_config = yaml_load(os.path.join(testdir, 'valid2.spec'))
         self.assertTrue(validate_bucket_name(spec_with_bucket_in_config[repo_type], config))
@@ -169,8 +169,8 @@ class SpecTestCases(unittest.TestCase):
 
         update_storage_spec(entity_type, entity_name, StorageType.S3H.value, 'fakestorage', entity_dir)
         spec = yaml_load(spec_path)
-        self.assertEqual(spec[entity_type]['manifest'][STORAGE_KEY], 's3h://fakestorage')
+        self.assertEqual(spec[entity_type]['manifest'][STORAGE_SPEC_KEY], 's3h://fakestorage')
 
         update_storage_spec(entity_type, entity_name, StorageType.S3H.value, 'some-bucket-name', entity_dir)
         spec = yaml_load(spec_path)
-        self.assertEqual(spec[entity_type]['manifest'][STORAGE_KEY], 's3h://some-bucket-name')
+        self.assertEqual(spec[entity_type]['manifest'][STORAGE_SPEC_KEY], 's3h://some-bucket-name')
