@@ -14,7 +14,7 @@ from zipfile import ZipFile
 
 from ruamel.yaml import YAML
 
-from ml_git.constants import GLOBAL_ML_GIT_CONFIG, MutabilityType, StorageType, STORAGE_KEY, EntityType
+from ml_git.constants import GLOBAL_ML_GIT_CONFIG, MutabilityType, StorageType, STORAGE_KEY, EntityType, FileType
 from ml_git.ml_git_message import output_messages
 from ml_git.utils import ensure_path_exists
 from tests.integration.commands import MLGIT_INIT, MLGIT_REMOTE_ADD, MLGIT_ENTITY_INIT, MLGIT_ADD, \
@@ -32,6 +32,8 @@ S3 = StorageType.S3.value
 AZUREBLOBH = StorageType.AZUREBLOBH.value
 GDRIVEH = StorageType.GDRIVEH.value
 SFTPH = StorageType.SFTPH.value
+CSV = FileType.CSV.value
+JSON = FileType.JSON.value
 
 PATH_TEST = os.path.join(os.getcwd(), 'tests', 'integration', '.test_env')
 ML_GIT_DIR = '.ml-git'
