@@ -263,7 +263,7 @@ def get_sample_spec_doc(bucket, repotype=DATASET_SPEC_KEY):
         manifest:
           files: MANIFEST.yaml
           storage: s3h://%s
-        name: %-ex
+        name: %s-ex
         version: 5
     ''' % (repotype, bucket, repotype)
     return doc
