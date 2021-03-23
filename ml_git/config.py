@@ -263,7 +263,7 @@ def get_sample_spec_doc(bucket, repotype=DATASET_SPEC_KEY):
         manifest:
           files: MANIFEST.yaml
           storage: s3h://%s
-        name: %s-ex
+        name: %-ex
         version: 5
     ''' % (repotype, bucket, repotype)
     return doc
@@ -321,9 +321,9 @@ def create_workspace_tree_structure(repo_type, artifact_name, categories, storag
     file_exists = os.path.isfile(spec_path)
 
     storage = '%s://%s' % (storage_type, FAKE_STORAGE if bucket_name is None else bucket_name)
-    spec_key = get_spec_key(repo_type)
+    entity_spec_key = get_spec_key(repo_type)
     spec_structure = {
-        spec_key: {
+        entity_spec_key: {
             'categories': categories,
             'manifest': {
                 STORAGE_SPEC_KEY: storage

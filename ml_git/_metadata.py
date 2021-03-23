@@ -358,7 +358,6 @@ class MetadataRepo(object):
 
     def _get_metrics(self, spec, sha):
         spec_file = self._get_spec_content(spec, sha)
-
         entity_spec_key = get_spec_key(self.__repo_type)
         metrics = spec_file[entity_spec_key].get(PERFORMANCE_KEY, {})
         metrics_table = PrettyTable()

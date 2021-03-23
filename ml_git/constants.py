@@ -62,12 +62,10 @@ STATUS_NEW_FILE = 'New file: '
 STATUS_DELETED_FILE = 'Deleted: '
 RELATED_DATASET_TABLE_INFO = 'Related dataset - (version)'
 RELATED_LABELS_TABLE_INFO = 'Related labels - (version)'
-
 DATASET_SPEC_KEY = 'dataset'
 LABELS_SPEC_KEY = 'labels'
 MODEL_SPEC_KEY = 'model'
 STORAGE_SPEC_KEY = 'storage'
-
 STORAGE_CONFIG_KEY = 'storages'
 
 
