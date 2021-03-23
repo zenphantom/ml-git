@@ -29,7 +29,7 @@ from ml_git.ml_git_message import output_messages
 from ml_git.pool import pool_factory, process_futures
 from ml_git.refs import Refs
 from ml_git.sample import SampleValidate
-from ml_git.spec import spec_parse, search_spec_file, get_entity_dir
+from ml_git.spec import spec_parse, search_spec_file, get_entity_dir, get_spec_key
 from ml_git.storages.store_utils import storage_factory
 from ml_git.utils import yaml_load, ensure_path_exists, convert_path, normalize_path, \
     posix_path, set_write_read, change_mask_for_routine, run_function_per_group, get_root_path, yaml_save
@@ -57,9 +57,10 @@ class LocalRepository(MultihashFS):
 
     def push(self, object_path, spec_file, retry=2, clear_on_fail=False):
         repo_type = self.__repo_type
+        entity_spec_key = get_spec_key(repo_type)
 
         spec = yaml_load(spec_file)
-        manifest = spec[repo_type]['manifest']
+        manifest = spec[entity_spec_key]['manifest']
         idx = MultihashFS(object_path)
         objs = idx.get_log()
 
@@ -117,7 +118,8 @@ class LocalRepository(MultihashFS):
         repo_type = self.__repo_type
 
         spec = yaml_load(spec_file)
-        manifest = spec[repo_type]['manifest']
+        entity_spec_key = get_spec_key(repo_type)
+        manifest = spec[entity_spec_key]['manifest']
         storage = storage_factory(self.__config, manifest[STORAGE_SPEC_KEY])
         if storage is None:
             log.error(output_messages['ERROR_WITHOUT_STORAGE'] % (manifest[STORAGE_SPEC_KEY]), class_name=STORAGE_FACTORY_CLASS_NAME)
@@ -237,11 +239,12 @@ class LocalRepository(MultihashFS):
         spec_path, spec_file = search_spec_file(repo_type, spec_name, root_path=metadata_path)
         entity_dir = os.path.relpath(spec_path, metadata_path)
         spec = yaml_load(os.path.join(spec_path, spec_file))
-        if repo_type not in spec:
+        entity_spec_key = get_spec_key(repo_type)
+        if entity_spec_key not in spec:
             log.error(output_messages['ERROR_NO_SPEC_FILE_FOUND'],
                       class_name=LOCAL_REPOSITORY_CLASS_NAME)
             return False
-        manifest = spec[repo_type]['manifest']
+        manifest = spec[entity_spec_key]['manifest']
         storage = storage_factory(self.__config, manifest[STORAGE_SPEC_KEY])
         if storage is None:
             return False
@@ -578,7 +581,8 @@ class LocalRepository(MultihashFS):
 
     def remote_fsck(self, metadata_path, tag, spec_file, retries=2, thorough=False, paranoid=False):
         spec = yaml_load(spec_file)
-        manifest = spec[self.__repo_type]['manifest']
+        entity_spec_key = get_spec_key(self.__repo_type)
+        manifest = spec[entity_spec_key]['manifest']
         _, spec_name, _ = spec_parse(tag)
         # get all files for specific tag
         entity_dir = get_entity_dir(self.__repo_type, spec_name, root_path=metadata_path)
@@ -729,7 +733,6 @@ class LocalRepository(MultihashFS):
         bare_mode = os.path.exists(os.path.join(index_metadata_path, spec, 'bare'))
         new_files, deleted_files, all_files, corrupted_files = self._get_index_files_status(bare_mode, idx_yaml_mf,
                                                                                             path, status_directory)
-
         if path is not None:
             changed_files, untracked_files = \
                 self._get_workspace_files_status(all_files, full_metadata_path, idx_yaml_mf,
@@ -901,12 +904,13 @@ class LocalRepository(MultihashFS):
         spec_path = os.path.join(metadata_path, entity_dir, spec_name + SPEC_EXTENSION)
         spec = yaml_load(spec_path)
 
-        if self.__repo_type not in spec:
+        entity_spec_key = get_spec_key(self.__repo_type)
+        if entity_spec_key not in spec:
             log.error(output_messages['ERROR_NO_SPEC_FILE_FOUND'],
                       class_name=LOCAL_REPOSITORY_CLASS_NAME)
             return
 
-        manifest = spec[self.__repo_type]['manifest']
+        manifest = spec[entity_spec_key]['manifest']
         storage = storage_factory(self.__config, manifest[STORAGE_SPEC_KEY])
         if storage is None:
             log.error(output_messages['ERROR_WITHOUT_STORAGE'] % (manifest[STORAGE_SPEC_KEY]), class_name=LOCAL_REPOSITORY_CLASS_NAME)
@@ -969,8 +973,9 @@ class LocalRepository(MultihashFS):
         if not index or not compare:
             return False
 
-        entity = index[self.__repo_type]
-        entity_compare = compare[self.__repo_type]
+        entity_spec_key = get_spec_key(self.__repo_type)
+        entity = index[entity_spec_key]
+        entity_compare = compare[entity_spec_key]
         if entity['categories'] != entity_compare['categories']:
             return False
         if entity['manifest'][STORAGE_SPEC_KEY] != entity_compare['manifest'][STORAGE_SPEC_KEY]:
@@ -1020,7 +1025,8 @@ class LocalRepository(MultihashFS):
         file_ws_spec = yaml_load(full_spec_path)
 
         try:
-            spec_mutability = file_ws_spec[repo_type].get('mutability', MutabilityType.STRICT.value)
+            entity_spec_key = get_spec_key(repo_type)
+            spec_mutability = file_ws_spec[entity_spec_key].get('mutability', MutabilityType.STRICT.value)
             if spec_mutability not in MutabilityType.to_list():
                 log.error(output_messages['ERROR_INVALID_MUTABILITY_TYPE'], class_name=REPOSITORY_CLASS_NAME)
                 return None, False
@@ -1034,8 +1040,9 @@ class LocalRepository(MultihashFS):
         ws_spec_path = os.path.join(spec_path, spec + SPEC_EXTENSION)
         file_ws_spec = yaml_load(ws_spec_path)
         ws_spec_mutability = None
-        if 'mutability' in file_ws_spec[repo_type]:
-            ws_spec_mutability = file_ws_spec[repo_type]['mutability']
+        entity_spec_key = get_spec_key(repo_type)
+        if 'mutability' in file_ws_spec[entity_spec_key]:
+            ws_spec_mutability = file_ws_spec[entity_spec_key]['mutability']
 
         metadata_spec_path = os.path.join(metadata_path, entity_dir, spec + SPEC_EXTENSION)
         if os.path.exists(metadata_spec_path):
@@ -1044,8 +1051,8 @@ class LocalRepository(MultihashFS):
             try:
                 if ws_spec_mutability is None:
                     ws_spec_mutability = MutabilityType.STRICT.value
-                if 'mutability' in file_md_spec[repo_type]:
-                    md_spec_mutability = file_md_spec[repo_type]['mutability']
+                if 'mutability' in file_md_spec[entity_spec_key]:
+                    md_spec_mutability = file_md_spec[entity_spec_key]['mutability']
                 else:
                     md_spec_mutability = MutabilityType.STRICT.value
                 return ws_spec_mutability == md_spec_mutability
@@ -1095,5 +1102,6 @@ class LocalRepository(MultihashFS):
 
         for metric, value in metrics:
             metrics_to_save[metric] = float(value)
-        spec_file[self.__repo_type][PERFORMANCE_KEY] = metrics_to_save
+
+        spec_file[get_spec_key(self.__repo_type)][PERFORMANCE_KEY] = metrics_to_save
         yaml_save(spec_file, spec_path)

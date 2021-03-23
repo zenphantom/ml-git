@@ -99,7 +99,7 @@ labels:
   git: ''
 models:
   git: ''
-storage:
+storages:
   s3:
     mlgit-datasets:
       aws-credentials:

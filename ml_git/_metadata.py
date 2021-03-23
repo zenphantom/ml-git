@@ -17,10 +17,10 @@ from ml_git.config import get_metadata_path
 from ml_git.constants import METADATA_MANAGER_CLASS_NAME, HEAD_1, RGX_ADDED_FILES, RGX_DELETED_FILES, RGX_SIZE_FILES, \
     RGX_AMOUNT_FILES, TAG, AUTHOR, EMAIL, DATE, MESSAGE, ADDED, SIZE, AMOUNT, DELETED, SPEC_EXTENSION, \
     DEFAULT_BRANCH_FOR_EMPTY_REPOSITORY, PERFORMANCE_KEY, EntityType, FileType, RELATED_DATASET_TABLE_INFO, \
-    RELATED_LABELS_TABLE_INFO
+    RELATED_LABELS_TABLE_INFO, DATASET_SPEC_KEY, LABELS_SPEC_KEY
 from ml_git.manifest import Manifest
 from ml_git.ml_git_message import output_messages
-from ml_git.spec import get_entity_dir, spec_parse
+from ml_git.spec import get_entity_dir, spec_parse, get_spec_key
 from ml_git.utils import get_root_path, ensure_path_exists, yaml_load, RootPathException, get_yaml_str, yaml_load_str, \
     clear, posix_path, create_csv_file
 
@@ -253,9 +253,10 @@ class MetadataRepo(object):
 
         sections = EntityType.to_list()
         for section in sections:
+            spec_key = get_spec_key(section)
             if section in EntityType.to_list():
                 try:
-                    md[section]  # 'hack' to ensure we don't print something useless
+                    md[spec_key]  # 'hack' to ensure we don't print something useless
                     # 'dataset' not present in 'model' and vice versa
                     print('-- %s : %s --' % (section, spec_name))
                 except Exception:
@@ -263,7 +264,7 @@ class MetadataRepo(object):
             elif section not in EntityType.to_list():
                 print('-- %s --' % (section))
             try:
-                print(get_yaml_str(md[section]))
+                print(get_yaml_str(md[spec_key]))
             except Exception:
                 continue
 
@@ -357,7 +358,9 @@ class MetadataRepo(object):
 
     def _get_metrics(self, spec, sha):
         spec_file = self._get_spec_content(spec, sha)
-        metrics = spec_file[self.__repo_type].get(PERFORMANCE_KEY, {})
+
+        entity_spec_key = get_spec_key(self.__repo_type)
+        metrics = spec_file[entity_spec_key].get(PERFORMANCE_KEY, {})
         metrics_table = PrettyTable()
         if not metrics:
             return ''
@@ -410,9 +413,10 @@ class MetadataRepo(object):
         return tag_table
 
     def _get_tag_info(self, spec, tag):
-        spec_file = self._get_spec_content(spec, tag.commit)[self.__repo_type]
-        related_dataset_tag, related_dataset_info = self._get_related_entity_info(spec_file, EntityType.DATASETS.value)
-        related_labels_tag, related_labels_info = self._get_related_entity_info(spec_file, EntityType.LABELS.value)
+        entity_spec_key = get_spec_key(self.__repo_type)
+        spec_file = self._get_spec_content(spec, tag.commit)[entity_spec_key]
+        related_dataset_tag, related_dataset_info = self._get_related_entity_info(spec_file, DATASET_SPEC_KEY)
+        related_labels_tag, related_labels_info = self._get_related_entity_info(spec_file, LABELS_SPEC_KEY)
         tag_info = {
             DATE: time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(tag.commit.authored_date)),
             TAG: tag.name,

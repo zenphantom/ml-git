@@ -9,6 +9,7 @@ import unittest
 import pytest
 
 from ml_git.ml_git_message import output_messages
+from ml_git.spec import get_spec_key
 from tests.integration.commands import MLGIT_ADD, MLGIT_COMMIT, MLGIT_PUSH, MLGIT_UPDATE, MLGIT_CHECKOUT
 from tests.integration.helper import ML_GIT_DIR, create_spec, create_file, DATASETS, MODELS, LABELS, DATASET_TAG, STRICT, MUTABLE, FLEXIBLE
 from tests.integration.helper import check_output, clear, init_repository, ERROR_MESSAGE, yaml_processor
@@ -61,8 +62,9 @@ class MutabilityAcceptanceTests(unittest.TestCase):
 
         spec_with_categories = os.path.join(self.tmp_dir, entity_type, entity_type + '-ex', entity_type + '-ex.spec')
 
-        ws_spec = self._verify_mutability(entity_type, STRICT, spec_with_categories)
-        self._change_mutability(entity_type, FLEXIBLE, spec_with_categories, ws_spec)
+        entity_spec_key = get_spec_key(entity_type)
+        ws_spec = self._verify_mutability(entity_spec_key, STRICT, spec_with_categories)
+        self._change_mutability(entity_spec_key, FLEXIBLE, spec_with_categories, ws_spec)
 
         create_file(os.path.join(entity_type, entity_type+'-ex'), 'file2', '012')
 
@@ -76,8 +78,9 @@ class MutabilityAcceptanceTests(unittest.TestCase):
 
         spec_with_categories = os.path.join(self.tmp_dir, entity_type, entity_type + '-ex', entity_type + '-ex.spec')
 
-        ws_spec = self._verify_mutability(entity_type, FLEXIBLE, spec_with_categories)
-        self._change_mutability(entity_type, STRICT, spec_with_categories, ws_spec)
+        entity_spec_key = get_spec_key(entity_type)
+        ws_spec = self._verify_mutability(entity_spec_key, FLEXIBLE, spec_with_categories)
+        self._change_mutability(entity_spec_key, STRICT, spec_with_categories, ws_spec)
 
         create_file(os.path.join(self.tmp_dir, entity_type, entity_type+'-ex'), 'file2', '012')
 
@@ -91,8 +94,9 @@ class MutabilityAcceptanceTests(unittest.TestCase):
 
         spec_with_categories = os.path.join(self.tmp_dir, entity_type,  entity_type + '-ex', entity_type + '-ex.spec')
 
-        ws_spec = self._verify_mutability(entity_type, MUTABLE, spec_with_categories)
-        self._change_mutability(entity_type, STRICT, spec_with_categories, ws_spec)
+        entity_spec_key = get_spec_key(entity_type)
+        ws_spec = self._verify_mutability(entity_spec_key, MUTABLE, spec_with_categories)
+        self._change_mutability(entity_spec_key, STRICT, spec_with_categories, ws_spec)
 
         create_file(os.path.join(self.tmp_dir, entity_type, entity_type+'-ex'), 'file2', '012')
 

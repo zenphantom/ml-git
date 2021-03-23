@@ -134,7 +134,7 @@ For an entity of your preference, change the spec file like below:
 
 *(ex: dataset/dataset-ex/dataset-ex.spec)*
 ```yaml
-datasets:
+dataset:
   categories:
   - computer-vision
   - images

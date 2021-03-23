@@ -8,8 +8,9 @@ import unittest
 
 import pytest
 
-from ml_git.constants import STORAGE_SPEC_KEY
+from ml_git.constants import STORAGE_SPEC_KEY, DATASET_SPEC_KEY
 from ml_git.ml_git_message import output_messages
+from ml_git.spec import get_spec_key
 from tests.integration.commands import MLGIT_CREATE, MLGIT_INIT
 from tests.integration.helper import check_output, ML_GIT_DIR, IMPORT_PATH, create_file, ERROR_MESSAGE, yaml_processor, \
     create_zip_file, DATASETS, DATASET_NAME, MODELS, LABELS, STRICT, FLEXIBLE, MUTABLE, GDRIVEH, AZUREBLOBH, S3H
@@ -30,11 +31,12 @@ class CreateAcceptanceTests(unittest.TestCase):
         folder_data = os.path.join(self.tmp_dir, entity_type, entity_type + '-ex', 'data')
         spec = os.path.join(self.tmp_dir, entity_type, entity_type + '-ex', entity_type + '-ex.spec')
         readme = os.path.join(self.tmp_dir, entity_type, entity_type + '-ex', 'README.md')
+        entity_spec_key = get_spec_key(entity_type)
         with open(spec, 'r') as s:
             spec_file = yaml_processor.load(s)
-            self.assertEqual(spec_file[entity_type]['manifest'][STORAGE_SPEC_KEY], storage_type + '://minio')
-            self.assertEqual(spec_file[entity_type]['name'], entity_type + '-ex')
-            self.assertEqual(spec_file[entity_type]['version'], 1)
+            self.assertEqual(spec_file[entity_spec_key]['manifest'][STORAGE_SPEC_KEY], storage_type + '://minio')
+            self.assertEqual(spec_file[entity_spec_key]['name'], entity_type + '-ex')
+            self.assertEqual(spec_file[entity_spec_key]['version'], 1)
         with open(os.path.join(self.tmp_dir, ML_GIT_DIR, 'config.yaml'), 'r') as y:
             config = yaml_processor.load(y)
             self.assertIn(entity_type, config)
@@ -58,9 +60,9 @@ class CreateAcceptanceTests(unittest.TestCase):
         spec = os.path.join(self.tmp_dir, DATASETS, DATASET_NAME, DATASET_NAME+'.spec')
         with open(spec, 'r') as s:
             spec_file = yaml_processor.load(s)
-            self.assertEqual(spec_file[DATASETS]['mutability'], mutability)
-            self.assertEqual(spec_file[DATASETS]['name'], DATASET_NAME)
-            self.assertEqual(spec_file[DATASETS]['version'], 1)
+            self.assertEqual(spec_file[DATASET_SPEC_KEY]['mutability'], mutability)
+            self.assertEqual(spec_file[DATASET_SPEC_KEY]['name'], DATASET_NAME)
+            self.assertEqual(spec_file[DATASET_SPEC_KEY]['version'], 1)
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_01_create_dataset(self):
@@ -89,9 +91,9 @@ class CreateAcceptanceTests(unittest.TestCase):
         readme = os.path.join(self.tmp_dir, DATASETS, DATASET_NAME, 'README.md')
         with open(spec, 'r') as s:
             spec_file = yaml_processor.load(s)
-            self.assertEqual(spec_file[DATASETS]['manifest'][STORAGE_SPEC_KEY], 's3h://minio')
-            self.assertEqual(spec_file[DATASETS]['name'], DATASET_NAME)
-            self.assertEqual(spec_file[DATASETS]['version'], 1)
+            self.assertEqual(spec_file[DATASET_SPEC_KEY]['manifest'][STORAGE_SPEC_KEY], 's3h://minio')
+            self.assertEqual(spec_file[DATASET_SPEC_KEY]['name'], DATASET_NAME)
+            self.assertEqual(spec_file[DATASET_SPEC_KEY]['version'], 1)
         with open(os.path.join(self.tmp_dir, ML_GIT_DIR, 'config.yaml'), 'r') as y:
             config = yaml_processor.load(y)
             self.assertIn(DATASETS, config)

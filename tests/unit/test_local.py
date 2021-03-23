@@ -14,6 +14,7 @@ import pytest
 from moto import mock_s3
 
 from ml_git.config import get_sample_config_spec, get_sample_spec
+from ml_git.constants import DATASET_SPEC_KEY, MODEL_SPEC_KEY
 from ml_git.file_system.cache import Cache
 from ml_git.file_system.hashfs import MultihashFS
 from ml_git.file_system.index import MultihashIndex, Status, FullIndex
@@ -22,7 +23,7 @@ from ml_git.file_system.objects import Objects
 from ml_git.sample import SampleValidate, SampleValidateException
 from ml_git.storages.s3_storage import S3Storage
 from ml_git.utils import yaml_load, yaml_save, ensure_path_exists, set_write_read
-from tests.unit.conftest import DATASETS, MODELS, STRICT, S3
+from tests.unit.conftest import MODELS, STRICT, S3
 
 hs = {
     'zdj7WWsMkELZSGQGgpm5VieCWV8NxY5n5XEP73H4E7eeDMA3A',
@@ -439,15 +440,15 @@ class LocalRepositoryTestCases(unittest.TestCase):
         spec_path = os.path.join(self.tmp_dir, 'model-ex.spec')
         shutil.copy('hdata/dataset-ex.spec', spec_path)
         spec_file = yaml_load(spec_path)
-        model = spec_file[DATASETS].copy()
-        del spec_file[DATASETS]
-        spec_file[MODELS] = model
+        model = spec_file[DATASET_SPEC_KEY].copy()
+        del spec_file[DATASET_SPEC_KEY]
+        spec_file[MODEL_SPEC_KEY] = model
         yaml_save(spec_file, spec_path)
         local_repo.add_metrics(spec_path, (('metric_a', '10'), ('metric_b', '9')), None)
 
         test_spec_file = yaml_load(spec_path)
-        self.assertTrue(test_spec_file[MODELS]['metrics'].get('metric_a', '') == 10.0)
-        self.assertTrue(test_spec_file[MODELS]['metrics'].get('metric_b', '') == 9.0)
+        self.assertTrue(test_spec_file[MODEL_SPEC_KEY]['metrics'].get('metric_a', '') == 10.0)
+        self.assertTrue(test_spec_file[MODEL_SPEC_KEY]['metrics'].get('metric_b', '') == 9.0)
 
     def test_add_metrics_wrong_entity(self):
         hashfs_path = os.path.join(self.tmp_dir, 'objectsfs')
@@ -457,7 +458,7 @@ class LocalRepositoryTestCases(unittest.TestCase):
         shutil.copy('hdata/dataset-ex.spec', spec_path)
         local_repo.add_metrics(spec_path, (('metric_a', '10'), ('metric_b', '9')), None)
         test_spec_file = yaml_load(spec_path)
-        self.assertFalse('metrics' in test_spec_file[DATASETS])
+        self.assertFalse('metrics' in test_spec_file[DATASET_SPEC_KEY])
 
     def test_add_metrics_with_none_metrics_options(self):
         hashfs_path = os.path.join(self.tmp_dir, 'objectsfs')
@@ -466,14 +467,14 @@ class LocalRepositoryTestCases(unittest.TestCase):
         spec_path = os.path.join(self.tmp_dir, 'model-ex.spec')
         shutil.copy('hdata/dataset-ex.spec', spec_path)
         spec_file = yaml_load(spec_path)
-        model = spec_file[DATASETS].copy()
-        del spec_file[DATASETS]
-        spec_file[MODELS] = model
+        model = spec_file[DATASET_SPEC_KEY].copy()
+        del spec_file[DATASET_SPEC_KEY]
+        spec_file[MODEL_SPEC_KEY] = model
         yaml_save(spec_file, spec_path)
         local_repo.add_metrics(spec_path, (), None)
 
         test_spec_file = yaml_load(spec_path)
-        self.assertFalse('metrics' in test_spec_file[MODELS])
+        self.assertFalse('metrics' in test_spec_file[MODEL_SPEC_KEY])
 
     @pytest.mark.usefixtures('create_csv_file')
     def test_add_metrics_file(self):
@@ -483,17 +484,17 @@ class LocalRepositoryTestCases(unittest.TestCase):
         spec_path = os.path.join(self.tmp_dir, 'model-ex.spec')
         shutil.copy('hdata/dataset-ex.spec', spec_path)
         spec_file = yaml_load(spec_path)
-        model = spec_file[DATASETS].copy()
-        del spec_file[DATASETS]
-        spec_file[MODELS] = model
+        model = spec_file[DATASET_SPEC_KEY].copy()
+        del spec_file[DATASET_SPEC_KEY]
+        spec_file[MODEL_SPEC_KEY] = model
         yaml_save(spec_file, spec_path)
         metrics_file_path = os.path.join(self.tmp_dir, 'metrics.csv')
         self.create_csv_file(metrics_file_path, {'metric_a': 10, 'metric_b': 9})
         local_repo.add_metrics(spec_path, (), metrics_file_path)
 
         test_spec_file = yaml_load(spec_path)
-        self.assertEqual(test_spec_file[MODELS]['metrics'].get('metric_a', ''), 10.0)
-        self.assertEqual(test_spec_file[MODELS]['metrics'].get('metric_b', ''), 9.0)
+        self.assertEqual(test_spec_file[MODEL_SPEC_KEY]['metrics'].get('metric_a', ''), 10.0)
+        self.assertEqual(test_spec_file[MODEL_SPEC_KEY]['metrics'].get('metric_b', ''), 9.0)
 
     def check_delete(self, s3, testbucketname):
         try:

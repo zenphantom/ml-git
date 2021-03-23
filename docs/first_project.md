@@ -120,7 +120,7 @@ config:
  'object_path': '',
  'push_threads_count': 10,
  'refs_path': '',
- 'storage': {'s3': {'mlgit-datasets': {'aws-credentials': {'profile': 'default'},
+ 'storages': {'s3': {'mlgit-datasets': {'aws-credentials': {'profile': 'default'},
                                      'region': 'us-east-1'}},
            's3h': {'mlgit-datasets': {'aws-credentials': {'profile': 'mlgit'},
                                       'endpoint-url': <minio-endpoint-url>,
@@ -149,7 +149,7 @@ $ ml-git datasets create imagenet8 --category=computer-vision --category=images 
 After that a file must have been created in dataset/folderA/folderB/imagenet8/imagenet8.spec and should look like this:
 
 ```
-datasets:
+dataset:
   categories:
     - computer-vision
     - images
@@ -172,7 +172,7 @@ The items listed above are mandatory in the spec. An important point to note her
 The example below presents a spec with the entity's owner information to be versioned. Those information were put under metadata field just for purpose of organization.
 
 ```
-datasets:
+dataset:
   categories:
     - computer-vision
     - images
@@ -337,7 +337,7 @@ config:
  'models': {'git': ''},
  'object_path': '',
  'refs_path': '',
- 'storage': {'s3': {'mlgit-datasets': {'aws-credentials': {'profile': 'default'},
+ 'storages': {'s3': {'mlgit-datasets': {'aws-credentials': {'profile': 'default'},
                                      'region': 'us-east-1'}},
            's3h': {'mlgit-datasets': {'aws-credentials': {'profile': 'default'},
                                       'endpoint-url': None,
@@ -464,7 +464,7 @@ Obs: The parameters used above were chosen for example purposes, you can name yo
 When inserting the metrics, they will be included in the structure of your model's spec file. An example of what it would look like would be the following structure:
 
 ```
-models:
+model:
   categories:
     - computer-vision
     - images

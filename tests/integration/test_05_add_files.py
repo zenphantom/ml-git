@@ -10,6 +10,7 @@ from stat import S_IWUSR, S_IREAD
 import pytest
 
 from ml_git.ml_git_message import output_messages
+from ml_git.spec import get_spec_key
 from tests.integration.helper import ML_GIT_DIR, create_spec, init_repository, ERROR_MESSAGE, MLGIT_ADD, \
     create_file, DATASETS, DATASET_NAME, MODELS, LABELS
 from tests.integration.helper import clear, check_output, add_file, entity_init, yaml_processor
@@ -118,7 +119,8 @@ class AddFilesAcceptanceTests(unittest.TestCase):
 
         with open(os.path.join(workspace, entity_name + '.spec')) as spec:
             spec_file = yaml_processor.load(spec)
-            metrics = spec_file[repo_type].get('metrics', {})
+            spec_key = get_spec_key(repo_type)
+            metrics = spec_file[spec_key].get('metrics', {})
             self.assertFalse(metrics == {})
             self.assertTrue(metrics['Accuracy'] == 1)
             self.assertTrue(metrics['Recall'] == 2)
@@ -143,7 +145,8 @@ class AddFilesAcceptanceTests(unittest.TestCase):
 
         with open(os.path.join(workspace, DATASET_NAME+'.spec')) as spec:
             spec_file = yaml_processor.load(spec)
-            metrics = spec_file[repo_type].get('metrics', {})
+            spec_key = get_spec_key(repo_type)
+            metrics = spec_file[spec_key].get('metrics', {})
             self.assertTrue(metrics == {})
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir', 'create_csv_file')
@@ -171,7 +174,8 @@ class AddFilesAcceptanceTests(unittest.TestCase):
 
         with open(os.path.join(workspace, entity_name + '.spec')) as spec:
             spec_file = yaml_processor.load(spec)
-            metrics = spec_file[repo_type].get('metrics', {})
+            spec_key = get_spec_key(repo_type)
+            metrics = spec_file[spec_key].get('metrics', {})
             self.assertFalse(metrics == {})
             self.assertTrue(metrics['Accuracy'] == 1)
             self.assertTrue(metrics['Recall'] == 2)

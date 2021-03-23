@@ -11,8 +11,9 @@ from halo import Halo
 
 from ml_git import spec
 from ml_git.constants import FAKE_STORAGE, BATCH_SIZE_VALUE, BATCH_SIZE, StorageType, GLOBAL_ML_GIT_CONFIG, \
-    PUSH_THREADS_COUNT, SPEC_EXTENSION, EntityType, STORAGE_CONFIG_KEY, STORAGE_SPEC_KEY
+    PUSH_THREADS_COUNT, SPEC_EXTENSION, EntityType, STORAGE_CONFIG_KEY, STORAGE_SPEC_KEY, DATASET_SPEC_KEY
 from ml_git.ml_git_message import output_messages
+from ml_git.spec import get_spec_key
 from ml_git.utils import getOrElse, yaml_load, yaml_save, get_root_path, yaml_load_str
 
 push_threads = os.cpu_count()*5
@@ -252,7 +253,7 @@ def validate_bucket_config(the_bucket_hash, storage_type=StorageType.S3H.value):
     return True
 
 
-def get_sample_spec_doc(bucket, repotype=EntityType.DATASETS.value):
+def get_sample_spec_doc(bucket, repotype=DATASET_SPEC_KEY):
     doc = '''
       %s:
         categories:
@@ -268,34 +269,34 @@ def get_sample_spec_doc(bucket, repotype=EntityType.DATASETS.value):
     return doc
 
 
-def get_sample_spec(bucket, repotype=EntityType.DATASETS.value):
+def get_sample_spec(bucket, repotype=DATASET_SPEC_KEY):
     c = yaml_load_str(get_sample_spec_doc(bucket, repotype))
     return c
 
 
-def validate_spec_hash(the_hash, repotype=EntityType.DATASETS.value):
+def validate_spec_hash(the_hash, entity_key=DATASET_SPEC_KEY):
     if the_hash in [None, {}]:
         return False
 
-    if not spec.is_valid_version(the_hash, repotype):
+    if not spec.is_valid_version(the_hash, entity_key):
         return False  # Also checks for the existence of 'dataset'
 
-    if 'categories' not in the_hash[repotype] or 'manifest' not in the_hash[repotype]:
+    if 'categories' not in the_hash[entity_key] or 'manifest' not in the_hash[entity_key]:
         return False
 
-    if the_hash[repotype]['categories'] == {}:
+    if the_hash[entity_key]['categories'] == {}:
         return False
 
-    if STORAGE_SPEC_KEY not in the_hash[repotype]['manifest']:
+    if STORAGE_SPEC_KEY not in the_hash[entity_key]['manifest']:
         return False
 
-    if not validate_spec_string(the_hash[repotype]['manifest'][STORAGE_SPEC_KEY]):
+    if not validate_spec_string(the_hash[entity_key]['manifest'][STORAGE_SPEC_KEY]):
         return False
 
-    if 'name' not in the_hash[repotype]:
+    if 'name' not in the_hash[entity_key]:
         return False
 
-    if the_hash[repotype]['name'] == '':
+    if the_hash[entity_key]['name'] == '':
         return False
 
     return True
@@ -320,8 +321,9 @@ def create_workspace_tree_structure(repo_type, artifact_name, categories, storag
     file_exists = os.path.isfile(spec_path)
 
     storage = '%s://%s' % (storage_type, FAKE_STORAGE if bucket_name is None else bucket_name)
+    spec_key = get_spec_key(repo_type)
     spec_structure = {
-        repo_type: {
+        spec_key: {
             'categories': categories,
             'manifest': {
                 STORAGE_SPEC_KEY: storage

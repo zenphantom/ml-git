@@ -8,6 +8,7 @@ import unittest
 
 import pytest
 
+from ml_git.constants import DATASET_SPEC_KEY
 from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_ADD, MLGIT_COMMIT, MLGIT_PUSH, MLGIT_UPDATE, MLGIT_CHECKOUT
 from tests.integration.helper import ML_GIT_DIR, ERROR_MESSAGE, DATASETS, DATASET_NAME, DATASET_TAG, STRICT, MUTABLE
@@ -159,7 +160,7 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
             spec = yaml_processor.load(y)
 
         with open(spec_path, 'w') as y:
-            spec[DATASETS]['version'] = 2
+            spec[DATASET_SPEC_KEY]['version'] = 2
             yaml_processor.dump(spec, y)
 
         self._push_files(entity_type)

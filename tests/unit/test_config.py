@@ -16,7 +16,7 @@ from ml_git.config import validate_config_spec_hash, get_sample_config_spec, get
     get_index_path, get_objects_path, get_cache_path, get_metadata_path, import_dir, \
     extract_storage_info_from_list, create_workspace_tree_structure, get_batch_size, merge_conf, \
     merge_local_with_global_config, mlgit_config, save_global_config_in_local, start_wizard_questions
-from ml_git.constants import BATCH_SIZE_VALUE, BATCH_SIZE, STORAGE_CONFIG_KEY, STORAGE_SPEC_KEY
+from ml_git.constants import BATCH_SIZE_VALUE, BATCH_SIZE, STORAGE_CONFIG_KEY, STORAGE_SPEC_KEY, DATASET_SPEC_KEY
 from ml_git.utils import get_root_path, yaml_load
 from tests.unit.conftest import DATASETS, LABELS, MODELS, STRICT, S3H, S3, GDRIVEH
 
@@ -55,44 +55,44 @@ class ConfigTestCases(unittest.TestCase):
         self.assertFalse(validate_spec_hash({}))
 
         # Non-integer version
-        spec[DATASETS]['version'] = 'string'
+        spec[DATASET_SPEC_KEY]['version'] = 'string'
         self.assertFalse(validate_spec_hash(spec))
 
         # Missing version
-        spec[DATASETS].pop('version')
+        spec[DATASET_SPEC_KEY].pop('version')
         self.assertFalse(validate_spec_hash(spec))
 
         # Missing dataset
-        spec.pop(DATASETS)
+        spec.pop(DATASET_SPEC_KEY)
         self.assertFalse(validate_spec_hash(spec))
 
         # Empty category list
         spec = get_sample_spec('somebucket')
-        spec[DATASETS]['categories'] = {}
+        spec[DATASET_SPEC_KEY]['categories'] = {}
         self.assertFalse(validate_spec_hash(spec))
 
         # Missing categories
-        spec[DATASETS].pop('categories')
+        spec[DATASET_SPEC_KEY].pop('categories')
         self.assertFalse(validate_spec_hash(spec))
 
         # Missing storage
         spec = get_sample_spec('somebucket')
-        spec[DATASETS]['manifest'].pop(STORAGE_SPEC_KEY)
+        spec[DATASET_SPEC_KEY]['manifest'].pop(STORAGE_SPEC_KEY)
         self.assertFalse(validate_spec_hash(spec))
 
         # Missing manifest
-        spec[DATASETS].pop('manifest')
+        spec[DATASET_SPEC_KEY].pop('manifest')
 
         # Bad bucket URL format
         spec = get_sample_spec('somebucket')
-        spec[DATASETS]['manifest'][STORAGE_SPEC_KEY] = 'invalid'
+        spec[DATASET_SPEC_KEY]['manifest'][STORAGE_SPEC_KEY] = 'invalid'
         self.assertFalse(validate_spec_hash(spec))
 
         # Missing and empty dataset name
         spec = get_sample_spec('somebucket')
-        spec[DATASETS]['name'] = ''
+        spec[DATASET_SPEC_KEY]['name'] = ''
         self.assertFalse(validate_spec_hash(spec))
-        spec[DATASETS].pop('name')
+        spec[DATASET_SPEC_KEY].pop('name')
         self.assertFalse(validate_spec_hash(spec))
 
     def test_config_verbose(self):
@@ -132,18 +132,18 @@ class ConfigTestCases(unittest.TestCase):
         root_path = get_root_path()
         IMPORT_PATH = os.path.join(os.getcwd(), 'test', 'src')
         os.makedirs(IMPORT_PATH)
-        self.assertTrue(create_workspace_tree_structure('repotype', 'artefact_name',
+        self.assertTrue(create_workspace_tree_structure(DATASETS, 'artefact_name',
                                                         ['imgs', 'old', 'blue'], S3H, 'minio', 2, IMPORT_PATH, STRICT))
 
-        spec_path = os.path.join(os.getcwd(), os.sep.join(['repotype', 'artefact_name', 'artefact_name.spec']))
+        spec_path = os.path.join(os.getcwd(), os.sep.join([DATASETS, 'artefact_name', 'artefact_name.spec']))
         spec1 = yaml_load(spec_path)
-        self.assertEqual(spec1['repotype']['manifest'][STORAGE_SPEC_KEY], 's3h://minio')
-        self.assertEqual(spec1['repotype']['name'], 'artefact_name')
-        self.assertEqual(spec1['repotype']['mutability'], STRICT)
-        self.assertEqual(spec1['repotype']['version'], 2)
+        self.assertEqual(spec1[DATASET_SPEC_KEY]['manifest'][STORAGE_SPEC_KEY], 's3h://minio')
+        self.assertEqual(spec1[DATASET_SPEC_KEY]['name'], 'artefact_name')
+        self.assertEqual(spec1[DATASET_SPEC_KEY]['mutability'], STRICT)
+        self.assertEqual(spec1[DATASET_SPEC_KEY]['version'], 2)
 
         shutil.rmtree(IMPORT_PATH)
-        shutil.rmtree(os.path.join(root_path, 'repotype'))
+        shutil.rmtree(os.path.join(root_path, DATASETS))
 
     @pytest.mark.usefixtures('restore_config')
     def test_get_batch_size(self):

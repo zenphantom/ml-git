@@ -17,6 +17,7 @@ from ruamel.yaml import YAML
 from ml_git.constants import GLOBAL_ML_GIT_CONFIG, MutabilityType, StorageType, EntityType, STORAGE_SPEC_KEY, \
     STORAGE_CONFIG_KEY, FileType
 from ml_git.ml_git_message import output_messages
+from ml_git.spec import get_spec_key
 from ml_git.utils import ensure_path_exists
 from tests.integration.commands import MLGIT_INIT, MLGIT_REMOTE_ADD, MLGIT_ENTITY_INIT, MLGIT_ADD, \
     MLGIT_STORAGE_ADD_WITH_TYPE, MLGIT_REMOTE_ADD_GLOBAL, MLGIT_STORAGE_ADD, MLGIT_STORAGE_ADD_WITHOUT_CREDENTIALS, \
@@ -143,8 +144,9 @@ def init_repository(entity, self, version=1, storage_type=S3H, profile=PROFILE, 
     edit_config_yaml(os.path.join(self.tmp_dir, ML_GIT_DIR), storage_type)
     workspace = os.path.join(self.tmp_dir, entity, artifact_name)
     os.makedirs(workspace)
+    spec_key = get_spec_key(entity)
     spec = {
-        entity: {
+        spec_key: {
             'categories': ['computer-vision', category],
             'manifest': {
                 'files': 'MANIFEST.yaml',
@@ -245,8 +247,9 @@ def create_git_clone_repo(git_dir, tmp_dir, git_path=GIT_PATH):
 def create_spec(self, model, tmpdir, version=1, mutability=STRICT, storage_type=STORAGE_TYPE, artifact_name=None):
     if not artifact_name:
         artifact_name = f'{model}-ex'
+    spec_key = get_spec_key(model)
     spec = {
-        model: {
+        spec_key: {
             'categories': ['computer-vision', 'images'],
             'mutability': mutability,
             'manifest': {
