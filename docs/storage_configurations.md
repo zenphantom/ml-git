@@ -1,6 +1,6 @@
 # Storage configurations #
 
-For now, ml-git supports three types of storage (S3, MinIO or Azure). You can find files describing how to configure each of these types of storage below:
+ML-Git supports four types of storage (S3, MinIO, Azure or Google Drive). You can find files describing how to configure each of these types of storage below:
 
 1. [S3](s3_configurations.md)
 2. [MinIO](s3_configurations.md)

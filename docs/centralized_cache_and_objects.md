@@ -1,11 +1,11 @@
 ## <a name="centralized-cache">Centralized cache</a>
 
-Centralized cache is a configuration mode that allows cached files to be shared between multiple users on the same machine, reducing the total cost of disk space. **Currently this feature works only in Linux and derivatives machines.**
+Centralized cache is a configuration mode that allows cached files to be shared between multiple users on the same machine, reducing the total cost of disk space. **Currently, this feature works only in Linux and derivatives machines.**
 
 >:warning:**Caution:**
 
-- We encourage to use the centralized cache with mutability **strict** only.
-- It is necessary to deactivate the feature `fs.protected_hardlinks`, because ml-git uses hardlink to share cache files. Be aware that changing this setting is a risky operation, as malicious people can exploit this (see the extract below). Do this only if you really need to use the Centralized Cache feature. **Remember to revert this change if you will not use Centralized Cache anymore.**
+- We encourage the use of centralized cache just with mutability set as **strict**.
+- It is necessary to deactivate the feature `fs.protected_hardlinks`, because ML-Git uses hardlink to share cache files. Be aware that changing this setting is a risky operation, as malicious people can exploit this (see the extract below). Do this only if you really need to use the Centralized Cache feature. **Remember to revert this change if you will stop to use Centralized Cache.**
 
 Please read this extract from [kernel.org](https://www.kernel.org/doc/Documentation/sysctl/fs.txt) about protected_hardlinks setting:
 
