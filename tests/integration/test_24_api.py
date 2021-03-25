@@ -467,3 +467,12 @@ class APIAcceptanceTests(unittest.TestCase):
         tag_values = '{},,,10.0,10.0'.format(model_tag)
         self.assertIn(header, data_output.getvalue())
         self.assertIn(tag_values, data_output.getvalue())
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
+    def test_31_checkout_with_entity_name(self):
+        self.set_up_test()
+        data_path = api.checkout(DATASETS, DATASET_NAME)
+        self.assertEqual(self.data_path, data_path)
+        self.check_metadata()
+        self.assertTrue(os.path.exists(self.file1))
+        self.assertTrue(os.path.exists(self.file2))

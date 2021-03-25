@@ -4,6 +4,7 @@ SPDX-License-Identifier: GPL-2.0-only
 """
 
 import os
+import re
 import shutil
 import tempfile
 
@@ -11,7 +12,7 @@ from ml_git import admin
 from ml_git import log
 from ml_git.admin import init_mlgit
 from ml_git.config import config_load
-from ml_git.constants import EntityType, StorageType, FileType
+from ml_git.constants import EntityType, StorageType, FileType, RGX_TAG_FORMAT
 from ml_git.log import init_logger
 from ml_git.ml_git_message import output_messages
 from ml_git.repository import Repository
@@ -79,8 +80,10 @@ def checkout(entity, tag, sampling=None, retries=2, force=False, dataset=False, 
     options['version'] = version
     repo.checkout(tag, sampling, options)
 
-    _, specname, _ = spec_parse(tag)
-    spec_path, _ = search_spec_file(entity, specname)
+    spec_name = tag
+    if re.search(RGX_TAG_FORMAT, tag):
+        _, spec_name, _ = spec_parse(tag)
+    spec_path, _ = search_spec_file(entity, spec_name)
     data_path = os.path.relpath(spec_path, get_root_path())
     if not os.path.exists(data_path):
         data_path = None
