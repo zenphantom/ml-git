@@ -600,7 +600,7 @@ class Repository(object):
         if ref is None:
             ref = m.get_default_branch()
 
-        m.checkout(ref)
+        m.checkout(ref, force=True)
 
     '''Performs fsck on several aspects of ml-git filesystem.
         TODO: add options like following:

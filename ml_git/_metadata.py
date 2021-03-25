@@ -79,11 +79,11 @@ class MetadataRepo(object):
             return False
         return True
 
-    def checkout(self, sha=None):
+    def checkout(self, sha=None, force=False):
         repo = Git(self.__path)
         if sha is None:
             sha = self.get_default_branch()
-        repo.checkout(sha)
+        repo.checkout(sha, force=force)
 
     def _get_symbolic_ref(self):
         repo = Repo(self.__path)
