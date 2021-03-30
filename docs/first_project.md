@@ -126,7 +126,7 @@ config:
 
 To create and upload a dataset to a storage, you must be in an already initialized project, if necessary read [section 1](#initial-config) to initialize and configure a project.
 
-Ml-Git expects any dataset to be specified under _dataset/_ directory of your project and it expects a specification file with the name of the dataset.
+ML-Git expects any dataset to be specified under _dataset/_ directory of your project and it expects a specification file with the name of the dataset.
 To create this specification file for a new entity you must run the following command:
 
 ```
