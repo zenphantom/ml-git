@@ -7,7 +7,7 @@ import boto3
 from botocore.exceptions import ProfileNotFound
 
 from ml_git import log
-from ml_git.constants import STORAGE_FACTORY_CLASS_NAME, StorageType, STORAGE_KEY
+from ml_git.constants import STORAGE_FACTORY_CLASS_NAME, StorageType, STORAGE_CONFIG_KEY
 from ml_git.ml_git_message import output_messages
 from ml_git.storages.azure_storage import AzureMultihashStorage
 from ml_git.storages.google_drive_storage import GoogleDriveMultihashStorage, GoogleDriveStorage
@@ -29,13 +29,13 @@ def storage_factory(config, storage_string):
         bucket_name = sp[2]
         config_bucket_name = []
         log.debug(output_messages['DEBUG_STORAGE_AND_BUCKET'] % (storage_type, bucket_name), class_name=STORAGE_FACTORY_CLASS_NAME)
-        for k in config[STORAGE_KEY][storage_type]:
+        for k in config[STORAGE_CONFIG_KEY][storage_type]:
             config_bucket_name.append(k)
         if bucket_name not in config_bucket_name:
             log.warn(output_messages['WARN_EXCPETION_CREATING_STORAGE'] % (
                 bucket_name, storage_type, config_bucket_name), class_name=STORAGE_FACTORY_CLASS_NAME)
             return None
-        bucket = config[STORAGE_KEY][storage_type][bucket_name]
+        bucket = config[STORAGE_CONFIG_KEY][storage_type][bucket_name]
         return storages[storage_type](bucket_name, bucket)
     except ProfileNotFound as pfn:
         log.error(pfn, class_name=STORAGE_FACTORY_CLASS_NAME)

@@ -1,4 +1,4 @@
-datasets:
+dataset:
   categories: imgs
   manifest:
     storage: s3h://some-bucket-name

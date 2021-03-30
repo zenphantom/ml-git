@@ -9,7 +9,8 @@ import unittest
 
 import pytest
 
-from ml_git.constants import EntityType, StorageType, STORAGE_KEY, SPEC_EXTENSION
+from ml_git.constants import EntityType, StorageType, SPEC_EXTENSION, STORAGE_SPEC_KEY, STORAGE_CONFIG_KEY, \
+    DATASET_SPEC_KEY
 from ml_git.spec import yaml_load, incr_version, is_valid_version, search_spec_file, SearchSpecException, spec_parse, \
     get_spec_file_dir, increment_version_in_spec, get_root_path, get_version, update_storage_spec, validate_bucket_name, \
     set_version_in_spec, get_entity_dir
@@ -26,10 +27,10 @@ class SpecTestCases(unittest.TestCase):
         file = os.path.join(testdir, 'sample.spec')
         spec_hash = yaml_load(file)
         yaml_save(spec_hash, tmpfile)
-        version = spec_hash[DATASETS]['version']
+        version = spec_hash[DATASET_SPEC_KEY]['version']
         incr_version(tmpfile)
         incremented_hash = yaml_load(tmpfile)
-        self.assertEqual(incremented_hash[DATASETS]['version'], version + 1)
+        self.assertEqual(incremented_hash[DATASET_SPEC_KEY]['version'], version + 1)
 
         incr_version('non-existent-file')
 
@@ -126,27 +127,26 @@ class SpecTestCases(unittest.TestCase):
 
         update_storage_spec(DATASETS, 'dataex', S3H, 'fakestorage')
         spec1 = yaml_load(spec_path)
-        self.assertEqual(spec1[DATASETS]['manifest'][STORAGE_KEY], 's3h://fakestorage')
+        self.assertEqual(spec1[DATASET_SPEC_KEY]['manifest'][STORAGE_SPEC_KEY], 's3h://fakestorage')
 
         update_storage_spec(DATASETS, 'dataex', S3H, 'some-bucket-name')
         spec2 = yaml_load(spec_path)
-        self.assertEqual(spec2[DATASETS]['manifest'][STORAGE_KEY], 's3h://some-bucket-name')
+        self.assertEqual(spec2[DATASET_SPEC_KEY]['manifest'][STORAGE_SPEC_KEY], 's3h://some-bucket-name')
 
     def test_validate_bucket_name(self):
-        repo_type = DATASETS
         config = yaml_load(os.path.join(os.getcwd(), '.ml-git', 'config.yaml'))
         spec_with_wrong_bucket_name = yaml_load(os.path.join(testdir, 'invalid4.spec'))
-        self.assertFalse(validate_bucket_name(spec_with_wrong_bucket_name[repo_type], config))
+        self.assertFalse(validate_bucket_name(spec_with_wrong_bucket_name[DATASET_SPEC_KEY], config))
 
         spec_bucket_name_not_in_config = yaml_load(os.path.join(testdir, 'valid.spec'))
-        self.assertFalse(validate_bucket_name(spec_bucket_name_not_in_config[repo_type], config))
+        self.assertFalse(validate_bucket_name(spec_bucket_name_not_in_config[DATASET_SPEC_KEY], config))
 
-        storage = config[STORAGE_KEY][S3]
-        del config[STORAGE_KEY][S3]
-        config[STORAGE_KEY][S3H] = storage
+        storage = config[STORAGE_CONFIG_KEY][S3]
+        del config[STORAGE_CONFIG_KEY][S3]
+        config[STORAGE_CONFIG_KEY][S3H] = storage
 
         spec_with_bucket_in_config = yaml_load(os.path.join(testdir, 'valid2.spec'))
-        self.assertTrue(validate_bucket_name(spec_with_bucket_in_config[repo_type], config))
+        self.assertTrue(validate_bucket_name(spec_with_bucket_in_config[DATASET_SPEC_KEY], config))
 
     def test_set_version_in_spec(self):
         tmpfile = os.path.join(self.tmp_dir, 'sample.spec')
@@ -155,7 +155,7 @@ class SpecTestCases(unittest.TestCase):
         yaml_save(spec_hash, tmpfile)
         set_version_in_spec(3, tmpfile, DATASETS)
         spec_hash = yaml_load(tmpfile)
-        self.assertEqual(spec_hash[EntityType.DATASETS.value]['version'], 3)
+        self.assertEqual(spec_hash[DATASET_SPEC_KEY]['version'], 3)
 
     def test_update_storage_spec_with_entity_dir(self):
         entity_name = 'dataex'
@@ -169,8 +169,8 @@ class SpecTestCases(unittest.TestCase):
 
         update_storage_spec(entity_type, entity_name, StorageType.S3H.value, 'fakestorage', entity_dir)
         spec = yaml_load(spec_path)
-        self.assertEqual(spec[entity_type]['manifest'][STORAGE_KEY], 's3h://fakestorage')
+        self.assertEqual(spec[DATASET_SPEC_KEY]['manifest'][STORAGE_SPEC_KEY], 's3h://fakestorage')
 
         update_storage_spec(entity_type, entity_name, StorageType.S3H.value, 'some-bucket-name', entity_dir)
         spec = yaml_load(spec_path)
-        self.assertEqual(spec[entity_type]['manifest'][STORAGE_KEY], 's3h://some-bucket-name')
+        self.assertEqual(spec[DATASET_SPEC_KEY]['manifest'][STORAGE_SPEC_KEY], 's3h://some-bucket-name')

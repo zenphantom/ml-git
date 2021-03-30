@@ -12,13 +12,13 @@ from ml_git import log
 from ml_git._metadata import MetadataManager
 from ml_git.config import get_refs_path, get_sample_spec_doc
 from ml_git.constants import METADATA_CLASS_NAME, LOCAL_REPOSITORY_CLASS_NAME, ROOT_FILE_NAME, MutabilityType, \
-    SPEC_EXTENSION, MANIFEST_FILE, EntityType, STORAGE_KEY
+    SPEC_EXTENSION, MANIFEST_FILE, EntityType, STORAGE_SPEC_KEY, DATASET_SPEC_KEY, LABELS_SPEC_KEY
 from ml_git.manifest import Manifest
 from ml_git.ml_git_message import output_messages
 from ml_git.plugin_interface.data_plugin_constants import ADD_METADATA
 from ml_git.plugin_interface.plugin_especialization import PluginCaller
 from ml_git.refs import Refs
-from ml_git.spec import spec_parse, get_entity_dir
+from ml_git.spec import spec_parse, get_entity_dir, get_spec_key
 from ml_git.utils import ensure_path_exists, yaml_save, yaml_load, clear, get_file_size, normalize_path
 
 
@@ -143,12 +143,14 @@ class Metadata(MetadataManager):
                 raise e
         amount, workspace_size = self._get_amount_and_size_of_workspace_files(full_metadata_path, ws_path)
         # saves metadata and commit
-        metadata[self.__repo_type]['manifest']['files'] = MANIFEST_FILE
-        metadata[self.__repo_type]['manifest']['size'] = humanize.naturalsize(workspace_size)
-        metadata[self.__repo_type]['manifest']['amount'] = amount
-        storage = metadata[self.__repo_type]['manifest'][STORAGE_KEY]
 
-        manifest = metadata[self.__repo_type]['manifest']
+        entity_spec_key = get_spec_key(self.__repo_type)
+        metadata[entity_spec_key]['manifest']['files'] = MANIFEST_FILE
+        metadata[entity_spec_key]['manifest']['size'] = humanize.naturalsize(workspace_size)
+        metadata[entity_spec_key]['manifest']['amount'] = amount
+        storage = metadata[entity_spec_key]['manifest'][STORAGE_SPEC_KEY]
+
+        manifest = metadata[entity_spec_key]['manifest']
         PluginCaller(manifest).call(ADD_METADATA, ws_path, manifest)
 
         # Add metadata specific to labels ML entity type
@@ -161,6 +163,7 @@ class Metadata(MetadataManager):
         dataset = EntityType.DATASETS.value
         labels = EntityType.LABELS.value
         model = EntityType.MODELS.value
+        entity_spec_key = get_spec_key(self.__repo_type)
         if dataset in specs and self.__repo_type in [labels, model]:
             d_spec = specs[dataset]
             refs_path = get_refs_path(self.__config, dataset)
@@ -169,9 +172,9 @@ class Metadata(MetadataManager):
             if tag is not None:
                 log.info(output_messages['INFO_ASSOCIATE_DATASETS'] % (d_spec, tag, self.__repo_type),
                          class_name=LOCAL_REPOSITORY_CLASS_NAME)
-                metadata[self.__repo_type][dataset] = {}
-                metadata[self.__repo_type][dataset]['tag'] = tag
-                metadata[self.__repo_type][dataset]['sha'] = sha
+                metadata[entity_spec_key][DATASET_SPEC_KEY] = {}
+                metadata[entity_spec_key][DATASET_SPEC_KEY]['tag'] = tag
+                metadata[entity_spec_key][DATASET_SPEC_KEY]['sha'] = sha
         if labels in specs and self.__repo_type in [model]:
             l_spec = specs[labels]
             refs_path = get_refs_path(self.__config, labels)
@@ -181,9 +184,9 @@ class Metadata(MetadataManager):
                 log.info(
                     'Associate labels [%s]-[%s] to the %s.' % (l_spec, tag, self.__repo_type),
                     class_name=LOCAL_REPOSITORY_CLASS_NAME)
-                metadata[self.__repo_type][labels] = {}
-                metadata[self.__repo_type][labels]['tag'] = tag
-                metadata[self.__repo_type][labels]['sha'] = sha
+                metadata[entity_spec_key][LABELS_SPEC_KEY] = {}
+                metadata[entity_spec_key][LABELS_SPEC_KEY]['tag'] = tag
+                metadata[entity_spec_key][LABELS_SPEC_KEY]['sha'] = sha
 
     def _get_amount_and_size_of_workspace_files(self, full_metadata_path, ws_path):
         full_path = os.path.join(full_metadata_path, MANIFEST_FILE)
@@ -209,7 +212,8 @@ class Metadata(MetadataManager):
 
     def __metadata_spec(self, metadata, sep):
         repo_type = self.__repo_type
-        cats = metadata[repo_type]['categories']
+        entity_sepc_key = get_spec_key(repo_type)
+        cats = metadata[entity_sepc_key]['categories']
         if cats is None:
             log.error(output_messages['ERROR_ENTITY_NEEDS_CATATEGORY'])
             return
@@ -220,19 +224,19 @@ class Metadata(MetadataManager):
 
         # Generate Spec from Dataset Name & Categories
         try:
-            return sep.join([categories, metadata[repo_type]['name']])
+            return sep.join([categories, metadata[entity_sepc_key]['name']])
         except Exception:
             log.error(output_messages['ERROR_INVALID_DATASET_SPEC']
-                      % (get_sample_spec_doc('somebucket', repo_type)))
+                      % (get_sample_spec_doc('somebucket', entity_sepc_key)))
             return None
 
     def metadata_tag(self, metadata):
         repo_type = self.__repo_type
-
+        entity_spec_key = get_spec_key(repo_type)
         sep = '__'
         tag = self.__metadata_spec(metadata, sep)
 
-        tag = sep.join([tag, str(metadata[repo_type]['version'])])
+        tag = sep.join([tag, str(metadata[entity_spec_key]['version'])])
 
         log.debug(output_messages['DEBUG_NEW_TAG_CREATED'] % tag, class_name=METADATA_CLASS_NAME)
         return tag

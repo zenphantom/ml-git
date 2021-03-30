@@ -16,7 +16,7 @@ import pytest
 from git import Repo
 
 from ml_git.config import config_load
-from ml_git.constants import STORAGE_KEY, StorageType, EntityType, MutabilityType, FileType
+from ml_git.constants import StorageType, EntityType, MutabilityType, FileType, STORAGE_CONFIG_KEY
 
 test_scr = Path('./tests/unit/test_dir').resolve()
 
@@ -75,7 +75,7 @@ def write_config(git_path, path):
                 aws-credentials:
                     profile: mlgit
                 region: us-east-1
-    """ % (git_path, STORAGE_KEY)
+    """ % (git_path, STORAGE_CONFIG_KEY)
 
     os.makedirs(path, exist_ok=True)
     with open(os.path.join(path, 'config.yaml'), 'w') as config_yaml:
@@ -136,14 +136,14 @@ def yaml_str_sample(request):
                 aws-credentials:
                   profile: profile_test
                 region: region_test
-        """ % STORAGE_KEY
+        """ % STORAGE_CONFIG_KEY
     request.cls.yaml_str_sample = textwrap.dedent(doc)
 
 
 @pytest.fixture
 def yaml_obj_sample(request):
     obj = {
-        STORAGE_KEY: {
+        STORAGE_CONFIG_KEY: {
             S3H: {
                 'bucket_test': {
                     'aws-credentials': {

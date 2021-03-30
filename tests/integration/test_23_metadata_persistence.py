@@ -8,11 +8,12 @@ import unittest
 
 import pytest
 
-from ml_git.constants import STORAGE_KEY
+from ml_git.constants import STORAGE_SPEC_KEY, DATASET_SPEC_KEY
 from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_STATUS, MLGIT_ADD, MLGIT_PUSH, MLGIT_COMMIT, MLGIT_INIT, \
     MLGIT_REMOTE_ADD, MLGIT_ENTITY_INIT, MLGIT_CHECKOUT, MLGIT_STORAGE_ADD_WITH_TYPE
-from tests.integration.helper import ML_GIT_DIR, GIT_PATH, BUCKET_NAME, PROFILE, STORAGE_TYPE, DATASETS, DATASET_NAME, STRICT, S3H
+from tests.integration.helper import ML_GIT_DIR, GIT_PATH, BUCKET_NAME, PROFILE, STORAGE_TYPE, DATASETS, DATASET_NAME, \
+    STRICT, S3H
 from tests.integration.helper import check_output, clear, init_repository, yaml_processor
 
 
@@ -46,11 +47,11 @@ class MetadataPersistenceTests(unittest.TestCase):
             file.write('NEW2')
 
         spec = {
-            DATASETS: {
+            DATASET_SPEC_KEY: {
                 'categories': ['computer-vision', 'images'],
                 'manifest': {
                     'files': 'MANIFEST.yaml',
-                    STORAGE_KEY: '%s://mlgit' % S3H
+                    STORAGE_SPEC_KEY: '%s://mlgit' % S3H
                 },
                 'mutability': STRICT,
                 'name': 'datasets-ex',
@@ -59,7 +60,7 @@ class MetadataPersistenceTests(unittest.TestCase):
         }
 
         with open(os.path.join(DATASETS, DATASET_NAME, 'datasets-ex.spec'), 'w') as y:
-            spec[DATASETS]['version'] = 17
+            spec[DATASET_SPEC_KEY]['version'] = 17
             yaml_processor.dump(spec, y)
 
         status = check_output(MLGIT_STATUS % (DATASETS, DATASET_NAME))
@@ -96,7 +97,7 @@ class MetadataPersistenceTests(unittest.TestCase):
 
         with open(spec_file, 'r') as f:
             spec = yaml_processor.load(f)
-            self.assertEqual(spec[DATASETS]['version'], 17)
+            self.assertEqual(spec[DATASET_SPEC_KEY]['version'], 17)
 
         with open(readme, 'r') as f:
             self.assertEqual(f.read(), 'NEW2')

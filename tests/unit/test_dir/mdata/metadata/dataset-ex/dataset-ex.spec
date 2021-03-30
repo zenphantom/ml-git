@@ -1,4 +1,4 @@
-datasets:
+dataset:
   categories:
   - vision-computing
   - images

@@ -1,4 +1,4 @@
-storage:
+storages:
   s3h:
     ml-git-datasets:
       aws-credentials:

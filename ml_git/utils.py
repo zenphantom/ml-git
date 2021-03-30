@@ -20,8 +20,8 @@ from ruamel.yaml import YAML
 from ruamel.yaml.compat import StringIO
 
 from ml_git import log
-from ml_git.constants import SPEC_EXTENSION, CONFIG_FILE, EntityType, ROOT_FILE_NAME, V1_STORAGE_KEY, STORAGE_KEY, \
-    V1_DATASETS_KEY, V1_MODELS_KEY
+from ml_git.constants import SPEC_EXTENSION, CONFIG_FILE, EntityType, ROOT_FILE_NAME, V1_STORAGE_KEY, V1_DATASETS_KEY, \
+    V1_MODELS_KEY, STORAGE_SPEC_KEY, STORAGE_CONFIG_KEY
 from ml_git.ml_git_message import output_messages
 from ml_git.pool import pool_factory
 
@@ -67,14 +67,10 @@ def json_load(file):
 
 
 def check_spec_file(file, hash):
-    if V1_DATASETS_KEY in hash:
-        hash[EntityType.DATASETS.value] = hash.pop(V1_DATASETS_KEY)
-    if V1_MODELS_KEY in hash:
-        hash[EntityType.MODELS.value] = hash.pop(V1_MODELS_KEY)
     entity_type = next(iter(hash))
     manifest_values = hash[entity_type]['manifest']
     if V1_STORAGE_KEY in manifest_values:
-        manifest_values[STORAGE_KEY] = manifest_values.pop(V1_STORAGE_KEY)
+        manifest_values[STORAGE_SPEC_KEY] = manifest_values.pop(V1_STORAGE_KEY)
     yaml_save(hash, file)
     return hash
 
@@ -300,7 +296,7 @@ def change_keys_in_config(root_path):
     if V1_MODELS_KEY in conf:
         conf[EntityType.MODELS.value] = conf.pop(V1_MODELS_KEY)
     if V1_STORAGE_KEY in conf:
-        conf[STORAGE_KEY] = conf.pop(V1_STORAGE_KEY)
+        conf[STORAGE_CONFIG_KEY] = conf.pop(V1_STORAGE_KEY)
     yaml_save(conf, file)
 
 

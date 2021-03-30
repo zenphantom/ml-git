@@ -396,7 +396,7 @@ ml-git_project/
 Get content of \<ml-entity-name\>.spec (structure with representational values):
 
 ```
-datasets:
+dataset:
   categories:
     - computer-vision
     - images
@@ -410,7 +410,7 @@ datasets:
 And insert new attribute:
 
 ```
-datasets:
+dataset:
   categories:
   - computer-vision
   - images
@@ -628,7 +628,7 @@ Verify the git global configuration, and try upload **objects** from local repos
 .spec file:
 
 ```
-datasets:
+dataset:
   categories:
     - computer-vision
     - images
@@ -935,7 +935,7 @@ ml-git-project/
 ```
 datasets:
   git: git@github.com:standel/ml-datasets.git <-- git project url
-storage:
+storages:
   s3: <-- storage type (AWS)
     mlgit-datasets: <-- bucket name
       aws-credentials:
@@ -986,7 +986,7 @@ ml-git open existent file **.ml-git/config.yaml**:
 ```
 datasets:
   git: git@github.com:standel/ml-datasets.git <-- git project url
-storage:
+storages:
   s3: <-- storage type (AWS)
     mlgit-datasets: <-- bucket name
       aws-credentials:

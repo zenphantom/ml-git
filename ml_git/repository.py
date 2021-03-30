@@ -17,9 +17,10 @@ from ml_git.config import get_index_path, get_objects_path, get_cache_path, get_
     validate_config_spec_hash, validate_spec_hash, get_sample_config_spec, get_sample_spec_doc, \
     get_index_metadata_path, create_workspace_tree_structure, start_wizard_questions, config_load, \
     get_global_config_path, save_global_config_in_local
-from ml_git.constants import REPOSITORY_CLASS_NAME, LOCAL_REPOSITORY_CLASS_NAME, HEAD, HEAD_1, MutabilityType, StorageType, \
+from ml_git.constants import REPOSITORY_CLASS_NAME, LOCAL_REPOSITORY_CLASS_NAME, HEAD, HEAD_1, MutabilityType, \
+    StorageType, \
     RGX_TAG_FORMAT, EntityType, MANIFEST_FILE, SPEC_EXTENSION, MANIFEST_KEY, STATUS_NEW_FILE, STATUS_DELETED_FILE, \
-    STORAGE_KEY, FileType
+    FileType, STORAGE_CONFIG_KEY
 from ml_git.file_system.cache import Cache
 from ml_git.file_system.hashfs import MultihashFS
 from ml_git.file_system.index import MultihashIndex, Status, FullIndex
@@ -32,7 +33,7 @@ from ml_git.plugin_interface.data_plugin_constants import COMPARE_SPECS, GET_STA
 from ml_git.plugin_interface.plugin_especialization import PluginCaller
 from ml_git.refs import Refs
 from ml_git.spec import spec_parse, search_spec_file, increment_version_in_spec, get_entity_tag, update_storage_spec, \
-    validate_bucket_name, set_version_in_spec, get_entity_dir, SearchSpecException
+    validate_bucket_name, set_version_in_spec, get_entity_dir, SearchSpecException, get_spec_key
 from ml_git.tag import UsrTag
 from ml_git.utils import yaml_load, ensure_path_exists, get_root_path, \
     RootPathException, change_mask_for_routine, clear, get_yaml_str, unzip_files_in_directory, \
@@ -82,7 +83,6 @@ class Repository(object):
 
     def add(self, spec, file_path, bump_version=False, run_fsck=False, metrics='', metrics_file_path=''):
         repo_type = self.__repo_type
-
         is_shared_objects = 'objects_path' in self.__config[repo_type]
         is_shared_cache = 'cache_path' in self.__config[repo_type]
 
@@ -116,7 +116,6 @@ class Repository(object):
                 return None
             ref = Refs(refs_path, spec, repo_type)
             tag, sha = ref.branch()
-
             path, file = search_spec_file(self.__repo_type, spec)
         except Exception as e:
             log.error(e, class_name=REPOSITORY_CLASS_NAME)
@@ -127,7 +126,6 @@ class Repository(object):
         spec_path = os.path.join(path, file)
         if not self._is_spec_valid(spec_path):
             return None
-
         try:
             repo.add_metrics(spec_path, metrics, metrics_file_path)
         except FileNotFoundError as e:
@@ -194,12 +192,13 @@ class Repository(object):
 
     def _is_spec_valid(self, spec_path):
         spec_file = yaml_load(spec_path)
-        if not validate_spec_hash(spec_file, self.__repo_type):
+        entity_spec_key = get_spec_key(self.__repo_type)
+        if not validate_spec_hash(spec_file, entity_spec_key):
             log.error(output_messages['ERROR_INVALID_SPEC_VALUE_IN'] %
-                      (self.__repo_type, spec_path, get_sample_spec_doc('somebucket', self.__repo_type)),
+                      (self.__repo_type, spec_path, get_sample_spec_doc('somebucket', entity_spec_key)),
                       class_name=REPOSITORY_CLASS_NAME)
             return False
-        if not validate_bucket_name(spec_file[self.__repo_type], self.__config):
+        if not validate_bucket_name(spec_file[entity_spec_key], self.__config):
             return False
         return True
 
@@ -247,7 +246,8 @@ class Repository(object):
 
     def __load_plugin_caller(self, path, spec):
         spec_content = yaml_load(os.path.join(path, spec))
-        return PluginCaller(spec_content[self.__repo_type][MANIFEST_KEY])
+        entity_spec_key = get_spec_key(self.__repo_type)
+        return PluginCaller(spec_content[entity_spec_key][MANIFEST_KEY])
 
     def status(self, spec, full_option, status_directory):
         repo_type = self.__repo_type
@@ -600,7 +600,7 @@ class Repository(object):
         if ref is None:
             ref = m.get_default_branch()
 
-        m.checkout(ref)
+        m.checkout(ref, force=True)
 
     '''Performs fsck on several aspects of ml-git filesystem.
         TODO: add options like following:
@@ -970,7 +970,8 @@ class Repository(object):
         spec_file = yaml_load(spec_path)
 
         try:
-            mutability = spec_file[repo_type]['mutability']
+            entity_spec_key = get_spec_key(repo_type)
+            mutability = spec_file[entity_spec_key]['mutability']
             if mutability not in MutabilityType.to_list():
                 log.error(output_messages['ERROR_INVALID_MUTABILITY_TYPE'], class_name=REPOSITORY_CLASS_NAME)
                 return
@@ -992,7 +993,7 @@ class Repository(object):
 
     def create_config_storage(self, storage_type, credentials_path):
         bucket = {'credentials-path': credentials_path}
-        self.__config[STORAGE_KEY][storage_type] = {storage_type: bucket}
+        self.__config[STORAGE_CONFIG_KEY][storage_type] = {storage_type: bucket}
 
     def create(self, kwargs):
         artifact_name = kwargs['artifact_name']

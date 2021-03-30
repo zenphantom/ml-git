@@ -1,6 +1,6 @@
 datasets:
   git: https://github.com/ANYTHING.tmp21j9vqp2.git
-storage:
+storages:
   s3:
     mlgit-datasets:
       aws-credentials:

@@ -9,7 +9,7 @@ import toml
 from azure.storage.blob import BlobServiceClient, ContainerClient
 
 from ml_git import log
-from ml_git.constants import AZURE_STORAGE_NAME, StorageType, STORAGE_KEY
+from ml_git.constants import AZURE_STORAGE_NAME, StorageType, STORAGE_SPEC_KEY
 from ml_git.ml_git_message import output_messages
 from ml_git.storages.multihash_storage import MultihashStorage
 from ml_git.storages.storage import Storage
@@ -83,7 +83,7 @@ class AzureMultihashStorage(Storage, MultihashStorage):
         try:
             azure_folder = os.path.expanduser(os.path.join('~', '.azure'))
             config = toml.load(os.path.join(azure_folder, 'config'))
-            connection = config[STORAGE_KEY]['connection_string']
+            connection = config[STORAGE_SPEC_KEY]['connection_string']
             if connection != '':
                 return connection
         except Exception:

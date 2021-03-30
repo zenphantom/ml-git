@@ -14,8 +14,10 @@ from zipfile import ZipFile
 
 from ruamel.yaml import YAML
 
-from ml_git.constants import GLOBAL_ML_GIT_CONFIG, MutabilityType, StorageType, STORAGE_KEY, EntityType, FileType
+from ml_git.constants import GLOBAL_ML_GIT_CONFIG, MutabilityType, StorageType, EntityType, STORAGE_SPEC_KEY, \
+    STORAGE_CONFIG_KEY, FileType
 from ml_git.ml_git_message import output_messages
+from ml_git.spec import get_spec_key
 from ml_git.utils import ensure_path_exists
 from tests.integration.commands import MLGIT_INIT, MLGIT_REMOTE_ADD, MLGIT_ENTITY_INIT, MLGIT_ADD, \
     MLGIT_STORAGE_ADD_WITH_TYPE, MLGIT_REMOTE_ADD_GLOBAL, MLGIT_STORAGE_ADD, MLGIT_STORAGE_ADD_WITHOUT_CREDENTIALS, \
@@ -142,12 +144,13 @@ def init_repository(entity, self, version=1, storage_type=S3H, profile=PROFILE, 
     edit_config_yaml(os.path.join(self.tmp_dir, ML_GIT_DIR), storage_type)
     workspace = os.path.join(self.tmp_dir, entity, artifact_name)
     os.makedirs(workspace)
+    spec_key = get_spec_key(entity)
     spec = {
-        entity: {
+        spec_key: {
             'categories': ['computer-vision', category],
             'manifest': {
                 'files': 'MANIFEST.yaml',
-                STORAGE_KEY: '%s://mlgit' % storage_type
+                STORAGE_SPEC_KEY: '%s://mlgit' % storage_type
             },
             'mutability': STRICT,
             'name': artifact_name,
@@ -197,7 +200,7 @@ def delete_file(workspace_path, delete_files):
 def edit_config_yaml(ml_git_dir, storage_type=S3H):
     with open(os.path.join(ml_git_dir, 'config.yaml'), 'r') as config_file:
         config = yaml_processor.load(config_file)
-        config[STORAGE_KEY][storage_type]['mlgit']['endpoint-url'] = MINIO_ENDPOINT_URL
+        config[STORAGE_CONFIG_KEY][storage_type]['mlgit']['endpoint-url'] = MINIO_ENDPOINT_URL
     with open(os.path.join(ml_git_dir, 'config.yaml'), 'w') as config_file:
         yaml_processor.dump(config, config_file)
 
@@ -218,7 +221,7 @@ def create_git_clone_repo(git_dir, tmp_dir, git_path=GIT_PATH):
         DATASETS: {
             'git': os.path.join(tmp_dir, git_path),
         },
-        STORAGE_KEY: {
+        STORAGE_CONFIG_KEY: {
             S3: {
                 'mlgit-datasets': {
                     'region': 'us-east-1',
@@ -244,13 +247,14 @@ def create_git_clone_repo(git_dir, tmp_dir, git_path=GIT_PATH):
 def create_spec(self, model, tmpdir, version=1, mutability=STRICT, storage_type=STORAGE_TYPE, artifact_name=None):
     if not artifact_name:
         artifact_name = f'{model}-ex'
+    spec_key = get_spec_key(model)
     spec = {
-        model: {
+        spec_key: {
             'categories': ['computer-vision', 'images'],
             'mutability': mutability,
             'manifest': {
                 'files': 'MANIFEST.yaml',
-                STORAGE_KEY: '%s://mlgit' % storage_type
+                STORAGE_SPEC_KEY: '%s://mlgit' % storage_type
             },
             'name': artifact_name,
             'version': version
@@ -306,7 +310,7 @@ def configure_global(self, entity_type):
 def edit_global_config_yaml(storage_type=S3H):
     with open(os.path.join(GLOBAL_CONFIG_PATH, GLOBAL_ML_GIT_CONFIG), 'r') as config_file:
         config = yaml_processor.load(config_file)
-        config[STORAGE_KEY][storage_type]['mlgit']['endpoint-url'] = MINIO_ENDPOINT_URL
+        config[STORAGE_CONFIG_KEY][storage_type]['mlgit']['endpoint-url'] = MINIO_ENDPOINT_URL
     with open(os.path.join(GLOBAL_CONFIG_PATH, GLOBAL_ML_GIT_CONFIG), 'w') as config_file:
         yaml_processor.dump(config, config_file)
 

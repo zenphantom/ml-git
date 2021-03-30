@@ -13,8 +13,8 @@ import pytest
 from git import GitError, Repo
 from prettytable import PrettyTable
 
-from ml_git.constants import STORAGE_KEY, DATE, PERFORMANCE_KEY, TAG, RELATED_DATASET_TABLE_INFO, \
-    RELATED_LABELS_TABLE_INFO
+from ml_git.constants import DATE, PERFORMANCE_KEY, TAG, RELATED_DATASET_TABLE_INFO, \
+    RELATED_LABELS_TABLE_INFO, STORAGE_SPEC_KEY, STORAGE_CONFIG_KEY, DATASET_SPEC_KEY, MODEL_SPEC_KEY
 from ml_git.metadata import Metadata
 from ml_git.repository import Repository
 from ml_git.utils import clear, yaml_load_str, yaml_load
@@ -48,7 +48,7 @@ config = {
     },
 
 
-    STORAGE_KEY: {
+    STORAGE_CONFIG_KEY: {
         S3: {
             'mlgit-datasets': {
                 'region': 'us-east-1',
@@ -61,11 +61,11 @@ config = {
 }
 
 metadata_config = {
-    DATASETS: {
+    DATASET_SPEC_KEY: {
         'categories': 'images',
         'manifest': {
             'files': 'MANIFEST.yaml',
-            STORAGE_KEY: 's3h://ml-git-datasets'
+            STORAGE_SPEC_KEY: 's3h://ml-git-datasets'
         },
         'name': 'dataset_ex',
         'version': 1
@@ -243,9 +243,9 @@ class MetadataTestCases(unittest.TestCase):
         shutil.copy('hdata/dataset-ex.spec', spec_metadata_path)
 
         spec_file = yaml_load(spec_metadata_path)
-        spec_file[repo_type] = deepcopy(spec_file[DATASETS])
-        del spec_file[DATASETS]
-        spec_file[repo_type]['metrics'] = {'metric_1': 0, 'metric_2': 1}
+        spec_file[MODEL_SPEC_KEY] = deepcopy(spec_file[DATASET_SPEC_KEY])
+        del spec_file[DATASET_SPEC_KEY]
+        spec_file[MODEL_SPEC_KEY]['metrics'] = {'metric_1': 0, 'metric_2': 1}
         yaml_save(spec_file, spec_metadata_path)
 
         tag = 'vision-computer__images__model-ex__1'
@@ -277,8 +277,8 @@ class MetadataTestCases(unittest.TestCase):
         shutil.copy('hdata/dataset-ex.spec', spec_metadata_path)
 
         spec_file = yaml_load(spec_metadata_path)
-        spec_file[repo_type] = deepcopy(spec_file[DATASETS])
-        del spec_file[DATASETS]
+        spec_file[MODEL_SPEC_KEY] = deepcopy(spec_file[DATASET_SPEC_KEY])
+        del spec_file[DATASET_SPEC_KEY]
         yaml_save(spec_file,  spec_metadata_path)
 
         tag = 'vision-computer__images__model-ex__1'

@@ -787,8 +787,8 @@ Example:
 ```
 $ ml-git repository config
 config:
-{'dataset': {'git': 'git@github.com:example/your-mlgit-datasets'},
- 'storage': {'s3': {'mlgit-datasets': {'aws-credentials': {'profile': 'mlgit'},
+{'datasets': {'git': 'git@github.com:example/your-mlgit-datasets'},
+ 'storages': {'s3': {'mlgit-datasets': {'aws-credentials': {'profile': 'mlgit'},
                                      'region': 'us-east-1'}}},
  'verbose': 'info'}
 ```

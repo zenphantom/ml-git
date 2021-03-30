@@ -18,7 +18,7 @@ With the command ```ml-git (datasets|labels|models) create``` you must pass the 
 Your entity specification file (.spec) should look like this:
 
 ```
-datasets:
+dataset:
   categories:
     - computer-vision
     - images

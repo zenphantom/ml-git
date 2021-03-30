@@ -9,9 +9,10 @@ import unittest
 import pytest
 
 from ml_git import api
-from ml_git.constants import EntityType, STORAGE_KEY, DATE, RELATED_DATASET_TABLE_INFO, \
-    RELATED_LABELS_TABLE_INFO, TAG
+from ml_git.constants import EntityType, STORAGE_SPEC_KEY, STORAGE_CONFIG_KEY, DATE, RELATED_DATASET_TABLE_INFO, \
+    RELATED_LABELS_TABLE_INFO, TAG, LABELS_SPEC_KEY, DATASET_SPEC_KEY
 from ml_git.ml_git_message import output_messages
+from ml_git.spec import get_spec_key
 from tests.integration.commands import MLGIT_INIT
 from tests.integration.helper import ML_GIT_DIR, check_output, init_repository, create_git_clone_repo, \
     clear, yaml_processor, create_zip_file, CLONE_FOLDER, GIT_PATH, BUCKET_NAME, PROFILE, STORAGE_TYPE, DATASETS, \
@@ -47,11 +48,11 @@ class APIAcceptanceTests(unittest.TestCase):
         os.makedirs(workspace, exist_ok=True)
 
         spec = {
-            DATASETS: {
+            DATASET_SPEC_KEY: {
                 'categories': ['computer-vision', 'images'],
                 'manifest': {
                     'files': 'MANIFEST.yaml',
-                    STORAGE_KEY: '%s://mlgit' % S3H
+                    STORAGE_SPEC_KEY: '%s://mlgit' % S3H
                 },
                 'mutability': STRICT,
                 'name': DATASET_NAME,
@@ -230,7 +231,7 @@ class APIAcceptanceTests(unittest.TestCase):
         spec_path = os.path.join(entity, entity+'-ex', entity+'-ex.spec')
         with open(spec_path) as y:
             ws_spec = yaml_processor.load(y)
-            self.assertEqual(ws_spec[entity]['version'], version)
+            self.assertEqual(ws_spec[DATASET_SPEC_KEY]['version'], version)
 
     @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
     def test_10_add_files(self):
@@ -278,17 +279,18 @@ class APIAcceptanceTests(unittest.TestCase):
         HEAD = os.path.join(self.tmp_dir, ML_GIT_DIR, LABELS, 'refs', 'labels-ex', 'HEAD')
         self.assertTrue(os.path.exists(HEAD))
 
-        self.assertEqual('computer-vision__images__datasets-ex__2', spec[LABELS][DATASETS]['tag'])
+        self.assertEqual('computer-vision__images__datasets-ex__2', spec[LABELS_SPEC_KEY][DATASET_SPEC_KEY]['tag'])
 
     def check_created_folders(self, entity_type, storage_type=S3H, version=1, bucket_name='fake_storage'):
         folder_data = os.path.join(self.tmp_dir, entity_type, entity_type + '-ex', 'data')
         spec = os.path.join(self.tmp_dir, entity_type, entity_type + '-ex', entity_type + '-ex.spec')
         readme = os.path.join(self.tmp_dir, entity_type, entity_type + '-ex', 'README.md')
+        entity_spec_key = get_spec_key(entity_type)
         with open(spec, 'r') as s:
             spec_file = yaml_processor.load(s)
-            self.assertEqual(spec_file[entity_type]['manifest'][STORAGE_KEY], storage_type + '://' + bucket_name)
-            self.assertEqual(spec_file[entity_type]['name'], entity_type + '-ex')
-            self.assertEqual(spec_file[entity_type]['version'], version)
+            self.assertEqual(spec_file[entity_spec_key]['manifest'][STORAGE_SPEC_KEY], storage_type + '://' + bucket_name)
+            self.assertEqual(spec_file[entity_spec_key]['name'], entity_type + '-ex')
+            self.assertEqual(spec_file[entity_spec_key]['version'], version)
         with open(os.path.join(self.tmp_dir, ML_GIT_DIR, 'config.yaml'), 'r') as y:
             config = yaml_processor.load(y)
             self.assertIn(entity_type, config)
@@ -360,11 +362,11 @@ class APIAcceptanceTests(unittest.TestCase):
         api.init('repository')
         with open(os.path.join(self.tmp_dir, ML_GIT_DIR, 'config.yaml'), 'r') as c:
             config = yaml_processor.load(c)
-            self.assertNotIn(S3H, config[STORAGE_KEY])
+            self.assertNotIn(S3H, config[STORAGE_CONFIG_KEY])
         api.storage_add(bucket_name=BUCKET_NAME, credentials=PROFILE)
         with open(os.path.join(self.tmp_dir, ML_GIT_DIR, 'config.yaml'), 'r') as c:
             config = yaml_processor.load(c)
-            self.assertEqual(PROFILE, config[STORAGE_KEY][S3H][BUCKET_NAME]['aws-credentials']['profile'])
+            self.assertEqual(PROFILE, config[STORAGE_CONFIG_KEY][S3H][BUCKET_NAME]['aws-credentials']['profile'])
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_22_add_storage_azure_type(self):
@@ -372,11 +374,11 @@ class APIAcceptanceTests(unittest.TestCase):
         api.init('repository')
         with open(os.path.join(self.tmp_dir, ML_GIT_DIR, 'config.yaml'), 'r') as c:
             config = yaml_processor.load(c)
-            self.assertNotIn(AZUREBLOBH, config[STORAGE_KEY])
+            self.assertNotIn(AZUREBLOBH, config[STORAGE_CONFIG_KEY])
         api.storage_add(bucket_name=bucket_name, bucket_type=AZUREBLOBH)
         with open(os.path.join(self.tmp_dir, ML_GIT_DIR, 'config.yaml'), 'r') as c:
             config = yaml_processor.load(c)
-            self.assertIn(bucket_name, config[STORAGE_KEY][AZUREBLOBH])
+            self.assertIn(bucket_name, config[STORAGE_CONFIG_KEY][AZUREBLOBH])
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_23_add_storage_gdrive_type(self):
@@ -385,11 +387,11 @@ class APIAcceptanceTests(unittest.TestCase):
         api.init('repository')
         with open(os.path.join(self.tmp_dir, ML_GIT_DIR, 'config.yaml'), 'r') as c:
             config = yaml_processor.load(c)
-            self.assertNotIn(GDRIVEH, config[STORAGE_KEY])
+            self.assertNotIn(GDRIVEH, config[STORAGE_CONFIG_KEY])
         api.storage_add(bucket_name=bucket_name, bucket_type=GDRIVEH, credentials=profile)
         with open(os.path.join(self.tmp_dir, ML_GIT_DIR, 'config.yaml'), 'r') as c:
             config = yaml_processor.load(c)
-            self.assertEqual(profile, config[STORAGE_KEY][GDRIVEH][bucket_name]['credentials-path'])
+            self.assertEqual(profile, config[STORAGE_CONFIG_KEY][GDRIVEH][bucket_name]['credentials-path'])
 
     def _initialize_entity(self, entity_type, git=GIT_PATH):
         api.init('repository')
