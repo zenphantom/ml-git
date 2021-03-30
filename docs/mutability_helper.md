@@ -48,15 +48,15 @@ Currently the user can define one of the following three types of mutability for
     * Files that were already added may be changed and added again.
 
 * Flexible:
-  * Added files will be set to read-only after added to avoid any changes.
-  * If you want to change a file, you MUST use `ml-git <ml-entity> unlock <file>`. About unlock command:
-      * Decouple the file from ml-git cache to avoid propagating changes and creating "corruptions".
-      * Enable file write permission, so that you can edit the file.
-      * If you modify a file without previously executing the unlock command, the file will be considered corrupted.
+    * Added files will be set to read-only after added to avoid any changes.
+    * If you want to change a file, you MUST use `ml-git <ml-entity> unlock <file>`. About unlock command:
+        * Decouple the file from ml-git cache to avoid propagating changes and creating "corruptions".
+        * Enable file write permission, so that you can edit the file.
+        * If you modify a file without previously executing the unlock command, the file will be considered corrupted.
 
 * Strict:
-  * Added files will be set to read-only after added to avoid any changes.
-  * Once added, the files could not be modified in any other tag.
+    * Added files will be set to read-only after added to avoid any changes.
+    * Once added, the files could not be modified in any other tag.
 
 ### Choosing the type of mutability
 

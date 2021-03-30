@@ -1,6 +1,6 @@
-# ml-git Data Specialization Plugins
+# ML-Git Data Specialization Plugins
 
-Data specialization plugins are resources that can be added to ml-git providing specific processing and metadata collection for specific data formats. This document aims to provide instructions on how data specialization plugins can be developed for ml-git, defining interface methods that must be implemented to provide the necessary functionalities for processing these data.
+Data specialization plugins are resources that can be added to ML-Git providing specific processing and metadata collection for specific data formats. This document aims to provide instructions on how data specialization plugins can be developed for ML-Git, defining interface methods that must be implemented to provide the necessary functionalities for processing these data.
 
 ## Plugin contracts
 

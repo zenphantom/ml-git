@@ -1,4 +1,4 @@
-# ml-git API #
+# ML-Git API #
 
 
 # <a name="methods"> Methods available in the API </a> #
@@ -211,5 +211,5 @@ def store_add(bucket_name, bucket_type=StoreType.S3H.value, credentials=None, gl
 
 # <a name="methods"> API notebooks </a> #
 
-In the api_scripts directory you can find notebooks running the ml-git api for some scenarios. 
-To run them, you just need to boot the jupyter notebook in an environment with ml-git installed and navigate to the notebook.
+In the api_scripts directory you can find notebooks running the ML-Git api for some scenarios. 
+To run them, you just need to boot the jupyter notebook in an environment with ML-Git installed and navigate to the notebook.

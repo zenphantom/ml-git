@@ -1,8 +1,8 @@
-# ml-git API #
+# ML-Git API #
 
 # <a name="api"> Quick start </a> #
 
-To use the ml-git API, it is necessary to have ml-git in the environment that will be executed and be inside a directory with an initialized ml-git project (you can also perform this initialization using the api clone command if you already have a repository configured).
+To use the ML-Git API, it is necessary to have ML-Git in the environment that will be executed and be inside a directory with an initialized ML-Git project (you can also perform this initialization using the api clone command if you already have a repository configured).
 
 
 ## Clone 

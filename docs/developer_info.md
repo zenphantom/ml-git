@@ -1,4 +1,4 @@
-# Info for ml-git Developers
+# Info for ML-Git Developers
 
 **Requirements**:
 

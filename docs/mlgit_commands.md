@@ -1,4 +1,4 @@
-# ml-git commands #
+# ML-Git commands #
 
 <details markdown="1">
 <summary><code> ml-git --help </code></summary>
@@ -29,7 +29,7 @@ $ ml-git --help
 <details markdown="1">
 <summary><code> ml-git --version </code></summary>
 
-Displays the installed version of ml-git.
+Displays the installed version of ML-Git.
 
 </details>
 
