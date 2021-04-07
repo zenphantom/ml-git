@@ -1,6 +1,6 @@
-# ml-git
+# ML-Git
 
-ml-git is a tool which provides a Distributed Version Control system to enable efficient dataset management. Like its name emphasizes, it is inspired in git concepts and workflows, ml-git enables the following operations:
+ML-Git is a tool which provides a Distributed Version Control system to enable efficient dataset management. Like its name emphasizes, it is inspired in git concepts and workflows, ML-Git enables the following operations:
 
 - Manage a repository of different datasets, labels and models.
 - Distribute these ML artifacts between members of a team or across organizations.
@@ -20,7 +20,7 @@ pip install git+git://github.com/HPInc/ml-git.git
 
 **Source code:**
 
-Download ml-git from repository and execute commands below:
+Download ML-Git from repository and execute commands below:
 
 - Windows:
 
@@ -38,7 +38,7 @@ Download ml-git from repository and execute commands below:
 
 ### How to configure
 
-1 - As ml-git leverages git to manage ML entities metadata, it is necessary to configure user name and email address:
+1 - As ML-Git leverages git to manage ML entities metadata, it is necessary to configure user name and email address:
 
 ```
 $ git config --global user.name "Your User"
@@ -47,14 +47,14 @@ $ git config --global user.email "your_email@example.com"
 
 2 - Storage:
 
-Ml-git needs a configured storage to store data from managed artifacts. Please take a look at the [ml-git architecture and internals documentation](docs/mlgit_internals.md) to better understand how ml-git works internally with data.
+ML-Git needs a configured storage to store data from managed artifacts. Please take a look at the [ML-Git architecture and internals documentation](docs/mlgit_internals.md) to better understand how ML-Git works internally with data.
 
 - To configure the storage [see documentation about supported stores and how to configure each one.](docs/storage_configurations.md)
 
 
-3 - Ml-git project:
+3 - ML-Git project:
 
-- An ml-git project is an initialized directory that will contain a configuration file to be used by ml-git in managing entities. 
+- An ML-Git project is an initialized directory that will contain a configuration file to be used by ML-Git in managing entities. 
 To configure it you can use the basic steps to configure the project described in *[first project documentation.](docs/first_project.md)*
 
 ### Usage
