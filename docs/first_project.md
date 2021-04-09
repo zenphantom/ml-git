@@ -92,7 +92,7 @@ $ ml-git dataset init
 
 #### <a name="git_use">Why ML-Git uses git?</a> ####
 
-The Ml-Git uses git to versioning project's metadata. See below versioned metadata:
+The ML-Git uses git to versioning project's metadata. See below versioned metadata:
 
 *  **.spec**, is the specification file that contains informations like version number, artefact name, entity type (dataset, label, model), categories (tree struct that caracterize an entity).
 *  **MANIFEST.yaml**, is responsible to map artefact's files. The files are mapped by hashes, that are the references used to perform operations in local files, and download/upload operations in Stores (AWS|MinIO).
@@ -126,7 +126,7 @@ config:
 
 To create and upload a dataset to a storage, you must be in an already initialized project, if necessary read [section 1](#initial-config) to initialize and configure a project.
 
-Ml-Git expects any dataset to be specified under _dataset/_ directory of your project and it expects a specification file with the name of the dataset.
+ML-Git expects any dataset to be specified under _dataset/_ directory of your project and it expects a specification file with the name of the dataset.
 To create this specification file for a new entity you must run the following command:
 
 ```

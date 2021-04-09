@@ -1,6 +1,6 @@
 ## <a name="centralized-cache">Centralized cache</a>
 
-Centralized cache is a configuration mode that allows cached files to be shared between multiple users on the same machine, reducing the total cost of disk space. **Currently, this feature works only in Linux and derivatives machines.**
+Centralized cache is a configuration mode that allows cached files to be shared between multiple users on the same machine, reducing the total cost of disk space. **Currently, this feature works only in Linux and derivative machines.**
 
 >:warning:**Caution:**
 
