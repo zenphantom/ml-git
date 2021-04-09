@@ -1,6 +1,6 @@
 ## <a name="git_clone"> Creating a configured repository</a> ##
 
-It's recommended to version, in a git repository, the .ML-Git folder containing the settings you frequently use. This way, you will be able to use it in future projects or share it with another ML-Git user if you want.
+It's recommended to version, in a git repository, the .ml.git folder containing the settings you frequently use. This way, you will be able to use it in future projects or share it with another ML-Git user if you want.
 
 To create the .ml-git folder that will be versioned, the following commands are necessary:
 
