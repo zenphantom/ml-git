@@ -23,7 +23,7 @@ output:
 
 ## Checkout
 
-We assume there is an initialized ml-git project in the directory.
+We assume there is an initialized ML-Git project in the directory.
 
 #### Checkout dataset
 

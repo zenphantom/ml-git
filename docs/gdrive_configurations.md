@@ -1,6 +1,6 @@
 # Google Drive API configuration
 
-This section aims to explain how to enable Google Drive API and configure OAuth 2.0 credentials to use with ml-git.
+This section aims to explain how to enable Google Drive API and configure OAuth 2.0 credentials to use with ML-Git.
 
 #### Enabling Drive API
 
@@ -66,7 +66,7 @@ When you finish Enabling API step, you need to create your credentials and confi
 
 ![dash_board_download_credentials.json](drive_api_pic/download_credentials_json.png)
 
-# Setting up a ml-git project with Google Drive #
+# Setting up a ML-Git project with Google Drive #
 
 Create directory with name  of your preference and copy your credentials  file with name **credentials.json** inside the directory.
 
