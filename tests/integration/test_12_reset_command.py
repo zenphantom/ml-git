@@ -17,7 +17,7 @@ from tests.integration.helper import check_output, init_repository, ERROR_MESSAG
 
 @pytest.mark.usefixtures('tmp_dir')
 class ResetAcceptanceTests(unittest.TestCase):
-    dataset_tag = 'computer-vision__images__datasets-ex__2'
+    dataset_tag = 'computer-vision__images__datasets-ex__1'
 
     def set_up_reset(self):
         init_repository(DATASETS, self)
@@ -62,7 +62,7 @@ class ResetAcceptanceTests(unittest.TestCase):
                       check_output(MLGIT_RESET % (DATASETS, DATASET_NAME) + ' --hard --reference=head'))
         self.assertRegex(check_output(MLGIT_STATUS % (DATASETS, DATASET_NAME)),
                          r'Changes to be committed:\n\tNew file: datasets-ex.spec\n\nUntracked files:\n\nCorrupted files:')
-        self._check_dir('computer-vision__images__datasets-ex__3')
+        self._check_dir('computer-vision__images__datasets-ex__2')
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_04_hard_with_HEAD1(self):

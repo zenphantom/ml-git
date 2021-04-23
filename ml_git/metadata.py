@@ -280,7 +280,7 @@ class Metadata(MetadataManager):
             tags = self.list_tags(entity)
             if len(tags) == 0:
                 raise RuntimeError(output_messages['ERROR_WITHOUT_TAG_FOR_THIS_ENTITY'])
-            target_tag = self._get_target_tag(tags, entity, version)
+            target_tag = self._get_target_tag(tags, version)
             if version == -1:
                 log.info(output_messages['INFO_CHECKOUT_LATEST_TAG'] % target_tag, class_name=METADATA_CLASS_NAME)
             else:
@@ -290,11 +290,22 @@ class Metadata(MetadataManager):
             log.error(e, class_name=METADATA_CLASS_NAME)
             return None
 
-    def _get_target_tag(self, tags, entity, target_version):
+    def get_last_tag_version(self, entity):
+        tags = self.list_tags(entity)
+        if len(tags) == 0:
+            return 0
+        last_version = -1
+        last_tag = self._get_target_tag(tags, last_version)
+        last_version = last_tag.split('__')[-1]
+        return int(last_version)
+
+    @staticmethod
+    def _get_target_tag(tags, target_version):
         tags_versions = {}
         for tag in tags:
             splitted_tag = tag.split('__')
             version = splitted_tag[-1]
+            entity = splitted_tag[-2]
             categories_path = splitted_tag[:-2]
             if (target_version == int(version)) or (target_version == -1):
                 tags_versions['__'.join(categories_path)] = entity + '__' + version

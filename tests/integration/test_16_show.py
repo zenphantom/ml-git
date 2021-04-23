@@ -22,7 +22,7 @@ class ShowAcceptanceTests(unittest.TestCase):
         self.assertIn(output_messages['INFO_COMMIT_REPO'] % (os.path.join(self.tmp_dir, ML_GIT_DIR, entity_type, 'metadata'), entity_type+'-ex'),
                       check_output(MLGIT_COMMIT % (entity_type, entity_type+'-ex', '')))
         expected_result = 'files: MANIFEST.yaml\n  size: 14.5 kB\n  storage: s3h://mlgit' \
-                          '\nmutability: strict\nname: %s-ex\nversion: %s\n\n' % (entity_type, 2)
+                          '\nmutability: strict\nname: %s-ex\nversion: %s\n\n' % (entity_type, 1)
         self.assertIn(expected_result, check_output(MLGIT_SHOW % (entity_type, entity_type+'-ex')))
 
     @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')

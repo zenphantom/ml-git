@@ -90,19 +90,19 @@ class CommitFilesAcceptanceTests(unittest.TestCase):
                       check_output(MLGIT_COMMIT % (LABELS, LABELS + '-ex', ' --version=9999999999')))
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
-    def test_05_commit_tag_that_already_exists(self):
+    def test_07_commit_tag_that_already_exists(self):
         entity_type = DATASETS
         self._commit_entity(entity_type)
         with open(os.path.join(self.tmp_dir, entity_type, entity_type + '-ex', 'newfile5'), 'wt') as z:
             z.write(str('0' * 100))
         self.assertIn(output_messages['INFO_ADDING_PATH'] % DATASETS, check_output(MLGIT_ADD % (entity_type, entity_type+'-ex', '')))
-        self.assertIn(output_messages['INFO_TAG_ALREADY_EXISTS'] % 'computer-vision__images__datasets-ex__2',
+        self.assertIn(output_messages['INFO_TAG_ALREADY_EXISTS'] % 'computer-vision__images__datasets-ex__1',
                       check_output(MLGIT_COMMIT % (entity_type, entity_type+'-ex', '')))
         head_path = os.path.join(self.tmp_dir, ML_GIT_DIR, entity_type, 'refs', entity_type + '-ex', 'HEAD')
         self.assertTrue(os.path.exists(head_path))
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
-    def test_06_commit_entity_with_changed_dir(self):
+    def test_08_commit_entity_with_changed_dir(self):
         self._commit_entity(DATASETS)
         create_file(os.path.join(DATASETS, DATASET_NAME), 'newfile5', '0', '')
         move_entity_to_dir(self.tmp_dir, DATASET_NAME, DATASETS)

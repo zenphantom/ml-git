@@ -141,10 +141,10 @@ class MetadataTestCases(unittest.TestCase):
                 'computer__images__dataset-ex__2',
                 'computer__videos__dataset-ex__1']
         m = Metadata('', self.test_dir, config, DATASETS)
-        self.assertRaises(RuntimeError, lambda: m._get_target_tag(tags, 'dataset-ex', -1))
-        self.assertRaises(RuntimeError, lambda: m._get_target_tag(tags, 'dataset-ex', 1))
-        self.assertRaises(RuntimeError, lambda: m._get_target_tag(tags, 'dataset-wrong', 1))
-        self.assertEqual(m._get_target_tag(tags, 'dataset-ex', 2), 'computer__images__dataset-ex__2')
+        self.assertRaises(RuntimeError, lambda: m._get_target_tag(tags, -1))
+        self.assertRaises(RuntimeError, lambda: m._get_target_tag(tags, 1))
+        self.assertRaises(RuntimeError, lambda: m._get_target_tag(tags, 1))
+        self.assertEqual(m._get_target_tag(tags, 2), 'computer__images__dataset-ex__2')
         clear(m.path)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_test_dir')
@@ -343,3 +343,21 @@ class MetadataTestCases(unittest.TestCase):
         self.assertIn('{},{},{},{},accuracy'.format(DATE, TAG, RELATED_DATASET_TABLE_INFO, RELATED_LABELS_TABLE_INFO),
                       data.getvalue())
         self.assertIn(',,,,10.0', data.getvalue())
+
+    @pytest.mark.usefixtures('switch_to_test_dir')
+    def test_last_tag_version(self):
+        specpath = 'dataset-ex'
+        config['mlgit_path'] = self.test_dir
+        m = Metadata('', '', config, DATASETS)
+        m.init()
+
+        tag_list = ['computer__images__dataset-ex__1', 'computer__images__dataset-ex__2']
+        with mock.patch('ml_git.metadata.Metadata.list_tags', return_value=tag_list):
+            last_version = m.get_last_tag_version(specpath)
+        self.assertEqual(last_version, 2)
+
+        tag_list = []
+        with mock.patch('ml_git.metadata.Metadata.list_tags', return_value=tag_list):
+            last_version = m.get_last_tag_version(specpath)
+        self.assertEqual(last_version, 0)
+        clear(self.test_dir)

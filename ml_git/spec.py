@@ -54,11 +54,11 @@ def spec_parse(spec):
 """Increment the version number inside the given dataset specification file."""
 
 
-def incr_version(file, repo_type=DATASETS):
+def incr_version(file, target_version, repo_type=DATASETS):
     spec_hash = utils.yaml_load(file)
     entity_spec_key = get_spec_key(repo_type)
     if is_valid_version(spec_hash, entity_spec_key):
-        spec_hash[entity_spec_key]['version'] += 1
+        spec_hash[entity_spec_key]['version'] = target_version
         utils.yaml_save(spec_hash, file)
         log.debug(output_messages['DEBUG_VERSION_INCREMENTED_TO'] % spec_hash[entity_spec_key]['version'], class_name=ML_GIT_PROJECT_NAME)
         return spec_hash[entity_spec_key]['version']
@@ -108,23 +108,19 @@ def set_version_in_spec(version_number, spec_path, repo_type=DATASETS):
 """When --bumpversion is specified during 'dataset add', this increments the version number in the right place"""
 
 
-def increment_version_in_spec(entity_name, repotype=DATASETS):
+def increment_version_in_spec(spec_path, target_version, repotype=DATASETS):
     # Primary location: dataset/<the_dataset>/<the_dataset>.spec
     # Location: .ml-git/dataset/index/metadata/<the_dataset>/<the_dataset>.spec is linked to the primary location
-    if entity_name is None:
-        log.error(output_messages['ERROR_NO_NAME_PROVIDED'] % repotype, class_name=ML_GIT_PROJECT_NAME)
-        return False
+    if spec_path is None:
+        raise RuntimeError(output_messages['ERROR_NO_NAME_PROVIDED'] % repotype)
 
-    if os.path.exists(entity_name):
-        increment_version = incr_version(entity_name, repotype)
-        if increment_version != -1:
-            return True
-        else:
-            log.error(output_messages['ERROR_INCREMENTING_VERSION'] % entity_name, class_name=ML_GIT_PROJECT_NAME)
-            return False
+    if os.path.exists(spec_path):
+        increment_version = incr_version(spec_path, target_version, repotype)
+        if increment_version == -1:
+            raise RuntimeError(output_messages['ERROR_INCREMENTING_VERSION'] % spec_path)
     else:
-        log.error(output_messages['ERROR_SPEC_FILE_NOT_FOUND'] % entity_name, class_name=ML_GIT_PROJECT_NAME)
-        return False
+        raise RuntimeError(output_messages['ERROR_SPEC_FILE_NOT_FOUND'] % spec_path)
+    return True
 
 
 def get_entity_tag(specpath, repo_type, entity):
