@@ -99,7 +99,7 @@ $ ml-git datasets init
 The ML-Git uses git to versioning project's metadata. See below versioned metadata:
 
 *  **.spec**, is the specification file that contains informations like version number, artefact name, entity type (dataset, label, model), categories (list of labels to categorize an entity).
-*  **MANIFEST.yaml**, is responsible to map artefact's files. The files are mapped by hashes, that are the references used to perform operations in local files, and download/upload operations in Stores (AWS|MinIO).
+*  **MANIFEST.yaml**, is responsible to map artefact's files. The files are mapped by hashes, that are the references used to perform operations in local files, and download/upload operations in storages (S3, MinIO, Azure, GoogleDrive and SFTP).
 
 You can find more information about metadata [here](mlgit_internals.md).
 
