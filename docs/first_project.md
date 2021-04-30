@@ -406,7 +406,7 @@ To create and upload your model, you must be in an already initialized project, 
 The first step is to configure your metadata & data repository/storage.
 
 ```
-$ ml-git repository remote model add git@github.com:example/your-mlgit-models.git
+$ ml-git repository remote models add git@github.com:example/your-mlgit-models.git
 $ ml-git repository storage add mlgit-models
 $ ml-git models init
 ```
