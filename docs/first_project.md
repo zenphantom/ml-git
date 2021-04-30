@@ -1,4 +1,4 @@
-# Your 1st ML artefacts under ml-git management #
+# Your 1st ML artefacts under ML-Git management #
 
 We will divide this quick howto into 6 main sections:
 
