@@ -2,17 +2,17 @@
 
 ## About
 
-As mentioned in [ml-git internals](mlgit_internals.md) the design concept about ml-git is to decouple the ML entities metadata management from the actual data such that there are 2 main layers in the tool:
+As mentioned in [ML-Git internals](mlgit_internals.md), the design concept about ML-Git is to decouple the ML entities metadata management from the actual data, such that there are two main layers in the tool:
 
-1. the metadata management: There are for each ML entities managed under ml-git, the user needs to define a small specification file. These files are then managed by a git repository to retrieve the different versions.
-2. the data store management: To store data from managed artifacts.
+1. The metadata management: There are for each ML entities managed under ml-git, the user needs to define a small specification file. These files are then managed by a git repository to retrieve the different versions.
+2. The data store management: To store data from managed artifacts.
 
-This script aims to facilitate the creation of resources (buckets and repositories) that are needed to use ml-git.
+This script aims to facilitate the creation of resources (buckets and repositories) that are needed to use ML-Git.
 
 
 ### Prerequisites:
 
-To use this script you must have configured it in your environment:
+To use this script, you must have configured it in your environment:
 
 - Github Access Token: You must create a personal access token to use instead of a password with a command line or with an API. 
  See [github documentation](https://docs.github.com/pt/free-pro-team@latest/github/authenticating-to-github/creating-a-personal-access-token) to learn how to configure a token.
@@ -20,7 +20,7 @@ To use this script you must have configured it in your environment:
     `Note:` As this script uses the github API, it is necessary that you store the token in ```GITHUB_TOKEN``` environment variable.
 
  
-If you are setting up a bucket of s3 type:
+If you are setting up a bucket of S3 type:
 
 - [AWS CLI](https://aws.amazon.com/cli/?nc1=h_ls): The AWS Command Line Interface (CLI) is a unified tool for managing your AWS services.
 
