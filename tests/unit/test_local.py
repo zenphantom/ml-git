@@ -7,20 +7,23 @@ import filecmp
 import os
 import shutil
 import unittest
+
 import boto3
 import botocore
 import pytest
 from moto import mock_s3
 
-from ml_git.file_system.cache import Cache
 from ml_git.config import get_sample_config_spec, get_sample_spec
+from ml_git.constants import DATASET_SPEC_KEY, MODEL_SPEC_KEY
+from ml_git.file_system.cache import Cache
 from ml_git.file_system.hashfs import MultihashFS
 from ml_git.file_system.index import MultihashIndex, Status, FullIndex
-from ml_git.file_system.objects import Objects
 from ml_git.file_system.local import LocalRepository
+from ml_git.file_system.objects import Objects
 from ml_git.sample import SampleValidate, SampleValidateException
-from ml_git.storages.s3store import S3Store
+from ml_git.storages.s3_storage import S3Storage
 from ml_git.utils import yaml_load, yaml_save, ensure_path_exists, set_write_read
+from tests.unit.conftest import MODELS, STRICT, S3
 
 hs = {
     'zdj7WWsMkELZSGQGgpm5VieCWV8NxY5n5XEP73H4E7eeDMA3A',
@@ -58,14 +61,14 @@ class LocalRepositoryTestCases(unittest.TestCase):
 
     def setUp(self):
         client = boto3.client(
-            's3',
+            S3,
             region_name='us-east-1',
             aws_access_key_id='fake_access_key',
             aws_secret_access_key='fake_secret_key',
         )
         try:
             s3 = boto3.resource(
-                's3',
+                S3,
                 region_name='us-east-1',
                 aws_access_key_id='fake_access_key',
                 aws_secret_access_key='fake_secret_key',
@@ -111,7 +114,7 @@ class LocalRepositoryTestCases(unittest.TestCase):
         r = LocalRepository(c, objectpath)
         r.push(objectpath, specpath + '/dataset-ex.spec')
         s3 = boto3.resource(
-            's3',
+            S3,
             region_name='eu-west-1',
             aws_access_key_id='fake_access_key',
             aws_secret_access_key='fake_secret_key',
@@ -181,7 +184,7 @@ class LocalRepositoryTestCases(unittest.TestCase):
 
         mfiles = {}
         files = {DATA_IMG_1}
-        args = {'obj_files': {key: files}, 'key': key, 'mutability': 'strict', 'mfiles': mfiles, 'ws_path': wspath,
+        args = {'obj_files': {key: files}, 'key': key, 'mutability': STRICT, 'mfiles': mfiles, 'ws_path': wspath,
                 'cache': cache, 'fidx': fidx}
         r._update_links_wspace(key, Status.u.name, args)
 
@@ -218,7 +221,7 @@ class LocalRepositoryTestCases(unittest.TestCase):
 
         mfiles = {}
         files = {DATA_IMG_1, DATA_IMG_2}
-        args = {'obj_files': {key: files}, 'key': key, 'mutability': 'strict', 'mfiles': mfiles, 'ws_path': wspath,
+        args = {'obj_files': {key: files}, 'key': key, 'mutability': STRICT, 'mfiles': mfiles, 'ws_path': wspath,
                 'cache': cache, 'fidx': fidx}
         r._update_links_wspace(key, Status.u.name, args)
 
@@ -252,7 +255,7 @@ class LocalRepositoryTestCases(unittest.TestCase):
 
         mfiles = {}
         files = {DATA_IMG_1, DATA_IMG_2}
-        args = {'obj_files': {key: files}, 'key': key, 'mutability': 'strict', 'mfiles': mfiles, 'ws_path': wspath,
+        args = {'obj_files': {key: files}, 'key': key, 'mutability': STRICT, 'mfiles': mfiles, 'ws_path': wspath,
                 'cache': cache, 'fidx': fidx}
         r._update_links_wspace(key, Status.u.name, args)
         r._remove_unused_links_wspace(wspath, mfiles)
@@ -336,8 +339,8 @@ class LocalRepositoryTestCases(unittest.TestCase):
         c = yaml_load('hdata/config.yaml')
 
         r = LocalRepository(c, path_obj)
-        r.change_config_store(testprofile, testbucketname, 's3', region=None, endpoint_url=None)
-        r.import_files(None, None, self.tmp_dir, 2, '{}://{}'.format('s3', testbucketname))
+        r.change_config_storage(testprofile, testbucketname, S3, region=None, endpoint_url=None)
+        r.import_files(None, None, self.tmp_dir, 2, '{}://{}'.format(S3, testbucketname))
 
         for h in hs:
             file_path = os.path.join(self.tmp_dir, h)
@@ -352,7 +355,7 @@ class LocalRepositoryTestCases(unittest.TestCase):
         ohfs.put(HDATA_IMG_1)
 
         s3 = boto3.resource(
-            's3',
+            S3,
             region_name='us-east-1',
             aws_access_key_id='fake_access_key',
             aws_secret_access_key='fake_secret_key',
@@ -384,7 +387,7 @@ class LocalRepositoryTestCases(unittest.TestCase):
         hfspath = os.path.join(self.tmp_dir, 'objectsfs')
 
         s3 = boto3.resource(
-            's3',
+            S3,
             region_name='eu-west-1',
             aws_access_key_id='fake_access_key',
             aws_secret_access_key='fake_secret_key',
@@ -398,18 +401,18 @@ class LocalRepositoryTestCases(unittest.TestCase):
 
         c = yaml_load('hdata/config.yaml')
         r = LocalRepository(c, hfspath)
-        s3store = S3Store(testbucketname, bucket)
+        s3storage = S3Storage(testbucketname, bucket)
 
         links = {'Links': [{'Hash': 'zdj7WVyQ8wTdnDXsbg8wxwwFkt2Bzp95Tncsfg8PCgKXeLTye', 'Size': 16822}]}
 
-        self.assertEqual(links, r._get_ipld(s3store, keypath))
+        self.assertEqual(links, r._get_ipld(s3storage, keypath))
 
     def test_mount_blobs(self):
         testbucketname = os.getenv('MLGIT_TEST_BUCKET', 'ml-git-datasets')
         hfspath = os.path.join(self.tmp_dir, 'objectsfs')
 
         s3 = boto3.resource(
-            's3',
+            S3,
             region_name='eu-west-1',
             aws_access_key_id='fake_access_key',
             aws_secret_access_key='fake_secret_key',
@@ -423,12 +426,75 @@ class LocalRepositoryTestCases(unittest.TestCase):
 
         c = yaml_load('hdata/config.yaml')
         r = LocalRepository(c, hfspath)
-        s3store = S3Store(testbucketname, bucket)
+        s3storage = S3Storage(testbucketname, bucket)
 
         links = {'Links': [{'Hash': keypath, 'Size': 16822}]}
 
         with open(file, 'rb') as f:
-            self.assertEqual(f.read(), r._mount_blobs(s3store, links))
+            self.assertEqual(f.read(), r._mount_blobs(s3storage, links))
+
+    def test_add_metrics(self):
+        hashfs_path = os.path.join(self.tmp_dir, 'objectsfs')
+        test_config = yaml_load('hdata/config.yaml')
+        local_repo = LocalRepository(test_config, hashfs_path, repo_type=MODELS)
+        spec_path = os.path.join(self.tmp_dir, 'model-ex.spec')
+        shutil.copy('hdata/dataset-ex.spec', spec_path)
+        spec_file = yaml_load(spec_path)
+        model = spec_file[DATASET_SPEC_KEY].copy()
+        del spec_file[DATASET_SPEC_KEY]
+        spec_file[MODEL_SPEC_KEY] = model
+        yaml_save(spec_file, spec_path)
+        local_repo.add_metrics(spec_path, (('metric_a', '10'), ('metric_b', '9')), None)
+
+        test_spec_file = yaml_load(spec_path)
+        self.assertTrue(test_spec_file[MODEL_SPEC_KEY]['metrics'].get('metric_a', '') == 10.0)
+        self.assertTrue(test_spec_file[MODEL_SPEC_KEY]['metrics'].get('metric_b', '') == 9.0)
+
+    def test_add_metrics_wrong_entity(self):
+        hashfs_path = os.path.join(self.tmp_dir, 'objectsfs')
+        test_config = yaml_load('hdata/config.yaml')
+        local_repo = LocalRepository(test_config, hashfs_path)
+        spec_path = os.path.join(self.tmp_dir, 'dataset-ex.spec')
+        shutil.copy('hdata/dataset-ex.spec', spec_path)
+        local_repo.add_metrics(spec_path, (('metric_a', '10'), ('metric_b', '9')), None)
+        test_spec_file = yaml_load(spec_path)
+        self.assertFalse('metrics' in test_spec_file[DATASET_SPEC_KEY])
+
+    def test_add_metrics_with_none_metrics_options(self):
+        hashfs_path = os.path.join(self.tmp_dir, 'objectsfs')
+        test_config = yaml_load('hdata/config.yaml')
+        local_repo = LocalRepository(test_config, hashfs_path, repo_type=MODELS)
+        spec_path = os.path.join(self.tmp_dir, 'model-ex.spec')
+        shutil.copy('hdata/dataset-ex.spec', spec_path)
+        spec_file = yaml_load(spec_path)
+        model = spec_file[DATASET_SPEC_KEY].copy()
+        del spec_file[DATASET_SPEC_KEY]
+        spec_file[MODEL_SPEC_KEY] = model
+        yaml_save(spec_file, spec_path)
+        local_repo.add_metrics(spec_path, (), None)
+
+        test_spec_file = yaml_load(spec_path)
+        self.assertFalse('metrics' in test_spec_file[MODEL_SPEC_KEY])
+
+    @pytest.mark.usefixtures('create_csv_file')
+    def test_add_metrics_file(self):
+        hashfs_path = os.path.join(self.tmp_dir, 'objectsfs')
+        test_config = yaml_load('hdata/config.yaml')
+        local_repo = LocalRepository(test_config, hashfs_path, repo_type=MODELS)
+        spec_path = os.path.join(self.tmp_dir, 'model-ex.spec')
+        shutil.copy('hdata/dataset-ex.spec', spec_path)
+        spec_file = yaml_load(spec_path)
+        model = spec_file[DATASET_SPEC_KEY].copy()
+        del spec_file[DATASET_SPEC_KEY]
+        spec_file[MODEL_SPEC_KEY] = model
+        yaml_save(spec_file, spec_path)
+        metrics_file_path = os.path.join(self.tmp_dir, 'metrics.csv')
+        self.create_csv_file(metrics_file_path, {'metric_a': 10, 'metric_b': 9})
+        local_repo.add_metrics(spec_path, (), metrics_file_path)
+
+        test_spec_file = yaml_load(spec_path)
+        self.assertEqual(test_spec_file[MODEL_SPEC_KEY]['metrics'].get('metric_a', ''), 10.0)
+        self.assertEqual(test_spec_file[MODEL_SPEC_KEY]['metrics'].get('metric_b', ''), 9.0)
 
     def check_delete(self, s3, testbucketname):
         try:
@@ -439,7 +505,7 @@ class LocalRepositoryTestCases(unittest.TestCase):
 
     def tearDown(self):
         s3 = boto3.resource(
-            's3',
+            S3,
             region_name='eu-west-1',
             aws_access_key_id='fake_access_key',
             aws_secret_access_key='fake_secret_key',

@@ -2,7 +2,6 @@
 © Copyright 2020 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
-
 import os
 import os.path
 import shutil
@@ -15,21 +14,39 @@ from zipfile import ZipFile
 
 from ruamel.yaml import YAML
 
-from ml_git.constants import StoreType, GLOBAL_ML_GIT_CONFIG, Mutability
+from ml_git.constants import GLOBAL_ML_GIT_CONFIG, MutabilityType, StorageType, EntityType, STORAGE_SPEC_KEY, \
+    STORAGE_CONFIG_KEY, FileType
 from ml_git.ml_git_message import output_messages
+from ml_git.spec import get_spec_key
+from ml_git.utils import ensure_path_exists
 from tests.integration.commands import MLGIT_INIT, MLGIT_REMOTE_ADD, MLGIT_ENTITY_INIT, MLGIT_ADD, \
-    MLGIT_STORE_ADD_WITH_TYPE, MLGIT_REMOTE_ADD_GLOBAL, MLGIT_STORE_ADD, MLGIT_STORE_ADD_WITHOUT_CREDENTIALS, \
+    MLGIT_STORAGE_ADD_WITH_TYPE, MLGIT_REMOTE_ADD_GLOBAL, MLGIT_STORAGE_ADD, MLGIT_STORAGE_ADD_WITHOUT_CREDENTIALS, \
     MLGIT_COMMIT, MLGIT_PUSH
-from tests.integration.output_messages import messages
+
+DATASETS = EntityType.DATASETS.value
+MODELS = EntityType.MODELS.value
+LABELS = EntityType.LABELS.value
+STRICT = MutabilityType.STRICT.value
+FLEXIBLE = MutabilityType.FLEXIBLE.value
+MUTABLE = MutabilityType.MUTABLE.value
+S3H = StorageType.S3H.value
+S3 = StorageType.S3.value
+AZUREBLOBH = StorageType.AZUREBLOBH.value
+GDRIVEH = StorageType.GDRIVEH.value
+SFTPH = StorageType.SFTPH.value
+CSV = FileType.CSV.value
+JSON = FileType.JSON.value
 
 PATH_TEST = os.path.join(os.getcwd(), 'tests', 'integration', '.test_env')
 ML_GIT_DIR = '.ml-git'
 IMPORT_PATH = 'src'
 GIT_PATH = 'local_git_server.git'
 MINIO_BUCKET_PATH = os.path.join(PATH_TEST, 'data', 'mlgit')
+SFTP_BUCKET_PATH = os.path.join(PATH_TEST, 'sftp', 'mlgit')
+FAKE_SSH_KEY_PATH = os.path.join(os.getcwd(), 'tests', 'integration', 'fake_ssh_key', 'test_key')
 GIT_WRONG_REP = 'https://github.com/wrong_repository/wrong_repository.git'
 BUCKET_NAME = 'mlgit'
-STORE_TYPE = StoreType.S3H.value
+STORAGE_TYPE = S3H
 PROFILE = 'personal'
 CLONE_FOLDER = 'clone'
 ERROR_MESSAGE = 'ERROR'
@@ -37,6 +54,9 @@ CREDENTIALS_PATH = os.path.join(os.getcwd(), 'tests', 'integration', 'credential
 MINIO_ENDPOINT_URL = 'http://127.0.0.1:9000'
 GDRIVE_LINKS = os.path.join(os.getcwd(), 'tests', 'integration', 'gdrive-files-links.json')
 GLOBAL_CONFIG_PATH = os.path.join(os.getcwd(), 'tests', 'integration', 'globalconfig')
+
+DATASET_NAME = 'datasets-ex'
+DATASET_TAG = 'computer-vision__images__datasets-ex__1'
 
 
 def get_yaml_processor(typ='safe', default_flow_style=False):
@@ -97,40 +117,42 @@ def check_output(command):
     return subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, shell=True).stdout
 
 
-def init_repository(entity, self, version=1, store_type='s3h', profile=PROFILE, artifact_name=None, category='images'):
+def init_repository(entity, self, version=1, storage_type=S3H, profile=PROFILE, artifact_name=None, category='images'):
     if not artifact_name:
         artifact_name = f'{entity}-ex'
     if os.path.exists(os.path.join(self.tmp_dir, ML_GIT_DIR)):
-        self.assertIn(messages[1], check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_ALREADY_IN_RESPOSITORY'], check_output(MLGIT_INIT))
     else:
-        self.assertIn(messages[0], check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
 
-    self.assertIn(messages[2] % (os.path.join(self.tmp_dir, GIT_PATH), entity), check_output(MLGIT_REMOTE_ADD % (entity, os.path.join(self.tmp_dir, GIT_PATH))))
+    self.assertIn(output_messages['INFO_ADD_REMOTE'] % (os.path.join(self.tmp_dir, GIT_PATH), entity),
+                  check_output(MLGIT_REMOTE_ADD % (entity, os.path.join(self.tmp_dir, GIT_PATH))))
 
-    if store_type == StoreType.GDRIVEH.value:
-        self.assertIn(messages[87] % (store_type, BUCKET_NAME),
-                      check_output(MLGIT_STORE_ADD_WITH_TYPE % (BUCKET_NAME, profile, store_type)))
+    if storage_type == GDRIVEH:
+        self.assertIn(output_messages['INFO_ADD_STORAGE_WITHOUT_PROFILE'] % (storage_type, BUCKET_NAME),
+                      check_output(MLGIT_STORAGE_ADD_WITH_TYPE % (BUCKET_NAME, profile, storage_type)))
     elif profile is not None:
-        self.assertIn(output_messages['INFO_ADD_STORE'] % (store_type, BUCKET_NAME, profile),
-                      check_output(MLGIT_STORE_ADD_WITH_TYPE % (BUCKET_NAME, profile, store_type)))
+        self.assertIn(output_messages['INFO_ADD_STORAGE'] % (storage_type, BUCKET_NAME, profile),
+                      check_output(MLGIT_STORAGE_ADD_WITH_TYPE % (BUCKET_NAME, profile, storage_type)))
     else:
-        self.assertIn(output_messages['INFO_ADD_STORE_WITHOUT_PROFILE'] % (store_type, BUCKET_NAME),
-                      check_output(MLGIT_STORE_ADD_WITHOUT_CREDENTIALS % BUCKET_NAME))
+        self.assertIn(output_messages['INFO_ADD_STORAGE_WITHOUT_PROFILE'] % (storage_type, BUCKET_NAME),
+                      check_output(MLGIT_STORAGE_ADD_WITHOUT_CREDENTIALS % BUCKET_NAME))
 
-    self.assertIn(messages[8] % (os.path.join(self.tmp_dir, GIT_PATH), os.path.join(self.tmp_dir, ML_GIT_DIR, entity, 'metadata')),
+    self.assertIn(output_messages['INFO_METADATA_INIT'] % (os.path.join(self.tmp_dir, GIT_PATH), os.path.join(self.tmp_dir, ML_GIT_DIR, entity, 'metadata')),
                   check_output(MLGIT_ENTITY_INIT % entity))
 
-    edit_config_yaml(os.path.join(self.tmp_dir, ML_GIT_DIR), store_type)
+    edit_config_yaml(os.path.join(self.tmp_dir, ML_GIT_DIR), storage_type)
     workspace = os.path.join(self.tmp_dir, entity, artifact_name)
     os.makedirs(workspace)
+    spec_key = get_spec_key(entity)
     spec = {
-        entity: {
+        spec_key: {
             'categories': ['computer-vision', category],
             'manifest': {
                 'files': 'MANIFEST.yaml',
-                'store': '%s://mlgit' % store_type
+                STORAGE_SPEC_KEY: '%s://mlgit' % storage_type
             },
-            'mutability': Mutability.STRICT.value,
+            'mutability': STRICT,
             'name': artifact_name,
             'version': version
         }
@@ -141,7 +163,7 @@ def init_repository(entity, self, version=1, store_type='s3h', profile=PROFILE, 
     self.assertTrue(os.path.exists(spec_file))
 
 
-def add_file(self, entity, bumpversion, name=None, artifact_name=None, file_content='1'):
+def add_file(self, entity, bumpversion, name=None, artifact_name=None, file_content='1', entity_dir=''):
     if not artifact_name:
         artifact_name = f'{entity}-ex'
     if name is None:
@@ -149,17 +171,17 @@ def add_file(self, entity, bumpversion, name=None, artifact_name=None, file_cont
     else:
         file_list = [name + 'file0', name + 'file1', name + 'file2', name + 'file3']
     for file in file_list:
-        with open(os.path.join(self.tmp_dir, entity, artifact_name, file), 'wt') as z:
+        with open(os.path.join(self.tmp_dir, entity, entity_dir, artifact_name, file), 'wt') as z:
             z.write(str(uuid.uuid1()) * 100)
-    with open(os.path.join(self.tmp_dir, entity, artifact_name, 'newfile4'), 'wt') as z:
+    with open(os.path.join(self.tmp_dir, entity, entity_dir, artifact_name, 'newfile4'), 'wt') as z:
         z.write(str(file_content * 100))
     # Create assert do ml-git add
-    if entity == 'dataset':
-        self.assertIn(messages[13] % 'dataset', check_output(MLGIT_ADD % (entity, artifact_name, bumpversion)))
-    elif entity == 'model':
-        self.assertIn(messages[14], check_output(MLGIT_ADD % (entity, artifact_name, bumpversion)))
+    if entity == DATASETS:
+        self.assertIn(output_messages['INFO_ADDING_PATH'] % DATASETS, check_output(MLGIT_ADD % (entity, artifact_name, bumpversion)))
+    elif entity == MODELS:
+        self.assertIn(output_messages['INFO_ADDING_PATH'] % MODELS, check_output(MLGIT_ADD % (entity, artifact_name, bumpversion)))
     else:
-        self.assertIn(messages[15], check_output(MLGIT_ADD % (entity, artifact_name, bumpversion)))
+        self.assertIn(output_messages['INFO_ADDING_PATH'] % LABELS, check_output(MLGIT_ADD % (entity, artifact_name, bumpversion)))
     metadata = os.path.join(self.tmp_dir, ML_GIT_DIR, entity, 'index', 'metadata', artifact_name)
     metadata_file = os.path.join(metadata, 'MANIFEST.yaml')
     index_file = os.path.join(metadata, 'INDEX.yaml')
@@ -175,11 +197,11 @@ def delete_file(workspace_path, delete_files):
                 os.unlink(os.path.join(root, file_name))
 
 
-def edit_config_yaml(ml_git_dir, store_type='s3h'):
-    with open(os.path.join(ml_git_dir, "config.yaml"), "r") as config_file:
+def edit_config_yaml(ml_git_dir, storage_type=S3H):
+    with open(os.path.join(ml_git_dir, 'config.yaml'), 'r') as config_file:
         config = yaml_processor.load(config_file)
-        config["store"][store_type]["mlgit"]["endpoint-url"] = MINIO_ENDPOINT_URL
-    with open(os.path.join(ml_git_dir, "config.yaml"), "w") as config_file:
+        config[STORAGE_CONFIG_KEY][storage_type]['mlgit']['endpoint-url'] = MINIO_ENDPOINT_URL
+    with open(os.path.join(ml_git_dir, 'config.yaml'), 'w') as config_file:
         yaml_processor.dump(config, config_file)
 
 
@@ -196,11 +218,11 @@ def clean_git():
 
 def create_git_clone_repo(git_dir, tmp_dir, git_path=GIT_PATH):
     config = {
-        'dataset': {
+        DATASETS: {
             'git': os.path.join(tmp_dir, git_path),
         },
-        'store': {
-            's3': {
+        STORAGE_CONFIG_KEY: {
+            S3: {
                 'mlgit-datasets': {
                     'region': 'us-east-1',
                     'aws-credentials': {'profile': 'default'}
@@ -222,16 +244,17 @@ def create_git_clone_repo(git_dir, tmp_dir, git_path=GIT_PATH):
     clear(master)
 
 
-def create_spec(self, model, tmpdir, version=1, mutability='strict', store_type=STORE_TYPE, artifact_name=None):
+def create_spec(self, model, tmpdir, version=1, mutability=STRICT, storage_type=STORAGE_TYPE, artifact_name=None):
     if not artifact_name:
         artifact_name = f'{model}-ex'
+    spec_key = get_spec_key(model)
     spec = {
-        model: {
+        spec_key: {
             'categories': ['computer-vision', 'images'],
             'mutability': mutability,
             'manifest': {
-                "files": 'MANIFEST.yaml',
-                "store": '%s://mlgit' % store_type
+                'files': 'MANIFEST.yaml',
+                STORAGE_SPEC_KEY: '%s://mlgit' % storage_type
             },
             'name': artifact_name,
             'version': version
@@ -279,15 +302,15 @@ def create_zip_file(dir, number_of_files_in_zip=3):
 def configure_global(self, entity_type):
     self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_INIT))
     self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_REMOTE_ADD_GLOBAL % (entity_type, os.path.join(self.tmp_dir, GIT_PATH))))
-    self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_STORE_ADD % (BUCKET_NAME, PROFILE + ' --global')))
+    self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_STORAGE_ADD % (BUCKET_NAME, PROFILE + ' --global')))
     edit_global_config_yaml()
     clear(os.path.join(self.tmp_dir, ML_GIT_DIR))
 
 
-def edit_global_config_yaml(store_type='s3h'):
+def edit_global_config_yaml(storage_type=S3H):
     with open(os.path.join(GLOBAL_CONFIG_PATH, GLOBAL_ML_GIT_CONFIG), 'r') as config_file:
         config = yaml_processor.load(config_file)
-        config['store'][store_type]['mlgit']['endpoint-url'] = MINIO_ENDPOINT_URL
+        config[STORAGE_CONFIG_KEY][storage_type]['mlgit']['endpoint-url'] = MINIO_ENDPOINT_URL
     with open(os.path.join(GLOBAL_CONFIG_PATH, GLOBAL_ML_GIT_CONFIG), 'w') as config_file:
         yaml_processor.dump(config, config_file)
 
@@ -298,7 +321,7 @@ def delete_global_config():
         __remove_file(global_config_file)
 
 
-def change_git_in_config(ml_git_dir, git_url, entity='dataset'):
+def change_git_in_config(ml_git_dir, git_url, entity=DATASETS):
     with open(os.path.join(ml_git_dir, 'config.yaml'), 'r') as config_file:
         config = yaml_processor.load(config_file)
         config[entity]['git'] = git_url
@@ -313,3 +336,12 @@ def populate_entity_with_new_data(self, entity, bumpversion='--bumpversion', ver
     head_path = os.path.join(self.tmp_dir, ML_GIT_DIR, entity, 'refs', entity + '-ex', 'HEAD')
     self.assertTrue(os.path.exists(head_path))
     self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_PUSH % (entity, entity + '-ex')))
+
+
+def move_entity_to_dir(tmp_dir, artifact_name, entity_type):
+    workspace = os.path.join(tmp_dir, entity_type, artifact_name)
+    entity_dir = os.path.join('folderA')
+    workspace_with_dir = os.path.join(tmp_dir, entity_type, entity_dir)
+    ensure_path_exists(workspace_with_dir)
+    shutil.move(workspace, workspace_with_dir)
+    return entity_dir, workspace, workspace_with_dir

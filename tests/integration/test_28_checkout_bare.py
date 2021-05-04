@@ -8,10 +8,11 @@ import unittest
 
 import pytest
 
+from ml_git.constants import DATASET_SPEC_KEY
+from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_ADD, MLGIT_COMMIT, MLGIT_PUSH, MLGIT_UPDATE, MLGIT_CHECKOUT
-from tests.integration.helper import ML_GIT_DIR, ERROR_MESSAGE
+from tests.integration.helper import ML_GIT_DIR, ERROR_MESSAGE, DATASETS, DATASET_NAME, DATASET_TAG, STRICT, MUTABLE
 from tests.integration.helper import check_output, clear, init_repository, create_spec, create_file, yaml_processor
-from tests.integration.output_messages import messages
 
 
 @pytest.mark.usefixtures('tmp_dir', 'aws_session')
@@ -22,7 +23,7 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_COMMIT % (entity_type, entity_type + '-ex', '')))
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_PUSH % (entity_type, entity_type+'-ex')))
 
-    def _clear_path(self, entity_type='dataset'):
+    def _clear_path(self, entity_type=DATASETS):
         clear(os.path.join(self.tmp_dir, ML_GIT_DIR))
         workspace = os.path.join(self.tmp_dir, entity_type, entity_type + '-ex')
         clear(os.path.join(self.tmp_dir, ML_GIT_DIR, entity_type, 'cache'))
@@ -38,22 +39,22 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
         self._push_files(entity_type, '')
         self._clear_path()
 
-    def _checkout_entity(self, entity_type, tag='computer-vision__images__dataset-ex__1', bare=True):
+    def _checkout_entity(self, entity_type, tag=DATASET_TAG, bare=True):
         init_repository(entity_type, self)
-        self.assertIn(messages[20] % (os.path.join(self.tmp_dir, ML_GIT_DIR, entity_type, 'metadata')),
+        self.assertIn(output_messages['INFO_MLGIT_PULL'] % (os.path.join(self.tmp_dir, ML_GIT_DIR, entity_type, 'metadata')),
                       check_output(MLGIT_UPDATE % entity_type))
         if bare:
-            self.assertIn(messages[68], check_output(MLGIT_CHECKOUT % (entity_type, tag + ' --bare')))
+            self.assertIn(output_messages['INFO_CHECKOUT_BARE_MODE'], check_output(MLGIT_CHECKOUT % (entity_type, tag + ' --bare')))
         else:
             self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_CHECKOUT % (entity_type, tag)))
-            self.assertTrue(os.path.exists(os.path.join(self.tmp_dir, 'dataset', 'computer-vision', 'images', 'dataset-ex', 'data', 'file1')))
+            self.assertTrue(os.path.exists(os.path.join(self.tmp_dir, DATASETS, DATASET_NAME, 'data', 'file1')))
 
     def check_bare_checkout(self, entity):
         objects = os.path.join(self.tmp_dir, ML_GIT_DIR, entity, 'objects')
         refs = os.path.join(self.tmp_dir, ML_GIT_DIR, entity, 'refs')
         cache = os.path.join(self.tmp_dir, ML_GIT_DIR, entity, 'cache')
         bare = os.path.join(self.tmp_dir, ML_GIT_DIR, entity, 'index', 'metadata', entity+'-ex', 'bare')
-        spec_file = os.path.join(self.tmp_dir, entity, 'computer-vision', 'images', entity+'-ex', entity+'-ex.spec')
+        spec_file = os.path.join(self.tmp_dir, entity, entity+'-ex', entity+'-ex.spec')
 
         self.assertFalse(os.path.exists(cache))
         self.assertTrue(os.path.exists(refs))
@@ -63,21 +64,21 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_01_checkout_bare(self):
-        entity_type = 'dataset'
-        self._create_entity_with_mutability(entity_type, 'strict')
+        entity_type = DATASETS
+        self._create_entity_with_mutability(entity_type, STRICT)
         self._checkout_entity(entity_type)
-        self.assertFalse(os.path.exists(os.path.join(self.tmp_dir, 'dataset', 'computer-vision', 'images', 'dataset-ex', 'data', 'file1')))
+        self.assertFalse(os.path.exists(os.path.join(self.tmp_dir, DATASETS, DATASET_NAME, 'data', 'file1')))
         self.check_bare_checkout(entity_type)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_02_push_file(self):
-        entity_type = 'dataset'
-        self._create_entity_with_mutability(entity_type, 'strict')
+        entity_type = DATASETS
+        self._create_entity_with_mutability(entity_type, STRICT)
         self._checkout_entity(entity_type)
-        self.assertFalse(os.path.exists(os.path.join(self.tmp_dir, 'dataset', 'computer-vision', 'images', 'dataset-ex', 'data', 'file1')))
+        self.assertFalse(os.path.exists(os.path.join(self.tmp_dir, DATASETS, DATASET_NAME, 'data', 'file1')))
         self.check_bare_checkout(entity_type)
 
-        data_path = os.path.join(self.tmp_dir, entity_type, 'computer-vision', 'images', entity_type+'-ex')
+        data_path = os.path.join(self.tmp_dir, entity_type, entity_type+'-ex')
         os.mkdir(os.path.join(data_path, 'data'))
         create_file(data_path, 'file2', '1')
 
@@ -86,12 +87,12 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
 
         self._checkout_entity(entity_type, tag='computer-vision__images__'+entity_type+'-ex__2', bare=False)
 
-        file2 = os.path.join(self.tmp_dir, entity_type, 'computer-vision', 'images', entity_type+'-ex', 'data', 'file2')
-        self.assertTrue(os.path.exists(os.path.join(self.tmp_dir, 'dataset', 'computer-vision', 'images', 'dataset-ex', 'data', 'file1')))
+        file2 = os.path.join(self.tmp_dir, entity_type, entity_type+'-ex', 'data', 'file2')
+        self.assertTrue(os.path.exists(os.path.join(self.tmp_dir, DATASETS, DATASET_NAME, 'data', 'file1')))
         self.assertTrue(os.path.exists(file2))
 
-    def _create_file_with_same_path(self, entity_type='dataset'):
-        entity_path = os.path.join(self.tmp_dir, entity_type, 'computer-vision', 'images', entity_type+'-ex')
+    def _create_file_with_same_path(self, entity_type=DATASETS):
+        entity_path = os.path.join(self.tmp_dir, entity_type, entity_type+'-ex')
 
         file = os.path.join(self.tmp_dir, entity_path, 'data', 'file1')
         self.assertFalse(os.path.exists(file))
@@ -102,8 +103,8 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_03_push_file_with_same_path_strict(self):
-        entity_type = 'dataset'
-        self._create_entity_with_mutability(entity_type, 'strict')
+        entity_type = DATASETS
+        self._create_entity_with_mutability(entity_type, STRICT)
         self._checkout_entity(entity_type)
         self.check_bare_checkout(entity_type)
 
@@ -112,26 +113,26 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
 
         self._clear_path()
 
-        self.assertFalse(os.path.exists(os.path.join(self.tmp_dir, 'dataset', 'computer-vision', 'images', 'dataset-ex', 'data', 'file1')))
+        self.assertFalse(os.path.exists(os.path.join(self.tmp_dir, DATASETS, DATASET_NAME, 'data', 'file1')))
         self._checkout_entity(entity_type, tag='computer-vision__images__'+entity_type+'-ex__1', bare=False)
 
-        with open(os.path.join(self.tmp_dir, 'dataset', 'computer-vision', 'images', 'dataset-ex', 'data', 'file1')) as f:
+        with open(os.path.join(self.tmp_dir, DATASETS, DATASET_NAME, 'data', 'file1')) as f:
             file_text = f.read()
             self.assertNotIn('1', file_text)
             self.assertIn('0', file_text)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_04_push_file_with_same_path_mutable(self):
-        entity_type = 'dataset'
-        self._create_entity_with_mutability(entity_type, 'mutable')
+        entity_type = DATASETS
+        self._create_entity_with_mutability(entity_type, MUTABLE)
         self._checkout_entity(entity_type)
 
         self.check_bare_checkout(entity_type)
 
         self._create_file_with_same_path()
 
-        self.assertIn(messages[69] % 'data/file1', check_output(MLGIT_ADD %
-                                                                (entity_type, entity_type + '-ex', '--bumpversion')))
+        self.assertIn(output_messages['WARN_FILE_EXISTS_IN_REPOSITORY'] % 'data/file1',
+                      check_output(MLGIT_ADD % (entity_type, entity_type + '-ex', '--bumpversion')))
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_COMMIT % (entity_type, entity_type + '-ex', '')))
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_PUSH % (entity_type, entity_type + '-ex')))
 
@@ -139,27 +140,27 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
 
         self._checkout_entity(entity_type, tag='computer-vision__images__'+entity_type+'-ex__2', bare=False)
 
-        with open(os.path.join(self.tmp_dir, 'dataset', 'computer-vision', 'images', 'dataset-ex', 'data', 'file1')) as f:
+        with open(os.path.join(self.tmp_dir, DATASETS, DATASET_NAME, 'data', 'file1')) as f:
             file_text = f.read()
             self.assertNotIn('0', file_text)
             self.assertIn('1', file_text)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_05_checkout_bare_in_older_tag(self):
-        entity_type = 'dataset'
-        self._create_entity_with_mutability(entity_type, 'strict')
-        data_path = os.path.join(self.tmp_dir, entity_type, 'computer-vision', 'images', entity_type+'-ex')
+        entity_type = DATASETS
+        self._create_entity_with_mutability(entity_type, STRICT)
+        data_path = os.path.join(self.tmp_dir, entity_type, entity_type+'-ex')
         self._clear_path()
         self._checkout_entity(entity_type, tag='computer-vision__images__'+entity_type+'-ex__1')
         os.mkdir(os.path.join(data_path, 'data'))
         create_file(data_path, 'file3', '1')
 
-        spec_path = os.path.join(self.tmp_dir, 'dataset', 'computer-vision', 'images', 'dataset-ex', 'dataset-ex.spec')
+        spec_path = os.path.join(self.tmp_dir, DATASETS, DATASET_NAME, 'datasets-ex.spec')
         with open(spec_path, 'r') as y:
             spec = yaml_processor.load(y)
 
         with open(spec_path, 'w') as y:
-            spec['dataset']['version'] = 2
+            spec[DATASET_SPEC_KEY]['version'] = 2
             yaml_processor.dump(spec, y)
 
         self._push_files(entity_type)
@@ -168,6 +169,6 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
 
         self._checkout_entity(entity_type, tag='computer-vision__images__'+entity_type+'-ex__3', bare=False)
 
-        file_path = os.path.join(self.tmp_dir, entity_type, 'computer-vision', 'images', entity_type+'-ex', 'data')
+        file_path = os.path.join(self.tmp_dir, entity_type, entity_type+'-ex', 'data')
         self.assertTrue(os.path.exists(os.path.join(file_path, 'file1')))
         self.assertTrue(os.path.exists(os.path.join(file_path, 'file3')))

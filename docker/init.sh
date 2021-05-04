@@ -11,8 +11,8 @@ if ! pgrep -x "minio" >/dev/null
 then
     .././minio server /data &
     ml-git clone /local_ml_git_config_server.git
-    ml-git dataset show mnist
-    ml-git dataset tag list mnist
+    ml-git datasets show mnist
+    ml-git datasets tag list mnist
     git config --global user.email "you@example.com"
     git config --global user.name "Your Name"
 fi

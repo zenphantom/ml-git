@@ -3,13 +3,14 @@
 SPDX-License-Identifier: GPL-2.0-only
 """
 import bisect
+import csv
 import itertools
 import json
 import os
 import shutil
 import stat
-import zipfile
 import sys
+import zipfile
 from contextlib import contextmanager
 from pathlib import Path, PurePath, PurePosixPath
 from stat import S_IREAD, S_IRGRP, S_IROTH, S_IWUSR
@@ -18,7 +19,10 @@ from halo import Halo
 from ruamel.yaml import YAML
 from ruamel.yaml.compat import StringIO
 
-from ml_git.constants import SPEC_EXTENSION, CONFIG_FILE
+from ml_git import log
+from ml_git.constants import SPEC_EXTENSION, CONFIG_FILE, EntityType, ROOT_FILE_NAME, V1_STORAGE_KEY, V1_DATASETS_KEY, \
+    V1_MODELS_KEY, STORAGE_SPEC_KEY, STORAGE_CONFIG_KEY
+from ml_git.ml_git_message import output_messages
 from ml_git.pool import pool_factory
 
 
@@ -62,6 +66,15 @@ def json_load(file):
     return hash
 
 
+def check_spec_file(file, hash):
+    entity_type = next(iter(hash))
+    manifest_values = hash[entity_type]['manifest']
+    if V1_STORAGE_KEY in manifest_values:
+        manifest_values[STORAGE_SPEC_KEY] = manifest_values.pop(V1_STORAGE_KEY)
+    yaml_save(hash, file)
+    return hash
+
+
 def yaml_load(file):
     hash = {}
     try:
@@ -69,6 +82,8 @@ def yaml_load(file):
             hash = yaml_processor.load(y_file)
     except Exception:
         pass
+    if SPEC_EXTENSION in posix_path(file):
+        hash = check_spec_file(file, hash)
     return hash
 
 
@@ -138,10 +153,10 @@ def get_root_path():
         except StopIteration:
             parent = current_path.parent
             if parent == current_path:
-                raise RootPathException('You are not in an initialized ml-git repository.')
+                raise RootPathException(output_messages['ERROR_NOT_IN_RESPOSITORY'])
             else:
                 current_path = parent
-    raise RootPathException('You are not in an initialized ml-git repository.')
+    raise RootPathException(output_messages['ERROR_NOT_IN_RESPOSITORY'])
 
 
 # function created to clear directory
@@ -156,14 +171,6 @@ def clear(path):
         shutil.rmtree(path)
     except Exception as e:
         print('except: ', e)
-
-
-def get_path_with_categories(tag):
-    result = ''
-    if tag:
-        temp = tag.split('__')
-        result = '/'.join(temp[0:len(temp)-2])
-    return result
 
 
 def convert_path(path, file):
@@ -279,3 +286,85 @@ def remove_other_files(filenames, path):
                 os.unlink(file_path)
                 count += 1
     return reclaimed_space, count
+
+
+def change_keys_in_config(root_path):
+    file = os.path.join(root_path, ROOT_FILE_NAME, 'config.yaml')
+    conf = yaml_load(file)
+    if V1_DATASETS_KEY in conf:
+        conf[EntityType.DATASETS.value] = conf.pop(V1_DATASETS_KEY)
+    if V1_MODELS_KEY in conf:
+        conf[EntityType.MODELS.value] = conf.pop(V1_MODELS_KEY)
+    if V1_STORAGE_KEY in conf:
+        conf[STORAGE_CONFIG_KEY] = conf.pop(V1_STORAGE_KEY)
+    yaml_save(conf, file)
+
+
+def update_directories_to_plural(root_path, old_value, new_value):
+    data_path = os.path.join(root_path, old_value)
+    if os.path.exists(data_path):
+        os.rename(data_path, os.path.join(root_path, new_value))
+    metadata_path = os.path.join(root_path, ROOT_FILE_NAME, old_value)
+    if os.path.exists(metadata_path):
+        os.rename(metadata_path, os.path.join(root_path, ROOT_FILE_NAME, new_value))
+
+
+def update_project(v1_dataset_path_exists, v1_model_path_exists, root_path):
+    log.info(output_messages['INFO_UPDATE_THE_PROJECT'])
+    update_now = input(output_messages['INFO_AKS_IF_WANT_UPDATE_PROJECT']).lower()
+    if update_now in ['yes', 'y']:
+        if v1_dataset_path_exists:
+            update_directories_to_plural(root_path, V1_DATASETS_KEY, EntityType.DATASETS.value)
+        if v1_model_path_exists:
+            update_directories_to_plural(root_path, V1_MODELS_KEY, EntityType.MODELS.value)
+        change_keys_in_config(root_path)
+    else:
+        raise Exception(output_messages['ERROR_PROJECT_NEED_BE_UPDATED'])
+
+
+def validate_config_keys(config):
+    v1_keys = [V1_DATASETS_KEY, V1_MODELS_KEY, V1_STORAGE_KEY]
+    if any(key in config for key in v1_keys):
+        return False
+    return True
+
+
+def check_metadata_directories():
+    try:
+        root_path = get_root_path()
+    except RootPathException:
+        return
+
+    v1_dataset_path_exists = os.path.exists(os.path.join(root_path, V1_DATASETS_KEY)) or os.path.exists(os.path.join(
+        root_path, ROOT_FILE_NAME, V1_DATASETS_KEY))
+    v1_model_path_exists = os.path.exists(os.path.join(root_path, V1_MODELS_KEY)) or os.path.exists(os.path.join(
+        root_path, ROOT_FILE_NAME, V1_MODELS_KEY))
+
+    file = os.path.join(root_path, ROOT_FILE_NAME, 'config.yaml')
+    config = yaml_load(file)
+    if v1_dataset_path_exists or v1_model_path_exists or not validate_config_keys(config):
+        update_project(v1_dataset_path_exists, v1_model_path_exists, root_path)
+        log.info(output_messages['INFO_PROJECT_UPDATE_SUCCESSFULLY'])
+
+
+def create_csv_file(file_path, header, data_entries):
+    with open(file_path, 'w', newline='') as file:
+        writer = csv.writer(file)
+        row_list = list()
+        row_list.append(header)
+        for entry in data_entries:
+            entry_data = []
+            for key in header:
+                entry_data.append(entry.get(key, ''))
+            row_list.append(entry_data)
+        writer.writerows(row_list)
+
+
+def singleton(cls):
+    instances = {}
+
+    def instance(*args, **kwargs):
+        if cls not in instances:
+            instances[cls] = cls(*args, **kwargs)
+        return instances[cls]
+    return instance

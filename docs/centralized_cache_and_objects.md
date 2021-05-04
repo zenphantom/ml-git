@@ -60,16 +60,16 @@ sudo chmod -R a+rwX /srv/mlgit/cache/model
 2 - With the project ml-git initialized change .ml-git/config.yaml :
 
 ```
-dataset:
+datasets:
   git: ''
   cache_path: 'Cache path directory created on step 1 for dataset entity'
 labels:
   git: ''
   cache_path: 'Path directory created on step 1 for labels entity'
-model:
+models:
   git: ''
   cache_path: 'Path directory created on step 1 for model entity'
-store:
+storages:
   s3:
     mlgit-datasets:
       aws-credentials:
@@ -124,16 +124,16 @@ sudo chmod -R a+rwX /srv/mlgit/objects/model
 2 - With the project ml-git initialized change .ml-git/config.yaml :
 
 ```
-dataset:
+datasets:
   git: ''
   objects_path: 'Path directory created on step 1 for dataset entity'
 labels:
   git: ''
   objects_path: 'Path directory created on step 1 for labels entity'
-model:
+models:
   git: ''
   objects_path: 'Path directory created on step 1 for model entity'
-store:
+storages:
   s3:
     mlgit-datasets:
       aws-credentials:

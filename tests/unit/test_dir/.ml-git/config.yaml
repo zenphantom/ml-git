@@ -1,6 +1,6 @@
-dataset:
+datasets:
   git: git_local_server.git
-store:
+storages:
   s3:
     mlgit-datasets:
       aws-credentials:

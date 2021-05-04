@@ -30,7 +30,7 @@ We assume there is an initialized ML-Git project in the directory.
 ```python
 from ml_git import api
 
-entity = 'dataset'
+entity = 'datasets'
 tag = 'computer-vision__images__imagenet__1'
 
 data_path = api.checkout(entity, tag)
@@ -75,7 +75,7 @@ output:
 ```python
 from ml_git import api
 
-entity = 'dataset'
+entity = 'datasets'
 tag = 'computer-vision__images__imagenet__1'
 
 sampling = {'group': '1:2', 'seed': '10'}
@@ -96,7 +96,7 @@ output:
 ```python
 from ml_git import api
 
-entity = 'dataset'
+entity = 'datasets'
 tag = 'computer-vision__images__imagenet__1'
 
 sampling = {'range': '0:4:3'}
@@ -118,7 +118,7 @@ output:
 ```python
 from ml_git import api
 
-entity = 'dataset'
+entity = 'datasets'
 tag = 'computer-vision__images__imagenet__1'
 
 sampling = {'random': '1:2', 'seed': '1'}
@@ -140,7 +140,7 @@ output:
 ```python
 from ml_git import api
 
-api.add('dataset', 'dataset-ex')
+api.add('datasets', 'dataset-ex')
 ```
 
 output:
@@ -155,7 +155,7 @@ output:
 ```python
 from ml_git import api
 
-entity = 'dataset'
+entity = 'datasets'
 entity_name = 'dataset-ex'
 message = 'Commit example'
 
@@ -172,7 +172,7 @@ output:
 ```python
 from ml_git import api
 
-entity = 'dataset'
+entity = 'datasets'
 spec = 'dataset-ex'
 
 api.push(entity, spec)
@@ -188,7 +188,7 @@ output:
 ```python
 from ml_git import api
 
-entity = 'dataset'
+entity = 'datasets'
 spec = 'dataset-ex'
 categories = ['computer-vision', 'images']
 mutability = 'strict'
@@ -221,7 +221,7 @@ output:
 ```python
 from ml_git import api
 
-entity_type = 'dataset'
+entity_type = 'datasets'
 
 api.init(entity_type)
 ```
@@ -235,7 +235,7 @@ output:
 ```python
 from ml_git import api
 
-entity_type = 'dataset'
+entity_type = 'datasets'
 datasets_repository = 'https://git@github.com/mlgit-datasets'
 
 api.remote_add(entity_type, datasets_repository)
@@ -255,9 +255,9 @@ bucket_name = 'minio'
 bucket_type='s3h'
 endpoint_url = 'http://127.0.0.1:9000/'
 
-api.store_add(bucket_name=bucket_name,bucket_type=bucket_type, endpoint_url=endpoint_url)
+api.storage_add(bucket_name=bucket_name,bucket_type=bucket_type, endpoint_url=endpoint_url)
 ```
 
 output:
 
-    INFO - Admin: Add store [s3h://minio]
+    INFO - Admin: Add storage [s3h://minio]

@@ -2,7 +2,7 @@
 © Copyright 2020 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
-
+import csv
 import os
 import shutil
 import sys
@@ -12,10 +12,14 @@ from unittest.mock import Mock
 
 import humanize
 import pytest
+import yaml
 
+from ml_git.constants import ROOT_FILE_NAME, V1_STORAGE_KEY, V1_DATASETS_KEY, V1_MODELS_KEY, STORAGE_CONFIG_KEY
 from ml_git.utils import json_load, yaml_load, yaml_save, RootPathException, get_root_path, change_mask_for_routine, \
     ensure_path_exists, yaml_load_str, get_yaml_str, run_function_per_group, unzip_files_in_directory, \
-    remove_from_workspace, group_files_by_path, remove_other_files, remove_unnecessary_files
+    remove_from_workspace, group_files_by_path, remove_other_files, remove_unnecessary_files, change_keys_in_config, \
+    update_directories_to_plural, validate_config_keys, create_csv_file
+from tests.unit.conftest import DATASETS, MODELS, S3H, S3
 
 
 @pytest.mark.usefixtures('tmp_dir', 'switch_to_test_dir', 'yaml_str_sample', 'yaml_obj_sample')
@@ -24,9 +28,9 @@ class UtilsTestCases(unittest.TestCase):
         jsn = {}
         self.assertFalse(bool(jsn))
         jsn = json_load('./udata/data.json')
-        self.assertEqual(jsn['dataset']['categories'], 'imgs')
-        self.assertEqual(jsn['dataset']['name'], 'dataex')
-        self.assertEqual(jsn['dataset']['version'], 1)
+        self.assertEqual(jsn[DATASETS]['categories'], 'imgs')
+        self.assertEqual(jsn[DATASETS]['name'], 'dataex')
+        self.assertEqual(jsn[DATASETS]['version'], 1)
         self.assertTrue(bool(jsn))
 
     def test_yaml_load(self):
@@ -34,16 +38,16 @@ class UtilsTestCases(unittest.TestCase):
         self.assertFalse(bool(yal))
         yal = yaml_load('./udata/data.yaml')
         self.assertTrue(bool(yal))
-        self.assertEqual(yal['store']['s3']['mlgit-datasets']['region'], 'us-east-1')
+        self.assertEqual(yal[STORAGE_CONFIG_KEY][S3]['mlgit-datasets']['region'], 'us-east-1')
 
     def test_yaml_load_str(self):
         obj = yaml_load_str(self.yaml_str_sample)
-        self.assertEqual(obj['store']['s3h']['bucket_test']['aws-credentials']['profile'], 'profile_test')
-        self.assertEqual(obj['store']['s3h']['bucket_test']['region'], 'region_test')
+        self.assertEqual(obj[STORAGE_CONFIG_KEY][S3H]['bucket_test']['aws-credentials']['profile'], 'profile_test')
+        self.assertEqual(obj[STORAGE_CONFIG_KEY][S3H]['bucket_test']['region'], 'region_test')
 
     def test_get_yaml_str(self):
-        self.assertEqual(self.yaml_obj_sample['store']['s3h']['bucket_test']['aws-credentials']['profile'], 'profile_test')
-        self.assertEqual(self.yaml_obj_sample['store']['s3h']['bucket_test']['region'], 'region_test')
+        self.assertEqual(self.yaml_obj_sample[STORAGE_CONFIG_KEY][S3H]['bucket_test']['aws-credentials']['profile'], 'profile_test')
+        self.assertEqual(self.yaml_obj_sample[STORAGE_CONFIG_KEY][S3H]['bucket_test']['region'], 'region_test')
         self.assertEqual(get_yaml_str(self.yaml_obj_sample), self.yaml_str_sample)
 
     def test_yaml_save(self):
@@ -58,7 +62,7 @@ class UtilsTestCases(unittest.TestCase):
 
             yal = yaml_load(yaml_path)
 
-            temp_arr = yal['dataset']['git'].split('.')
+            temp_arr = yal[DATASETS]['git'].split('.')
             temp_arr.pop()
             temp_arr.pop()
             temp_arr.append(temp_var)
@@ -66,12 +70,12 @@ class UtilsTestCases(unittest.TestCase):
             # create new git variable
             new_git_var = '.'.join(temp_arr)
 
-            self.assertFalse(yal['dataset']['git'] == new_git_var)
+            self.assertFalse(yal[DATASETS]['git'] == new_git_var)
 
-            yal['dataset']['git'] = new_git_var
+            yal[DATASETS]['git'] = new_git_var
 
             yaml_save(yal, yaml_path)
-            self.assertTrue(yal['dataset']['git'] == new_git_var)
+            self.assertTrue(yal[DATASETS]['git'] == new_git_var)
 
     def test_get_root_path(self):
 
@@ -197,3 +201,89 @@ class UtilsTestCases(unittest.TestCase):
         remove_other_files(['image1.jpg'], self.tmp_dir)
         self.assertTrue(os.path.exists(file1))
         self.assertFalse(os.path.exists(file2))
+
+    def test_change_keys_in_config(self):
+        config = """
+        dataset:
+           git: fake_git_repository
+        labels:
+           git: fake_git_repository
+        model:
+           git: fake_git_repository
+        store:
+            s3:
+                mlgit-datasets:
+                    aws-credentials:
+                        profile: mlgit
+                    region: us-east-1
+        """
+        config_path = os.path.join(self.tmp_dir, ROOT_FILE_NAME, 'config.yaml')
+        os.makedirs(os.path.join(self.tmp_dir, ROOT_FILE_NAME), exist_ok=True)
+        with open(config_path, 'w') as config_yaml:
+            config_yaml.write(config)
+        change_keys_in_config(self.tmp_dir)
+        conf = yaml_load(config_path)
+        self.assertNotIn(V1_DATASETS_KEY, conf)
+        self.assertIn(DATASETS, conf)
+        self.assertNotIn(V1_MODELS_KEY, conf)
+        self.assertIn(MODELS, conf)
+        self.assertNotIn(V1_STORAGE_KEY, conf)
+        self.assertIn(STORAGE_CONFIG_KEY, conf)
+
+    def test_update_directories_to_plural(self):
+        data_path = os.path.join(self.tmp_dir, V1_DATASETS_KEY)
+        metadata_path = os.path.join(self.tmp_dir, ROOT_FILE_NAME, V1_DATASETS_KEY)
+        os.makedirs(data_path, exist_ok=True)
+        os.makedirs(metadata_path, exist_ok=True)
+        update_directories_to_plural(self.tmp_dir, V1_DATASETS_KEY, DATASETS)
+        self.assertFalse(os.path.exists(data_path))
+        self.assertFalse(os.path.exists(metadata_path))
+        data_path = os.path.join(self.tmp_dir, DATASETS)
+        metadata_path = os.path.join(self.tmp_dir, ROOT_FILE_NAME, DATASETS)
+        self.assertTrue(os.path.exists(data_path))
+        self.assertTrue(os.path.exists(metadata_path))
+
+    def test_validate_config_keys(self):
+        config = """
+        %s:
+           git: fake_git_repository
+        %s:
+           git: fake_git_repository
+        %s:
+            s3:
+                mlgit-datasets:
+                    aws-credentials:
+                        profile: mlgit
+                    region: us-east-1
+        """
+        self.assertTrue(validate_config_keys(yaml.safe_load(config % (DATASETS, MODELS, STORAGE_CONFIG_KEY))))
+        self.assertFalse(validate_config_keys(yaml.safe_load(config % (V1_DATASETS_KEY, V1_MODELS_KEY, V1_STORAGE_KEY))))
+        self.assertFalse(validate_config_keys(yaml.safe_load(config % (DATASETS, MODELS, V1_STORAGE_KEY))))
+        self.assertFalse(validate_config_keys(yaml.safe_load(config % (DATASETS, V1_MODELS_KEY, STORAGE_CONFIG_KEY))))
+        self.assertFalse(validate_config_keys(yaml.safe_load(config % (V1_DATASETS_KEY, MODELS, STORAGE_CONFIG_KEY))))
+
+    def test_create_csv_file(self):
+        csv_file_path = os.path.join(self.tmp_dir, 'metrics-file.csv')
+        header = ['Name', 'Value']
+        lines = [{'Name': 'line1', 'Value': 'line1'}, {'Name': 'line2', 'Value': 'line2'},
+                 {'Name': 'line2'}]
+        self.assertFalse(os.path.exists(csv_file_path))
+        create_csv_file(csv_file_path, header, lines)
+        self.assertTrue(os.path.exists(csv_file_path))
+
+        with open(csv_file_path) as csv_file:
+            csv_reader = csv.reader(csv_file, delimiter=',')
+            line_count = 0
+            for row in csv_reader:
+                if line_count == 0:
+                    self.assertEqual(header, row)
+                    line_count += 1
+                else:
+                    line_index = line_count - 1
+                    if line_count == 3:
+                        row_values = [lines[line_index]['Name'], '']
+                    else:
+                        row_values = [lines[line_index]['Name'], lines[line_index]['Value']]
+                    self.assertEqual(row_values, row)
+                    line_count += 1
+            self.assertEqual(4, line_count)

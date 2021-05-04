@@ -9,6 +9,7 @@ import unittest
 
 import pytest
 
+from ml_git.constants import STORAGE_LOG
 from ml_git.file_system.hashfs import MultihashFS, HashFS
 from ml_git.file_system.index import MultihashIndex
 from ml_git.file_system.objects import Objects
@@ -220,18 +221,18 @@ class HashFSTestCases(unittest.TestCase):
     def test_update_log(self):
         original_file = 'data/think-hires.jpg'
         hfs = HashFS(self.tmp_dir, blocksize=1024 * 1024)
-        store_log = os.path.join(self.tmp_dir, 'hashfs', 'log', 'store.log')
-        open(store_log, 'a').close()
+        storage_log = os.path.join(self.tmp_dir, 'hashfs', 'log', STORAGE_LOG)
+        open(storage_log, 'a').close()
         hfs.update_log([original_file])
-        with open(store_log, 'r') as log_file:
+        with open(storage_log, 'r') as log_file:
             self.assertIn(original_file, log_file.read())
 
     def test_reset_log(self):
         hfs = HashFS(self.tmp_dir, blocksize=1024 * 1024)
-        store_log = os.path.join(self.tmp_dir, 'hashfs', 'log', 'store.log')
-        open(store_log, 'a').close()
+        storage_log = os.path.join(self.tmp_dir, 'hashfs', 'log', STORAGE_LOG)
+        open(storage_log, 'a').close()
         hfs.reset_log()
-        self.assertFalse(os.path.exists(store_log))
+        self.assertFalse(os.path.exists(storage_log))
 
     def test_get_simple(self):
         original_file = self.test_dir / 'data/think-hires.jpg'
@@ -255,14 +256,14 @@ class HashFSTestCases(unittest.TestCase):
         o = Objects('dataset-spec', self.tmp_dir)
         o.commit_index(self.tmp_dir, data)
         for h in hash_list:
-            with open(os.path.join(self.tmp_dir, 'hashfs', 'log', 'store.log')) as f:
+            with open(os.path.join(self.tmp_dir, 'hashfs', 'log', STORAGE_LOG)) as f:
                 self.assertTrue(h in f.read())
 
         for h in hash_list:
             hfs.remove_hash(h)
 
         for h in hash_list:
-            with open(os.path.join(self.tmp_dir, 'hashfs', 'log', 'store.log')) as f:
+            with open(os.path.join(self.tmp_dir, 'hashfs', 'log', STORAGE_LOG)) as f:
                 self.assertFalse(h in f.read())
 
     def test_link(self):

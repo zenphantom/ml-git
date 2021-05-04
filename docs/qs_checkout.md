@@ -9,19 +9,19 @@ $ ml-git clone git@github.com:example/your-mlgit-repository.git
 Then, you can retrieve a specific version of a dataset to run an experiment. To achieve that, you can use the version tag to download this version to your local environment using one of the following commands:
 
 ```
-$ ml-git dataset checkout computer-vision__images__faces__fddb__1
+$ ml-git datasets checkout computer-vision__images__faces__fddb__1
 ```
 
 or 
 
 ```
-$ ml-git dataset checkout fddb --version=1
+$ ml-git datasets checkout fddb --version=1
 ```
 
 If you want to get the latest available version of a dataset, you can pass its name in the checkout command, as shown below:
 
 ```
-$ ml-git dataset checkout fddb
+$ ml-git datasets checkout fddb
 ```
 
 Then, your directory should look like this:

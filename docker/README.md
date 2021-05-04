@@ -32,7 +32,7 @@ The container has an ML-Git project initialized inside the directory workspace, 
 You can execute the command checkout directly to tag: 
 
 ```
-ml-git dataset checkout handwritten__digits__mnist__1
+ml-git datasets checkout handwritten__digits__mnist__1
 ```
 
 ##### **Summary of files in image:**

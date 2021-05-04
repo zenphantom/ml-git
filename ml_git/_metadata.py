@@ -2,27 +2,33 @@
 © Copyright 2020 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
-
+import io
+import json
 import os
 import re
 import time
 
 from git import Repo, Git, InvalidGitRepositoryError, GitError, PushInfo
 from halo import Halo
+from prettytable import PrettyTable
 
 from ml_git import log
 from ml_git.config import get_metadata_path
 from ml_git.constants import METADATA_MANAGER_CLASS_NAME, HEAD_1, RGX_ADDED_FILES, RGX_DELETED_FILES, RGX_SIZE_FILES, \
     RGX_AMOUNT_FILES, TAG, AUTHOR, EMAIL, DATE, MESSAGE, ADDED, SIZE, AMOUNT, DELETED, SPEC_EXTENSION, \
-    DEFAULT_BRANCH_FOR_EMPTY_REPOSITORY
+    DEFAULT_BRANCH_FOR_EMPTY_REPOSITORY, PERFORMANCE_KEY, EntityType, FileType, RELATED_DATASET_TABLE_INFO, \
+    RELATED_LABELS_TABLE_INFO, DATASET_SPEC_KEY, LABELS_SPEC_KEY
 from ml_git.manifest import Manifest
 from ml_git.ml_git_message import output_messages
-from ml_git.utils import get_root_path, ensure_path_exists, yaml_load, RootPathException, get_yaml_str
+from ml_git.spec import get_entity_dir, spec_parse, get_spec_key
+from ml_git.utils import get_root_path, ensure_path_exists, yaml_load, RootPathException, get_yaml_str, yaml_load_str, \
+    clear, posix_path, create_csv_file
 
 
 class MetadataRepo(object):
 
-    def __init__(self, git, path):
+    def __init__(self, git, path, repo_type):
+        self.__repo_type = repo_type
         try:
             root_path = get_root_path()
             self.__path = os.path.join(root_path, path)
@@ -33,24 +39,24 @@ class MetadataRepo(object):
             raise e
         except Exception as e:
             if str(e) == '\'Metadata\' object has no attribute \'_MetadataRepo__git\'':
-                log.error('You are not in an initialized ml-git repository.', class_name=METADATA_MANAGER_CLASS_NAME)
+                log.error(output_messages['ERROR_NOT_IN_RESPOSITORY'], class_name=METADATA_MANAGER_CLASS_NAME)
             else:
                 log.error(e, class_name=METADATA_MANAGER_CLASS_NAME)
             return
 
     def init(self):
         try:
-            log.info('Metadata init [%s] @ [%s]' % (self.__git, self.__path), class_name=METADATA_MANAGER_CLASS_NAME)
+            log.info(output_messages['INFO_METADATA_INIT'] % (self.__git, self.__path), class_name=METADATA_MANAGER_CLASS_NAME)
             Repo.clone_from(self.__git, self.__path)
         except GitError as g:
             if 'fatal: repository \'\' does not exist' in g.stderr:
-                raise GitError('Unable to find remote repository. Add the remote first.')
+                raise GitError(output_messages['ERROR_UNABLE_TO_FIND_REMOTE_REPOSITORY'])
             elif 'Repository not found' in g.stderr:
-                raise GitError('Unable to find ' + self.__git + '. Check the remote repository used.')
+                raise GitError(output_messages['ERROR_UNABLE_TO_FIND'] % self.__git)
             elif 'already exists and is not an empty directory' in g.stderr:
-                raise GitError('The path [%s] already exists and is not an empty directory.' % self.__path)
+                raise GitError(output_messages['ERROR_PATH_ALREAD_EXISTS'] % self.__path)
             elif 'Authentication failed' in g.stderr:
-                raise GitError('Authentication failed for git remote')
+                raise GitError(output_messages['ERROR_GIT_REMOTE_AUTHENTICATION_FAILED'])
             else:
                 raise GitError(g.stderr)
             return
@@ -65,7 +71,7 @@ class MetadataRepo(object):
             raise e
 
     def check_exists(self):
-        log.debug('Metadata check existence [%s] @ [%s]' % (self.__git, self.__path),
+        log.debug(output_messages['DEBUG_METADATA_CHECK_EXISTENCE'] % (self.__git, self.__path),
                   class_name=METADATA_MANAGER_CLASS_NAME)
         try:
             Repo(self.__path)
@@ -73,11 +79,11 @@ class MetadataRepo(object):
             return False
         return True
 
-    def checkout(self, sha=None):
+    def checkout(self, sha=None, force=False):
         repo = Git(self.__path)
         if sha is None:
             sha = self.get_default_branch()
-        repo.checkout(sha)
+        repo.checkout(sha, force=force)
 
     def _get_symbolic_ref(self):
         repo = Repo(self.__path)
@@ -106,14 +112,14 @@ class MetadataRepo(object):
         return DEFAULT_BRANCH_FOR_EMPTY_REPOSITORY
 
     def update(self):
-        log.info('Pull [%s]' % self.__path, class_name=METADATA_MANAGER_CLASS_NAME)
+        log.info(output_messages['INFO_MLGIT_PULL'] % self.__path, class_name=METADATA_MANAGER_CLASS_NAME)
         repo = Repo(self.__path)
         self.validate_blank_remote_url()
         o = repo.remotes.origin
         o.pull('--tags')
 
     def commit(self, file, msg):
-        log.info('Commit repo[%s] --- file[%s]' % (self.__path, file), class_name=METADATA_MANAGER_CLASS_NAME)
+        log.info(output_messages['INFO_COMMIT_REPO'] % (self.__path, file), class_name=METADATA_MANAGER_CLASS_NAME)
         repo = Repo(self.__path)
         repo.index.add([file])
         return repo.index.commit(msg)
@@ -124,17 +130,17 @@ class MetadataRepo(object):
 
     @Halo(text='Pushing metadata to the git repository', spinner='dots')
     def push(self):
-        log.debug('Push [%s]' % self.__path, class_name=METADATA_MANAGER_CLASS_NAME)
+        log.debug(output_messages['DEBUG_PUSH'] % self.__path, class_name=METADATA_MANAGER_CLASS_NAME)
         repo = Repo(self.__path)
         try:
             self.validate_blank_remote_url()
             for i in repo.remotes.origin.push(tags=True):
                 if (i.flags & PushInfo.ERROR) == PushInfo.ERROR:
-                    raise RuntimeError('Error on push metadata to git repository. Please update your mlgit project!')
+                    raise RuntimeError(output_messages['ERROR_PUSH_METADATA'])
 
             for i in repo.remotes.origin.push():
                 if (i.flags & PushInfo.ERROR) == PushInfo.ERROR:
-                    raise RuntimeError('Error on push metadata to git repository. Please update your mlgit project!')
+                    raise RuntimeError(output_messages['ERROR_PUSH_METADATA'])
         except GitError as e:
             err = e.stderr
             match = re.search("stderr: 'fatal:((?:.|\\s)*)'", err)
@@ -144,7 +150,7 @@ class MetadataRepo(object):
 
     def fetch(self):
         try:
-            log.debug(' fetch [%s]' % self.__path, class_name=METADATA_MANAGER_CLASS_NAME)
+            log.debug(output_messages['DEBUG_FETCH'] % self.__path, class_name=METADATA_MANAGER_CLASS_NAME)
             repo = Repo(self.__path)
             self.validate_blank_remote_url()
             repo.remotes.origin.fetch()
@@ -168,7 +174,7 @@ class MetadataRepo(object):
                     tags.append(tag)
 
         except Exception:
-            log.error('Invalid ml-git repository!', class_name=METADATA_MANAGER_CLASS_NAME)
+            log.error(output_messages['ERROR_INVALID_REPOSITORY'], class_name=METADATA_MANAGER_CLASS_NAME)
         return tags
 
     def delete_tag(self, tag):
@@ -239,25 +245,26 @@ class MetadataRepo(object):
         if output != (title + '\n'):
             print(output)
         else:
-            log.error('You don\'t have any entity being managed.')
+            log.error(output_messages['ERROR_NONE_ENTITY_MANAGED'])
 
     @staticmethod
     def metadata_print(metadata_file, spec_name):
         md = yaml_load(metadata_file)
 
-        sections = ['dataset', 'model', 'labels']
+        sections = EntityType.to_list()
         for section in sections:
-            if section in ['model', 'dataset', 'labels']:
+            spec_key = get_spec_key(section)
+            if section in EntityType.to_list():
                 try:
-                    md[section]  # 'hack' to ensure we don't print something useless
+                    md[spec_key]  # 'hack' to ensure we don't print something useless
                     # 'dataset' not present in 'model' and vice versa
                     print('-- %s : %s --' % (section, spec_name))
                 except Exception:
                     continue
-            elif section not in ['model', 'dataset', 'labels']:
+            elif section not in EntityType.to_list():
                 print('-- %s --' % (section))
             try:
-                print(get_yaml_str(md[section]))
+                print(get_yaml_str(md[spec_key]))
             except Exception:
                 continue
 
@@ -292,19 +299,8 @@ class MetadataRepo(object):
 
     def show(self, spec):
         specs = self.metadata_spec_from_name(spec)
-
         for specpath in specs:
             self.metadata_print(specpath, spec)
-
-    def get(self, categories, model_name, file=None):
-        if file is None:
-            full_path = os.path.join(self.__path, os.sep.join(categories), model_name, model_name)
-        else:
-            full_path = os.path.join(self.__path, os.sep.join(categories), model_name, file)
-        log.info('Metadata GET %s' % full_path, class_name=METADATA_MANAGER_CLASS_NAME)
-        if os.path.exists(full_path):
-            return yaml_load(full_path)
-        return None
 
     def reset(self):
         repo = Repo(self.__path)
@@ -315,7 +311,7 @@ class MetadataRepo(object):
             repo.head.reset(HEAD_1, index=True, working_tree=True, paths=None)
         except GitError as g:
             if 'Failed to resolve \'HEAD~1\' as a valid revision.' in g.stderr:
-                log.error('There is no commit to go back. Do at least two commits.',
+                log.error(output_messages['ERROR_NO_COMMIT_TO_BACK'],
                           class_name=METADATA_MANAGER_CLASS_NAME)
             raise g
         # delete the associated tag
@@ -350,21 +346,159 @@ class MetadataRepo(object):
         tag = next((tag for tag in repo.tags if tag.commit == repo.head.commit), None)
         return tag
 
-    def __sort_tag_by_date(self, elem):
+    @staticmethod
+    def __sort_tag_by_date(elem):
         return elem.commit.authored_date
 
-    def get_log_info(self, spec, fullstat=False):
-        tags = self.list_tags(spec, True)
-        formatted = ''
-        if len(tags) == 0:
-            raise RuntimeError('No log found for entity [%s]' % spec)
+    def _get_spec_content(self, spec, sha):
+        entity_dir = get_entity_dir(self.__repo_type, spec, root_path=self.__path)
+        spec_path = '/'.join([posix_path(entity_dir), spec + SPEC_EXTENSION])
 
+        return yaml_load_str(self._get_spec_content_from_ref(sha, spec_path))
+
+    def _get_metrics(self, spec, sha):
+        spec_file = self._get_spec_content(spec, sha)
+        entity_spec_key = get_spec_key(self.__repo_type)
+        metrics = spec_file[entity_spec_key].get(PERFORMANCE_KEY, {})
+        metrics_table = PrettyTable()
+        if not metrics:
+            return ''
+
+        metrics_table.field_names = ['Name', 'Value']
+        metrics_table.align['Name'] = 'l'
+        metrics_table.align['Value'] = 'l'
+        for key, value in metrics.items():
+            metrics_table.add_row([key, value])
+        return '\n{}:\n{}'.format(PERFORMANCE_KEY, metrics_table.get_string())
+
+    def _get_ordered_entity_tags(self, spec):
+        tags = self.list_tags(spec, True)
+        if len(tags) == 0:
+            raise RuntimeError(output_messages['ERROR_NO_ENTITY_LOG'] % spec)
         tags.sort(key=self.__sort_tag_by_date)
+        return tags
+
+    def get_log_info(self, spec, fullstat=False, specialized_data_info=None):
+        formatted = ''
+        tags = self._get_ordered_entity_tags(spec)
 
         for tag in tags:
             formatted += '\n' + self.get_formatted_log_info(tag, fullstat)
+            formatted += self._get_metrics(spec, tag.commit)
+            if specialized_data_info:
+                value = next(specialized_data_info, '')
+                formatted += value
 
         return formatted
+
+    @staticmethod
+    def _get_related_entity_info(spec_file, entity_type):
+        related_entity = spec_file.get(entity_type, None)
+        if related_entity:
+            entity_tag = related_entity['tag']
+            _, entity_name, version = spec_parse(entity_tag)
+            return entity_tag, '{} - ({})'.format(entity_name, version)
+        return None, None
+
+    @staticmethod
+    def _create_tag_info_table(tag_info, metrics):
+        tag_table = PrettyTable()
+        tag_table.field_names = ['Name', 'Value']
+        tag_table.add_row([DATE, tag_info[DATE]])
+        tag_table.add_row([RELATED_DATASET_TABLE_INFO, tag_info[RELATED_DATASET_TABLE_INFO]])
+        tag_table.add_row([RELATED_LABELS_TABLE_INFO, tag_info[RELATED_LABELS_TABLE_INFO]])
+        for key, value in metrics.items():
+            tag_table.add_row([key, value])
+        return tag_table
+
+    def _get_tag_info(self, spec, tag):
+        entity_spec_key = get_spec_key(self.__repo_type)
+        spec_file = self._get_spec_content(spec, tag.commit)[entity_spec_key]
+        related_dataset_tag, related_dataset_info = self._get_related_entity_info(spec_file, DATASET_SPEC_KEY)
+        related_labels_tag, related_labels_info = self._get_related_entity_info(spec_file, LABELS_SPEC_KEY)
+        tag_info = {
+            DATE: time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(tag.commit.authored_date)),
+            TAG: tag.name,
+            RELATED_DATASET_TABLE_INFO: related_dataset_info,
+            RELATED_LABELS_TABLE_INFO: related_labels_info}
+        metrics = spec_file.get(PERFORMANCE_KEY, {})
+        tag_info[PERFORMANCE_KEY] = metrics
+        tag_table = self._create_tag_info_table(tag_info, metrics)
+        return tag_info, tag_table
+
+    def get_metrics_info(self, entity_name, export_path=None):
+        tags = self._get_ordered_entity_tags(entity_name)
+        tags_info = []
+        for tag in tags:
+            tag_info, tag_info_table = self._get_tag_info(entity_name, tag)
+            tags_info.append(tag_info)
+            if not export_path:
+                print('{}: {}\n{}\n'.format(TAG, tag.name, tag_info_table.get_string()))
+        return tags_info
+
+    @staticmethod
+    def _format_data_for_csv(tag_infos):
+        csv_header = [DATE, TAG, RELATED_DATASET_TABLE_INFO, RELATED_LABELS_TABLE_INFO]
+        for info in tag_infos:
+            for metric_key in info[PERFORMANCE_KEY]:
+                info[metric_key] = info[PERFORMANCE_KEY][metric_key]
+                if metric_key not in csv_header:
+                    csv_header.append(metric_key)
+        return csv_header, tag_infos
+
+    @staticmethod
+    def _export_metrics_to_json(entity_name, file_path, tags_info):
+        data = {'model_name': entity_name, 'tags_metrics': tags_info}
+        file_path += '.' + FileType.JSON.value
+        formatted_data = json.dumps(data)
+        with open(file_path, 'w') as outfile:
+            outfile.write(formatted_data)
+        return json.loads(formatted_data), file_path
+
+    def _export_metrics_to_csv(self, file_path, tags_info):
+        csv_header, data_formatted = self._format_data_for_csv(tags_info)
+        file_path += '.' + FileType.CSV.value
+        create_csv_file(file_path, csv_header, data_formatted)
+        with open(file_path) as csv_file:
+            return io.StringIO(csv_file.read()), file_path
+
+    def export_metrics(self, entity_name, export_path, export_type, tags_info, log_export_info=True):
+        file_name = '{}-{}'.format(entity_name, PERFORMANCE_KEY)
+        file_path = os.path.join(export_path, file_name)
+        if export_type == FileType.JSON.value:
+            data, file_path = self._export_metrics_to_json(entity_name, file_path, tags_info)
+        elif export_type == FileType.CSV.value:
+            data, file_path = self._export_metrics_to_csv(file_path, tags_info)
+        else:
+            log.error(output_messages['ERROR_INVALID_TYPE_OF_FILE'] % (FileType.to_list()))
+            return
+        if log_export_info:
+            log.info(output_messages['INFO_METRICS_EXPORTED'].format(file_path))
+        return data
+
+    @staticmethod
+    def _get_spec_content_from_ref(ref, spec_path):
+        entity_spec = ref.tree / spec_path
+        return io.BytesIO(entity_spec.data_stream.read())
+
+    def get_specs_to_compare(self, spec):
+        entity = self.__repo_type
+        spec_manifest_key = 'manifest'
+        tags = self.list_tags(spec, True)
+
+        entity_dir = get_entity_dir(entity, spec, root_path=self.__path)
+        spec_path = '/'.join([posix_path(entity_dir), spec + SPEC_EXTENSION])
+        for tag in tags:
+            current_ref = tag.commit
+            parents = current_ref.parents
+            base_spec = {entity: {spec_manifest_key: {}}}
+
+            if parents:
+                base_ref = parents[0]
+                base_spec = yaml_load_str(self._get_spec_content_from_ref(base_ref, spec_path))
+
+            current_spec = yaml_load_str(self._get_spec_content_from_ref(current_ref, spec_path))
+            yield current_spec[entity][spec_manifest_key], base_spec[entity][spec_manifest_key]
 
     def get_formatted_log_info(self, tag, fullstat):
         commit = tag.commit
@@ -425,13 +559,22 @@ class MetadataRepo(object):
             return False
         return True
 
+    def move_metadata_dir(self, old_directory, new_directory):
+        repo = Repo(self.__path)
+        old_path = os.path.join(self.__path, old_directory)
+        new_path = os.path.join(self.__path, os.path.dirname(new_directory))
+        ensure_path_exists(new_path)
+        repo.git.mv([old_path, new_path])
+        if not os.listdir(os.path.dirname(old_path)):
+            clear(os.path.dirname(old_path))
+
 
 class MetadataManager(MetadataRepo):
-    def __init__(self, config, type='model'):
-        self.path = get_metadata_path(config, type)
-        self.git = config[type]['git']
+    def __init__(self, config, repo_type=EntityType.MODELS.value):
+        self.path = get_metadata_path(config, repo_type)
+        self.git = config[repo_type]['git']
 
-        super(MetadataManager, self).__init__(self.git, self.path)
+        super(MetadataManager, self).__init__(self.git, self.path, repo_type)
 
 
 class MetadataObject(object):

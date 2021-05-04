@@ -2,7 +2,7 @@
 © Copyright 2020 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
-
+import csv
 import json
 import os
 import shutil
@@ -100,3 +100,16 @@ def start_local_git_server_with_main_branch(tmp_path):
     repo.git.commit(['-m', 'README'])
     repo.git.branch(['-M', 'main'])
     repo.git.push(['-u', 'origin', 'main'])
+
+
+@pytest.fixture
+def create_csv_file(request):
+
+    def _create_csv_file(_, path, table):
+        with open(path, 'w', newline='') as file:
+            writer = csv.writer(file)
+            row_list = list()
+            row_list.append(table.keys())
+            row_list.append(table.values())
+            writer.writerows(row_list)
+    request.cls.create_csv_file = _create_csv_file

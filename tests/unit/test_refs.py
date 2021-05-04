@@ -11,6 +11,7 @@ import pytest
 from ml_git.config import config_load
 from ml_git.refs import Refs
 from ml_git.utils import yaml_load
+from tests.unit.conftest import DATASETS
 
 
 @pytest.mark.usefixtures('tmp_dir')
@@ -21,8 +22,8 @@ class RefsTestCases(unittest.TestCase):
         spec_path = 'dataset-ex'
         ml_dir = os.path.join(self.tmp_dir, config['mlgit_path'])
         os.mkdir(ml_dir)
-        refs_dir = os.path.join(ml_dir, 'dataset', 'refs')
-        refs = Refs(refs_dir, spec_path, 'dataset')
+        refs_dir = os.path.join(ml_dir, DATASETS, 'refs')
+        refs = Refs(refs_dir, spec_path, DATASETS)
         self.assertIsNotNone(refs)
         self.assertTrue(os.path.exists(os.path.join(refs_dir, spec_path)))
 
@@ -31,7 +32,7 @@ class RefsTestCases(unittest.TestCase):
         spec_path = 'dataset-ex'
         ml_dir = os.path.join(self.tmp_dir, config['mlgit_path'])
         os.mkdir(ml_dir)
-        refs_dir = os.path.join(ml_dir, 'dataset', 'refs')
+        refs_dir = os.path.join(ml_dir, DATASETS, 'refs')
         refs = Refs(refs_dir, spec_path)
         sha = 'b569b7e4cd82206b451315123669057ef5f1ac3b'
         tag = 'images__dataset_ex__1'
@@ -46,7 +47,7 @@ class RefsTestCases(unittest.TestCase):
         spec_path = 'dataset-ex'
         ml_dir = os.path.join(self.tmp_dir, config['mlgit_path'])
         os.mkdir(ml_dir)
-        refs_dir = os.path.join(ml_dir, 'dataset', 'refs')
+        refs_dir = os.path.join(ml_dir, DATASETS, 'refs')
         refs = Refs(refs_dir, spec_path)
         sha = 'b569b7e4cd82206b451315123669057ef5f1ac3b'
         tag = 'images__dataset_ex__1'

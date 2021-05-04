@@ -8,7 +8,7 @@ import humanize
 from halo import Halo
 
 from ml_git import log
-from ml_git.constants import HASH_FS_CLASS_NAME
+from ml_git.constants import HASH_FS_CLASS_NAME, STORAGE_LOG
 from ml_git.file_system.hashfs import MultihashFS
 from ml_git.file_system.index import FullIndex, Status
 from ml_git.ml_git_message import output_messages
@@ -31,7 +31,7 @@ class Objects(MultihashFS):
         idx = MultihashFS(self._objects_path)
         fidx = FullIndex(self.__spec, index_path)
         findex = fidx.get_index()
-        log_path = os.path.join(self._logpath, 'store.log')
+        log_path = os.path.join(self._logpath, STORAGE_LOG)
         with open(log_path, 'a') as log_file:
             for k, v in findex.items():
                 if not os.path.exists(os.path.join(ws_path, k)):

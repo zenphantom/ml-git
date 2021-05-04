@@ -7,11 +7,10 @@ import copy
 
 import click
 
-from ml_git.commands import entity, help_msg, store, storage
-from ml_git.commands.custom_options import MutuallyExclusiveOption, OptionRequiredIf, DeprecatedOption, \
-    DeprecatedOptionsCommand
+from ml_git.commands import entity, help_msg, storage
+from ml_git.commands.custom_options import MutuallyExclusiveOption, OptionRequiredIf, DeprecatedOptionsCommand
 from ml_git.commands.utils import set_verbose_mode
-from ml_git.constants import Mutability
+from ml_git.constants import MutabilityType, StorageType, FileType
 
 commands = [
 
@@ -19,7 +18,7 @@ commands = [
         'name': 'init',
 
         'callback': entity.init,
-        'groups': [entity.dataset, entity.model, entity.labels],
+        'groups': [entity.datasets, entity.models, entity.labels],
 
         'help': 'Init a ml-git %s repository.'
 
@@ -29,7 +28,7 @@ commands = [
         'name': 'list',
 
         'callback': entity.list_entity,
-        'groups': [entity.dataset, entity.model, entity.labels],
+        'groups': [entity.datasets, entity.models, entity.labels],
 
         'help': 'List %s managed under this ml-git repository.'
 
@@ -39,7 +38,7 @@ commands = [
         'name': 'fsck',
 
         'callback': entity.fsck,
-        'groups': [entity.dataset, entity.model, entity.labels],
+        'groups': [entity.datasets, entity.models, entity.labels],
 
         'help': 'Perform fsck on %s in this ml-git repository.'
 
@@ -48,7 +47,7 @@ commands = [
     {
         'name': 'push',
         'callback': entity.push,
-        'groups': [entity.dataset, entity.model, entity.labels],
+        'groups': [entity.datasets, entity.models, entity.labels],
 
         'arguments': {
             'ml-entity-name': {},
@@ -59,14 +58,14 @@ commands = [
             '--clearonfail': {'is_flag': True, 'help': help_msg.CLEAR_ON_FAIL},
         },
 
-        'help': 'Push local commits from ML_ENTITY_NAME to remote ml-git repository & store.'
+        'help': 'Push local commits from ML_ENTITY_NAME to remote ml-git repository & storage.'
 
     },
 
     {
         'name': 'checkout',
         'callback': entity.checkout,
-        'groups': [entity.dataset],
+        'groups': [entity.datasets],
 
         'options': {
             '--sample-type': {'type': click.Choice(['group', 'range', 'random'])},
@@ -116,7 +115,7 @@ commands = [
     {
         'name': 'checkout',
         'callback': entity.checkout,
-        'groups': [entity.model],
+        'groups': [entity.models],
         'options': {
             ('--with-labels', '-l'): {'is_flag': True, 'default': False, 'help': help_msg.ASSOCIATED_WITH_LABELS},
             ('--with-dataset', '-d'): {'is_flag': True, 'default': False, 'help': help_msg.ASSOCIATED_WITH_DATASET},
@@ -139,7 +138,7 @@ commands = [
     {
         'name': 'fetch',
         'callback': entity.fetch,
-        'groups': [entity.dataset, entity.model, entity.labels],
+        'groups': [entity.datasets, entity.models, entity.labels],
 
         'arguments': {
             'ml-entity-tag': {},
@@ -165,7 +164,7 @@ commands = [
         'name': 'status',
 
         'callback': entity.status,
-        'groups': [entity.dataset, entity.model, entity.labels],
+        'groups': [entity.datasets, entity.models, entity.labels],
 
         'arguments': {
             'ml-entity-name': {},
@@ -184,7 +183,7 @@ commands = [
         'name': 'show',
 
         'callback': entity.show,
-        'groups': [entity.dataset, entity.model, entity.labels],
+        'groups': [entity.datasets, entity.models, entity.labels],
 
         'arguments': {
             'ml-entity-name': {}
@@ -197,7 +196,7 @@ commands = [
     {
         'name': 'add',
         'callback': entity.add,
-        'groups': [entity.dataset, entity.model, entity.labels],
+        'groups': [entity.datasets, entity.models, entity.labels],
 
         'arguments': {
             'ml-entity-name': {},
@@ -206,7 +205,9 @@ commands = [
 
         'options': {
             '--bumpversion': {'is_flag': True, 'help': help_msg.BUMP_VERSION},
-            '--fsck': {'is_flag': True, 'help': help_msg.FSCK_OPTION}
+            '--fsck': {'is_flag': True, 'help': help_msg.FSCK_OPTION},
+            '--metric': {'required': False, 'multiple': True, 'type': (str, float), 'help': help_msg.METRIC_OPTION},
+            '--metrics-file': {'required': False, 'help': help_msg.METRICS_FILE_OPTION},
         },
 
         'help': 'Add %s change set ML_ENTITY_NAME to the local ml-git staging area.'
@@ -216,7 +217,7 @@ commands = [
     {
         'name': 'commit',
         'callback': entity.commit,
-        'groups': [entity.dataset],
+        'groups': [entity.datasets],
 
         'arguments': {
             'ml-entity-name': {},
@@ -224,8 +225,7 @@ commands = [
 
         'options': {
             '--tag': {'help': help_msg.TAG_OPTION},
-            ('--version-number', '--version'): {'type': click.IntRange(0, int(8 * '9')), 'help': help_msg.SET_VERSION_NUMBER,
-                                                'cls': DeprecatedOption, 'deprecated': ['--version-number'], 'preferred': '--version'},
+            '--version': {'type': click.IntRange(0, int(8 * '9')), 'help': help_msg.SET_VERSION_NUMBER},
             ('--message', '-m'): {'help': help_msg.COMMIT_MSG},
             '--fsck': {'help': help_msg.FSCK_OPTION},
         },
@@ -246,8 +246,7 @@ commands = [
         'options': {
             '--dataset': {'help': 'Link dataset entity name to this label set version.'},
             '--tag': {'help': help_msg.TAG_OPTION},
-            ('--version-number', '--version'): {'type': click.IntRange(0, int(8 * '9')), 'help': help_msg.SET_VERSION_NUMBER,
-                                                'cls': DeprecatedOption, 'deprecated': ['--version-number'], 'preferred':'--version'},
+            '--version': {'type': click.IntRange(0, int(8 * '9')), 'help': help_msg.SET_VERSION_NUMBER},
             ('--message', '-m'): {'help': help_msg.COMMIT_MSG},
             '--fsck': {'help': help_msg.FSCK_OPTION},
         },
@@ -259,7 +258,7 @@ commands = [
     {
         'name': 'commit',
         'callback': entity.commit,
-        'groups': [entity.model],
+        'groups': [entity.models],
 
         'arguments': {
             'ml-entity-name': {},
@@ -269,8 +268,7 @@ commands = [
             '--dataset': {'help': help_msg.LINK_DATASET},
             '--labels': {'help': help_msg.LINK_LABELS},
             '--tag': {'help': help_msg.TAG_OPTION},
-            ('--version-number', '--version'): {'type': click.IntRange(0, int(8 * '9')), 'help': help_msg.SET_VERSION_NUMBER,
-                                                'cls': DeprecatedOption, 'deprecated': ['--version-number'], 'preferred': '--version'},
+            '--version': {'type': click.IntRange(0, int(8 * '9')), 'help': help_msg.SET_VERSION_NUMBER},
             ('--message', '-m'): {'help': help_msg.COMMIT_MSG},
             '--fsck': {'help': help_msg.FSCK_OPTION},
         },
@@ -315,7 +313,7 @@ commands = [
 
         'callback': entity.reset,
 
-        'groups': [entity.dataset, entity.model, entity.labels],
+        'groups': [entity.datasets, entity.models, entity.labels],
 
         'arguments': {
             'ml-entity-name': {},
@@ -338,7 +336,7 @@ commands = [
 
         'callback': entity.import_tag,
 
-        'groups': [entity.dataset, entity.model, entity.labels],
+        'groups': [entity.datasets, entity.models, entity.labels],
 
         'arguments': {
             'bucket-name': {'required': True},
@@ -352,10 +350,9 @@ commands = [
             '--retry': {'default': 2, 'help': help_msg.RETRY_OPTION},
             '--path': {'default': None, 'help': help_msg.PATH_OPTION},
             '--object': {'default': None, 'help': help_msg.OBJECT_OPTION},
-            ('--store-type', '--storage-type'): {
-                'default': 's3', 'help': help_msg.STORAGE_TYPE,
-                'type': click.Choice(['s3', 'gdrive']),
-                'cls': DeprecatedOption, 'deprecated': ['--store-type'], 'preferred': '--storage-type'
+            '--storage-type': {
+                'default': StorageType.S3.value, 'help': help_msg.STORAGE_TYPE,
+                'type': click.Choice([StorageType.S3.value, StorageType.GDRIVE.value])
             },
             '--endpoint-url': {'default': '', 'help': help_msg.ENDPOINT_URL},
         },
@@ -369,7 +366,7 @@ commands = [
 
         'callback': entity.export_tag,
 
-        'groups': [entity.dataset, entity.model, entity.labels],
+        'groups': [entity.datasets, entity.models, entity.labels],
 
         'arguments': {
             'ml_entity_tag': {'required': True},
@@ -385,7 +382,7 @@ commands = [
 
         },
 
-        'help': 'This command allows you to export files from one store (S3|MinIO) to another (S3|MinIO).'
+        'help': 'This command allows you to export files from one storage (S3|MinIO) to another (S3|MinIO).'
 
     },
 
@@ -394,7 +391,7 @@ commands = [
 
         'callback': entity.update,
 
-        'groups': [entity.dataset, entity.model, entity.labels],
+        'groups': [entity.datasets, entity.models, entity.labels],
 
         'help': 'This command will update the metadata repository.'
 
@@ -405,7 +402,7 @@ commands = [
 
         'callback': entity.branch,
 
-        'groups': [entity.dataset, entity.model, entity.labels],
+        'groups': [entity.datasets, entity.models, entity.labels],
 
         'arguments': {
             'ml-entity-name': {}
@@ -420,7 +417,7 @@ commands = [
 
         'callback': entity.remote_fsck,
 
-        'groups': [entity.dataset, entity.model, entity.labels],
+        'groups': [entity.datasets, entity.models, entity.labels],
 
         'options': {
             '--thorough': {'is_flag': True, 'help': help_msg.THOROUGH_OPTION},
@@ -441,18 +438,16 @@ commands = [
 
         'callback': entity.create,
 
-        'groups': [entity.dataset, entity.model, entity.labels],
+        'groups': [entity.datasets, entity.models, entity.labels],
 
         'options': {
             '--category': {'required': True, 'multiple': True, 'help': help_msg.CATEGORY_OPTION},
-            '--mutability': {'required': True, 'type': click.Choice(Mutability.list()), 'help': help_msg.MUTABILITY},
-            ('--store-type', '--storage-type'): {
-                'type': click.Choice(['s3h', 'azureblobh', 'gdriveh']),
-                'cls': DeprecatedOption, 'deprecated': ['--store-type'], 'preferred': '--storage-type',
-                'help': help_msg.STORAGE_TYPE, 'default': 's3h'
+            '--mutability': {'required': True, 'type': click.Choice(MutabilityType.to_list()), 'help': help_msg.MUTABILITY},
+            '--storage-type': {
+                'type': click.Choice(StorageType.to_list()),
+                'help': help_msg.STORAGE_TYPE, 'default': StorageType.S3H.value
             },
-            ('--version-number', '--version'): {'help': help_msg.VERSION_NUMBER, 'default': 1,
-                                                'cls': DeprecatedOption, 'deprecated': ['--version-number'], 'preferred':'--version'},
+            '--version': {'help': help_msg.VERSION_NUMBER, 'default': 1},
             '--import': {'help': help_msg.IMPORT_OPTION,
                          'cls': MutuallyExclusiveOption, 'mutually_exclusive': ['import_url', 'credentials_path']},
             '--wizard-config': {'is_flag': True, 'help': help_msg.WIZARD_CONFIG},
@@ -461,7 +456,8 @@ commands = [
                              'cls': MutuallyExclusiveOption, 'mutually_exclusive': ['import']},
             '--credentials-path': {'default': None, 'help': help_msg.CREDENTIALS_PATH,
                                    'cls': OptionRequiredIf, 'required_option': ['import-url']},
-            '--unzip': {'help': help_msg.UNZIP_OPTION, 'is_flag': True}
+            '--unzip': {'help': help_msg.UNZIP_OPTION, 'is_flag': True},
+            '--entity-dir': {'default': '', 'help': help_msg.ENTITY_DIR}
         },
 
         'arguments': {
@@ -469,7 +465,7 @@ commands = [
         },
 
         'help': 'This command will create the workspace structure with data and spec '
-                'file for an entity and set the git and store configurations.'
+                'file for an entity and set the git and storage configurations.'
 
     },
 
@@ -478,7 +474,7 @@ commands = [
 
         'callback': entity.unlock,
 
-        'groups': [entity.dataset, entity.model, entity.labels],
+        'groups': [entity.datasets, entity.models, entity.labels],
 
         'arguments': {
             'ml-entity-name': {},
@@ -494,7 +490,7 @@ commands = [
 
         'callback': entity.log,
 
-        'groups': [entity.dataset, entity.model, entity.labels],
+        'groups': [entity.datasets, entity.models, entity.labels],
 
         'arguments': {
             'ml-entity-name': {},
@@ -514,55 +510,6 @@ commands = [
 
         'callback': storage.storage_add,
 
-        'groups': [store.store],
-
-        'arguments': {
-            'bucket-name': {},
-        },
-
-        'options': {
-            '--credentials': {'help': help_msg.STORAGE_CREDENTIALS},
-            '--region': {'help': help_msg.STORAGE_REGION},
-            '--type': {'default': 's3h',
-                       'type': click.Choice(['s3h', 's3', 'azureblobh', 'gdriveh'],
-                                            case_sensitive=True),
-                       'help': help_msg.STORAGE_TYPE},
-            '--endpoint-url': {'help': help_msg.ENDPOINT_URL},
-            ('--global', '-g'): {'is_flag': True, 'default': False, 'help': help_msg.GLOBAL_OPTION},
-        },
-
-        'help': '[DEPRECATED]: Add a storage BUCKET_NAME to ml-git'
-
-    },
-
-    {
-        'name': 'del',
-
-        'callback': storage.storage_del,
-
-        'groups': [store.store],
-
-        'arguments': {
-            'bucket-name': {},
-        },
-
-        'options': {
-            '--type': {'default': 's3h',
-                       'type': click.Choice(['s3h', 's3', 'azureblobh', 'gdriveh'],
-                                            case_sensitive=True),
-                       'help': help_msg.STORAGE_TYPE},
-            ('--global', '-g'): {'is_flag': True, 'default': False, 'help': help_msg.GLOBAL_OPTION},
-        },
-
-        'help': '[DEPRECATED]: Delete a storage BUCKET_NAME from ml-git.'
-
-    },
-
-    {
-        'name': 'add',
-
-        'callback': storage.storage_add,
-
         'groups': [storage.storage],
 
         'arguments': {
@@ -572,11 +519,14 @@ commands = [
         'options': {
             '--credentials': {'help': help_msg.STORAGE_CREDENTIALS},
             '--region': {'help': help_msg.STORAGE_REGION},
-            '--type': {'default': 's3h',
-                       'type': click.Choice(['s3h', 's3', 'azureblobh', 'gdriveh'],
+            '--type': {'default': StorageType.S3H.value,
+                       'type': click.Choice(StorageType.to_list(),
                                             case_sensitive=True),
                        'help': help_msg.STORAGE_TYPE},
             '--endpoint-url': {'help': help_msg.ENDPOINT_URL},
+            '--username': {'help': help_msg.USERNAME},
+            '--private-key': {'help': help_msg.PRIVATE_KEY},
+            '--port': {'help': help_msg.PORT, 'default': 22},
             ('--global', '-g'): {'is_flag': True, 'default': False, 'help': help_msg.GLOBAL_OPTION},
         },
 
@@ -596,8 +546,8 @@ commands = [
         },
 
         'options': {
-            '--type': {'default': 's3h',
-                       'type': click.Choice(['s3h', 's3', 'azureblobh', 'gdriveh'],
+            '--type': {'default': StorageType.S3H.value,
+                       'type': click.Choice(StorageType.to_list(),
                                             case_sensitive=True),
                        'help': help_msg.STORAGE_TYPE},
             ('--global', '-g'): {'is_flag': True, 'default': False, 'help': help_msg.GLOBAL_OPTION},
@@ -606,6 +556,28 @@ commands = [
         'help': 'Delete a storage BUCKET_NAME from ml-git.'
 
     },
+
+    {
+        'name': 'metrics',
+
+        'callback': entity.metrics,
+
+        'groups': [entity.models],
+
+        'arguments': {
+            'ml-entity-name': {},
+        },
+
+        'options': {
+            '--export-type': {'required': False, 'help': help_msg.EXPORT_METRICS_TYPE,
+                              'type': click.Choice(FileType.to_list(), case_sensitive=False)},
+            '--export-path': {'help': help_msg.EXPORT_METRICS_PATH,
+                              'cls': OptionRequiredIf, 'required_option': ['export-type']},
+        },
+
+        'help': help_msg.METRICS_COMMAND
+
+    }
 
 ]
 

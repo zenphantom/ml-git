@@ -3,21 +3,24 @@
 SPDX-License-Identifier: GPL-2.0-only
 """
 
-from ml_git.commands.utils import repositories, DATASET, MODEL, LABELS
-
-from ml_git.commands.general import mlgit
+import click
 from click_didyoumean import DYMGroup
 
+from ml_git.commands.general import mlgit
+from ml_git.commands.utils import repositories, LABELS, DATASETS, MODELS
+from ml_git.constants import EntityType
 
-@mlgit.group(DATASET, help='Management of datasets within this ml-git repository.', cls=DYMGroup)
-def dataset():
+
+@mlgit.group(DATASETS, help='Management of datasets within this ml-git repository.', cls=DYMGroup)
+@click.pass_context
+def datasets(ctx):
     """
     Management of datasets within this ml-git repository.
     """
     pass
 
 
-@dataset.group('tag', help='Management of tags for this entity.', cls=DYMGroup)
+@datasets.group('tag', help='Management of tags for this entity.', cls=DYMGroup)
 def dt_tag_group():
     """
     Management of tags for this entity.
@@ -25,15 +28,16 @@ def dt_tag_group():
     pass
 
 
-@mlgit.group(MODEL, help='Management of models within this ml-git repository.', cls=DYMGroup)
-def model():
+@mlgit.group(MODELS, help='Management of models within this ml-git repository.', cls=DYMGroup)
+@click.pass_context
+def models(ctx):
     """
     Management of models within this ml-git repository.
     """
     pass
 
 
-@model.group('tag', help='Management of tags for this entity.', cls=DYMGroup)
+@models.group('tag', help='Management of tags for this entity.', cls=DYMGroup)
 def md_tag_group():
     """
     Management of tags for this entity.
@@ -113,30 +117,33 @@ def add(context, **kwargs):
     run_fsck = kwargs['fsck']
     file_path = kwargs['file_path']
     entity_name = kwargs['ml_entity_name']
-    repositories[repo_type].add(entity_name, file_path, bump_version, run_fsck)
+    metric = kwargs['metric']
+    metrics_file_path = kwargs['metrics_file']
+    repositories[repo_type].add(entity_name, file_path, bump_version, run_fsck, metric, metrics_file_path)
 
 
 def commit(context, **kwargs):
     repo_type = context.parent.command.name
+    linked_dataset_key = 'dataset'
     msg = kwargs['message']
-    version_number = kwargs['version_number']
+    version = kwargs['version']
     run_fsck = kwargs['fsck']
     entity_name = kwargs['ml_entity_name']
     dataset_tag = None
     labels_tag = None
 
-    if repo_type == MODEL:
-        dataset_tag = kwargs['dataset']
-        labels_tag = kwargs['labels']
+    if repo_type == MODELS:
+        dataset_tag = kwargs[linked_dataset_key]
+        labels_tag = kwargs[EntityType.LABELS.value]
     elif repo_type == LABELS:
-        dataset_tag = kwargs['dataset']
+        dataset_tag = kwargs[linked_dataset_key]
     tags = {}
     if dataset_tag is not None:
-        tags['dataset'] = dataset_tag
+        tags[EntityType.DATASETS.value] = dataset_tag
     if labels_tag is not None:
-        tags['labels'] = labels_tag
+        tags[EntityType.LABELS.value] = labels_tag
 
-    repositories[repo_type].commit(entity_name, tags, version_number, run_fsck, msg)
+    repositories[repo_type].commit(entity_name, tags, version, run_fsck, msg)
 
 
 def tag_list(context, **kwargs):
@@ -180,7 +187,7 @@ def import_tag(context, **kwargs):
     retry = kwargs['retry']
 
     bucket = {'bucket_name': kwargs['bucket_name'], 'profile': kwargs['credentials'],
-              'region': kwargs['region'], 'store_type': kwargs['store_type'], 'endpoint_url': kwargs['endpoint_url']}
+              'region': kwargs['region'], 'storage_type': kwargs['storage_type'], 'endpoint_url': kwargs['endpoint_url']}
     repositories[repo_type].import_files(object_name, path, directory, retry, bucket)
 
 
@@ -247,3 +254,11 @@ def log(context, **kwargs):
 
 def tag_del(**kwargs):
     print('Not implemented yet')
+
+
+def metrics(context, **kwargs):
+    repo_type = context.parent.command.name
+    entity_name = kwargs['ml_entity_name']
+    export_path = kwargs['export_path']
+    export_type = kwargs['export_type']
+    repositories[repo_type].get_models_metrics(entity_name, export_path, export_type)

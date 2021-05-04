@@ -2,7 +2,7 @@
 © Copyright 2020 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
-
+import csv
 import hashlib
 import os
 import shutil
@@ -16,8 +16,20 @@ import pytest
 from git import Repo
 
 from ml_git.config import config_load
+from ml_git.constants import StorageType, EntityType, MutabilityType, FileType, STORAGE_CONFIG_KEY
 
 test_scr = Path('./tests/unit/test_dir').resolve()
+
+AZUREBLOBH = StorageType.AZUREBLOBH.value
+S3H = StorageType.S3H.value
+S3 = StorageType.S3.value
+GDRIVEH = StorageType.GDRIVEH.value
+DATASETS = EntityType.DATASETS.value
+MODELS = EntityType.MODELS.value
+LABELS = EntityType.LABELS.value
+STRICT = MutabilityType.STRICT.value
+CSV = FileType.CSV.value
+JSON = FileType.JSON.value
 
 
 def create_tmp_test_dir(tmp_path):
@@ -55,15 +67,15 @@ def switch_to_tmp_dir(tmp_path):
 
 def write_config(git_path, path):
     config = """
-    dataset:
+    datasets:
     git: %s
-    store:
+    %s:
         s3:
             mlgit-datasets:
                 aws-credentials:
                     profile: mlgit
                 region: us-east-1
-    """ % git_path
+    """ % (git_path, STORAGE_CONFIG_KEY)
 
     os.makedirs(path, exist_ok=True)
     with open(os.path.join(path, 'config.yaml'), 'w') as config_yaml:
@@ -118,21 +130,21 @@ def md5_fixture(request):
 @pytest.fixture
 def yaml_str_sample(request):
     doc = """\
-          store:
+          %s:
             s3h:
               bucket_test:
                 aws-credentials:
                   profile: profile_test
                 region: region_test
-        """
+        """ % STORAGE_CONFIG_KEY
     request.cls.yaml_str_sample = textwrap.dedent(doc)
 
 
 @pytest.fixture
 def yaml_obj_sample(request):
     obj = {
-        'store': {
-            's3h': {
+        STORAGE_CONFIG_KEY: {
+            S3H: {
                 'bucket_test': {
                     'aws-credentials': {
                         'profile': 'profile_test'
@@ -151,7 +163,7 @@ def aws_session():
     os.environ['AWS_SECRET_ACCESS_KEY'] = 'fake_secret_key'
     os.environ['AWS_DEFAULT_REGION'] = 'us-east-1'
     boto3.setup_default_session()
-    with mock.patch('ml_git.storages.s3store.boto3.Session') as mock_session:
+    with mock.patch('ml_git.storages.s3_storage.boto3.Session') as mock_session:
         mock_session.return_value = boto3._get_default_session()
         yield
 
@@ -176,3 +188,16 @@ def change_branch(path, new_name):
 @pytest.fixture
 def change_branch_name(request):
     request.cls.change_branch = lambda _, path, new_name: change_branch(path, new_name)
+
+
+@pytest.fixture
+def create_csv_file(request):
+
+    def _create_csv_file(_, path, table):
+        with open(path, 'w', newline='') as file:
+            writer = csv.writer(file)
+            row_list = list()
+            row_list.append(table.keys())
+            row_list.append(table.values())
+            writer.writerows(row_list)
+    request.cls.create_csv_file = _create_csv_file

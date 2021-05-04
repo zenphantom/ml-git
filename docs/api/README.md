@@ -8,18 +8,20 @@
 <br>
 
 ```python
-def add(entity_type, entity_name, bumpversion=False, fsck=False, file_path=[]):
+def add(entity_type, entity_name, bumpversion=False, fsck=False, file_path=[], metric=[], metrics_file=''):
     """This command will add all the files under the directory into the ml-git index/staging area.
 
     Example:
-        add('dataset', 'dataset-ex', bumpversion=True)
+        add('datasets', 'dataset-ex', bumpversion=True)
 
     Args:
-        entity_type (str): The type of an ML entity. (dataset, labels or model)
+        entity_type (str): The type of an ML entity. (datasets, labels or models)
         entity_name (str): The name of the ML entity you want to add the files.
         bumpversion (bool, optional): Increment the entity version number when adding more files [default: False].
         fsck (bool, optional): Run fsck after command execution [default: False].
         file_path (list, optional): List of files that must be added by the command [default: all files].
+        metric (dictionary, optional): The metric dictionary, example: { 'metric': value } [default: empty].
+        metrics_file (str, optional): The metrics file path. It is expected a CSV file containing the metric names in the header and the values in the next line [default: empty].
     """
 ```
 </details>
@@ -33,10 +35,10 @@ def checkout(entity, tag, sampling=None, retries=2, force=False, dataset=False, 
     """This command allows retrieving the data of a specific version of an ML entity.
 
     Example:
-        checkout('dataset', 'computer-vision__images3__imagenet__1')
+        checkout('datasets', 'computer-vision__images3__imagenet__1')
 
     Args:
-        entity (str): The type of an ML entity. (dataset, labels or model)
+        entity (str): The type of an ML entity. (datasets, labels or models)
         tag (str): An ml-git tag to identify a specific version of an ML entity.
         sampling (dict): group: <amount>:<group> The group sample option consists of amount and group used to
                                  download a sample.\n
@@ -89,10 +91,10 @@ def commit(entity, ml_entity_name, commit_message=None, related_dataset=None, re
     """This command commits the index / staging area to the local repository.
 
     Example:
-        commit('dataset', 'dataset-ex')
+        commit('datasets', 'dataset-ex')
         
     Args:
-        entity (str): The type of an ML entity. (dataset, labels or model).
+        entity (str): The type of an ML entity. (datasets, labels or models)
         ml_entity_name (str): Artefact name to commit.
         commit_message (str, optional): Message of commit.
         related_dataset (str, optional): Artefact name of dataset related to commit.
@@ -107,23 +109,24 @@ def commit(entity, ml_entity_name, commit_message=None, related_dataset=None, re
 
 ```python
 def create(entity, entity_name, categories, mutability, **kwargs):
-    """This command will create the workspace structure with data and spec file for an entity and set the store configurations.
+    """This command will create the workspace structure with data and spec file for an entity and set the storage configurations.
 
         Example:
-            create('dataset', 'dataset-ex', categories=['computer-vision', 'images'], mutability='strict')
+            create('datasets', 'dataset-ex', categories=['computer-vision', 'images'], mutability='strict')
 
         Args:
-            entity (str): The type of an ML entity. (dataset, labels or model).
+            entity (str): The type of an ML entity. (datasets, labels or models).
             entity_name (str): An ml-git entity name to identify a ML entity.
             categories (list): Artifact's category name.
             mutability (str): Mutability type. The mutability options are strict, flexible and mutable.
-            store_type (str, optional): Data store type [default: s3h].
+            storage_type (str, optional): Data storage type [default: s3h].
             version (int, optional): Number of artifact version [default: 1].
             import_path (str, optional): Path to be imported to the project.
             bucket_name (str, optional): Bucket name.
             import_url (str, optional): Import data from a google drive url.
             credentials_path (str, optional): Directory of credentials.json.
             unzip (bool, optional): Unzip imported zipped files [default: False].
+            entity_dir (str, optional): The relative path where the entity will be created inside the ml entity directory [default: empty].
     """
 ```
 </details>
@@ -140,10 +143,29 @@ def init(entity):
 
         Examples:
             init('repository')
-            init('dataset')
+            init('datasets')
 
         Args:
-            entity (str): The type of entity that will be initialized. (repository, dataset, labels or model).
+            entity (str): The type of entity that will be initialized. (repository, datasets, labels or models).
+    """
+```
+</details>
+
+<details markdown="1">
+<summary><code> models metrics </code></summary>
+<br>
+
+```python
+def get_models_metrics(entity_name, export_path=None, export_type=FileType.JSON.value):
+    """Get metrics information for each tag of the entity.
+
+        Examples:
+            get_models_metrics('model-ex', export_type='csv')
+
+        Args:
+            entity_name (str): An ml-git entity name to identify a ML entity.
+            export_path(str, optional): Set the path to export metrics to a file.
+            export_type (str, optional): Choose the format of the file that will be generated with the metrics [default: json].
     """
 ```
 </details>
@@ -157,13 +179,13 @@ def push(entity, entity_name,  retries=2, clear_on_fail=False):
     """This command allows pushing the data of a specific version of an ML entity.
 
         Example:
-            push('dataset', 'dataset-ex')
+            push('datasets', 'dataset-ex')
 
         Args:
-            entity (str): The type of an ML entity. (dataset, labels or model).
+            entity (str): The type of an ML entity. (datasets, labels or models)
             entity_name (str): An ml-git entity name to identify a ML entity.
             retries (int, optional): Number of retries to upload the files to the storage [default: 2].
-            clear_on_fail (bool, optional): Remove the files from the store in case of failure during the push operation [default: False].
+            clear_on_fail (bool, optional): Remove the files from the storage in case of failure during the push operation [default: False].
          """
 ```
 </details>
@@ -177,10 +199,10 @@ def remote_add(entity, remote_url, global_configuration=False):
     """This command will add a remote to store the metadata from this ml-git project.
 
         Examples:
-            remote_add('dataset', 'https://git@github.com/mlgit-datasets')
+            remote_add('datasets', 'https://git@github.com/mlgit-datasets')
 
         Args:
-            entity (str): The type of an ML entity. (repository, dataset, labels or model).
+            entity (str): The type of an ML entity. (repository, datasets, labels or models).
             remote_url(str): URL of an existing remote git repository.
             global_configuration (bool, optional): Use this option to set configuration at global level [default: False].
     """
@@ -188,15 +210,15 @@ def remote_add(entity, remote_url, global_configuration=False):
 </details>
 
 <details markdown="1">
-<summary><code> store add </code></summary>
+<summary><code> storage add </code></summary>
 <br>
 
 ```python
-def store_add(bucket_name, bucket_type=StoreType.S3H.value, credentials=None, global_configuration=False, endpoint_url=None):
-    """This command will add a store to the ml-git project.
+def storage_add(bucket_name, bucket_type=StorageType.S3H.value, credentials=None, global_configuration=False, endpoint_url=None):
+    """This command will add a storage to the ml-git project.
 
         Examples:
-            store_add('my-bucket', type='s3h')
+            storage_add('my-bucket', type='s3h')
 
         Args:
             bucket_name (str): The name of the bucket in the storage.

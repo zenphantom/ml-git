@@ -3,9 +3,9 @@ USER root
 ADD https://dl.min.io/server/minio/release/linux-amd64/minio /
 ADD docker/init.sh /
 ADD ./ /ml-git
-ADD docker/local_server.git.tar.xz /
-ADD docker/local_ml_git_config_server.git.tar.xz /
-ADD docker/mlgit.tar.xz /data/
+ADD docker/local_server.git.tar.gz /
+ADD docker/local_ml_git_config_server.git.tar.gz /
+ADD docker/mlgit.tar.gz /data/
 
 ENV MINIO_ACCESS_KEY=fake_access_key \
     MINIO_SECRET_KEY=fake_secret_key 
