@@ -76,7 +76,8 @@ def push(context, **kwargs):
     clear_on_fail = kwargs['clearonfail']
     entity = kwargs['ml_entity_name']
     retry = kwargs['retry']
-    repositories[repo_type].push(entity, retry, clear_on_fail)
+    ignore_errors = kwargs['ignore_errors']
+    repositories[repo_type].push(entity, retry, clear_on_fail, ignore_errors)
 
 
 def checkout(context, **kwargs):
@@ -93,6 +94,7 @@ def checkout(context, **kwargs):
     options['force'] = kwargs['force']
     options['bare'] = kwargs['bare']
     options['version'] = kwargs['version']
+    options['ignore_errors'] = kwargs['ignore_errors']
     repo.checkout(kwargs['ml_entity_tag'], sample, options)
 
 
