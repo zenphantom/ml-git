@@ -104,24 +104,40 @@ Both are the same representation. One is human-readable and is also used interna
 <br>
 
 ```
-Usage: ml-git models checkout [OPTIONS] ML_ENTITY_TAG|ML_ENTITY
+Usage: ml-git datasets checkout [OPTIONS] ML_ENTITY_TAG
 
-  Checkout the ML_ENTITY_TAG|ML_ENTITY of a model set into user workspace.
+  Checkout the ML_ENTITY_TAG|ML_ENTITY of a dataset into user workspace.
 
 Options:
-  -l, --with-labels         The checkout associated labels  in user workspace
-                            as well.
-  -d, --with-dataset        The checkout associated dataset in user workspace
-                            as well.
-  --retry INTEGER           Number of retries to download the files from the
-                            storage [default: 2].
-  --force                   Force checkout command to delete
-                            untracked/uncommitted files from local repository.
-  --bare                    Ability to add/commit/push without having the ml-
-                            entity checked out.
-  --version INTEGER         Number of artifact version to be downloaded
-                            [default: latest].
-  --verbose                 Debug mode
+  --sample-type [group|range|random]
+  --sampling TEXT                 group: <amount>:<group> The group sample
+                                  option consists of amount and group used to
+                                  download a sample.
+                                  range: <start:stop:step>
+                                  The range sample option consists of start,
+                                  stop and step used to download a sample. The
+                                  start parameter can be equal or greater than
+                                  zero.The stop parameter can be 'all', -1 or
+                                  any integer above zero.
+                                  random:
+                                  <amount:frequency> The random sample option
+                                  consists of amount and frequency used to
+                                  download a sample.
+  --seed TEXT                     Seed to be used in random-based samplers.
+  --retry INTEGER                 Number of retries to download the files from
+                                  the storage [default: 2].
+  --force                         Force checkout command to delete
+                                  untracked/uncommitted files from local
+                                  repository.
+  --bare                          Ability to add/commit/push without having
+                                  the ml-entity checked out.
+  --version INTEGER               Number of artifact version to be downloaded
+                                  [default: latest].
+  --fail-limit INTEGER            Define a limit of failures that the process
+                                  can have before it is aborted [default: no
+                                  limit].
+  --verbose                       Debug mode
+
 ```
 
 Examples:
@@ -474,11 +490,13 @@ Usage: ml-git datasets push [OPTIONS] ML_ENTITY_NAME
   storage.
 
 Options:
-  --retry INTEGER  Number of retries to upload or download the files from the
-                   storage [default: 2].
-  --clearonfail    Remove the files from the storage in case of failure during
-                   the push operation.
-  --verbose        Debug mode
+  --retry INTEGER       Number of retries to download the files from the
+                        storage [default: 2].
+  --clearonfail         Remove the files from the storage in case of failure
+                        during the push operation.
+  --fail-limit INTEGER  Define a limit of failures that the process can have
+                        before it is aborted [default: no limit].
+  --verbose             Debug mode
 ```
 
 Example:
