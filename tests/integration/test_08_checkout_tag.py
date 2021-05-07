@@ -397,3 +397,14 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
         self.assertTrue(os.path.exists(path_of_tag_3_file))
         expected_files_in_tag_3 = 7
         self.check_amount_of_files(entity, expected_files_in_tag_3, sampling=False)
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
+    def test_27_checkout_tag_with_fail_limit(self):
+        self.set_up_checkout(DATASETS)
+        number_of_files_in_workspace = 6
+        output = check_output(MLGIT_CHECKOUT % (DATASETS, '{} {}'.format(DATASET_TAG, ' --fail-limit=20')))
+        file = os.path.join(self.tmp_dir, DATASETS, DATASET_NAME, 'newfile0')
+        self.check_metadata()
+        self.check_amount_of_files(DATASETS, number_of_files_in_workspace, sampling=False)
+        self.assertTrue(os.path.exists(file))
+        self.assertNotIn('Failed', output)
