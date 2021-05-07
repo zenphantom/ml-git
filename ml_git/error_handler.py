@@ -7,6 +7,7 @@ from enum import unique, Enum
 import pkg_resources
 from botocore.exceptions import ClientError
 from ml_git import log
+from ml_git.ml_git_message import output_messages
 
 entry_point = 'mlgit.error_handler'
 error_handler_method_name = 'error_handler'
@@ -23,7 +24,7 @@ def pass_error_to_handlers(error):
 
 
 def error_handler(error):
-    log.error('ERROR FOUND: %s - %s' % (type(error).__name__, error))
+    log.error(output_messages['ERROR_FOUND'] % (type(error).__name__, error))
     handler_exit_code = pass_error_to_handlers(error)
     return handler_exit_code
 

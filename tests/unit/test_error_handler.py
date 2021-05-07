@@ -17,13 +17,13 @@ class ErrorHandlerTestCases(unittest.TestCase):
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_error_handler_success(self):
         with mock.patch('ml_git.error_handler.pass_error_to_handlers', return_value=0):
-            exit_code = error_handler(errors_count=10, error=KeyError())
+            exit_code = error_handler(error=KeyError())
             self.assertEquals(exit_code, 0)
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_error_handler_fail(self):
         with mock.patch('ml_git.error_handler.pass_error_to_handlers', return_value=1):
-            exit_code = error_handler(errors_count=10, error=KeyError())
+            exit_code = error_handler(error=KeyError())
             self.assertEquals(exit_code, 1)
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
