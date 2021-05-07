@@ -27,7 +27,7 @@ def pass_error_to_handlers(error):
 def error_handler(errors_count, error, push_method=True):
     error_message = output_messages['ERROR_ON_PUSH_BLOBS'] if push_method else output_messages['ERROR_ON_GETTING_BLOBS']
     log.error(error_message % errors_count)
-    log.error('ERROR FOUND: %s - %s' % (type(error).__name__, error))
+    log.error(output_messages['ERROR_FOUND'] % (type(error).__name__, error))
     handler_exit_code = pass_error_to_handlers(error)
     return handler_exit_code
 

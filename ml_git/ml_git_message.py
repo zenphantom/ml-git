@@ -292,6 +292,7 @@ output_messages = {
     'ERROR_ON_PUSH_BLOBS': 'There was an error sending the data. %s pending blobs to send.',
     'ERROR_ON_GETTING_BLOBS': 'There was an error downloading the data. %s pending blobs to get.',
     'ERROR_CANNOT_RECOVER': 'It was not possible to recover from the error found. Please fix the problem and run the command again.',
+    'ERROR_FOUND': 'ERROR FOUND: %s - %s',
 
     'WARN_CORRUPTED_CANNOT_BE_ADD': 'The following files cannot be added because they are corrupted:',
     'WARN_HAS_CONFIGURED_REMOTE': 'YOU ALREADY HAS A CONFIGURED REMOTE. All data stored in this repository will be sent to the new one on the first push.',

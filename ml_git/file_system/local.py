@@ -108,7 +108,7 @@ class LocalRepository(MultihashFS):
                 wp.errors_count = self.push(object_path, spec_file, retry, clear_on_fail, fail_limit)
             else:
                 log.error(output_messages['ERROR_CANNOT_RECOVER'])
-            if clear_on_fail and len(uploaded_files) > 0 and handler_exit_code == 1:
+            if clear_on_fail and len(uploaded_files) > 0 and handler_exit_code != 0:
                 self._delete(uploaded_files, spec_file, retry)
         return 0 if not wp.errors_count > 0 else 1
 
@@ -288,7 +288,7 @@ class LocalRepository(MultihashFS):
             args['error_msg'] = 'Error to fetch ipld -- [%s]'
             args['function'] = self._fetch_ipld
             result = run_function_per_group(lkeys, 20, function=self._fetch_batch, arguments=args)
-            if not result and self._handle_fetch_error(lkeys, result, args) == 1:
+            if not result and self._handle_fetch_error(lkeys, result, args) != 0:
                 return False
             wp_ipld.progress_bar_close()
             del wp_ipld
@@ -299,7 +299,7 @@ class LocalRepository(MultihashFS):
             args['error_msg'] = 'Error to fetch blob -- [%s]'
             args['function'] = self._fetch_blob
             result = run_function_per_group(lkeys, 20, function=self._fetch_batch, arguments=args)
-            if not result and self._handle_fetch_error(lkeys, result, args) == 1:
+            if not result and self._handle_fetch_error(lkeys, result, args) != 0:
                 return False
             wp_blob.progress_bar_close()
             del wp_blob
