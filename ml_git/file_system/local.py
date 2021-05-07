@@ -103,7 +103,8 @@ class LocalRepository(MultihashFS):
         wp.reset_futures()
 
         if wp.errors_count > 0:
-            handler_exit_code = error_handler(len(objs) - len(uploaded_files), error)
+            log.error(output_messages['ERROR_ON_PUSH_BLOBS'] % wp.errors_count, class_name=LOCAL_REPOSITORY_CLASS_NAME)
+            handler_exit_code = error_handler(error)
             if handler_exit_code == 0:
                 wp.errors_count = self.push(object_path, spec_file, retry, clear_on_fail, fail_limit)
             else:
@@ -240,11 +241,12 @@ class LocalRepository(MultihashFS):
         return True
 
     def _handle_fetch_error(self, lkeys, result, args):
-        exit_code = error_handler(len(lkeys), result, False)
+        log.error(output_messages['ERROR_ON_GETTING_BLOBS'] % len(lkeys), class_name=LOCAL_REPOSITORY_CLASS_NAME)
+        exit_code = error_handler(result)
         if exit_code == 0:
             exit_code = run_function_per_group(lkeys, 20, function=self._fetch_batch, arguments=args)
         else:
-            log.error(output_messages['ERROR_CANNOT_RECOVER'])
+            log.error(output_messages['ERROR_CANNOT_RECOVER'], class_name=LOCAL_REPOSITORY_CLASS_NAME)
         return exit_code
 
     def fetch(self, metadata_path, tag, samples, retries=2, bare=False):

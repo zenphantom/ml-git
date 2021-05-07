@@ -104,7 +104,7 @@ Both are the same representation. One is human-readable and is also used interna
 <br>
 
 ```
-Usage: ml-git models checkout [OPTIONS] ML_ENTITY_TAG
+Usage: ml-git models checkout [OPTIONS] ML_ENTITY_TAG|ML_ENTITY
 
   Checkout the ML_ENTITY_TAG|ML_ENTITY of a model set into user workspace.
 
