@@ -121,8 +121,8 @@ Options:
                         entity checked out.
   --version INTEGER     Number of artifact version to be downloaded [default:
                         latest].
-  --fail-limit INTEGER  Failure limit to abort the command [default: no
-                        limit].
+  --fail-limit INTEGER  Number of failures before aborting the command
+                        [default: no limit].
   --verbose             Debug mode
 
 ```
@@ -481,8 +481,8 @@ Options:
                         storage [default: 2].
   --clearonfail         Remove the files from the storage in case of failure
                         during the push operation.
-  --fail-limit INTEGER  Failure limit to abort the command [default: no
-                        limit].
+  --fail-limit INTEGER  Number of failures before aborting the command
+                        [default: no limit].
   --verbose             Debug mode
 ```
 
