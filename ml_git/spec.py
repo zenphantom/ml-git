@@ -54,7 +54,7 @@ def spec_parse(spec):
 """Increment the version number inside the given dataset specification file."""
 
 
-def incr_version(file, target_version, repo_type=DATASETS):
+def increment_version(file, target_version, repo_type=DATASETS):
     spec_hash = utils.yaml_load(file)
     entity_spec_key = get_spec_key(repo_type)
     if is_valid_version(spec_hash, entity_spec_key):
@@ -115,8 +115,8 @@ def increment_version_in_spec(spec_path, target_version, repotype=DATASETS):
         raise RuntimeError(output_messages['ERROR_NO_NAME_PROVIDED'] % repotype)
 
     if os.path.exists(spec_path):
-        increment_version = incr_version(spec_path, target_version, repotype)
-        if increment_version == -1:
+        new_version = increment_version(spec_path, target_version, repotype)
+        if new_version == -1:
             raise RuntimeError(output_messages['ERROR_INCREMENTING_VERSION'] % spec_path)
     else:
         raise RuntimeError(output_messages['ERROR_SPEC_FILE_NOT_FOUND'] % spec_path)

@@ -275,6 +275,28 @@ class Metadata(MetadataManager):
         except Exception as e:
             log.warn(output_messages['WARN_CANNOT_INITIALIZE_METADATA_FOR'] % (entity_type, e), class_name=METADATA_CLASS_NAME)
 
+    @staticmethod
+    def _get_target_tag(tags, target_version):
+        tags_versions = {}
+        for tag in tags:
+            splitted_tag = tag.split('__')
+            version = splitted_tag[-1]
+            entity = splitted_tag[-2]
+            categories_path = splitted_tag[:-2]
+            if (target_version == int(version)) or (target_version == -1):
+                tags_versions['__'.join(categories_path)] = entity + '__' + version
+
+        if len(tags_versions) > 1:
+            result = output_messages['ERROR_MULTIPLES_ENTITIES_WITH_SAME_NAME']
+            for target_tag in tags_versions:
+                result += ('\t' + target_tag + '__' + tags_versions[target_tag] + '\n')
+            raise RuntimeError(result)
+        elif len(tags_versions) == 0:
+            raise RuntimeError(output_messages['ERROR_WRONG_VERSION_NUMBER_TO_CHECKOUT'] % tags[-1])
+
+        tag, version = tags_versions.popitem()
+        return tag + '__' + version
+
     def get_tag(self, entity, version):
         try:
             tags = self.list_tags(entity)
@@ -298,25 +320,3 @@ class Metadata(MetadataManager):
         last_tag = self._get_target_tag(tags, last_version)
         last_version = last_tag.split('__')[-1]
         return int(last_version)
-
-    @staticmethod
-    def _get_target_tag(tags, target_version):
-        tags_versions = {}
-        for tag in tags:
-            splitted_tag = tag.split('__')
-            version = splitted_tag[-1]
-            entity = splitted_tag[-2]
-            categories_path = splitted_tag[:-2]
-            if (target_version == int(version)) or (target_version == -1):
-                tags_versions['__'.join(categories_path)] = entity + '__' + version
-
-        if len(tags_versions) > 1:
-            result = output_messages['ERROR_MULTIPLES_ENTITIES_WITH_SAME_NAME']
-            for target_tag in tags_versions:
-                result += ('\t' + target_tag + '__' + tags_versions[target_tag] + '\n')
-            raise RuntimeError(result)
-        elif len(tags_versions) == 0:
-            raise RuntimeError(output_messages['ERROR_WRONG_VERSION_NUMBER_TO_CHECKOUT'] % tags[-1])
-
-        tag, version = tags_versions.popitem()
-        return tag + '__' + version

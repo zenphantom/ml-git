@@ -346,18 +346,18 @@ class MetadataTestCases(unittest.TestCase):
 
     @pytest.mark.usefixtures('switch_to_test_dir')
     def test_last_tag_version(self):
-        specpath = 'dataset-ex'
+        sepc_path = 'dataset-ex'
         config['mlgit_path'] = self.test_dir
         m = Metadata('', '', config, DATASETS)
         m.init()
 
         tag_list = ['computer__images__dataset-ex__1', 'computer__images__dataset-ex__2']
         with mock.patch('ml_git.metadata.Metadata.list_tags', return_value=tag_list):
-            last_version = m.get_last_tag_version(specpath)
+            last_version = m.get_last_tag_version(sepc_path)
         self.assertEqual(last_version, 2)
 
         tag_list = []
         with mock.patch('ml_git.metadata.Metadata.list_tags', return_value=tag_list):
-            last_version = m.get_last_tag_version(specpath)
+            last_version = m.get_last_tag_version(sepc_path)
         self.assertEqual(last_version, 0)
         clear(self.test_dir)

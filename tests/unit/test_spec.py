@@ -11,7 +11,7 @@ import pytest
 
 from ml_git.constants import EntityType, StorageType, SPEC_EXTENSION, STORAGE_SPEC_KEY, STORAGE_CONFIG_KEY, \
     DATASET_SPEC_KEY
-from ml_git.spec import yaml_load, incr_version, is_valid_version, search_spec_file, SearchSpecException, spec_parse, \
+from ml_git.spec import yaml_load, increment_version, is_valid_version, search_spec_file, SearchSpecException, spec_parse, \
     get_spec_file_dir, increment_version_in_spec, get_root_path, get_version, update_storage_spec, validate_bucket_name, \
     set_version_in_spec, get_entity_dir
 from ml_git.utils import yaml_save, ensure_path_exists
@@ -29,10 +29,10 @@ class SpecTestCases(unittest.TestCase):
         yaml_save(spec_hash, tmpfile)
         version = spec_hash[DATASET_SPEC_KEY]['version']
         new_version = version + 1
-        incr_version(tmpfile, new_version)
+        increment_version(tmpfile, new_version)
         incremented_hash = yaml_load(tmpfile)
         self.assertEqual(incremented_hash[DATASET_SPEC_KEY]['version'], new_version)
-        self.assertEquals(incr_version('non-existent-file', new_version), -1)
+        self.assertEquals(increment_version('non-existent-file', new_version), -1)
 
     def test_is_valid_version(self):
         self.assertFalse(is_valid_version(None))
