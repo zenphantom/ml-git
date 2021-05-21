@@ -47,7 +47,7 @@ def get_bucket_region(bucket, credentials_profile=None):
     client = session.client(StorageType.S3.value)
     location = client.get_bucket_location(Bucket=bucket)
     if location['LocationConstraint'] is not None:
-        region = location
+        region = location['LocationConstraint']
     else:
         region = 'us-east-1'
     return region
