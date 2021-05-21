@@ -50,6 +50,16 @@ def start_local_git_server(tmp_path):
 
 
 @pytest.fixture()
+def start_empty_git_server(tmp_path):
+    local_git_server = os.path.join(tmp_path, GIT_PATH)
+    os.makedirs(local_git_server, exist_ok=True)
+    master_path = os.path.join(tmp_path, 'master')
+    os.makedirs(master_path, exist_ok=True)
+    Repo.init(local_git_server, bare=True)
+    Repo.clone_from(local_git_server, master_path)
+
+
+@pytest.fixture()
 def switch_to_folder_without_permissions(tmp_path):
     os.chdir(os.path.join(PATH_TEST, 'test_permission'))
 

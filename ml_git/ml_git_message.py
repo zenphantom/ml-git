@@ -288,6 +288,7 @@ output_messages = {
     'ERROR_INVALID_SPEC_VALUE_IN': 'Invalid %s spec in %s.  It should look something like this:\n%s',
     'ERROR_SPEC_FILE_NOT_FOUND': '\nCan\'t find  spec file to increment version.  Are you in the '
                                   'root of the repo?\n     %s\n',
+    'ERROR_COMMIT_BEFORE_PUSH': 'It is necessary commit the changes before push.',
 
     'WARN_CORRUPTED_CANNOT_BE_ADD': 'The following files cannot be added because they are corrupted:',
     'WARN_HAS_CONFIGURED_REMOTE': 'YOU ALREADY HAS A CONFIGURED REMOTE. All data stored in this repository will be sent to the new one on the first push.',
