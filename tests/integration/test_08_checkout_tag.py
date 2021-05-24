@@ -307,7 +307,7 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
         clear(os.path.join(self.tmp_dir, '.ml-git', LABELS))
         self.assertIn(output_messages['INFO_METADATA_INIT'] % (git_server, os.path.join(self.tmp_dir, '.ml-git', MODELS, 'metadata')),
                       check_output(MLGIT_ENTITY_INIT % MODELS))
-        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_CHECKOUT % (MODELS, 'computer-vision__images__models-ex__2')
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_CHECKOUT % (MODELS, 'computer-vision__images__models-ex__1')
                                                      + ' -d -l'))
         self.assertTrue(os.path.exists(os.path.join(self.tmp_dir, MODELS)))
         self.assertTrue(os.path.exists(os.path.join(self.tmp_dir, DATASETS)))
