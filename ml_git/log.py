@@ -4,8 +4,12 @@ SPDX-License-Identifier: GPL-2.0-only
 """
 
 import logging
+import os
+from logging import handlers
 
 from ml_git import config
+from ml_git.constants import LOG_FILES_PATH, LOG_FILE_PREFIX
+from ml_git.utils import get_root_path, RootPathException, ensure_path_exists
 
 MLGitLogger = None
 
@@ -40,10 +44,33 @@ def __level_from_string(level):
     return lvl
 
 
+def __set_file_handle():
+    global MLGitLogger
+    for handle in MLGitLogger.handlers:
+        if type(handle) == handlers.TimedRotatingFileHandler:
+            MLGitLogger.removeHandler(handle)
+
+    try:
+        path = get_root_path()
+    except RootPathException:
+        path = os.getcwd()
+
+    log_files_path = os.path.join(path, LOG_FILES_PATH)
+    log_file_format = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    ensure_path_exists(log_files_path)
+
+    file_handle = handlers.TimedRotatingFileHandler(os.path.join(log_files_path, LOG_FILE_PREFIX), when='M')
+    file_handle.setFormatter(log_file_format)
+    MLGitLogger.addHandler(file_handle)
+
+
 def init_logger(log_level=None):
     global MLGitLogger
     MLGitLogger = logging.getLogger('ml-git')
-    MLGitLogger.setLevel(__level_from_string(config.get_key(log_level)))
+    log_level_from_config = __level_from_string(config.get_key(log_level))
+    MLGitLogger.setLevel(log_level_from_config)
+
+    __set_file_handle()
 
     if config.config_verbose() is not None:
         handler = logging.StreamHandler()
@@ -75,7 +102,7 @@ def __log(level, log_message, dict):
         elif level == 'warn':
             log.warning(log_message)
         elif level == 'fatal':
-            log.fatal(log_message)
+            log.critical(log_message)
     except Exception:
         print('ml-git: ' + log_message)
 

@@ -7,6 +7,8 @@ from enum import Enum, unique
 
 ROOT_FILE_NAME = '.ml-git'
 CONFIG_FILE = '.ml-git/config.yaml'
+LOG_FILES_PATH = 'logs'
+LOG_FILE_PREFIX = 'outputs.log'
 
 CONFIG_CLASS_NAME = 'Ml-git Configuration'
 METADATA_MANAGER_CLASS_NAME = 'Metadata Manager'
