@@ -72,10 +72,9 @@ def __set_file_handle():
 
     log_files_path = __get_log_files_path()
     log_file_format = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-    ensure_path_exists(log_files_path)
 
     file_handle = handlers.TimedRotatingFileHandler(os.path.join(log_files_path, LOG_FILE_PREFIX),
-                                                    when=LOG_FILE_ROTATE_TIME)
+                                                    when=LOG_FILE_ROTATE_TIME, delay=True)
     file_handle.setFormatter(log_file_format)
     MLGitLogger.addHandler(file_handle)
 
@@ -109,6 +108,7 @@ def __log(level, log_message, dict):
     global MLGitLogger
     try:
         log = CustomAdapter(MLGitLogger, dict)
+        ensure_path_exists(__get_log_files_path())
         if level == 'debug':
             log.debug(log_message)
         elif level == 'info':
