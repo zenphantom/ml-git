@@ -10,7 +10,8 @@ import pytest
 
 from ml_git import log
 from ml_git.constants import LOG_FILES_PATH, LOG_FILE_PREFIX
-from ml_git.log import init_logger
+from ml_git.log import init_logger, set_level
+from ml_git.ml_git_message import output_messages
 
 
 @pytest.mark.usefixtures('tmp_dir')
@@ -31,14 +32,18 @@ class LogTestCases(unittest.TestCase):
         log_file_path = os.path.join(self.tmp_dir, LOG_FILES_PATH)
 
         init_logger()
+        debug_level = 'debug'
+        if log_type.lower() == debug_level:
+            set_level(debug_level)
+
         self.logs[log_type](message)
-        _, out = self.capfd.readouterr()
+        out, err = self.capfd.readouterr()
 
-        if log_type == 'DEBUG':
-            self.assertEqual('', out)
-        else:
-            self.assertIn(message, out)
+        if log_type == 'ERROR':
+            file_location = output_messages['ERROR_FIND_FILE_PATH_LOCATION'] % LOG_FILE_PREFIX
+            self.assertIn(file_location, out)
 
+        self.assertIn(message, err)
         self.assertTrue(os.path.exists(log_file_path))
 
         log_file = os.path.join(log_file_path, LOG_FILE_PREFIX)

@@ -8,7 +8,8 @@ import os
 from logging import handlers
 
 from ml_git import config
-from ml_git.constants import LOG_FILES_PATH, LOG_FILE_PREFIX
+from ml_git.constants import LOG_FILES_PATH, LOG_FILE_PREFIX, LOG_FILE_ROTATE_TIME
+from ml_git.ml_git_message import output_messages
 from ml_git.utils import get_root_path, RootPathException, ensure_path_exists
 
 MLGitLogger = None
@@ -44,22 +45,37 @@ def __level_from_string(level):
     return lvl
 
 
+def __get_log_files_path():
+    try:
+        path = get_root_path()
+    except RootPathException:
+        path = os.getcwd()
+
+    return os.path.join(path, LOG_FILES_PATH)
+
+
+def __get_last_log_file():
+    path = __get_log_files_path()
+    logs = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
+
+    if not logs:
+        return path
+    logs.sort(key=lambda f: os.stat(os.path.join(path, f)).st_ctime)
+    return logs[-1]
+
+
 def __set_file_handle():
     global MLGitLogger
     for handle in MLGitLogger.handlers:
         if type(handle) == handlers.TimedRotatingFileHandler:
             MLGitLogger.removeHandler(handle)
 
-    try:
-        path = get_root_path()
-    except RootPathException:
-        path = os.getcwd()
-
-    log_files_path = os.path.join(path, LOG_FILES_PATH)
+    log_files_path = __get_log_files_path()
     log_file_format = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
     ensure_path_exists(log_files_path)
 
-    file_handle = handlers.TimedRotatingFileHandler(os.path.join(log_files_path, LOG_FILE_PREFIX), when='M')
+    file_handle = handlers.TimedRotatingFileHandler(os.path.join(log_files_path, LOG_FILE_PREFIX),
+                                                    when=LOG_FILE_ROTATE_TIME)
     file_handle.setFormatter(log_file_format)
     MLGitLogger.addHandler(file_handle)
 
@@ -99,6 +115,7 @@ def __log(level, log_message, dict):
             log.info(log_message)
         elif level == 'error':
             log.error(log_message)
+            print(output_messages['ERROR_FIND_FILE_PATH_LOCATION'] % __get_last_log_file())
         elif level == 'warn':
             log.warning(log_message)
         elif level == 'fatal':
