@@ -507,7 +507,7 @@ class Repository(object):
 
     '''push all data related to a ml-git repository to the LocalRepository git repository and data storage'''
 
-    def push(self, spec, retry=2, clear_on_fail=False):
+    def push(self, spec, retry=2, clear_on_fail=False, fail_limit=None):
         repo_type = self.__repo_type
         try:
             objects_path = get_objects_path(self.__config, repo_type)
@@ -539,7 +539,7 @@ class Repository(object):
         full_spec_path = os.path.join(spec_path, spec_file)
 
         repo = LocalRepository(self.__config, objects_path, repo_type)
-        ret = repo.push(objects_path, full_spec_path, retry, clear_on_fail)
+        ret = repo.push(objects_path, full_spec_path, retry, clear_on_fail, fail_limit)
 
         # ensure first we're on master !
         met.checkout()
@@ -821,7 +821,7 @@ class Repository(object):
 
         try:
             r = LocalRepository(self.__config, objects_path, repo_type)
-            r.checkout(cache_path, metadata_path, ws_path, tag, samples, bare, entity_dir)
+            r.checkout(cache_path, metadata_path, ws_path, tag, samples, bare, entity_dir, options['fail_limit'])
         except OSError as e:
             self._checkout_ref()
             if e.errno == errno.ENOSPC:
