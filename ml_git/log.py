@@ -106,6 +106,29 @@ def set_level(loglevel):
     init_logger(loglevel)
 
 
+def __log_invoked_command(log):
+    global invoked_command
+    if invoked_command:
+        return
+
+    file_handle = None
+
+    for handle in log.handlers:
+        if type(handle) == handlers.TimedRotatingFileHandler:
+            file_handle = handle
+            break
+
+    if not sys.argv:
+        return
+
+    file_handle.setFormatter(logging.Formatter(LOG_FILE_COMMAND_FORMAT))
+    app_name = os.path.basename(sys.argv[0])
+    command = '{} {}'.format(app_name, ' '.join(sys.argv[1:]))
+    invoked_command = command
+    log.debug(command)
+    file_handle.setFormatter(logging.Formatter(LOG_FILE_FORMAT))
+
+
 def __log(level, log_message, kwargs):
     global MLGitLogger
 
@@ -146,26 +169,3 @@ def error(msg, **kwargs):
 
 def fatal(msg, **kwargs):
     __log('fatal', msg, kwargs)
-
-
-def __log_invoked_command(log):
-    global invoked_command
-    if invoked_command:
-        return
-
-    file_handle = None
-
-    for handle in log.handlers:
-        if type(handle) == handlers.TimedRotatingFileHandler:
-            file_handle = handle
-            break
-
-    if not sys.argv:
-        return
-
-    file_handle.setFormatter(logging.Formatter(LOG_FILE_COMMAND_FORMAT))
-    app_name = os.path.basename(sys.argv[0])
-    command = '{} {}'.format(app_name, ' '.join(sys.argv[1:]))
-    invoked_command = command
-    log.debug(command)
-    file_handle.setFormatter(logging.Formatter(LOG_FILE_FORMAT))
