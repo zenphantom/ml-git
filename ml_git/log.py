@@ -5,14 +5,17 @@ SPDX-License-Identifier: GPL-2.0-only
 
 import logging
 import os
+import sys
 from logging import handlers
 
 from ml_git import config
-from ml_git.constants import LOG_FILES_PATH, LOG_FILE_PREFIX, LOG_FILE_ROTATE_TIME
+from ml_git.constants import LOG_FILES_PATH, LOG_FILE_PREFIX, LOG_FILE_ROTATE_TIME, LOG_FILE_FORMAT, LOG_COMMON_FORMAT, \
+    LOG_FILE_COMMAND_FORMAT
 from ml_git.ml_git_message import output_messages
 from ml_git.utils import get_root_path, RootPathException, ensure_path_exists
 
 MLGitLogger = None
+invoked_command = ''
 
 
 class CustomAdapter(logging.LoggerAdapter):
@@ -71,11 +74,10 @@ def __set_file_handle():
             MLGitLogger.removeHandler(handle)
 
     log_files_path = __get_log_files_path()
-    log_file_format = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 
     file_handle = handlers.TimedRotatingFileHandler(os.path.join(log_files_path, LOG_FILE_PREFIX),
                                                     when=LOG_FILE_ROTATE_TIME, delay=True)
-    file_handle.setFormatter(log_file_format)
+    file_handle.setFormatter(logging.Formatter(LOG_FILE_FORMAT))
     MLGitLogger.addHandler(file_handle)
 
 
@@ -92,7 +94,7 @@ def init_logger(log_level=None):
         if log_level is None:
             log_level = config.config_verbose()
         handler.setLevel(__level_from_string(log_level))
-        formatter = logging.Formatter('%(levelname)s - %(message)s')
+        formatter = logging.Formatter(LOG_COMMON_FORMAT)
         handler.setFormatter(formatter)
         MLGitLogger.addHandler(handler)
 
@@ -106,9 +108,11 @@ def set_level(loglevel):
 
 def __log(level, log_message, dict):
     global MLGitLogger
+
     try:
         log = CustomAdapter(MLGitLogger, dict)
         ensure_path_exists(__get_log_files_path())
+        __log_invoked_command(MLGitLogger)
         if level == 'debug':
             log.debug(log_message)
         elif level == 'info':
@@ -142,3 +146,26 @@ def error(msg, **kwargs):
 
 def fatal(msg, **kwargs):
     __log('fatal', msg, kwargs)
+
+
+def __log_invoked_command(log):
+    global invoked_command
+    if invoked_command:
+        return
+
+    file_handle = None
+
+    for handle in log.handlers:
+        if type(handle) == handlers.TimedRotatingFileHandler:
+            file_handle = handle
+            break
+
+    if not sys.argv:
+        return
+
+    file_handle.setFormatter(logging.Formatter(LOG_FILE_COMMAND_FORMAT))
+    app_name = os.path.basename(sys.argv[0])
+    command = '{} {}'.format(app_name, ' '.join(sys.argv[1:]))
+    invoked_command = command
+    log.debug(command)
+    file_handle.setFormatter(logging.Formatter(LOG_FILE_FORMAT))
