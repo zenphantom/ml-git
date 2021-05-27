@@ -10,7 +10,7 @@ CONFIG_FILE = '.ml-git/config.yaml'
 LOG_FILES_PATH = 'logs'
 LOG_FILE_PREFIX = 'ml-git_execution.log'
 LOG_FILE_ROTATE_TIME = 'D'
-LOG_FILE_FORMAT = '%(asctime)s - %(levelname)s - %(message)s'
+LOG_FILE_FORMAT = '%(asctime)s - %(thread)d - %(levelname)s - %(message)s'
 LOG_FILE_COMMAND_FORMAT = '\n%(asctime)s - %(message)s'
 LOG_COMMON_FORMAT = '%(levelname)s - %(message)s'
 
