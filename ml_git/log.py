@@ -106,11 +106,11 @@ def set_level(loglevel):
     init_logger(loglevel)
 
 
-def __log(level, log_message, dict):
+def __log(level, log_message, kwargs):
     global MLGitLogger
 
     try:
-        log = CustomAdapter(MLGitLogger, dict)
+        log = CustomAdapter(MLGitLogger, kwargs)
         ensure_path_exists(__get_log_files_path())
         __log_invoked_command(MLGitLogger)
         if level == 'debug':
