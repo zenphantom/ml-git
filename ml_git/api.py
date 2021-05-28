@@ -15,6 +15,7 @@ from ml_git.config import config_load
 from ml_git.constants import EntityType, StorageType, FileType, RGX_TAG_FORMAT
 from ml_git.log import init_logger
 from ml_git.ml_git_message import output_messages
+from ml_git.relationship.entity_manager import EntityManager
 from ml_git.repository import Repository
 from ml_git.spec import search_spec_file, spec_parse
 from ml_git.utils import get_root_path
@@ -305,3 +306,20 @@ def get_models_metrics(entity_name, export_path=None, export_type=FileType.JSON.
         with tempfile.TemporaryDirectory(dir=current_directory) as tempdir:
             metrics_data = repo.get_models_metrics(entity_name, tempdir, export_type, log_export_info=False)
     return metrics_data
+
+
+def init_entity_manager(github_token, url):
+    """Initialize the a entity manager to operate over github api.
+
+        Examples:
+            init_entity_manager('github_token', 'https://api.github.com')
+
+        Args:
+            github_token (str): The personal access github token.
+            url (str): The github api url.
+
+        Returns:
+            object of class EntityManager.
+
+    """
+    return EntityManager(github_token, url)

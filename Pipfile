@@ -12,6 +12,7 @@ pyinstaller = "==3.6"
 setuptools = "==44.*"
 pywin32-ctypes = "==0.2.0"
 atomicwrites = "==1.4.0"
+requests-mock = "==1.6.0"
 
 [packages]
 boto3 = "==1.9.164"
@@ -35,6 +36,7 @@ mock = "==4.0.2"
 prettytable = "==2.0.0"
 pydrive2= "==1.7.3"
 funcy = "==1.15"
+PyGithub = "==1.53"
 
 [requires]
 python_version = "3.7"
