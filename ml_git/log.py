@@ -9,8 +9,8 @@ import sys
 from logging import handlers
 
 from ml_git import config
-from ml_git.constants import LOG_FILES_PATH, LOG_FILE_PREFIX, LOG_FILE_ROTATE_TIME, LOG_FILE_FORMAT, LOG_COMMON_FORMAT, \
-    LOG_FILE_COMMAND_FORMAT
+from ml_git.constants import LOG_FILES_PATH, LOG_FILE_NAME, LOG_FILE_ROTATE_TIME, LOG_FILE_MESSAGE_FORMAT, \
+    LOG_FILE_COMMAND_MESSAGE_FORMAT, LOG_COMMON_MESSAGE_FORMAT
 from ml_git.ml_git_message import output_messages
 from ml_git.utils import get_root_path, RootPathException, ensure_path_exists
 
@@ -57,7 +57,7 @@ def __get_log_files_path():
     return os.path.join(path, LOG_FILES_PATH)
 
 
-def __get_last_log_file():
+def __get_last_log_file_path():
     path = __get_log_files_path()
     logs = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
 
@@ -75,9 +75,9 @@ def __set_file_handle():
 
     log_files_path = __get_log_files_path()
 
-    file_handle = handlers.TimedRotatingFileHandler(os.path.join(log_files_path, LOG_FILE_PREFIX),
+    file_handle = handlers.TimedRotatingFileHandler(os.path.join(log_files_path, LOG_FILE_NAME),
                                                     when=LOG_FILE_ROTATE_TIME, delay=True)
-    file_handle.setFormatter(logging.Formatter(LOG_FILE_FORMAT))
+    file_handle.setFormatter(logging.Formatter(LOG_FILE_MESSAGE_FORMAT))
     MLGitLogger.addHandler(file_handle)
 
 
@@ -94,7 +94,7 @@ def init_logger(log_level=None):
         if log_level is None:
             log_level = config.config_verbose()
         handler.setLevel(__level_from_string(log_level))
-        formatter = logging.Formatter(LOG_COMMON_FORMAT)
+        formatter = logging.Formatter(LOG_COMMON_MESSAGE_FORMAT)
         handler.setFormatter(formatter)
         MLGitLogger.addHandler(handler)
 
@@ -121,12 +121,11 @@ def __log_invoked_command(log):
     if not sys.argv:
         return
 
-    file_handle.setFormatter(logging.Formatter(LOG_FILE_COMMAND_FORMAT))
+    file_handle.setFormatter(logging.Formatter(LOG_FILE_COMMAND_MESSAGE_FORMAT))
     app_name = os.path.basename(sys.argv[0])
-    command = '{} {}'.format(app_name, ' '.join(sys.argv[1:]))
-    invoked_command = command
-    log.debug(command)
-    file_handle.setFormatter(logging.Formatter(LOG_FILE_FORMAT))
+    invoked_command = '{} {}'.format(app_name, ' '.join(sys.argv[1:]))
+    log.debug(invoked_command)
+    file_handle.setFormatter(logging.Formatter(LOG_FILE_MESSAGE_FORMAT))
 
 
 def __log(level, log_message, kwargs):
@@ -142,7 +141,7 @@ def __log(level, log_message, kwargs):
             log.info(log_message)
         elif level == 'error':
             log.error(log_message)
-            print(output_messages['ERROR_FIND_FILE_PATH_LOCATION'] % __get_last_log_file())
+            print(output_messages['ERROR_FIND_FILE_PATH_LOCATION'] % __get_last_log_file_path())
         elif level == 'warn':
             log.warning(log_message)
         elif level == 'fatal':
