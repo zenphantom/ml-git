@@ -9,6 +9,24 @@ from ml_git.constants import DATASET_SPEC_KEY, LABELS_SPEC_KEY, MODEL_SPEC_KEY, 
 
 
 class Entity:
+    """Class that's represents a ml-entity.
+
+    Attributes:
+        entity_type (str): The type of the ml-entity (datasets, models, labels);
+        name (str): The name of the entity.
+        private (str): The access of entity metadata.
+        metadata_full_name (str): The name of the repository metadata.
+        metadata_git_url (str): The git url of the repository metadata.
+        metadata_html_url (str): The html url of the repository metadata.
+        metadata_owner_name (str): The name of the repository owner.
+        metadata_owner_email (str): The email of the repository owner.
+        mutability (str): The mutability of the ml-entity (strict|mutable|flexible).
+        categories (list): Labels to categorize the entity.
+        storage_type (str): The storage type (s3h|azureblobh|gdriveh|sftph).
+        storage (dict): The storage configuration.
+        version (str): The version of the ml-entity.
+        versions (list): List of the entities for each tag found in the repository.
+    """
 
     def __init__(self, config, spec_yaml):
         self.__spec = spec_yaml
