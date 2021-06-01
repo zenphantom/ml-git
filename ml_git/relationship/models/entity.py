@@ -12,7 +12,7 @@ class Entity:
     """Class that's represents a ml-entity.
 
     Attributes:
-        entity_type (str): The type of the ml-entity (datasets, models, labels);
+        entity_type (str): The type of the ml-entity (datasets, models, labels).
         name (str): The name of the entity.
         private (str): The access of entity metadata.
         metadata_full_name (str): The name of the repository metadata.
