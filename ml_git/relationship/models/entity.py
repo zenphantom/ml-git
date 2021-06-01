@@ -56,5 +56,3 @@ class Entity:
 
     def __repr__(self):
         return json.dumps(self.to_dict(self), indent=2)
-
-
