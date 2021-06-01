@@ -2,7 +2,8 @@
 © Copyright 2021 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
-
+import base64
+import json
 import os
 import unittest
 
@@ -10,6 +11,8 @@ import pytest
 
 from ml_git.constants import EntityType, STORAGE_CONFIG_KEY, StorageType
 from ml_git.utils import yaml_save
+
+dummy_api_github_url = 'https://api.github.com:443'
 
 dummy_config = {
     EntityType.DATASETS.value: {'git': 'https://github.com/dummy/dummy_datasets_repo.git'},
@@ -26,12 +29,14 @@ dummy_config = {
     },
 }
 
-search_repo_url = 'https://api.github.com:443/search/repositories?q=dummy%2Fdummy_datasets_repo'
-search_code_url = 'https://api.github.com:443/search/code?q=repo%3Adummy_datasets+extension%3A.spec'
-dataset_content_url = 'https://api.github.com:443/repos/dummy_datasets_repo/contents/dataset-ex/dataset-ex.spec'
-get_repo_url = 'https://github.com:443/dummy_datasets_repo'
-get_tags_from_repo_url = 'https://api.github.com:443/repos/dummy_datasets_repo/tags'
-get_spec_content_url = 'https://api.github.com:443/repos/dummy/dummy_datasets_repo/contents/dataset-ex/dataset-ex.spec?ref=test__dataset-ex__1'
+search_repo_url = f'{dummy_api_github_url}/search/repositories?q=dummy%2Fdummy_datasets_repo'
+search_code_url = f'{dummy_api_github_url}/search/code?q=repo%3Adummy_datasets+extension%3A.spec'
+dataset_content_url = f'{dummy_api_github_url}/repos/dummy_datasets_repo/contents/dataset-ex/dataset-ex.spec'
+get_repo_url = f'{dummy_api_github_url.replace("api.","")}/dummy_datasets_repo'
+get_tags_from_repo_url = f'{dummy_api_github_url}/repos/dummy_datasets_repo/tags'
+get_spec_content_url = f'{dummy_api_github_url}/repos/dummy/dummy_datasets_repo/contents/dataset-ex/dataset-ex.spec?ref=test__dataset-ex__1'
+dummy_config_remote_url = f'{dummy_api_github_url}/search/repositories?q=dummy%2Fdummy_config'
+dummy_config_content_url = f'{dummy_api_github_url}/repos/dummy/dummy_config/contents//.ml-git/config.yaml'
 
 search_repo_response = {
     'items': [
@@ -116,6 +121,39 @@ content_from_tag = {
   'encoding': 'base64',
 }
 
+config_repo_response = {
+    'items': [
+      {
+        'id': 310705171,
+        'name': 'dummy_config',
+        'full_name': 'dummy_config',
+        'private': False,
+        'owner': {
+          'login': 'dummy',
+          'id': 24386872,
+          'url': 'https://github.com/dummy/dummy_config',
+          'html_url': 'https://github.com/dummy/dummy_config',
+          'type': 'User',
+          'site_admin': False
+        },
+        'html_url': 'https://github.com/dummy/dummy_config',
+        'url': 'https://api.github.com/repos/dummy/dummy_config',
+        'git_url': 'git://github.com/dummy/dummy_config.git',
+        'ssh_url': 'git@github.com:dummy/dummy/dummy_config.git',
+      }
+    ]
+}
+
+config_content_response = {
+  'name': 'config.yaml',
+  'path': '.ml-git/config.yaml',
+  'sha': 'ebd3e03e034e3bde8799083e7ab76e058581c4a7',
+  'size': 379,
+  'type': 'file',
+  'content': base64.b64encode(json.dumps(dummy_config).encode('ascii')).decode('utf-8'),
+  'encoding': 'base64',
+}
+
 HEADERS = {
     'access-control-allow-origin': '*',
     'access-control-expose-headers': 'ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit,'
@@ -144,18 +182,26 @@ class ApiTestCases(unittest.TestCase):
         self.manager = api.init_entity_manager('github_token', 'https://api.github.com')
         self.config_path = os.path.join(self.tmp_dir, 'config.yaml')
         yaml_save(dummy_config, self.config_path)
-
-    def test_init_entity_manager(self):
-        self.assertIsNotNone(self.manager)
-
-    @pytest.mark.usefixtures('switch_to_tmp_dir')
-    def test_get_entities_from_config_path(self):
         self.requests_mock.get(search_repo_url, status_code=200, headers=HEADERS, json=search_repo_response)
         self.requests_mock.get(search_code_url, status_code=200, headers=HEADERS, json=search_code_response)
         self.requests_mock.get(dataset_content_url, status_code=200, headers=HEADERS, json=dataset_content)
         self.requests_mock.get(get_repo_url, status_code=200, headers=HEADERS, json=repo)
         self.requests_mock.get(get_tags_from_repo_url, status_code=200, headers=HEADERS, json=tags)
         self.requests_mock.get(get_spec_content_url, status_code=200, headers=HEADERS, json=content_from_tag)
+
+    def test_init_entity_manager(self):
+        self.assertIsNotNone(self.manager)
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir')
+    def test_get_entities_from_config_path(self):
         entities = self.manager.get_entities(config_path=self.config_path)
+        self.assertTrue(len(entities) == 1)
+        self.assertEqual(entities[0].name, 'dataset-ex')
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir')
+    def test_get_entities_from_repo_name(self):
+        self.requests_mock.get(dummy_config_remote_url, status_code=200, headers=HEADERS, json=config_repo_response)
+        self.requests_mock.get(dummy_config_content_url, status_code=200, headers=HEADERS, json=config_content_response)
+        entities = self.manager.get_entities(repo_name='dummy/dummy_config')
         self.assertTrue(len(entities) == 1)
         self.assertEqual(entities[0].name, 'dataset-ex')
