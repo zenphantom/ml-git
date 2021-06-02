@@ -7,7 +7,7 @@ import click
 from click_didyoumean import DYMGroup
 
 from ml_git.commands.repository import repository
-from ml_git.commands.utils import LABELS, repositories, set_verbose_mode, DATASETS, MODELS
+from ml_git.commands.utils import LABELS, repositories, set_verbose_mode, DATASETS, MODELS, PROJECT
 
 
 @repository.group('remote', help='Configure remote ml-git metadata repositories.', cls=DYMGroup)
@@ -93,3 +93,20 @@ def repo_remote_lb_del(**kwargs):
 @click.option('--verbose', is_flag=True, expose_value=False, callback=set_verbose_mode, help='Debug mode')
 def repo_remote_md_del(**kwargs):
     repositories[MODELS].repo_remote_del(kwargs['global'])
+
+
+@repo_remote.group('config', help='Manage remote ml-git config repository.', cls=DYMGroup)
+@click.pass_context
+def repo_remote_config(ctx):
+    """
+    Manage remote ml-git config repository.
+    """
+    pass
+
+
+@repo_remote_config.command('add', help='Starts a git at the root of the project and configure the remote.')
+@click.argument('remote-url')
+@click.help_option(hidden=True)
+@click.option('--verbose', is_flag=True, expose_value=False, callback=set_verbose_mode, help='Debug mode')
+def repo_remote_config_add(**kwargs):
+    repositories[PROJECT].repo_config_init(kwargs['remote_url'])

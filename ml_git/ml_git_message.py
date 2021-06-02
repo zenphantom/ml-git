@@ -72,6 +72,7 @@ output_messages = {
     'DEBUG_IPLD_NOT_PRESENT': 'LocalRepository: ipld [%s] not present for full verification',
     'DEBUG_FILE_NOT_CACHE': 'File is not in cache',
     'DEBUG_BLOB_ALREADY_EXISTS': 'The specified blob [%s] already exists.',
+    'DEBUG_ALREADY_IN_GIT_REPOSITORY': 'There is already a git repository initialized in the project root [%s]',
 
     'INFO_INITIALIZED_PROJECT_IN': 'Initialized empty ml-git repository in %s',
     'INFO_ADD_REMOTE': 'Add remote repository [%s] for [%s]',
@@ -155,6 +156,8 @@ output_messages = {
     'INFO_REMOTE_FSCK_TOTAL': 'remote-fsck -- total   : ipld[%d] / blob[%d]',
     'INFO_LISTING_BLOBS': '\nListing blobs in container:',
     'INFO_FILE_LOCATED_IN_TRASH': 'File [{}] located in trash.',
+    'INFO_CREATING_GIT_REPOSITORY': 'Creating new git repository at project root [%s]',
+    'INFO_CREATING_REMOTE': 'Adding remote to the initialized project [%s]',
 
     'ERROR_PATH_NOT_EMPTY': 'The path [%s] is not an empty directory. Consider using --folder to create an empty folder.',
     'ERROR_WITHOUT_TAG_FOR_THIS_ENTITY': 'No entity with that name was found.',

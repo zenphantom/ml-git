@@ -33,6 +33,7 @@ class CloneTest(unittest.TestCase):
         self.assertIn(output_messages['INFO_SUCCESS_LOAD_CONFIGURATION'], check_output(MLGIT_CLONE % (self.GIT_CLONE, '--folder=' + CLONE_FOLDER)))
         clone_dir = os.path.join(CLONE_FOLDER, '.ml-git')
         self.check_metadata_entity(clone_dir)
+        self.assertTrue(os.path.exists('.git'))
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_02_clone_folder_non_empty(self):
@@ -54,12 +55,12 @@ class CloneTest(unittest.TestCase):
         self.assertIn(output_messages['ERROR_FOLDER_PERMISSION_DENIED'], check_output(MLGIT_CLONE % (self.GIT_CLONE, '--folder=' + CLONE_FOLDER)))
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
-    def test_05_clone_folder_with_track(self):
+    def test_05_clone_folder_with_untracked(self):
         self.set_up_clone()
         self.assertIn(output_messages['INFO_SUCCESS_LOAD_CONFIGURATION'],
-                      check_output((MLGIT_CLONE + ' --track') % (self.GIT_CLONE, '--folder=' + CLONE_FOLDER)))
+                      check_output((MLGIT_CLONE + ' --untracked') % (self.GIT_CLONE, '--folder=' + CLONE_FOLDER)))
         os.chdir(CLONE_FOLDER)
-        assert (os.path.isdir('.git'))
+        self.assertFalse(os.path.exists('.git'))
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_06_clone_without_folder_option(self):

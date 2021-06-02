@@ -186,19 +186,19 @@ class APIAcceptanceTests(unittest.TestCase):
         api.clone(self.GIT_CLONE)
         os.chdir(self.tmp_dir)
         self.assertTrue(os.path.exists('.ml-git'))
+        self.assertTrue(os.path.exists('.git'))
 
     @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
-    def test_09_clone_with_track_and_folder(self):
+    def test_09_clone_with_untracked_and_folder(self):
         self.set_up_clone_test()
-
         clone_folder = os.path.join(self.tmp_dir, CLONE_FOLDER)
 
         self.assertFalse(os.path.exists(clone_folder))
-        api.clone(self.GIT_CLONE, clone_folder, track=True)
+        api.clone(self.GIT_CLONE, clone_folder, untracked=True)
         os.chdir(self.tmp_dir)
         self.assertTrue(os.path.exists(clone_folder))
         self.assertTrue(os.path.exists(os.path.join(clone_folder, '.ml-git')))
-        self.assertTrue(os.path.exists(os.path.join(clone_folder, '.git')))
+        self.assertFalse(os.path.exists(os.path.join(clone_folder, '.git')))
 
     def create_file_in_ws(self, entity, name, value):
         with open(os.path.join(entity, entity + '-ex', name), 'wt') as z:

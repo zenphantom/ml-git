@@ -12,6 +12,7 @@ from git import InvalidGitRepositoryError, GitError
 from halo import Halo
 
 from ml_git import log
+from ml_git._metadata import MetadataRepo
 from ml_git.admin import remote_add, storage_add, clone_config_repository, init_mlgit, remote_del
 from ml_git.config import get_index_path, get_objects_path, get_cache_path, get_metadata_path, get_refs_path, \
     validate_config_spec_hash, validate_spec_hash, get_sample_config_spec, get_sample_spec_doc, \
@@ -1042,8 +1043,8 @@ class Repository(object):
             else:
                 log.error(e, CLASS_NAME=REPOSITORY_CLASS_NAME)
 
-    def clone_config(self, url, folder=None, track=False):
-        if clone_config_repository(url, folder, track):
+    def clone_config(self, url, folder=None, untracked=False):
+        if clone_config_repository(url, folder, untracked):
             self.__config = config_load()
             m = Metadata('', get_metadata_path(self.__config), self.__config)
             m.clone_config_repo()
@@ -1182,3 +1183,17 @@ class Repository(object):
                  class_name=REPOSITORY_CLASS_NAME)
         log.info(output_messages['INFO_RECLAIMED_SPACE'] % humanize.naturalsize(reclaimed_space),
                  class_name=REPOSITORY_CLASS_NAME)
+
+    @staticmethod
+    def repo_config_init(remote_url):
+        config_repo = MetadataRepo(remote_url, '', 'project')
+        try:
+            created_repository = config_repo.init_local_repo()
+            log.info(output_messages['INFO_CREATING_REMOTE'] % remote_url, class_name=REPOSITORY_CLASS_NAME)
+            if created_repository:
+                config_repo.create_remote()
+            else:
+                config_repo.remote_set_url(remote_url)
+        except Exception as e:
+            log.error(e, class_name=REPOSITORY_CLASS_NAME)
+            return e

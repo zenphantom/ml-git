@@ -153,7 +153,7 @@ def storage_del(storage_type, bucket, global_conf=False):
     yaml_save(conf, config_path)
 
 
-def clone_config_repository(url, folder, track):
+def clone_config_repository(url, folder, untracked):
     try:
         if get_root_path():
             log.error(output_messages['ERROR_IN_INTIALIZED_PROJECT'], class_name=ADMIN_CLASS_NAME)
@@ -183,7 +183,7 @@ def clone_config_repository(url, folder, track):
     if not check_successfully_clone(project_dir, git_dir):
         return False
 
-    if not track:
+    if untracked:
         clear(os.path.join(project_dir, git_dir))
 
     return True
