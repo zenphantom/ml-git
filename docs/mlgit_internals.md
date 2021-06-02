@@ -888,7 +888,7 @@ Note:
 </details>
 
 <details markdown="1">
-<summary> <code>ml-git repository config </code></summary>
+<summary> <code>ml-git repository config show </code></summary>
 Command try to load the configurations from the file **.ml-git/config.yaml**. 
 
 If the file is found, it will show the configurations read from the file, if not it will show the default configurations in the project.

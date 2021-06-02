@@ -8,7 +8,7 @@ import unittest
 import pytest
 
 from ml_git.ml_git_message import output_messages
-from tests.integration.commands import MLGIT_INIT, MLGIT_CONFIG
+from tests.integration.commands import MLGIT_INIT, MLGIT_CONFIG_SHOW
 from tests.integration.helper import check_output
 
 
@@ -24,6 +24,6 @@ class ConfigAcceptanceTests(unittest.TestCase):
                       "\n                                        'region': 'us-east-1'}}},\n 'verbose': 'info'}"
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
-    def test_01_config_command(self):
+    def test_01_config_show_command(self):
         self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
-        self.assertIn(self.expected_result, check_output(MLGIT_CONFIG))
+        self.assertIn(self.expected_result, check_output(MLGIT_CONFIG_SHOW))

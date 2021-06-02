@@ -1,5 +1,5 @@
 """
-© Copyright 2020 HP Development Company, L.P.
+© Copyright 2020-2021 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
 
@@ -22,15 +22,23 @@ def repository():
     pass
 
 
+@repository.group('config', help='Management of the ml-git config file.', cls=DYMGroup)
+def config():
+    """
+    Management of the ml-git config file.
+    """
+    pass
+
+
 @repository.command('init', help='Initialiation of this ml-git repository')
 def init():
     init_mlgit()
 
 
-@repository.command('config', help='Configuration of this ml-git repository')
+@config.command('show', help='Configuration of this ml-git repository')
 @click.option('--local', '-l', is_flag=True, default=False, help='Local configurations')
 @click.option('--global', '-g', is_flag=True, default=False, help='Global configurations')
-def config(**kwargs):
+def show(**kwargs):
     config_file = config_load()
     if kwargs['global']:
         config_file = global_config_load()

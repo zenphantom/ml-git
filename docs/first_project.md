@@ -106,7 +106,7 @@ You can find more information about metadata [here](mlgit_internals.md).
 
 All configurations are stored in _.ml-git/config.yaml_ and you can look at configuration state at any time with the following command:
 ```
-$ ml-git repository config
+$ ml-git repository config show
 config:
 {'batch_size': 20,
  'cache_path': '',
@@ -324,7 +324,7 @@ Even though these commands show a different bucket to store the labels data, it 
 
 If you look at your config file, one would get the following now:
 ```
-$ ml-git repository config
+$ ml-git repository config show
 config:
 {'batch_size': 20,
  'cache_path': '',

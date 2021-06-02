@@ -776,21 +776,23 @@ ml-git login
 </details>
 
 <details markdown="1">
-<summary><code> ml-git repository config </code></summary>
+<summary><code> ml-git repository config show</code></summary>
 <br>
 
 ```
-Usage: ml-git repository config [OPTIONS]
+Usage: ml-git repository config show [OPTIONS]
 
   Configuration of this ml-git repository
 
 Options:
-  --help  Show this message and exit.
+  -l, --local   Local configurations
+  -g, --global  Global configurations
+  --help        Show this message and exit.
 ```
 
 Example:
 ```
-$ ml-git repository config
+$ ml-git repository config show
 config:
 {'datasets': {'git': 'git@github.com:example/your-mlgit-datasets'},
  'storages': {'s3': {'mlgit-datasets': {'aws-credentials': {'profile': 'mlgit'},
