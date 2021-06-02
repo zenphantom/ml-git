@@ -28,6 +28,10 @@ If you are setting up a bucket of azure type:
 
 - [Azure CLI](https://docs.microsoft.com/pt-br/cli/azure/): The Azure command-line interface (Azure CLI) is a set of commands used to create and manage Azure resources.
 
+If you are setting up a bucket of minio type:
+
+- [MinIO](https://min.io/): That said, you can configure it in the same way as described above by placing Access Key and Secret Access Key of your MinIO bucket.
+
 
 ### **How to use:**
 
