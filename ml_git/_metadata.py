@@ -72,7 +72,8 @@ class MetadataRepo(object):
 
     def create_remote(self):
         config_repo = Repo(path=self.__path)
-        config_repo.create_remote(name='origin', url=self.__git)
+        origin = config_repo.create_remote(name='origin', url=self.__git)
+        origin.fetch()
 
     def remote_set_url(self, mlgit_remote):
         try:

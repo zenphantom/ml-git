@@ -368,3 +368,24 @@ def singleton(cls):
             instances[cls] = cls(*args, **kwargs)
         return instances[cls]
     return instance
+
+
+def create_or_update_gitignore():
+    gitignore_path = os.path.join(get_root_path(), '.gitignore')
+    ignored_files = ['%s/%s' % (ROOT_FILE_NAME, EntityType.DATASETS.value),
+                     '%s/%s' % (ROOT_FILE_NAME, EntityType.MODELS.value),
+                     '%s/%s' % (ROOT_FILE_NAME, EntityType.LABELS.value),
+                     EntityType.DATASETS.value, EntityType.LABELS.value, EntityType.MODELS.value]
+    mode = 'w+'
+    if os.path.exists(gitignore_path):
+        mode = 'a+'
+        with open(gitignore_path, 'r') as file:
+            for line in file:
+                formatted_line = line.rstrip('\n')
+                if formatted_line in ignored_files:
+                    ignored_files.remove(formatted_line)
+
+    with open(gitignore_path, mode) as file:
+        file.write('\n')
+        for remaining_file in ignored_files:
+            file.write(remaining_file + '\n')

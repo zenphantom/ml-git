@@ -8,7 +8,7 @@ import re
 import shutil
 
 import humanize
-from git import InvalidGitRepositoryError, GitError
+from git import InvalidGitRepositoryError, GitError, Repo
 from halo import Halo
 
 from ml_git import log
@@ -21,7 +21,7 @@ from ml_git.config import get_index_path, get_objects_path, get_cache_path, get_
 from ml_git.constants import REPOSITORY_CLASS_NAME, LOCAL_REPOSITORY_CLASS_NAME, HEAD, HEAD_1, MutabilityType, \
     StorageType, \
     RGX_TAG_FORMAT, EntityType, MANIFEST_FILE, SPEC_EXTENSION, MANIFEST_KEY, STATUS_NEW_FILE, STATUS_DELETED_FILE, \
-    FileType, STORAGE_CONFIG_KEY
+    FileType, STORAGE_CONFIG_KEY, CONFIG_FILE
 from ml_git.file_system.cache import Cache
 from ml_git.file_system.hashfs import MultihashFS
 from ml_git.file_system.index import MultihashIndex, Status, FullIndex
@@ -38,7 +38,7 @@ from ml_git.spec import spec_parse, search_spec_file, increment_version_in_spec,
 from ml_git.tag import UsrTag
 from ml_git.utils import yaml_load, ensure_path_exists, get_root_path, \
     RootPathException, change_mask_for_routine, clear, get_yaml_str, unzip_files_in_directory, \
-    remove_from_workspace, disable_exception_traceback, group_files_by_path
+    remove_from_workspace, disable_exception_traceback, group_files_by_path, create_or_update_gitignore
 
 
 class Repository(object):
@@ -1186,7 +1186,7 @@ class Repository(object):
 
     @staticmethod
     def repo_config_init(remote_url):
-        config_repo = MetadataRepo(remote_url, '', 'project')
+        config_repo = MetadataRepo(remote_url, get_root_path(), 'project')
         try:
             created_repository = config_repo.init_local_repo()
             log.info(output_messages['INFO_CREATING_REMOTE'] % remote_url, class_name=REPOSITORY_CLASS_NAME)
@@ -1194,6 +1194,21 @@ class Repository(object):
                 config_repo.create_remote()
             else:
                 config_repo.remote_set_url(remote_url)
+            create_or_update_gitignore()
         except Exception as e:
             log.error(e, class_name=REPOSITORY_CLASS_NAME)
+            return e
+
+    @staticmethod
+    def repo_config_push(message):
+        root_path = get_root_path()
+        config_repo = MetadataRepo('', root_path, 'project')
+        config_file = os.path.join(root_path, CONFIG_FILE)
+        try:
+            config_repo.commit(config_file, message)
+            log.info(output_messages['INFO_PUSH_CONFIG_FILE'], class_name=REPOSITORY_CLASS_NAME)
+            repo = Repo(root_path)
+            repo.git.push(['-u', 'origin', config_repo.get_default_branch()])
+        except Exception as e:
+            log.error(output_messages['ERROR_PUSH_CONFIG'] % e, class_name=REPOSITORY_CLASS_NAME)
             return e

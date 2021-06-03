@@ -64,7 +64,8 @@ def gc():
 
 @config.command('push', help='Create a new version of the ml-git configuration file. '
                              'This command internally runs git\'s add, commit and push commands.')
-@click.option('--message', '-m', help='Use the provided <msg> as the commit message.')
+@click.option('--message', '-m', default='Updating config file', help='Use the provided <msg> as the commit message.')
 @click.option('--verbose', is_flag=True, expose_value=False, callback=set_verbose_mode, help='Debug mode')
 def push(**kwargs):
+    repositories[PROJECT].repo_config_push(kwargs['message'])
     pass
