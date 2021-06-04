@@ -1,17 +1,15 @@
 ## Description
 
-Please include a summary of the change and which issue is fixed.
-Please also include relevant motivation and context.
+Please include a clear and concise description of the change, the relevant motivation and the context. If it is related to an issue remember to reference it. Whenever possible, add examples of executions.
 
 Fixes # (issue)
 
 ## Type of change
 
-Please delete options that are not relevant.
-
 - [ ] Bug fix (non-breaking change which fixes an issue)
 - [ ] New feature (non-breaking change which adds functionality)
 - [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
+- [ ] Documentation update
 
 ## How has been tested?
 
@@ -23,7 +21,7 @@ Please also list any relevant details for your test configuration.
 
 ## Checklist:
 
-- [ ] I have run `flake8 .` on this repository
+- [ ] I have run `flake8 .` on the project and my changes do not generate new warnings.
 - [ ] I have followed the style guidelines of this project
 - [ ] I have performed a self-review of my own code
 - [ ] I have commented my code, particularly in hard-to-understand areas
