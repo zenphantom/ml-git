@@ -65,10 +65,9 @@ class MetadataRepo(object):
         if os.path.exists(os.path.join(self.__path, '.git')):
             log.debug(output_messages['DEBUG_ALREADY_IN_GIT_REPOSITORY'] % self.__path, class_name=METADATA_MANAGER_CLASS_NAME)
             return False
-        else:
-            log.info(output_messages['INFO_CREATING_GIT_REPOSITORY'] % self.__path, class_name=METADATA_MANAGER_CLASS_NAME)
-            Repo.init(self.__path)
-            return True
+        log.info(output_messages['INFO_CREATING_GIT_REPOSITORY'] % self.__path, class_name=METADATA_MANAGER_CLASS_NAME)
+        Repo.init(self.__path)
+        return True
 
     def create_remote(self):
         config_repo = Repo(path=self.__path)

@@ -788,7 +788,6 @@ Usage: ml-git repository config push [OPTIONS]
 Options:
   -m, --message TEXT  Use the provided <msg> as the commit message.
   --verbose           Debug mode
-  --help              Show this message and exit.
 ```
 
 Example:
@@ -810,7 +809,7 @@ Usage: ml-git repository config show [OPTIONS]
 Options:
   -l, --local   Local configurations
   -g, --global  Global configurations
-  --help        Show this message and exit.
+  --verbose     Debug mode
 ```
 
 Example:

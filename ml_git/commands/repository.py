@@ -1,5 +1,5 @@
 """
-© Copyright 2020-2021 HP Development Company, L.P.
+© Copyright 2020 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
 
@@ -38,6 +38,8 @@ def init():
 @config.command('show', help='Configuration of this ml-git repository')
 @click.option('--local', '-l', is_flag=True, default=False, help='Local configurations')
 @click.option('--global', '-g', is_flag=True, default=False, help='Global configurations')
+@click.option('--verbose', is_flag=True, expose_value=False, callback=set_verbose_mode, help='Debug mode')
+@click.help_option(hidden=True)
 def show(**kwargs):
     config_file = config_load()
     if kwargs['global']:
@@ -66,6 +68,7 @@ def gc():
                              'This command internally runs git\'s add, commit and push commands.')
 @click.option('--message', '-m', default='Updating config file', help='Use the provided <msg> as the commit message.')
 @click.option('--verbose', is_flag=True, expose_value=False, callback=set_verbose_mode, help='Debug mode')
+@click.help_option(hidden=True)
 def push(**kwargs):
     repositories[PROJECT].repo_config_push(kwargs['message'])
     pass

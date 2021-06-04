@@ -186,7 +186,6 @@ class APIAcceptanceTests(unittest.TestCase):
         api.clone(self.GIT_CLONE)
         os.chdir(self.tmp_dir)
         self.assertTrue(os.path.exists('.ml-git'))
-        self.assertTrue(os.path.exists('.git'))
 
     @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
     def test_09_clone_with_untracked_and_folder(self):

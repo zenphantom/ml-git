@@ -1,5 +1,5 @@
 """
-© Copyright 2020-2021 HP Development Company, L.P.
+© Copyright 2020 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
 import os
@@ -72,20 +72,19 @@ class ConfigAcceptanceTests(unittest.TestCase):
         self.assertIn(output_messages['ERROR_NOT_IN_RESPOSITORY'], output)
         self.assertNotIn(output_messages['INFO_COMMIT_REPO'] % (self.tmp_dir, config_file_path), output)
 
-    @pytest.mark.usefixtures('start_empty_git_server', 'switch_to_tmp_dir')
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_06_config_push_after_clone(self):
         git_repository = os.path.join(PATH_TEST, 'git_clone.git')
         os.makedirs(git_repository, exist_ok=True)
         create_git_clone_repo(git_repository, self.tmp_dir)
         self.assertIn(output_messages['INFO_SUCCESS_LOAD_CONFIGURATION'], check_output(MLGIT_CLONE % (git_repository, '--folder=' + CLONE_FOLDER)))
-        clone_dir = os.path.join(CLONE_FOLDER, '.ml-git')
-        self.check_metadata_entity(clone_dir)
-        self.assertTrue(os.path.exists('.git'))
-        self.assertTrue(os.path.exists('.gitignore'))
+        self.assertTrue(os.path.exists(os.path.join(CLONE_FOLDER, '.git')))
+        self.assertTrue(os.path.exists(os.path.join(CLONE_FOLDER, '.gitignore')))
 
+        os.chdir(CLONE_FOLDER)
         output = check_output(MLGIT_CONFIG_PUSH % '')
-        config_file_path = os.path.join(self.tmp_dir, CONFIG_FILE)
-        self.assertIn(output_messages['INFO_COMMIT_REPO'] % (self.tmp_dir, config_file_path), output)
+        config_file_path = os.path.join(self.tmp_dir, CLONE_FOLDER, CONFIG_FILE)
+        self.assertIn(output_messages['INFO_COMMIT_REPO'] % (os.path.join(self.tmp_dir, CLONE_FOLDER), config_file_path), output)
         self.assertIn(output_messages['INFO_PUSH_CONFIG_FILE'], output)
         self.assertNotIn(ERROR_MESSAGE, output)
         self.assertIn('Updating config file', check_output(GIT_LOG_COMMAND))
