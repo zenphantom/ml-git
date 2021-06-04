@@ -9,7 +9,7 @@ from ml_git.constants import DATASET_SPEC_KEY, LABELS_SPEC_KEY, MODEL_SPEC_KEY, 
 
 
 class Entity:
-    """Class that's represents a ml-entity.
+    """Class that's represents an ml-entity.
 
     Attributes:
         entity_type (str): The type of the ml-entity (datasets, models, labels).

@@ -240,7 +240,7 @@ def storage_add(bucket_name, bucket_type=StorageType.S3H.value, credentials=None
 
 ```python
 def init_entity_manager(github_token, url):
-    """Initialize the a entity manager to operate over github api.
+    """Initialize an entity manager to operate over github API.
 
         Examples:
             init_entity_manager('github_token', 'https://api.github.com')
@@ -256,6 +256,9 @@ def init_entity_manager(github_token, url):
 ```
 </details>
 
+## Classes used in the API.
+
+Some methods uses the described below classes:
 <details markdown="1">
 <summary><code> EntityManager </code></summary>
 <br>

@@ -309,7 +309,7 @@ def get_models_metrics(entity_name, export_path=None, export_type=FileType.JSON.
 
 
 def init_entity_manager(github_token, url):
-    """Initialize the a entity manager to operate over github api.
+    """Initialize an entity manager to operate over github API.
 
         Examples:
             init_entity_manager('github_token', 'https://api.github.com')
