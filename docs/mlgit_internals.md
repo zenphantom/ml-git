@@ -889,16 +889,16 @@ Note:
 
 <details markdown="1">
 <summary> <code>ml-git repository config push </code></summary>
-Command try to load the configurations from the file **.ml-git/config.yaml**. 
+This command will do all the processing to create a new version of the configuration file on the configured remote.
 
-If the file is found, it will show the configurations read from the file, if not it will show the default configurations in the project.
+This processing includes executing the git add, git commit, and git push commands. After execution the user will be able to observe the update of the configuration file in the Git repository.
 </details>
 
 <details markdown="1">
 <summary> <code>ml-git repository config show </code></summary>
-This command will do all the processing to create a new version of the configuration file on the configured remote.
+Command try to load the configurations from the file **.ml-git/config.yaml**. 
 
-This processing includes executing the git add, git commit, and git push commands. After execution the user will be able to observe the update of the configuration file in the Git repository.
+If the file is found, it will show the configurations read from the file, if not it will show the default configurations in the project.
 </details>
 
 <details markdown="1">
