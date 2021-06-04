@@ -866,7 +866,7 @@ ml-git_project/
 `--folder`:
 The configuration files are cloned in specified folder.
 
-`--untrack`:
+`--untracked`:
 The ml-git clone does not preserve **.git** folder in the directory of cloned configuration files.
 
 ```
