@@ -1,5 +1,5 @@
 """
-© Copyright 2020 HP Development Company, L.P.
+© Copyright 2020-2021 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
 import os
@@ -7,10 +7,12 @@ import unittest
 
 import pytest
 
+from ml_git.constants import CONFIG_FILE
 from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_INIT, MLGIT_CONFIG_SHOW, MLGIT_CLONE, MLGIT_CONFIG_PUSH, \
     MLGIT_CONFIG_REMOTE
-from tests.integration.helper import check_output, CLONE_FOLDER, ML_GIT_DIR, ERROR_MESSAGE, GIT_PATH
+from tests.integration.helper import check_output, CLONE_FOLDER, ERROR_MESSAGE, GIT_PATH, \
+    create_git_clone_repo, PATH_TEST
 
 GIT_LOG_COMMAND = 'git log --pretty=format:"%h - %an, %ar : %s"'
 
@@ -38,7 +40,8 @@ class ConfigAcceptanceTests(unittest.TestCase):
         self.assertFalse(os.path.exists('.git'))
         self.assertIn(output_messages['INFO_CREATING_REMOTE'] % git_url, check_output(MLGIT_CONFIG_REMOTE % git_url))
         self.assertTrue(os.path.exists('.git'))
-        self.assertIn(git_url, check_output('git remote -v'))
+        self.assertTrue(os.path.exists('.gitignore'))
+        self.assertIn(GIT_PATH, check_output('git remote -v'))
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_03_add_remote_in_empty_folder(self):
@@ -48,7 +51,7 @@ class ConfigAcceptanceTests(unittest.TestCase):
         self.assertFalse(os.path.exists('.git'))
         self.assertNotIn(git_url, check_output('git remote -v'))
 
-    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
+    @pytest.mark.usefixtures('start_empty_git_server', 'switch_to_tmp_dir')
     def test_04_config_push_after_remote_add(self):
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_INIT))
         git_url = os.path.join(self.tmp_dir, GIT_PATH)
@@ -56,7 +59,7 @@ class ConfigAcceptanceTests(unittest.TestCase):
         self.assertTrue(os.path.exists('.git'))
 
         output = check_output(MLGIT_CONFIG_PUSH % '')
-        config_file_path = os.path.join(self.tmp_dir, ML_GIT_DIR, 'config.yaml')
+        config_file_path = os.path.join(self.tmp_dir, CONFIG_FILE)
         self.assertIn(output_messages['INFO_COMMIT_REPO'] % (self.tmp_dir, config_file_path), output)
         self.assertIn(output_messages['INFO_PUSH_CONFIG_FILE'], output)
         self.assertNotIn(ERROR_MESSAGE, output)
@@ -65,35 +68,39 @@ class ConfigAcceptanceTests(unittest.TestCase):
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_05_config_push_in_empty_folder(self):
         output = check_output(MLGIT_CONFIG_PUSH % '')
-        config_file_path = os.path.join(self.tmp_dir, ML_GIT_DIR, 'config.yaml')
+        config_file_path = os.path.join(self.tmp_dir, CONFIG_FILE)
         self.assertIn(output_messages['ERROR_NOT_IN_RESPOSITORY'], output)
         self.assertNotIn(output_messages['INFO_COMMIT_REPO'] % (self.tmp_dir, config_file_path), output)
 
-    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
+    @pytest.mark.usefixtures('start_empty_git_server', 'switch_to_tmp_dir')
     def test_06_config_push_after_clone(self):
-        self.set_up_clone()
-        self.assertIn(output_messages['INFO_SUCCESS_LOAD_CONFIGURATION'], check_output(MLGIT_CLONE % (self.GIT_CLONE, '--folder=' + CLONE_FOLDER)))
+        git_repository = os.path.join(PATH_TEST, 'git_clone.git')
+        os.makedirs(git_repository, exist_ok=True)
+        create_git_clone_repo(git_repository, self.tmp_dir)
+        self.assertIn(output_messages['INFO_SUCCESS_LOAD_CONFIGURATION'], check_output(MLGIT_CLONE % (git_repository, '--folder=' + CLONE_FOLDER)))
         clone_dir = os.path.join(CLONE_FOLDER, '.ml-git')
         self.check_metadata_entity(clone_dir)
         self.assertTrue(os.path.exists('.git'))
+        self.assertTrue(os.path.exists('.gitignore'))
 
         output = check_output(MLGIT_CONFIG_PUSH % '')
-        config_file_path = os.path.join(self.tmp_dir, ML_GIT_DIR, 'config.yaml')
+        config_file_path = os.path.join(self.tmp_dir, CONFIG_FILE)
         self.assertIn(output_messages['INFO_COMMIT_REPO'] % (self.tmp_dir, config_file_path), output)
         self.assertIn(output_messages['INFO_PUSH_CONFIG_FILE'], output)
         self.assertNotIn(ERROR_MESSAGE, output)
         self.assertIn('Updating config file', check_output(GIT_LOG_COMMAND))
 
-    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
+    @pytest.mark.usefixtures('start_empty_git_server', 'switch_to_tmp_dir')
     def test_07_config_push_with_message(self):
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_INIT))
         git_url = os.path.join(self.tmp_dir, GIT_PATH)
         self.assertIn(output_messages['INFO_CREATING_REMOTE'] % git_url, check_output(MLGIT_CONFIG_REMOTE % git_url))
         self.assertTrue(os.path.exists('.git'))
+        self.assertTrue(os.path.exists('.gitignore'))
 
-        message = '-m \"My testing message\"'
-        output = check_output(MLGIT_CONFIG_PUSH % message)
-        config_file_path = os.path.join(self.tmp_dir, ML_GIT_DIR, 'config.yaml')
+        message = 'My testing message'
+        output = check_output(MLGIT_CONFIG_PUSH % '-m \"%s\"' % message)
+        config_file_path = os.path.join(self.tmp_dir, CONFIG_FILE)
         self.assertIn(output_messages['INFO_COMMIT_REPO'] % (self.tmp_dir, config_file_path), output)
         self.assertIn(output_messages['INFO_PUSH_CONFIG_FILE'], output)
         self.assertNotIn(ERROR_MESSAGE, output)

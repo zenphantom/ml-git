@@ -66,6 +66,7 @@ class Repository(object):
             metadata_path = get_metadata_path(self.__config)
             m = Metadata('', metadata_path, self.__config, self.__repo_type)
             m.remote_set_url(mlgit_remote)
+            log.info(output_messages['INFO_CHANGE_IN_CONFIG_FILE'], class_name=REPOSITORY_CLASS_NAME)
         except Exception as e:
             log.error(e, class_name=REPOSITORY_CLASS_NAME)
             return
@@ -76,6 +77,7 @@ class Repository(object):
             metadata = Metadata('', metadata_path, self.__config, self.__repo_type)
             if metadata.delete_git_reference():
                 remote_del(self.__repo_type, global_conf)
+            log.info(output_messages['INFO_CHANGE_IN_CONFIG_FILE'], class_name=REPOSITORY_CLASS_NAME)
         except Exception as e:
             log.error(e, class_name=REPOSITORY_CLASS_NAME)
             return

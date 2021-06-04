@@ -159,6 +159,8 @@ output_messages = {
     'INFO_CREATING_GIT_REPOSITORY': 'Creating new git repository at project root [%s]',
     'INFO_CREATING_REMOTE': 'Adding remote to the initialized project [%s]',
     'INFO_PUSH_CONFIG_FILE': 'Pushing config file to remote repository',
+    'INFO_CHANGE_IN_CONFIG_FILE': 'When making changes to the config file we strongly recommend that you upload these changes to '
+                                  'the Git repository. For this, see: ml-git repository config push --help',
 
     'ERROR_PATH_NOT_EMPTY': 'The path [%s] is not an empty directory. Consider using --folder to create an empty folder.',
     'ERROR_WITHOUT_TAG_FOR_THIS_ENTITY': 'No entity with that name was found.',

@@ -1,5 +1,5 @@
 """
-© Copyright 2020 HP Development Company, L.P.
+© Copyright 2020-2021 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
 
@@ -34,6 +34,7 @@ class CloneTest(unittest.TestCase):
         clone_dir = os.path.join(CLONE_FOLDER, '.ml-git')
         self.check_metadata_entity(clone_dir)
         self.assertTrue(os.path.exists('.git'))
+        self.assertTrue(os.path.exists('.gitignore'))
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_02_clone_folder_non_empty(self):

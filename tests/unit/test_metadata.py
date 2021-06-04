@@ -361,3 +361,10 @@ class MetadataTestCases(unittest.TestCase):
             last_version = m.get_last_tag_version(sepc_path)
         self.assertEqual(last_version, 0)
         clear(self.test_dir)
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_test_dir')
+    def test_init_local_repo(self):
+        m = Metadata(spec, self.test_dir, config, DATASETS)
+        m.init()
+        self.assertTrue(m.check_exists())
+        clear(m.path)

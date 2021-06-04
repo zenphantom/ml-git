@@ -855,6 +855,7 @@ The command clones the git repository which should contain a directory **.ml-git
 
 ```
 ml-git_project/
+└── .git
 └── .ml-git/
     └── <ml-entity>/
         └── metadata/
@@ -865,15 +866,14 @@ ml-git_project/
 `--folder`:
 The configuration files are cloned in specified folder.
 
-`--track`:
-The ml-git clone preserves **.git** folder in the same directory of cloned configuration files.
+`--untrack`:
+The ml-git clone does not preserve **.git** folder in the directory of cloned configuration files.
 
 ```
 ml-git_project/
 └── .ml-git/
     └── <ml-entity>/
        └── metadata/
-          └── .git
 ```
 
 </details>
@@ -888,10 +888,17 @@ Note:
 </details>
 
 <details markdown="1">
-<summary> <code>ml-git repository config show </code></summary>
+<summary> <code>ml-git repository config push </code></summary>
 Command try to load the configurations from the file **.ml-git/config.yaml**. 
 
 If the file is found, it will show the configurations read from the file, if not it will show the default configurations in the project.
+</details>
+
+<details markdown="1">
+<summary> <code>ml-git repository config show </code></summary>
+This command will do all the processing to create a new version of the configuration file on the configured remote.
+
+This processing includes executing the git add, git commit, and git push commands. After execution the user will be able to observe the update of the configuration file in the Git repository.
 </details>
 
 <details markdown="1">

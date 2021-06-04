@@ -735,9 +735,9 @@ Usage: ml-git clone [OPTIONS] REPOSITORY_URL
   Clone a ml-git repository ML_GIT_REPOSITORY_URL
 
 Options:
-  --folder TEXT
-  --track
-  --help         Show this message and exit.
+  --folder TEXT  The configuration files are cloned in specified folder.
+  --untracked    Does not preserve git repository tracking.
+  --verbose      Debug mode
 ```
 
 Example:
@@ -771,6 +771,29 @@ Options:
 Example:
 ```
 ml-git login
+```
+
+</details>
+
+<details markdown="1">
+<summary><code> ml-git repository config push</code></summary>
+<br>
+
+```
+Usage: ml-git repository config push [OPTIONS]
+
+  Create a new version of the ml-git configuration file. This command
+  internally runs git's add, commit and push commands.
+
+Options:
+  -m, --message TEXT  Use the provided <msg> as the commit message.
+  --verbose           Debug mode
+  --help              Show this message and exit.
+```
+
+Example:
+```
+$ ml-git repository config push -m "My commit message"
 ```
 
 </details>
@@ -880,6 +903,26 @@ Options:
 Example:
 ```
 $ ml-git repository remote dataset del
+```
+
+</details>
+
+<details markdown="1">
+<summary><code> ml-git repository remote config add </code></summary>
+<br>
+
+```
+Usage: ml-git repository remote config add [OPTIONS] REMOTE_URL
+
+  Starts a git at the root of the project and configure the remote.
+
+Options:
+  --verbose  Debug mode
+```
+
+Example:
+```
+$ ml-git repository remote config add https://git@github.com/mlgit-config
 ```
 
 </details>
