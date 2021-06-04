@@ -7,7 +7,7 @@ import github
 
 class GithubManager:
     """
-    Class to manager github operations
+    Class to manage github operations
     """
 
     def __init__(self, github_token, url):
@@ -17,7 +17,7 @@ class GithubManager:
         """
         Find repository by name
         :param: repository_name (str). The name of repository.
-        :return: :class:github.Repository.Repository
+        :return: :class: github.Repository.Repository
         """
         return next(iter(self.__client.search_repositories(repository_name)), None)
 

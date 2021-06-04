@@ -235,7 +235,7 @@ def storage_add(bucket_name, bucket_type=StorageType.S3H.value, credentials=None
 
 
 <details markdown="1">
-<summary><code> init_entity_manager </code></summary>
+<summary><code> init entity manager </code></summary>
 <br>
 
 ```python
