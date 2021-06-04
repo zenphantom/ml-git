@@ -44,7 +44,6 @@ create_new_bucket()
 {
    read -p "What type of storage do you want to configure? [s3h, azureblobh, minio]: " STORE_TYPE
    read -p "What name do you want to give to your bucket? " BUCKET_NAME
-   read -p "What endpoint url connection to your bucket? " ENDPOINT
    
    {
    if [ "${STORE_TYPE}" == "s3h" ];
@@ -57,6 +56,8 @@ create_new_bucket()
       echo "        profile: default" >> config.yaml
    elif [ "${STORE_TYPE}" == "minio" ];
    then
+      read -p "What endpoint url connection to your bucket? " ENDPOINT
+
       echo "  s3h:" >> config.yaml
       echo "    ${BUCKET_NAME}:" >> config.yaml
 
@@ -169,9 +170,9 @@ project_information
 
 
 echo -e "\n## GIT REPOSITORIES CONFIGURATION ##"
-create_new_github_repository dataset
+create_new_github_repository datasets
 create_new_github_repository labels
-create_new_github_repository model
+create_new_github_repository models
 
 echo -e "\n## BUCKET CONFIGURATION ##"
 echo "storage:" >> config.yaml

@@ -14,9 +14,9 @@ CALL:PROJECT_INFORMATION
 
 ECHO.
 ECHO ## GIT REPOSITORIES CONFIGURATION ##
-CALL:CREATE_NEW_GITHUB_REPOSITORY dataset
+CALL:CREATE_NEW_GITHUB_REPOSITORY datasets
 CALL:CREATE_NEW_GITHUB_REPOSITORY labels
-CALL:CREATE_NEW_GITHUB_REPOSITORY model
+CALL:CREATE_NEW_GITHUB_REPOSITORY models
 
 ECHO.
 ECHO ## BUCKET CONFIGURATION ##
@@ -99,6 +99,7 @@ GOTO :END
    IF ["%STORE_TYPE%"]==["s3h"] (
       ECHO   %STORE_TYPE%: >> config.yaml
       ECHO     %BUCKET_NAME%: >> config.yaml
+
       aws s3api create-bucket --bucket %BUCKET_NAME% --region us-east-1
       ECHO       aws-credentials: >> config.yaml
       ECHO         profile: default >> config.yaml
