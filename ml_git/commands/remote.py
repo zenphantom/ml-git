@@ -95,11 +95,11 @@ def repo_remote_md_del(**kwargs):
     repositories[MODELS].repo_remote_del(kwargs['global'])
 
 
-@repo_remote.group('config', help='Manage remote ml-git config repository.', cls=DYMGroup)
+@repo_remote.group('config', help='Manage remote ML-Git config repository.', cls=DYMGroup)
 @click.pass_context
 def repo_remote_config(ctx):
     """
-    Manage remote ml-git config repository.
+    Manage remote ML-Git config repository.
     """
     pass
 

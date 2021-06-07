@@ -891,7 +891,7 @@ Note:
 <summary> <code>ml-git repository config push </code></summary>
 This command will do all the processing to create a new version of the configuration file on the configured remote.
 
-This processing includes executing the git add, git commit, and git push commands. After execution the user will be able to observe the update of the configuration file in the Git repository.
+This processing includes executing the git add, git commit, and git push commands. After execution, the user will be able to observe the update of the configuration file in the Git repository.
 </details>
 
 <details markdown="1">

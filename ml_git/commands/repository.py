@@ -22,10 +22,10 @@ def repository():
     pass
 
 
-@repository.group('config', help='Management of the ml-git config file.', cls=DYMGroup)
+@repository.group('config', help='Management of the ML-Git config file.', cls=DYMGroup)
 def config():
     """
-    Management of the ml-git config file.
+    Management of the ML-Git config file.
     """
     pass
 
@@ -35,7 +35,7 @@ def init():
     init_mlgit()
 
 
-@config.command('show', help='Configuration of this ml-git repository')
+@config.command('show', help='Configuration of this ML-Git repository')
 @click.option('--local', '-l', is_flag=True, default=False, help='Local configurations')
 @click.option('--global', '-g', is_flag=True, default=False, help='Global configurations')
 @click.option('--verbose', is_flag=True, expose_value=False, callback=set_verbose_mode, help='Debug mode')
@@ -64,7 +64,7 @@ def gc():
     repositories[PROJECT].garbage_collector()
 
 
-@config.command('push', help='Create a new version of the ml-git configuration file. '
+@config.command('push', help='Create a new version of the ML-Git configuration file. '
                              'This command internally runs git\'s add, commit and push commands.')
 @click.option('--message', '-m', default='Updating config file', help='Use the provided <msg> as the commit message.')
 @click.option('--verbose', is_flag=True, expose_value=False, callback=set_verbose_mode, help='Debug mode')

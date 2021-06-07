@@ -782,7 +782,7 @@ ml-git login
 ```
 Usage: ml-git repository config push [OPTIONS]
 
-  Create a new version of the ml-git configuration file. This command
+  Create a new version of the ML-Git configuration file. This command
   internally runs git's add, commit and push commands.
 
 Options:
