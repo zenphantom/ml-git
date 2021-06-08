@@ -1,4 +1,4 @@
-site_name: ML Git
+site_name: ML-Git
 nav:
   - Home:
     - Introduction: index.md

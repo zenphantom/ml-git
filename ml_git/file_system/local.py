@@ -10,9 +10,11 @@ import json
 import os
 import shutil
 import tempfile
+from asyncio import CancelledError
 from pathlib import Path
 
 from botocore.client import ClientError
+from ml_git.error_handler import error_handler
 from tqdm import tqdm
 
 from ml_git import log
@@ -51,11 +53,12 @@ class LocalRepository(MultihashFS):
         ret = storage.file_store(obj, obj_path)
         return ret
 
-    def _create_pool(self, config, storage_str, retry, pb_elts=None, pb_desc='blobs', nworkers=os.cpu_count() * 5):
+    def _create_pool(self, config, storage_str, retry, pb_elts=None, pb_desc='blobs', nworkers=os.cpu_count() * 5, fail_limit=None):
         _storage_factory = lambda: storage_factory(config, storage_str)  # noqa: E731
-        return pool_factory(ctx_factory=_storage_factory, retry=retry, pb_elts=pb_elts, pb_desc=pb_desc, nworkers=nworkers)
+        return pool_factory(ctx_factory=_storage_factory, retry=retry, pb_elts=pb_elts,
+                            pb_desc=pb_desc, nworkers=nworkers, fail_limit=fail_limit)
 
-    def push(self, object_path, spec_file, retry=2, clear_on_fail=False):
+    def push(self, object_path, spec_file, retry=2, clear_on_fail=False, fail_limit=None):
         repo_type = self.__repo_type
         entity_spec_key = get_spec_key(repo_type)
 
@@ -79,33 +82,36 @@ class LocalRepository(MultihashFS):
 
         nworkers = get_push_threads_count(self.__config)
 
-        wp = self._create_pool(self.__config, manifest[STORAGE_SPEC_KEY], retry, len(objs), 'files', nworkers)
+        wp = self._create_pool(self.__config, manifest[STORAGE_SPEC_KEY], retry, len(objs), 'files', nworkers, fail_limit)
         for obj in objs:
             # Get obj from filesystem
             obj_path = self.get_keypath(obj)
             wp.submit(self._pool_push, obj, obj_path)
 
-        upload_errors = False
         futures = wp.wait()
         uploaded_files = []
-        files_not_found = 0
+        error = ''
         for future in futures:
             try:
                 success = future.result()
-                # test success w.r.t potential failures
-                # Get the uploaded file's key
                 uploaded_files.append(list(success.values())[0])
             except Exception as e:
-                if type(e) is FileNotFoundError:
-                    files_not_found += 1
-                log.error(output_messages['ERROR_FATAL_PUSH'] % e, class_name=LOCAL_REPOSITORY_CLASS_NAME)
-                upload_errors = True
-
-        if clear_on_fail and len(uploaded_files) > 0 and upload_errors:
-            self._delete(uploaded_files, spec_file, retry)
+                if not (type(e) is CancelledError):
+                    log.debug(output_messages['ERROR_FATAL_PUSH'] % e, class_name=LOCAL_REPOSITORY_CLASS_NAME)
+                    error = e
         wp.progress_bar_close()
         wp.reset_futures()
-        return 0 if not upload_errors else 1
+
+        if wp.errors_count > 0:
+            log.error(output_messages['ERROR_ON_PUSH_BLOBS'] % wp.errors_count, class_name=LOCAL_REPOSITORY_CLASS_NAME)
+            handler_exit_code = error_handler(error)
+            if handler_exit_code == 0:
+                wp.errors_count = self.push(object_path, spec_file, retry, clear_on_fail, fail_limit)
+            else:
+                log.error(output_messages['ERROR_CANNOT_RECOVER'])
+            if clear_on_fail and len(uploaded_files) > 0 and handler_exit_code != 0:
+                self._delete(uploaded_files, spec_file, retry)
+        return 0 if not wp.errors_count > 0 else 1
 
     def _pool_delete(self, ctx, obj):
         storage = ctx
@@ -224,12 +230,24 @@ class LocalRepository(MultihashFS):
         for key in iplds:
             args["wp"].submit(args["function"], key)
         futures = args["wp"].wait()
-        try:
-            process_futures(futures, args["wp"])
-        except Exception as e:
-            log.error(args["error_msg"] % e, class_name=LOCAL_REPOSITORY_CLASS_NAME)
-            return False
+
+        for future in futures:
+            try:
+                future.result()
+            except Exception as e:
+                if not (type(e) is CancelledError):
+                    log.debug(output_messages['ERROR_FATAL_FETCH'] % e, class_name=LOCAL_REPOSITORY_CLASS_NAME)
+                return e
         return True
+
+    def _handle_fetch_error(self, lkeys, result, args):
+        log.error(output_messages['ERROR_ON_GETTING_BLOBS'] % len(lkeys), class_name=LOCAL_REPOSITORY_CLASS_NAME)
+        exit_code = error_handler(result)
+        if exit_code == 0:
+            exit_code = run_function_per_group(lkeys, 20, function=self._fetch_batch, arguments=args)
+        else:
+            log.error(output_messages['ERROR_CANNOT_RECOVER'], class_name=LOCAL_REPOSITORY_CLASS_NAME)
+        return exit_code
 
     def fetch(self, metadata_path, tag, samples, retries=2, bare=False):
         repo_type = self.__repo_type
@@ -272,7 +290,7 @@ class LocalRepository(MultihashFS):
             args['error_msg'] = 'Error to fetch ipld -- [%s]'
             args['function'] = self._fetch_ipld
             result = run_function_per_group(lkeys, 20, function=self._fetch_batch, arguments=args)
-            if not result:
+            if not result and self._handle_fetch_error(lkeys, result, args) != 0:
                 return False
             wp_ipld.progress_bar_close()
             del wp_ipld
@@ -283,7 +301,7 @@ class LocalRepository(MultihashFS):
             args['error_msg'] = 'Error to fetch blob -- [%s]'
             args['function'] = self._fetch_blob
             result = run_function_per_group(lkeys, 20, function=self._fetch_batch, arguments=args)
-            if not result:
+            if not result and self._handle_fetch_error(lkeys, result, args) != 0:
                 return False
             wp_blob.progress_bar_close()
             del wp_blob
@@ -388,7 +406,7 @@ class LocalRepository(MultihashFS):
             return None
         return obj_files
 
-    def checkout(self, cache_path, metadata_path, ws_path, tag, samples, bare=False, entity_dir=None):
+    def checkout(self, cache_path, metadata_path, ws_path, tag, samples, bare=False, entity_dir=None, fail_limit=None):
         _, spec_name, version = spec_parse(tag)
         index_path = get_index_path(self.__config, self.__repo_type)
 
@@ -417,13 +435,13 @@ class LocalRepository(MultihashFS):
                 is_shared_cache = 'cache_path' in self.__config[self.__repo_type]
                 with change_mask_for_routine(is_shared_cache):
                     cache = Cache(cache_path)
-                    wp = pool_factory(pb_elts=len(lkey), pb_desc='files into cache')
+                    wp = pool_factory(pb_elts=len(lkey), pb_desc='files into cache', fail_limit=fail_limit)
                     args = {'wp': wp, 'cache': cache, 'cache_path': cache_path}
                     if not run_function_per_group(lkey, 20, function=self.adding_files_into_cache, arguments=args):
                         return
                     wp.progress_bar_close()
 
-            wps = pool_factory(pb_elts=len(lkey), pb_desc='files into workspace')
+            wps = pool_factory(pb_elts=len(lkey), pb_desc='files into workspace', fail_limit=fail_limit)
             args = {'wps': wps, 'cache': cache, 'fidx': fidx, 'ws_path': ws_path, 'mfiles': mfiles,
                     'obj_files': obj_files, 'mutability': mutability}
             if not run_function_per_group(lkey, 20, function=self.adding_files_into_workspace, arguments=args):

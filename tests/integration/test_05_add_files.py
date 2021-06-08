@@ -11,12 +11,14 @@ import pytest
 
 from ml_git.ml_git_message import output_messages
 from ml_git.spec import get_spec_key
+from ml_git.utils import ensure_path_exists
+from tests.integration.commands import MLGIT_COMMIT, MLGIT_PUSH, MLGIT_CHECKOUT
 from tests.integration.helper import ML_GIT_DIR, create_spec, init_repository, ERROR_MESSAGE, MLGIT_ADD, \
     create_file, DATASETS, DATASET_NAME, MODELS, LABELS
 from tests.integration.helper import clear, check_output, add_file, entity_init, yaml_processor
 
 
-@pytest.mark.usefixtures('tmp_dir')
+@pytest.mark.usefixtures('tmp_dir', 'aws_session')
 class AddFilesAcceptanceTests(unittest.TestCase):
 
     def set_up_add(self, repo_type=DATASETS):
@@ -180,8 +182,45 @@ class AddFilesAcceptanceTests(unittest.TestCase):
             self.assertTrue(metrics['Accuracy'] == 1)
             self.assertTrue(metrics['Recall'] == 2)
 
+    def _push_tag_to_repositroy(self, entity, entity_path, file_name):
+        file_value = '1'
+        entity_name = '{}-ex'.format(entity)
+        create_file(entity_path, file_name, file_value, file_path='')
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ADD % (entity, entity_name, ' --bumpversion')))
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_COMMIT % (entity, entity_name, '')))
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_PUSH % (entity, entity_name)))
+
+    def _check_spec_version(self, repo_type, expected_version):
+        entity_name = '{}-ex'.format(repo_type)
+        workspace = os.path.join(self.tmp_dir, DATASETS, entity_name)
+        with open(os.path.join(workspace, entity_name + '.spec')) as spec:
+            spec_file = yaml_processor.load(spec)
+            spec_key = get_spec_key(repo_type)
+            version = spec_file[spec_key].get('version', 0)
+            self.assertEquals(version, expected_version)
+
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
-    def test_11_add_entity_with_readme_file_in_data(self):
+    def test_11_add_with_bumpversion_in_older_tag(self):
+        repo_type = DATASETS
+        entity_name = '{}-ex'.format(repo_type)
+        init_repository(repo_type, self)
+        entity_path = os.path.join(self.tmp_dir, DATASETS, DATASET_NAME)
+        ensure_path_exists(entity_path)
+        self._push_tag_to_repositroy(repo_type, entity_path, 'first_tag')
+        self._push_tag_to_repositroy(repo_type, entity_path, 'second_tag')
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_CHECKOUT % (repo_type, entity_name + ' --version=1')))
+        self._check_spec_version(repo_type, 1)
+        add_file(self, repo_type, '--bumpversion', 'third_tag')
+        self._check_spec_version(repo_type, 3)
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
+    def test_12_first_add_with_bumpversion(self):
+        init_repository(DATASETS, self)
+        add_file(self, DATASETS, '--bumpversion', 'new')
+        self._check_spec_version(DATASETS, 1)
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
+    def test_13_add_entity_with_readme_file_in_data(self):
         entity_init(DATASETS, self)
         workspace = os.path.join(self.tmp_dir, DATASETS, DATASET_NAME)
         create_file(workspace, 'README.md', '0', file_path='')

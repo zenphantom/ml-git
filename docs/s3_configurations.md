@@ -1,6 +1,6 @@
 # S3 bucket configuration #
 
-This section explains how to configure the settings that the ml-git uses to interact with your bucket. This requires that you have the following data:
+This section explains how to configure the settings that the ML-Git uses to interact with your bucket. This requires that you have the following data:
 
 1. Profile Name
 2. Access Key ID
@@ -10,11 +10,11 @@ This section explains how to configure the settings that the ml-git uses to inte
 
 The _Access Key ID_ and _Secret Access Key_ are your credentials. The _Region Name_ identifies the AWS Region whose servers you want to send your requests. The _Output Format_ specifies how the results are formatted.
 
-Ml-git allows you to have your bucket directly on AWS infrastructure or through MinIO. This document is divided into two sections wich describe how configure each one of these.
+ML-Git allows you to have your bucket directly on AWS infrastructure or through MinIO. This document is divided into two sections wich describe how configure each one of these.
 
 ## AWS ##
 
-Internally ml-git uses [Boto3](https://github.com/boto/boto3) to communicate with AWS services. Boto3 is the Amazon Web Services (AWS) SDK for Python. 
+Internally ML-Git uses [Boto3](https://github.com/boto/boto3) to communicate with AWS services. Boto3 is the Amazon Web Services (AWS) SDK for Python. 
 It enables Python developers to create, configure, and manage AWS services.
 
 Boto3 looks at various configuration locations until it finds configuration values. The following lookup order is used searching through sources for configuration values:

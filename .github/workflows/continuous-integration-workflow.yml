@@ -2,9 +2,9 @@ name: MLGit-CI
 
 on:
   push:
-    branches: [ development, v2.0-dev ]
+    branches: [ development ]
   pull_request:
-    branches: [ development, v2.0-dev ]
+    branches: [ development ]
 
 jobs:
   flake8:

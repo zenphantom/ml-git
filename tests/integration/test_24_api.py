@@ -56,7 +56,7 @@ class APIAcceptanceTests(unittest.TestCase):
                 },
                 'mutability': STRICT,
                 'name': DATASET_NAME,
-                'version': 9
+                'version': 10
             }
         }
 
@@ -70,7 +70,7 @@ class APIAcceptanceTests(unittest.TestCase):
         self.create_file(workspace, 'file3', 'a')
         self.create_file(workspace, 'file4', 'b')
 
-        api.add(DATASETS, DATASET_NAME, bumpversion=True)
+        api.add(DATASETS, DATASET_NAME)
         api.commit(DATASETS, DATASET_NAME)
         api.push(DATASETS, DATASET_NAME)
 
@@ -243,10 +243,12 @@ class APIAcceptanceTests(unittest.TestCase):
     def test_11_add_files_with_bumpversion(self):
         self.set_up_add_test()
         self.check_entity_version(1)
-
+        api.add(DATASETS, DATASET_NAME, fsck=False, file_path=[])
+        api.commit(DATASETS, DATASET_NAME)
+        file_name = 'new-file-test'
+        self.create_file_in_ws(DATASETS, file_name, '0')
         api.add(DATASETS, DATASET_NAME, bumpversion=True, fsck=False, file_path=[])
-
-        self.check_add()
+        self.check_add(files=[file_name])
         self.check_entity_version(2)
 
     @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
@@ -279,7 +281,7 @@ class APIAcceptanceTests(unittest.TestCase):
         HEAD = os.path.join(self.tmp_dir, ML_GIT_DIR, LABELS, 'refs', 'labels-ex', 'HEAD')
         self.assertTrue(os.path.exists(HEAD))
 
-        self.assertEqual('computer-vision__images__datasets-ex__2', spec[LABELS_SPEC_KEY][DATASET_SPEC_KEY]['tag'])
+        self.assertEqual('computer-vision__images__datasets-ex__11', spec[LABELS_SPEC_KEY][DATASET_SPEC_KEY]['tag'])
 
     def check_created_folders(self, entity_type, storage_type=S3H, version=1, bucket_name='fake_storage'):
         folder_data = os.path.join(self.tmp_dir, entity_type, entity_type + '-ex', 'data')

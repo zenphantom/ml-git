@@ -2,23 +2,23 @@
 
 
 
-Ml-git allows the user to choose to have their data stored in an Azure Blob Storage that provides massively scalable storage for unstructured data like images, videos, or documents.
+ML-Git allows the user to choose to have their data stored in an Azure Blob Storage that provides massively scalable storage for unstructured data like images, videos, or documents.
 
 
-This section explains how to configure the settings that ml-git uses to interact with your Azure container. 
+This section explains how to configure the settings that ML-Git uses to interact with your Azure container. 
 
-To establish the connection between ml-git and Azure services you will need a connection string which can be found on the Azure portal. See the image below:
+To establish the connection between ML-Git and Azure services, you will need a connection string which can be found on the Azure portal. See the image below:
 
 ![azure-connection](azure_connection.png)
 
-With this connection string in hand, you can configure your environment in two ways (this order is the one used by ml-git to get your credentials):
+With this connection string in hand, you can configure your environment in two ways (this order is the one used by ML-Git to get your credentials):
 
 + [Environment Variable](#config-environment-variable)
 + [Azure CLI](#azure-cli)
 
 #### <a name="config-environment-variable"> 1. Environment Variable </a> ####
 
-You can add the connection string to your system's set of variables. Ml-git will look for the variable **AZURE_STORAGE_CONNECTION_STRING**.
+You can add the connection string to your system's set of variables. ML-Git will look for the variable **AZURE_STORAGE_CONNECTION_STRING**.
 
 To add the system variable, run the following command:
 
