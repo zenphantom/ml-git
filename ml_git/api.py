@@ -40,7 +40,7 @@ def validate_sample(sampling):
     return True
 
 
-def checkout(entity, tag, sampling=None, retries=2, force=False, dataset=False, labels=False, version=-1):
+def checkout(entity, tag, sampling=None, retries=2, force=False, dataset=False, labels=False, version=-1, fail_limit=None):
     """This command allows retrieving the data of a specific version of an ML entity.
 
     Example:
@@ -61,6 +61,7 @@ def checkout(entity, tag, sampling=None, retries=2, force=False, dataset=False, 
         force (bool, optional): Force checkout command to delete untracked/uncommitted files from the local repository [default: False].
         dataset (bool, optional): If exist a dataset related with the model or labels, this one must be downloaded [default: False].
         labels (bool, optional): If exist labels related with the model, they must be downloaded [default: False].
+        fail_limit (int, optional): Number of failures before aborting the command [default: no limit].
 
     Returns:
         str: Return the path where the data was checked out.
@@ -78,6 +79,7 @@ def checkout(entity, tag, sampling=None, retries=2, force=False, dataset=False, 
     options['force'] = force
     options['bare'] = False
     options['version'] = version
+    options['fail_limit'] = fail_limit
     repo.checkout(tag, sampling, options)
 
     spec_name = tag
@@ -171,7 +173,7 @@ def commit(entity, ml_entity_name, commit_message=None, related_dataset=None, re
     repo.commit(ml_entity_name, specs, msg=commit_message)
 
 
-def push(entity, entity_name,  retries=2, clear_on_fail=False):
+def push(entity, entity_name,  retries=2, clear_on_fail=False, fail_limit=None):
     """This command allows pushing the data of a specific version of an ML entity.
 
         Example:
@@ -182,10 +184,11 @@ def push(entity, entity_name,  retries=2, clear_on_fail=False):
             entity_name (str): An ml-git entity name to identify a ML entity.
             retries (int, optional): Number of retries to upload the files to the storage [default: 2].
             clear_on_fail (bool, optional): Remove the files from the storage in case of failure during the push operation [default: False].
+            fail_limit (int, optional): Number of failures before aborting the command [default: no limit].
     """
 
     repo = get_repository_instance(entity)
-    repo.push(entity_name, retries, clear_on_fail)
+    repo.push(entity_name, retries, clear_on_fail, fail_limit)
 
 
 def create(entity, entity_name, categories, mutability, **kwargs):

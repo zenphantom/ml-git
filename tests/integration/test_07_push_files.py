@@ -40,7 +40,7 @@ class PushFilesAcceptanceTests(unittest.TestCase):
         os.chdir(metadata_path)
         self.assertTrue(os.path.exists(
             os.path.join(MINIO_BUCKET_PATH, 'zdj7WWjGAAJ8gdky5FKcVLfd63aiRUGb8fkc8We2bvsp9WW12')))
-        self.assertIn('computer-vision__images__' + entity_type + '-ex__2', check_output('git describe --tags'))
+        self.assertIn('computer-vision__images__' + entity_type + '-ex__1', check_output('git describe --tags'))
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_01_push_files_to_dataset(self):

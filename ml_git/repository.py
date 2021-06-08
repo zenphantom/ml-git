@@ -79,8 +79,18 @@ class Repository(object):
             log.error(e, class_name=REPOSITORY_CLASS_NAME)
             return
 
-    '''Add dir/files to the ml-git index'''
+    def _update_spec_version(self, entity_name, spec_path, metadata, bump_version):
+        try:
+            if bump_version:
+                last_version = metadata.get_last_tag_version(entity_name)
+                new_version = last_version + 1
+                increment_version_in_spec(spec_path, new_version, self.__repo_type)
+            return True
+        except RuntimeError as e:
+            log.error(e, class_name=REPOSITORY_CLASS_NAME)
+            return None
 
+    '''Add dir/files to the ml-git index'''
     def add(self, spec, file_path, bump_version=False, run_fsck=False, metrics='', metrics_file_path=''):
         repo_type = self.__repo_type
         is_shared_objects = 'objects_path' in self.__config[repo_type]
@@ -135,19 +145,17 @@ class Repository(object):
         # Check tag before anything to avoid creating unstable state
         log.debug(output_messages['DEBUG_TAG_CHECK'], class_name=REPOSITORY_CLASS_NAME)
 
-        m = Metadata(spec, metadata_path, self.__config, repo_type)
-
-        if not m.check_exists():
+        metadata = Metadata(spec, metadata_path, self.__config, repo_type)
+        if not metadata.check_exists():
             log.error(output_messages['ERROR_NOT_INITIALIZED'] % self.__repo_type, class_name=REPOSITORY_CLASS_NAME)
             return
-
         try:
-            m.update()
+            metadata.update()
         except Exception:
             pass
 
         # get version of current manifest file
-        manifest = self._get_current_manifest_file(m, tag)
+        manifest = self._get_current_manifest_file(metadata, tag)
 
         try:
             # adds chunks to ml-git Index
@@ -162,7 +170,7 @@ class Repository(object):
             log.error(e, class_name=REPOSITORY_CLASS_NAME)
             return None
 
-        if bump_version and not increment_version_in_spec(spec_path, self.__repo_type):
+        if not self._update_spec_version(spec, spec_path, metadata, bump_version):
             return None
 
         idx.add_metadata(path, file)
@@ -499,7 +507,7 @@ class Repository(object):
 
     '''push all data related to a ml-git repository to the LocalRepository git repository and data storage'''
 
-    def push(self, spec, retry=2, clear_on_fail=False):
+    def push(self, spec, retry=2, clear_on_fail=False, fail_limit=None):
         repo_type = self.__repo_type
         try:
             objects_path = get_objects_path(self.__config, repo_type)
@@ -531,7 +539,7 @@ class Repository(object):
         full_spec_path = os.path.join(spec_path, spec_file)
 
         repo = LocalRepository(self.__config, objects_path, repo_type)
-        ret = repo.push(objects_path, full_spec_path, retry, clear_on_fail)
+        ret = repo.push(objects_path, full_spec_path, retry, clear_on_fail, fail_limit)
 
         # ensure first we're on master !
         try:
@@ -821,7 +829,7 @@ class Repository(object):
 
         try:
             r = LocalRepository(self.__config, objects_path, repo_type)
-            r.checkout(cache_path, metadata_path, ws_path, tag, samples, bare, entity_dir)
+            r.checkout(cache_path, metadata_path, ws_path, tag, samples, bare, entity_dir, options['fail_limit'])
         except OSError as e:
             self._checkout_ref()
             if e.errno == errno.ENOSPC:

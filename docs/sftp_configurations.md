@@ -2,7 +2,7 @@
 
 This section explains how to configure the settings that the ml-git uses to interact with your bucket using the SFTP storage. This requires you to have configured a public key in your SFTP server and use the private key pair to connect through ml-git.
 
-# Setting up a ml-git project with SFTP #
+# Setting up a ML-Git project with SFTP #
 
 Add store configurations example:
 

@@ -4,10 +4,18 @@ SPDX-License-Identifier: GPL-2.0-only
 """
 
 import logging
+import os
+import sys
+from logging import handlers
 
 from ml_git import config
+from ml_git.constants import LOG_FILES_PATH, LOG_FILE_NAME, LOG_FILE_ROTATE_TIME, LOG_FILE_MESSAGE_FORMAT, \
+    LOG_FILE_COMMAND_MESSAGE_FORMAT, LOG_COMMON_MESSAGE_FORMAT
+from ml_git.ml_git_message import output_messages
+from ml_git.utils import get_root_path, RootPathException, ensure_path_exists
 
 MLGitLogger = None
+invoked_command = ''
 
 
 class CustomAdapter(logging.LoggerAdapter):
@@ -40,17 +48,53 @@ def __level_from_string(level):
     return lvl
 
 
+def __get_log_files_path():
+    try:
+        path = get_root_path()
+    except RootPathException:
+        path = os.getcwd()
+
+    return os.path.join(path, LOG_FILES_PATH)
+
+
+def __get_last_log_file_path():
+    path = __get_log_files_path()
+    logs = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
+
+    if not logs:
+        return path
+    logs.sort(key=lambda f: os.stat(os.path.join(path, f)).st_ctime)
+    return logs[-1]
+
+
+def __set_file_handle():
+    global MLGitLogger
+    for handle in MLGitLogger.handlers:
+        if type(handle) == handlers.TimedRotatingFileHandler:
+            MLGitLogger.removeHandler(handle)
+
+    log_files_path = __get_log_files_path()
+
+    file_handle = handlers.TimedRotatingFileHandler(os.path.join(log_files_path, LOG_FILE_NAME),
+                                                    when=LOG_FILE_ROTATE_TIME, delay=True)
+    file_handle.setFormatter(logging.Formatter(LOG_FILE_MESSAGE_FORMAT))
+    MLGitLogger.addHandler(file_handle)
+
+
 def init_logger(log_level=None):
     global MLGitLogger
     MLGitLogger = logging.getLogger('ml-git')
-    MLGitLogger.setLevel(__level_from_string(config.get_key(log_level)))
+    log_level_from_config = __level_from_string(config.get_key(log_level))
+    MLGitLogger.setLevel(log_level_from_config)
+
+    __set_file_handle()
 
     if config.config_verbose() is not None:
         handler = logging.StreamHandler()
         if log_level is None:
             log_level = config.config_verbose()
         handler.setLevel(__level_from_string(log_level))
-        formatter = logging.Formatter('%(levelname)s - %(message)s')
+        formatter = logging.Formatter(LOG_COMMON_MESSAGE_FORMAT)
         handler.setFormatter(formatter)
         MLGitLogger.addHandler(handler)
 
@@ -62,20 +106,46 @@ def set_level(loglevel):
     init_logger(loglevel)
 
 
-def __log(level, log_message, dict):
+def __log_invoked_command(log):
+    global invoked_command
+    if invoked_command:
+        return
+
+    file_handle = None
+
+    for handle in log.handlers:
+        if type(handle) == handlers.TimedRotatingFileHandler:
+            file_handle = handle
+            break
+
+    if not sys.argv:
+        return
+
+    file_handle.setFormatter(logging.Formatter(LOG_FILE_COMMAND_MESSAGE_FORMAT))
+    app_name = os.path.basename(sys.argv[0])
+    invoked_command = '{} {}'.format(app_name, ' '.join(sys.argv[1:]))
+    log.debug(invoked_command)
+    file_handle.setFormatter(logging.Formatter(LOG_FILE_MESSAGE_FORMAT))
+
+
+def __log(level, log_message, kwargs):
     global MLGitLogger
+
     try:
-        log = CustomAdapter(MLGitLogger, dict)
+        log = CustomAdapter(MLGitLogger, kwargs)
+        ensure_path_exists(__get_log_files_path())
+        __log_invoked_command(MLGitLogger)
         if level == 'debug':
             log.debug(log_message)
         elif level == 'info':
             log.info(log_message)
         elif level == 'error':
             log.error(log_message)
+            print(output_messages['ERROR_FIND_FILE_PATH_LOCATION'] % __get_last_log_file_path())
         elif level == 'warn':
             log.warning(log_message)
         elif level == 'fatal':
-            log.fatal(log_message)
+            log.critical(log_message)
     except Exception:
         print('ml-git: ' + log_message)
 

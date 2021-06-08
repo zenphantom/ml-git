@@ -23,7 +23,7 @@ class ListTagAcceptanceTests(unittest.TestCase):
         self.assertIn(output_messages['INFO_COMMIT_REPO'] % (os.path.join(self.tmp_dir, ML_GIT_DIR, entity_type, 'metadata'), entity_type+'-ex'),
                       check_output(MLGIT_COMMIT % (entity_type, entity_type+'-ex', '')))
         check_output(MLGIT_PUSH % (entity_type, entity_type+'-ex'))
-        self.assertIn('computer-vision__images__' + entity_type + '-ex__2',
+        self.assertIn('computer-vision__images__' + entity_type + '-ex__1',
                       check_output(MLGIT_TAG_LIST % (entity_type, entity_type+'-ex')))
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
