@@ -42,19 +42,34 @@ create_new_github_repository()
 
 create_new_bucket()
 {
-   read -p "What type of storage do you want to configure? [s3h, azureblobh]: " STORE_TYPE
+   read -p "What type of storage do you want to configure? [s3h, azureblobh, minio]: " STORE_TYPE
    read -p "What name do you want to give to your bucket? " BUCKET_NAME
-   echo "  ${STORE_TYPE}:" >> config.yaml
-   echo "    ${BUCKET_NAME}:" >> config.yaml
-
+   
    {
    if [ "${STORE_TYPE}" == "s3h" ];
    then
+      echo "  ${STORE_TYPE}:" >> config.yaml
+      echo "    ${BUCKET_NAME}:" >> config.yaml
+
       aws s3api create-bucket --bucket ${BUCKET_NAME} --region us-east-1
       echo "      aws-credentials:" >> config.yaml
       echo "        profile: default" >> config.yaml
+   elif [ "${STORE_TYPE}" == "minio" ];
+   then
+      read -p "What endpoint url connection to your bucket? " ENDPOINT
+
+      echo "  s3h:" >> config.yaml
+      echo "    ${BUCKET_NAME}:" >> config.yaml
+
+      aws --endpoint-url ${ENDPOINT} s3 mb s3://${BUCKET_NAME}
+      echo "      aws-credentials:" >> config.yaml
+      echo "        profile: default" >> config.yaml
+      echo "      endpoint-url: " ${ENDPOINT} >> config.yaml
    elif [ "${STORE_TYPE}" == "azureblobh" ];
    then
+      echo "  ${STORE_TYPE}:" >> config.yaml
+      echo "    ${BUCKET_NAME}:" >> config.yaml
+
       az storage container create -n ${BUCKET_NAME}
       echo "      credentials: None" >> config.yaml
    else
@@ -98,7 +113,7 @@ create_clone_repository_folder()
 push_config_repository()
 {
    REPO_NAME="${PROJECT_NAME}-mlgit-repository"
-   read -p "What name do you want to give for the repository with this configurations? [default: ${REPO_NAME}] " INPUT_REPO_NAME;
+   read -p "What name do you want to give for the repository with these configurations? [default: ${REPO_NAME}] " INPUT_REPO_NAME;
    git add config.yaml
    git commit -m "Initial commit with .ml-git configured"
    if ! [ -z "${INPUT_REPO_NAME}" ]
@@ -113,6 +128,7 @@ push_config_repository()
    else
       GITHUB_REPOSITORY_URL="https://${USERNAME}:${GITHUB_TOKEN}@${GITHUB_BASE_URL//'https://'}/${ORGANIZATION_NAME}/${REPO_NAME}.git"
       git remote add origin ${GITHUB_REPOSITORY_URL}
+      git branch -M main
       git push --set-upstream origin main
       REPO_LINK=${GITHUB_BASE_URL}/${USERNAME}/${REPO_NAME}
       echo "Repository creation done. Go to $REPO_LINK to see."
@@ -154,9 +170,9 @@ project_information
 
 
 echo -e "\n## GIT REPOSITORIES CONFIGURATION ##"
-create_new_github_repository dataset
+create_new_github_repository datasets
 create_new_github_repository labels
-create_new_github_repository model
+create_new_github_repository models
 
 echo -e "\n## BUCKET CONFIGURATION ##"
 echo "storage:" >> config.yaml
