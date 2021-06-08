@@ -300,7 +300,7 @@ output_messages = {
     'ERROR_CANNOT_RECOVER': 'It was not possible to recover from the error found. Please fix the problem and rerun the command again.',
     'ERROR_FOUND': 'ERROR FOUND: %s - %s',
     'ERROR_PUSH_CONFIG': 'Could not push configuration file. ERROR: %s',
-
+    'ERROR_FIND_FILE_PATH_LOCATION': 'A complete log of this run can be found in: %s',
 
     'WARN_CORRUPTED_CANNOT_BE_ADD': 'The following files cannot be added because they are corrupted:',
     'WARN_HAS_CONFIGURED_REMOTE': 'YOU ALREADY HAS A CONFIGURED REMOTE. All data stored in this repository will be sent to the new one on the first push.',
