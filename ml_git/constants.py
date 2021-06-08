@@ -7,6 +7,12 @@ from enum import Enum, unique
 
 ROOT_FILE_NAME = '.ml-git'
 CONFIG_FILE = '.ml-git/config.yaml'
+LOG_FILES_PATH = 'logs'
+LOG_FILE_NAME = 'ml-git_execution.log'
+LOG_FILE_ROTATE_TIME = 'D'
+LOG_FILE_MESSAGE_FORMAT = '%(asctime)s - %(thread)d - %(levelname)s - %(message)s'
+LOG_FILE_COMMAND_MESSAGE_FORMAT = '\n%(asctime)s - %(message)s'
+LOG_COMMON_MESSAGE_FORMAT = '%(levelname)s - %(message)s'
 
 CONFIG_CLASS_NAME = 'Ml-git Configuration'
 METADATA_MANAGER_CLASS_NAME = 'Metadata Manager'

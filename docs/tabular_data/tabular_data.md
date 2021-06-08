@@ -17,9 +17,9 @@ An example of a tabular data structure can be seen below:
 
 ### <a name="versioning-tabular-data"> Versioning </a> ###
 
-Due to the way the data is versioned by ml-git (see [internals documentation](../mlgit_internals.md)) the data organization structure can influence the performance and optimization of the data storage that ml-git has.
+Due to the way the data is versioned by ML-Git (see [internals documentation](../mlgit_internals.md)) the data organization structure can influence the performance and optimization of the data storage that ML-Git has.
 
-When ml-git is dealing with tabular data, in order to obtain higher storage usage efficiency, it is recommended to avoid actions that edit data that were previously added.​
+When ML-Git is dealing with tabular data, in order to obtain higher storage usage efficiency, it is recommended to avoid actions that edit data that were previously added.​
 
 We strongly recommend that the user organize their data in such a way that the entry of new data into the set is done without changing the data already added. Examples of this type of organization is to partition the data by insertion date. This way, each partition should not be modified by future data insertions.​
 
@@ -48,7 +48,7 @@ One way to make these changes without modifying the data is to use the append sa
 Using append save mode, you can append a dataframe to an existing parquet file. See more in this [link](https://spark.apache.org/docs/1.4.0/api/java/org/apache/spark/sql/SaveMode.html).
 
 **Note:** 
-In exploratory tests it was observed that the use of parquet data with the append writing mode is the most efficient in terms of performance and optimization for ml-git, since this writing mode avoids the modification of previous files.
+In exploratory tests it was observed that the use of parquet data with the append writing mode is the most efficient in terms of performance and optimization for ML-Git, since this writing mode avoids the modification of previous files.
 
 If you are working with another type of data, such as CSV, whenever new data is added to your dataset you must create a new file for that data.
 
