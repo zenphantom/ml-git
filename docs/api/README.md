@@ -258,7 +258,7 @@ def init_entity_manager(github_token, url):
 
 ## Classes used in the API.
 
-Some methods uses the described below classes:
+Some methods uses the classes described below:
 <details markdown="1">
 <summary><code> EntityManager </code></summary>
 <br>
