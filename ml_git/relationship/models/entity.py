@@ -25,7 +25,6 @@ class Entity:
         storage_type (str): The storage type (s3h|azureblobh|gdriveh|sftph).
         storage (dict): The storage configuration.
         version (str): The version of the ml-entity.
-        versions (list): List of the entities for each tag found in the repository.
     """
 
     def __init__(self, config, spec_yaml):
@@ -43,7 +42,6 @@ class Entity:
         self.storage_type, self.bucket = self.__get_storage_info()
         self.storage = self.__get_storage(config)
         self.version = self.__spec[self.entity_type]['version']
-        self.versions = []
 
     def __get_storage(self, config):
         return config.storages.get(self.storage_type, {}).get(self.bucket, {})
@@ -69,7 +67,6 @@ class Entity:
         for attr in obj.__dict__.keys():
             if attr.startswith('_') or not attrs[attr]:
                 del attrs[attr]
-        attrs['versions'] = [self.to_dict(v) for v in obj.versions]
         return attrs
 
     def __repr__(self):

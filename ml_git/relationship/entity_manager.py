@@ -49,12 +49,6 @@ class EntityManager:
                 entity.metadata_html_url = repository.html_url
                 entity.metadata_owner_email = repository.owner.email
                 entity.metadata_owner_name = repository.owner.name
-                for tag in repository.get_tags():
-                    content = self._manager.get_file_content(repository, spec_path, tag.name)
-                    if not content:
-                        continue
-                    spec_tag_yaml = yaml_load_str(content)
-                    entity.versions.append(Entity(config, spec_tag_yaml))
                 entities.append(entity)
         return entities
 
@@ -104,3 +98,20 @@ class EntityManager:
         if repo_name:
             return self._get_entities_from_repo(repo_name)
         return self._get_entities_from_config(config_path)
+
+    def get_entity_versions(self, entity, metadata_repo_name, repository, spec_path):
+        """Get a list of versions found for an especific entity.
+
+        Args:
+            entity (str): The name of the entity you want to get the versions.
+            metadata_repo_name (str): The repository name where the metadata is located in GitHub.
+
+        Returns:
+            list of class Entity.
+        """
+        for tag in repository.get_tags():
+            content = self._manager.get_file_content(repository, spec_path, tag.name)
+            if not content:
+                continue
+            spec_tag_yaml = yaml_load_str(content)
+            print(spec_tag_yaml)
