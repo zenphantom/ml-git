@@ -276,6 +276,16 @@ class EntityManager:
         Returns:
             list of class Entity.
         """
+    def get_entity_versions(self, entity_name, metadata_repo_name):
+        """Get a list of versions found for an especific entity.
+
+        Args:
+            entity_name (str): The name of the entity you want to get the versions.
+            metadata_repo_name (str): The repository name where the metadata is located in GitHub.
+
+        Returns:
+            list of class Version.
+        """
 ```
 </details>
 
@@ -302,6 +312,27 @@ class Entity:
         storage (dict): The storage configuration.
         version (str): The version of the ml-entity.
         versions (list): List of the entities for each tag found in the repository.
+    """
+```
+</details>
+
+<details markdown="1">
+<summary><code> SpecVersion </code></summary>
+<br>
+
+```python
+class Entity:
+    """Class that's represents a ml-entity spec version.
+
+    Attributes:
+        tag (str): The tag of the ml-entity spec version.
+        version (str): The version of the ml-entity.
+        name (str): The name of the ml-entity.
+        mutability (str): The mutability of the ml-entity.
+        categories (list): Labels to categorize the entity.
+        storage (dict): The storage configuration.
+        amount (str): The amount of the version files.
+        size (str): The size of the version files.
     """
 ```
 </details>

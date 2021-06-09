@@ -5,8 +5,6 @@ SPDX-License-Identifier: GPL-2.0-only
 
 import urllib
 
-from ml_git.utils import yaml_load_str
-
 
 def is_minio_storage(storage):
     """Returns True if the endpoint-url field is present and is not null."""

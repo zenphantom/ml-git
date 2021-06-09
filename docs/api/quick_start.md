@@ -284,3 +284,14 @@ manager = api.init_entity_manager(github_token, api_url)
 
 entities = manager.get_entities(repo_name='user/config_repository')
 ```
+
+
+#### List versions from a entity
+```python
+from ml_git import api
+github_token = ''
+api_url = 'https://api.github.com'
+manager = api.init_entity_manager(github_token, api_url)
+
+versions = manager.get_entity_versions('entity_name', metadata_repo_name='user/metadata_repository')
+```
