@@ -7,6 +7,7 @@ from ml_git.constants import SPEC_EXTENSION
 from ml_git.relationship.github_manager import GithubManager
 from ml_git.relationship.models.config import Config
 from ml_git.relationship.models.entity import Entity
+from ml_git.relationship.models.version import Version
 from ml_git.relationship.utils import get_empty_config
 from ml_git.utils import yaml_load_str
 
@@ -108,7 +109,7 @@ class EntityManager:
             metadata_repo_name (str): The repository name where the metadata is located in GitHub.
 
         Returns:
-            list of class Entity.
+            list of class Version.
         """
 
         versions = []
@@ -124,8 +125,6 @@ class EntityManager:
                     continue
 
                 spec_tag_yaml = yaml_load_str(content)
-                config = Config(get_empty_config())
-                entity = Entity(config, spec_tag_yaml)
-                versions.append(entity)
-        print(versions)
+                entity_version = Version(spec_tag_yaml)
+                versions.append(entity_version)
         return versions
