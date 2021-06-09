@@ -7,7 +7,7 @@ from ml_git.constants import SPEC_EXTENSION
 from ml_git.relationship.github_manager import GithubManager
 from ml_git.relationship.models.config import Config
 from ml_git.relationship.models.entity import Entity
-from ml_git.relationship.models.version import Version
+from ml_git.relationship.models.spec_version import SpecVersion
 from ml_git.utils import yaml_load_str
 
 
@@ -43,13 +43,7 @@ class EntityManager:
             repository = self._manager.find_repository(remote)
             for spec_path in self._manager.search_file(repository, SPEC_EXTENSION):
                 spec_yaml = yaml_load_str(self._manager.get_file_content(repository, spec_path))
-                entity = Entity(config, spec_yaml)
-                entity.metadata_full_name = repository.full_name
-                entity.metadata_git_url = repository.ssh_url
-                entity.private = repository.private
-                entity.metadata_html_url = repository.html_url
-                entity.metadata_owner_email = repository.owner.email
-                entity.metadata_owner_name = repository.owner.name
+                entity = Entity(repository, spec_yaml)
                 entities.append(entity)
         return entities
 
@@ -140,6 +134,6 @@ class EntityManager:
                 continue
 
             spec_tag_yaml = yaml_load_str(content)
-            entity_version = Version(spec_tag_yaml)
+            entity_version = SpecVersion(spec_tag_yaml)
             versions.append(entity_version)
         return versions
