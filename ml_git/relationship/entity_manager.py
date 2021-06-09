@@ -111,14 +111,14 @@ class EntityManager:
         return self._get_entities_from_config(config_path)
 
     def get_entity_versions(self, entity_name, metadata_repo_name):
-        """Get a list of versions found for an especific entity.
+        """Get a list of spec versions found for an especific entity.
 
         Args:
             entity_name (str): The name of the entity you want to get the versions.
             metadata_repo_name (str): The repository name where the metadata is located in GitHub.
 
         Returns:
-            list of class Version.
+            list of class SpecVersion.
         """
 
         versions = []

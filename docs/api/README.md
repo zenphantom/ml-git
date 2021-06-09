@@ -277,14 +277,14 @@ class EntityManager:
             list of class Entity.
         """
     def get_entity_versions(self, entity_name, metadata_repo_name):
-        """Get a list of versions found for an especific entity.
+        """Get a list of spec versions found for an especific entity.
 
         Args:
             entity_name (str): The name of the entity you want to get the versions.
             metadata_repo_name (str): The repository name where the metadata is located in GitHub.
 
         Returns:
-            list of class Version.
+            list of class SpecVersion.
         """
 ```
 </details>
@@ -298,20 +298,15 @@ class Entity:
     """Class that's represents a ml-entity.
 
     Attributes:
-        entity_type (str): The type of the ml-entity (datasets, models, labels).
         name (str): The name of the entity.
+        entity_type (str): The type of the ml-entity (datasets, models, labels).
         private (str): The access of entity metadata.
         metadata_full_name (str): The name of the repository metadata.
         metadata_git_url (str): The git url of the repository metadata.
         metadata_html_url (str): The html url of the repository metadata.
         metadata_owner_name (str): The name of the repository owner.
         metadata_owner_email (str): The email of the repository owner.
-        mutability (str): The mutability of the ml-entity (strict|mutable|flexible).
-        categories (list): Labels to categorize the entity.
-        storage_type (str): The storage type (s3h|azureblobh|gdriveh|sftph).
-        storage (dict): The storage configuration.
-        version (str): The version of the ml-entity.
-        versions (list): List of the entities for each tag found in the repository.
+        last_spec_version (SpecVersion): The spec file of entity last version.
     """
 ```
 </details>
