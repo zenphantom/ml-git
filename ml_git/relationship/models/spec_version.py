@@ -8,14 +8,17 @@ from ml_git.constants import DATASET_SPEC_KEY, LABELS_SPEC_KEY, MODEL_SPEC_KEY, 
 
 
 class SpecVersion:
-    """Class that's represents a ml-entity spec version.
+    """Class that's represents an ml-entity spec version.
 
     Attributes:
-        tag (str): The tag of the ml-entity spec version.
+        name (str): The name of the entity.
+        entity_type (str): The type of the ml-entity (datasets, models, labels).
         version (str): The version of the ml-entity.
+        tag (str): The tag of the ml-entity spec version.
         mutability (str): The mutability of the ml-entity.
         categories (list): Labels to categorize the entity.
-        storage (dict): The storage configuration.
+        storage_type (str): The storage type (s3h|azureblobh|gdriveh|sftph).
+        bucket (str): The name of the bucket.
         amount (str): The amount of the version files.
         size (str): The size of the version files.
     """
@@ -24,7 +27,6 @@ class SpecVersion:
         self.__spec = spec_tag_yaml
         self.entity_type = self.__get_entity_type()
         self.name = spec_tag_yaml[self.entity_type]['name']
-
         self.version = spec_tag_yaml[self.entity_type]['version']
         self.tag = self.__get_tag(spec_tag_yaml)
         self.mutability = spec_tag_yaml[self.entity_type]['mutability']

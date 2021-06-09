@@ -9,7 +9,7 @@ import unittest
 
 import pytest
 
-from ml_git.constants import EntityType, STORAGE_CONFIG_KEY, StorageType
+from ml_git.constants import EntityType, STORAGE_CONFIG_KEY, StorageType, MutabilityType
 from ml_git.utils import yaml_save
 
 dummy_api_github_url = 'https://api.github.com:443'
@@ -205,3 +205,28 @@ class ApiTestCases(unittest.TestCase):
         entities = self.manager.get_entities(repo_name='dummy/dummy_config')
         self.assertTrue(len(entities) == 1)
         self.assertEqual(entities[0].name, 'dataset-ex')
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir')
+    def test_get_entity_spec_path(self):
+        self.requests_mock.get(dummy_config_remote_url, status_code=200, headers=HEADERS, json=config_repo_response)
+        self.requests_mock.get(search_code_url, status_code=200, headers=HEADERS, json=search_code_response)
+        repository = self.manager._manager.find_repository('dummy/dummy_datasets_repo')
+        spec_path = self.manager._get_entity_spec_path(repository, 'dataset-ex')
+        self.assertEquals('dataset-ex/dataset-ex.spec', spec_path)
+        with self.assertRaises(Exception):
+            self.manager._get_entity_spec_path(repository, 'worng-dataset-name')
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir')
+    def test_get_entity_versions(self):
+        self.requests_mock.get(dummy_config_remote_url, status_code=200, headers=HEADERS, json=config_repo_response)
+        self.requests_mock.get(search_code_url, status_code=200, headers=HEADERS, json=search_code_response)
+        entity_versions = self.manager.get_entity_versions('dataset-ex', 'dummy/dummy_datasets_repo')
+        self.assertTrue(len(entity_versions) == 1)
+        self.assertEquals(entity_versions[0].version, 3)
+        self.assertEquals(entity_versions[0].tag, 'test__dataset-ex__3')
+        self.assertEquals(entity_versions[0].mutability, MutabilityType.FLEXIBLE.value)
+        self.assertEquals(entity_versions[0].categories, ['test'])
+        self.assertEquals(entity_versions[0].storage_type, StorageType.S3H.value)
+        self.assertEquals(entity_versions[0].bucket, 'mlgit')
+        self.assertEquals(entity_versions[0].amount, 2)
+        self.assertEquals(entity_versions[0].size, '18 Bytes')
