@@ -7,6 +7,7 @@ from ml_git.constants import SPEC_EXTENSION
 from ml_git.relationship.github_manager import GithubManager
 from ml_git.relationship.models.config import Config
 from ml_git.relationship.models.entity import Entity
+from ml_git.relationship.utils import get_empty_config
 from ml_git.utils import yaml_load_str
 
 
@@ -99,19 +100,32 @@ class EntityManager:
             return self._get_entities_from_repo(repo_name)
         return self._get_entities_from_config(config_path)
 
-    def get_entity_versions(self, entity, metadata_repo_name, repository, spec_path):
+    def get_entity_versions(self, entity_name, metadata_repo_name):
         """Get a list of versions found for an especific entity.
 
         Args:
-            entity (str): The name of the entity you want to get the versions.
+            entity_name (str): The name of the entity you want to get the versions.
             metadata_repo_name (str): The repository name where the metadata is located in GitHub.
 
         Returns:
             list of class Entity.
         """
-        for tag in repository.get_tags():
-            content = self._manager.get_file_content(repository, spec_path, tag.name)
-            if not content:
+
+        versions = []
+        repository = self._manager.find_repository(metadata_repo_name)
+        for spec_path in self._manager.search_file(repository, SPEC_EXTENSION):
+            spec_file_name = '{}{}'.format(entity_name, SPEC_EXTENSION)
+            if not spec_path.endswith(spec_file_name):
                 continue
-            spec_tag_yaml = yaml_load_str(content)
-            print(spec_tag_yaml)
+
+            for tag in repository.get_tags():
+                content = self._manager.get_file_content(repository, spec_path, tag.name)
+                if not content:
+                    continue
+
+                spec_tag_yaml = yaml_load_str(content)
+                config = Config(get_empty_config())
+                entity = Entity(config, spec_tag_yaml)
+                versions.append(entity)
+        print(versions)
+        return versions
