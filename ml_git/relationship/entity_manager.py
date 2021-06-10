@@ -163,4 +163,3 @@ class EntityManager:
             spec_tag_yaml = yaml_load_str(content)
             entity = SpecVersion(spec_tag_yaml)
             return entity.get_related_entities_info()
-        return ''

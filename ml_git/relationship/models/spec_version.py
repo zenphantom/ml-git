@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-2.0-only
 import json
 
 from ml_git.constants import DATASET_SPEC_KEY, LABELS_SPEC_KEY, MODEL_SPEC_KEY, STORAGE_SPEC_KEY, V1_STORAGE_KEY
+from ml_git.relationship.models.related_entity import RelatedEntity
 
 
 class SpecVersion:
@@ -81,17 +82,12 @@ class SpecVersion:
             elif value in self._related_models:
                 entity_type = MODEL_SPEC_KEY
 
-            related_entities.append(
-                {
-                    'tag': value,
-                    'name': value.split('__')[-2],
-                    'version': value.split('__')[-1],
-                    'entity_type': entity_type
-                }
-            )
-        return json.dumps(related_entities, indent=2)
+            related_entities.append(RelatedEntity(tag=value, name=value.split('__')[-2],
+                                                  version=value.split('__')[-1], entity_type=entity_type))
+        return related_entities
 
-    def to_dict(self, obj):
+    @staticmethod
+    def to_dict(obj):
         attrs = obj.__dict__.copy()
         ignore_attributes = ['entity_type', 'name']
         for attr in obj.__dict__.keys():
