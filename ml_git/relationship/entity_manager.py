@@ -137,3 +137,20 @@ class EntityManager:
             entity_version = SpecVersion(spec_tag_yaml)
             versions.append(entity_version)
         return versions
+
+    def get_linked_entities(self, entity_name, entity_version, metadata_repo_name):
+        repository = self._manager.find_repository(metadata_repo_name)
+        entity_spec_path = self._get_entity_spec_path(repository, entity_name)
+
+        for tag in repository.get_tags():
+            if tag.name.split('__')[-2] != entity_name and tag.name.split('__')[-1] != entity_version:
+                continue
+
+            content = self._manager.get_file_content(repository, entity_spec_path, tag.name)
+            if not content:
+                continue
+
+            spec_tag_yaml = yaml_load_str(content)
+            entity = SpecVersion(spec_tag_yaml)
+            return entity.get_related_entities_info()
+        return ''

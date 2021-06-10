@@ -40,9 +40,8 @@ class SpecVersion:
 
     def __get_related_entity_tag(self, entity):
         if entity in self.__spec[self.entity_type]:
-            return self.__spec[self.entity_type][entity]['tag']
-
-        return ''
+            return [self.__spec[self.entity_type][entity]['tag']]
+        return []
 
     def __get_entity_type(self):
         for entity in [DATASET_SPEC_KEY, LABELS_SPEC_KEY, MODEL_SPEC_KEY]:
@@ -71,6 +70,26 @@ class SpecVersion:
         manifest = self.__spec[self.entity_type]['manifest']
         storage_key = STORAGE_SPEC_KEY if STORAGE_SPEC_KEY in manifest else V1_STORAGE_KEY
         return manifest[storage_key].split('://')
+
+    def get_related_entities_info(self):
+        all_related_tags = self._related_datasets + self._related_labels + self._related_models
+        related_entities = []
+        for value in all_related_tags:
+            entity_type = DATASET_SPEC_KEY
+            if value in self._related_labels:
+                entity_type = LABELS_SPEC_KEY
+            elif value in self._related_models:
+                entity_type = MODEL_SPEC_KEY
+
+            related_entities.append(
+                {
+                    'tag': value,
+                    'name': value.split('__')[-2],
+                    'version': value.split('__')[-1],
+                    'entity_type': entity_type
+                }
+            )
+        return json.dumps(related_entities, indent=2)
 
     def to_dict(self, obj):
         attrs = obj.__dict__.copy()
