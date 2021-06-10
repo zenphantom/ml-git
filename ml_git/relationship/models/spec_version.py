@@ -34,6 +34,15 @@ class SpecVersion:
         self.storage_type, self.bucket = self.__get_storage_info()
         self.amount = spec_tag_yaml[self.entity_type]['manifest']['amount']
         self.size = spec_tag_yaml[self.entity_type]['manifest']['size']
+        self._related_models = self.__get_related_entity_tag(MODEL_SPEC_KEY)
+        self._related_labels = self.__get_related_entity_tag(LABELS_SPEC_KEY)
+        self._related_datasets = self.__get_related_entity_tag(DATASET_SPEC_KEY)
+
+    def __get_related_entity_tag(self, entity):
+        if entity in self.__spec[self.entity_type]:
+            return self.__spec[self.entity_type][entity]['tag']
+
+        return ''
 
     def __get_entity_type(self):
         for entity in [DATASET_SPEC_KEY, LABELS_SPEC_KEY, MODEL_SPEC_KEY]:
