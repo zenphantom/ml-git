@@ -286,6 +286,17 @@ class EntityManager:
         Returns:
             list of class SpecVersion.
         """
+    def get_linked_entities(self, entity_name, entity_version, metadata_repo_name):
+        """Get a list of linked entities found for an entity version.
+
+        Args:
+            entity_name (str): The name of the entity you want to get the linked entities.
+            entity_version (str): The version of the entity you want to get the linked entities.
+            metadata_repo_name (str): The repository name where the metadata is located in GitHub.
+
+        Returns:
+            list of linked entities.
+        """
 ```
 </details>
 
