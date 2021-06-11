@@ -5,8 +5,8 @@ SPDX-License-Identifier: GPL-2.0-only
 import json
 
 
-class RelatedEntity:
-    """Class that's represents an ml-entity related.
+class LinkedEntity:
+    """Class that's represents an linked ml-entity.
 
     Attributes:
         name (str): The name of the entity.

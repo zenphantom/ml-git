@@ -147,7 +147,7 @@ class EntityManager:
             metadata_repo_name (str): The repository name where the metadata is located in GitHub.
 
         Returns:
-            list of linked entities.
+            list of LinkedEntity.
         """
         repository = self._manager.find_repository(metadata_repo_name)
         entity_spec_path = self._get_entity_spec_path(repository, entity_name)

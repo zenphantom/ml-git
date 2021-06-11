@@ -295,7 +295,7 @@ class EntityManager:
             metadata_repo_name (str): The repository name where the metadata is located in GitHub.
 
         Returns:
-            list of linked entities.
+            list of LinkedEntity.
         """
 ```
 </details>
@@ -327,7 +327,7 @@ class Entity:
 <br>
 
 ```python
-class Entity:
+class SpecVersion:
     """Class that's represents a ml-entity spec version.
 
     Attributes:
@@ -339,6 +339,23 @@ class Entity:
         storage (dict): The storage configuration.
         amount (str): The amount of the version files.
         size (str): The size of the version files.
+    """
+```
+</details>
+
+<details markdown="1">
+<summary><code> LinkedEntity </code></summary>
+<br>
+
+```python
+class LinkedEntity:
+    """Class that's represents an linked ml-entity.
+
+    Attributes:
+        name (str): The name of the entity.
+        entity_type (str): The type of the ml-entity (datasets, models, labels).
+        version (str): The version of the ml-entity.
+        tag (str): The tag of the ml-entity spec version.
     """
 ```
 </details>
