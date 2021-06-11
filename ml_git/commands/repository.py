@@ -12,6 +12,7 @@ from ml_git.admin import init_mlgit
 from ml_git.commands.general import mlgit
 from ml_git.commands.utils import repositories, PROJECT, set_verbose_mode
 from ml_git.config import config_load, global_config_load, mlgit_config_load
+from ml_git.utils import get_root_path, RootPathException
 
 
 @mlgit.group('repository', help='Management of this ml-git repository.', cls=DYMGroup)
@@ -41,7 +42,11 @@ def init():
 @click.option('--verbose', is_flag=True, expose_value=False, callback=set_verbose_mode, help='Debug mode')
 @click.help_option(hidden=True)
 def show(**kwargs):
-    config_file = config_load()
+    try:
+        get_root_path()
+        config_file = config_load()
+    except RootPathException:
+        config_file = global_config_load()
     if kwargs['global']:
         config_file = global_config_load()
     elif kwargs['local']:
