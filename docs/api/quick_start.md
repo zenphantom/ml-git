@@ -261,3 +261,26 @@ api.storage_add(bucket_name=bucket_name,bucket_type=bucket_type, endpoint_url=en
 output:
 
     INFO - Admin: Add storage [s3h://minio]
+
+## List entities
+
+#### List entities from a config file
+```python
+from ml_git import api
+github_token = ''
+api_url = 'https://api.github.com'
+manager = api.init_entity_manager(github_token, api_url)
+
+entities = manager.get_entities(config_path='path/to/config.yaml')
+```
+
+
+#### List entities from a repository
+```python
+from ml_git import api
+github_token = ''
+api_url = 'https://api.github.com'
+manager = api.init_entity_manager(github_token, api_url)
+
+entities = manager.get_entities(repo_name='user/config_repository')
+```
