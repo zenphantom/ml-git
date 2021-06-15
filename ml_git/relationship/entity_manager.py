@@ -2,11 +2,13 @@
 © Copyright 2021 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
+from ml_git.relationship.models.linked_entity import LinkedEntity
 
 from ml_git.constants import SPEC_EXTENSION
 from ml_git.relationship.github_manager import GithubManager
 from ml_git.relationship.models.config import Config
 from ml_git.relationship.models.entity import Entity
+from ml_git.relationship.models.relationship import Relationship
 from ml_git.relationship.models.spec_version import SpecVersion
 from ml_git.utils import yaml_load_str
 
@@ -163,3 +165,14 @@ class EntityManager:
             spec_tag_yaml = yaml_load_str(content)
             entity = SpecVersion(spec_tag_yaml)
             return entity.get_related_entities_info()
+
+    def get_entity_relationships(self, entity_name, metadata_repo_name):
+        entity_versions = self.get_entity_versions(entity_name, metadata_repo_name)
+
+        relationships = []
+        for entity_version in entity_versions:
+            from_entity = LinkedEntity(entity_version.tag, entity_version.name, entity_version.version, entity_version.entity_type)
+            linked_entities = self.get_linked_entities(from_entity.name, from_entity.version, metadata_repo_name)
+            for linked_entity in linked_entities:
+                relationships.append(Relationship(from_entity, linked_entity))
+        return relationships
