@@ -281,3 +281,17 @@ class ApiTestCases(unittest.TestCase):
         self.assertEquals(2, len(related_entities))
         self.assertEquals(related_entities[0].tag, 'test__datasets-ex__1')
         self.assertEquals(related_entities[1].tag, 'test__labels-ex__1')
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir')
+    def test_get_entity_relationships(self):
+        relationships = self.manager.get_entity_relationships('models-ex', 'dummy/dummy_models_repo')
+        self.assertEquals(2, len(relationships))
+        self.assertEquals('test__models-ex__1', relationships[0].from_entity.tag)
+        self.assertEquals('test__datasets-ex__1', relationships[0].to_entity.tag)
+        self.assertEquals('test__models-ex__1', relationships[1].from_entity.tag)
+        self.assertEquals('test__labels-ex__1', relationships[1].to_entity.tag)
+
+        with self.assertRaises(Exception):
+            self.manager.get_entity_relationships('worng-model-name', 'dummy/dummy_models_repo')
+
+        self.assertEquals([], self.manager.get_entity_relationships('datasets-ex', 'dummy/dummy_datasets_repo'))
