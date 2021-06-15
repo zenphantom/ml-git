@@ -306,3 +306,14 @@ manager = api.init_entity_manager(github_token, api_url)
 
 linked_entities = manager.get_linked_entities('entity_name', 'entity_version', metadata_repo_name='user/metadata_repository')
 ```
+
+
+#### List relationships from a entity
+```python
+from ml_git import api
+github_token = ''
+api_url = 'https://api.github.com'
+manager = api.init_entity_manager(github_token, api_url)
+
+relationships = manager.get_entity_relationships('entity_name', metadata_repo_name='user/metadata_repository')
+```

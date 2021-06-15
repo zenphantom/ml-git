@@ -167,6 +167,15 @@ class EntityManager:
             return entity.get_related_entities_info()
 
     def get_entity_relationships(self, entity_name, metadata_repo_name):
+        """Get a list of relationships for an entity.
+
+        Args:
+            entity_name (str): The name of the entity you want to get the linked entities.
+            metadata_repo_name (str): The repository name where the metadata is located in GitHub.
+
+        Returns:
+            list of Relationship.
+        """
         entity_versions = self.get_entity_versions(entity_name, metadata_repo_name)
 
         relationships = []

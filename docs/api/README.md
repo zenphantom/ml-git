@@ -297,6 +297,16 @@ class EntityManager:
         Returns:
             list of LinkedEntity.
         """
+    def get_entity_relationships(self, entity_name, metadata_repo_name):
+        """Get a list of relationships for an entity.
+
+        Args:
+            entity_name (str): The name of the entity you want to get the linked entities.
+            metadata_repo_name (str): The repository name where the metadata is located in GitHub.
+
+        Returns:
+            list of Relationship.
+        """
 ```
 </details>
 
@@ -356,6 +366,21 @@ class LinkedEntity:
         entity_type (str): The type of the ml-entity (datasets, models, labels).
         version (str): The version of the ml-entity.
         tag (str): The tag of the ml-entity spec version.
+    """
+```
+</details>
+
+<details markdown="1">
+<summary><code> Relationship </code></summary>
+<br>
+
+```python
+class Relationship:
+    """Class that's represents an relationship of ml-entity.
+
+    Attributes:
+        from_entity (LinkedEntity): The from LinkedEntity of the entity relationship.
+        to_entity (LinkedEntity): The to LinkedEntity of the entity relationship.
     """
 ```
 </details>
