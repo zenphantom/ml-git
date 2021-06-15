@@ -67,8 +67,8 @@ def checkout(entity, tag, sampling=None, retries=2, force=False, dataset=False, 
 <br>
 
 ```python
-def clone(repository_url, folder=None, track=False):
- """This command will clone minimal configuration files from repository-url with valid .ml-git/config.yaml,
+def clone(repository_url, folder=None, untracked=False):
+    """This command will clone minimal configuration files from repository-url with valid .ml-git/config.yaml,
     then initialize the metadata according to configurations.
 
     Example:
@@ -76,9 +76,8 @@ def clone(repository_url, folder=None, track=False):
 
     Args:
         repository_url (str): The git repository that will be cloned.
-        folder (str, optional): Directory that can be created to execute the clone command. [Default: current path]
-        track (bool, optional): Set if the tracking of the cloned repository should be kept. [Default: False]
-
+        folder (str, optional): Directory that can be created to execute the clone command [default: current path].
+        untracked (bool, optional): Set whether cloned repository trace should not be kept [default: False].
     """
 ```
 </details>

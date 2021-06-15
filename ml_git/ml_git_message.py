@@ -72,6 +72,7 @@ output_messages = {
     'DEBUG_IPLD_NOT_PRESENT': 'LocalRepository: ipld [%s] not present for full verification',
     'DEBUG_FILE_NOT_CACHE': 'File is not in cache',
     'DEBUG_BLOB_ALREADY_EXISTS': 'The specified blob [%s] already exists.',
+    'DEBUG_ALREADY_IN_GIT_REPOSITORY': 'There is already a git repository initialized in the project root [%s]',
 
     'INFO_INITIALIZED_PROJECT_IN': 'Initialized empty ml-git repository in %s',
     'INFO_ADD_REMOTE': 'Add remote repository [%s] for [%s]',
@@ -155,6 +156,11 @@ output_messages = {
     'INFO_REMOTE_FSCK_TOTAL': 'remote-fsck -- total   : ipld[%d] / blob[%d]',
     'INFO_LISTING_BLOBS': '\nListing blobs in container:',
     'INFO_FILE_LOCATED_IN_TRASH': 'File [{}] located in trash.',
+    'INFO_CREATING_GIT_REPOSITORY': 'Creating new git repository at project root [%s]',
+    'INFO_CREATING_REMOTE': 'Adding remote to the initialized project [%s]',
+    'INFO_PUSH_CONFIG_FILE': 'Pushing config file to remote repository',
+    'INFO_CHANGE_IN_CONFIG_FILE': 'When making changes to the config file we strongly recommend that you upload these changes to '
+                                  'the Git repository. For this, see: ml-git repository config push --help',
 
     'ERROR_PATH_NOT_EMPTY': 'The path [%s] is not an empty directory. Consider using --folder to create an empty folder.',
     'ERROR_WITHOUT_TAG_FOR_THIS_ENTITY': 'No entity with that name was found.',
@@ -293,6 +299,7 @@ output_messages = {
     'ERROR_ON_GETTING_BLOBS': 'There was an error downloading the data. %s pending blobs to get.',
     'ERROR_CANNOT_RECOVER': 'It was not possible to recover from the error found. Please fix the problem and rerun the command again.',
     'ERROR_FOUND': 'ERROR FOUND: %s - %s',
+    'ERROR_PUSH_CONFIG': 'Could not push configuration file. ERROR: %s',
     'ERROR_FIND_FILE_PATH_LOCATION': 'A complete log of this run can be found in: %s',
 
     'WARN_CORRUPTED_CANNOT_BE_ADD': 'The following files cannot be added because they are corrupted:',

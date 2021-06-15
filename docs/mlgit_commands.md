@@ -735,9 +735,9 @@ Usage: ml-git clone [OPTIONS] REPOSITORY_URL
   Clone a ml-git repository ML_GIT_REPOSITORY_URL
 
 Options:
-  --folder TEXT
-  --track
-  --help         Show this message and exit.
+  --folder TEXT  The configuration files are cloned in specified folder.
+  --untracked    Does not preserve git repository tracking.
+  --verbose      Debug mode
 ```
 
 Example:
@@ -776,21 +776,45 @@ ml-git login
 </details>
 
 <details markdown="1">
-<summary><code> ml-git repository config </code></summary>
+<summary><code> ml-git repository config push</code></summary>
 <br>
 
 ```
-Usage: ml-git repository config [OPTIONS]
+Usage: ml-git repository config push [OPTIONS]
 
-  Configuration of this ml-git repository
+  Create a new version of the ML-Git configuration file. This command
+  internally runs git's add, commit and push commands.
 
 Options:
-  --help  Show this message and exit.
+  -m, --message TEXT  Use the provided <msg> as the commit message.
+  --verbose           Debug mode
 ```
 
 Example:
 ```
-$ ml-git repository config
+$ ml-git repository config push -m "My commit message"
+```
+
+</details>
+
+<details markdown="1">
+<summary><code> ml-git repository config show</code></summary>
+<br>
+
+```
+Usage: ml-git repository config show [OPTIONS]
+
+  Configuration of this ml-git repository
+
+Options:
+  -l, --local   Local configurations
+  -g, --global  Global configurations
+  --verbose     Debug mode
+```
+
+Example:
+```
+$ ml-git repository config show
 config:
 {'datasets': {'git': 'git@github.com:example/your-mlgit-datasets'},
  'storages': {'s3': {'mlgit-datasets': {'aws-credentials': {'profile': 'mlgit'},
@@ -878,6 +902,26 @@ Options:
 Example:
 ```
 $ ml-git repository remote dataset del
+```
+
+</details>
+
+<details markdown="1">
+<summary><code> ml-git repository remote config add </code></summary>
+<br>
+
+```
+Usage: ml-git repository remote config add [OPTIONS] REMOTE_URL
+
+  Starts a git at the root of the project and configure the remote.
+
+Options:
+  --verbose  Debug mode
+```
+
+Example:
+```
+$ ml-git repository remote config add https://git@github.com/mlgit-config
 ```
 
 </details>

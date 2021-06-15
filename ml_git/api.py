@@ -92,7 +92,7 @@ def checkout(entity, tag, sampling=None, retries=2, force=False, dataset=False, 
     return data_path
 
 
-def clone(repository_url, folder=None, track=False):
+def clone(repository_url, folder=None, untracked=False):
     """This command will clone minimal configuration files from repository-url with valid .ml-git/config.yaml,
     then initialize the metadata according to configurations.
 
@@ -102,18 +102,17 @@ def clone(repository_url, folder=None, track=False):
     Args:
         repository_url (str): The git repository that will be cloned.
         folder (str, optional): Directory that can be created to execute the clone command [default: current path].
-        track (bool, optional): Set if the tracking of the cloned repository should be kept [default: False].
-
+        untracked (bool, optional): Set whether cloned repository trace should not be kept [default: False].
     """
 
     repo = get_repository_instance('project')
     if folder is not None:
-        repo.clone_config(repository_url, folder, track)
+        repo.clone_config(repository_url, folder, untracked)
     else:
         current_directory = os.getcwd()
         with tempfile.TemporaryDirectory(dir=current_directory) as tempdir:
             mlgit_path = os.path.join(tempdir, 'mlgit')
-            repo.clone_config(repository_url, mlgit_path, track)
+            repo.clone_config(repository_url, mlgit_path, untracked)
             if not os.path.exists(os.path.join(current_directory, '.ml-git')):
                 shutil.move(os.path.join(mlgit_path, '.ml-git'), current_directory)
             os.chdir(current_directory)

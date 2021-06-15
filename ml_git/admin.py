@@ -1,5 +1,5 @@
 """
-© Copyright 2020 HP Development Company, L.P.
+© Copyright 2020-2021 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
 
@@ -12,7 +12,7 @@ from ml_git.config import mlgit_config_save, get_global_config_path
 from ml_git.constants import ROOT_FILE_NAME, CONFIG_FILE, ADMIN_CLASS_NAME, StorageType, STORAGE_CONFIG_KEY
 from ml_git.ml_git_message import output_messages
 from ml_git.storages.store_utils import get_bucket_region
-from ml_git.utils import get_root_path
+from ml_git.utils import get_root_path, create_or_update_gitignore
 from ml_git.utils import yaml_load, yaml_save, RootPathException, clear, ensure_path_exists
 
 
@@ -128,6 +128,7 @@ def storage_add(storage_type, bucket, credentials_profile, global_conf=False, en
         conf[STORAGE_CONFIG_KEY][storage_type][bucket]['private-key'] = sftp_configs['private_key']
         conf[STORAGE_CONFIG_KEY][storage_type][bucket]['port'] = sftp_configs['port']
     yaml_save(conf, file)
+    log.info(output_messages['INFO_CHANGE_IN_CONFIG_FILE'], class_name=ADMIN_CLASS_NAME)
 
 
 def storage_del(storage_type, bucket, global_conf=False):
@@ -151,9 +152,10 @@ def storage_del(storage_type, bucket, global_conf=False):
     log.info(output_messages['INFO_REMOVED_STORAGE'] % (storage_type, bucket), class_name=ADMIN_CLASS_NAME)
 
     yaml_save(conf, config_path)
+    log.info(output_messages['INFO_CHANGE_IN_CONFIG_FILE'], class_name=ADMIN_CLASS_NAME)
 
 
-def clone_config_repository(url, folder, track):
+def clone_config_repository(url, folder, untracked):
     try:
         if get_root_path():
             log.error(output_messages['ERROR_IN_INTIALIZED_PROJECT'], class_name=ADMIN_CLASS_NAME)
@@ -183,9 +185,10 @@ def clone_config_repository(url, folder, track):
     if not check_successfully_clone(project_dir, git_dir):
         return False
 
-    if not track:
+    if untracked:
         clear(os.path.join(project_dir, git_dir))
 
+    create_or_update_gitignore()
     return True
 
 
