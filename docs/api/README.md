@@ -297,12 +297,14 @@ class EntityManager:
         Returns:
             list of LinkedEntity.
         """
-    def get_entity_relationships(self, entity_name, metadata_repo_name):
+    def get_entity_relationships(self, entity_name, metadata_repo_name, export_type=FileType.JSON.value, export_path=None):
         """Get a list of relationships for an entity.
 
         Args:
             entity_name (str): The name of the entity you want to get the linked entities.
             metadata_repo_name (str): The repository name where the metadata is located in GitHub.
+            export_type (str): Choose the format of the return [default: json].
+            export_path (str): Set the path to export metrics to a file.
 
         Returns:
             list of Relationship.

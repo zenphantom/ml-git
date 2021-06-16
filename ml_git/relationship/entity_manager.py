@@ -4,12 +4,13 @@ SPDX-License-Identifier: GPL-2.0-only
 """
 from ml_git.relationship.models.linked_entity import LinkedEntity
 
-from ml_git.constants import SPEC_EXTENSION
+from ml_git.constants import SPEC_EXTENSION, FileType
 from ml_git.relationship.github_manager import GithubManager
 from ml_git.relationship.models.config import Config
 from ml_git.relationship.models.entity import Entity
 from ml_git.relationship.models.relationship import Relationship
 from ml_git.relationship.models.spec_version import SpecVersion
+from ml_git.relationship.utils import export_relationships_to_csv
 from ml_git.utils import yaml_load_str
 
 
@@ -166,12 +167,14 @@ class EntityManager:
             entity = SpecVersion(spec_tag_yaml)
             return entity.get_related_entities_info()
 
-    def get_entity_relationships(self, entity_name, metadata_repo_name):
+    def get_entity_relationships(self, entity_name, metadata_repo_name, export_type=FileType.JSON.value, export_path=None):
         """Get a list of relationships for an entity.
 
         Args:
             entity_name (str): The name of the entity you want to get the linked entities.
             metadata_repo_name (str): The repository name where the metadata is located in GitHub.
+            export_type (str): Choose the format of the return [default: json].
+            export_path (str): Set the path to export metrics to a file.
 
         Returns:
             list of Relationship.
@@ -184,4 +187,7 @@ class EntityManager:
             linked_entities = self.get_linked_entities(from_entity.name, from_entity.version, metadata_repo_name)
             for linked_entity in linked_entities:
                 relationships.append(Relationship(from_entity, linked_entity))
+
+        if export_type == FileType.CSV.value:
+            relationships = export_relationships_to_csv(entity_name, relationships, export_path)
         return relationships
