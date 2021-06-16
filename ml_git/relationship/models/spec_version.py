@@ -84,6 +84,7 @@ class SpecVersion:
 
             related_entities.append(LinkedEntity(tag=value, name=value.split('__')[-2],
                                                  version=value.split('__')[-1], entity_type=entity_type))
+
         return related_entities
 
     @staticmethod
