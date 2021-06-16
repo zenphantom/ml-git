@@ -10,7 +10,7 @@ from ml_git.relationship.models.config import Config
 from ml_git.relationship.models.entity import Entity
 from ml_git.relationship.models.relationship import Relationship
 from ml_git.relationship.models.spec_version import SpecVersion
-from ml_git.relationship.utils import export_relationships_to_csv
+from ml_git.relationship.utils import export_relationships_to_csv, export_all_relationships_to_csv
 from ml_git.utils import yaml_load_str
 
 
@@ -191,3 +191,17 @@ class EntityManager:
         if export_type == FileType.CSV.value:
             relationships = export_relationships_to_csv(entity_name, relationships, export_path)
         return relationships
+
+    def get_all_relationships(self, metadata_repo_name, export_type=FileType.JSON.value, export_path=None):
+        entities = self.get_entities(repo_name=metadata_repo_name)
+
+        all_relationships = []
+
+        for entity in entities:
+            entity_relationships = self.get_entity_relationships(entity.name, metadata_repo_name, export_type, export_path)
+            all_relationships.append(entity_relationships)
+
+        if export_type == FileType.CSV.value:
+            all_relationships = export_all_relationships_to_csv(entity_relationships, export_path)
+
+        return all_relationships
