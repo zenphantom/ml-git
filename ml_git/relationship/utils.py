@@ -38,6 +38,7 @@ def get_repo_name_from_url(repository_url: str) -> str:
         return urllib.parse.urlparse(repository_url).path[1:].replace('.git', '')
     return repository_url.replace('.git', '').split(':')[-1]
 
+
 def __format_relationships_to_csv_data(relationships):
     formatted_data = []
     for relationship in relationships:
@@ -53,30 +54,11 @@ def __format_relationships_to_csv_data(relationships):
         })
     return formatted_data
 
+
 def export_relationships_to_csv(entity_name, relationships, export_path):
     csv_header = ['from_tag', 'from_name', 'from_version', 'from_type', 'to_tag', 'to_name', 'to_version', 'to_type']
     formatted_data = __format_relationships_to_csv_data(relationships)
     file_name = '{}_relationships.{}'.format(entity_name, FileType.CSV.value)
-
-    if export_path is None:
-        with tempfile.TemporaryDirectory() as tempdir:
-            file_path = os.path.join(tempdir, file_name)
-            create_csv_file(file_path, csv_header, formatted_data)
-            with open(file_path) as csv_file:
-                return io.StringIO(csv_file.read())
-    else:
-        file_path = os.path.join(export_path, file_name)
-        create_csv_file(file_path, csv_header, formatted_data)
-        print('A CSV file was created with the relationship information in {}'.format(file_path))
-        with open(file_path) as csv_file:
-            return io.StringIO(csv_file.read())
-
-def export_all_relationships_to_csv(all_relationships, export_path):
-    csv_header = ['from_tag', 'from_name', 'from_version', 'from_type', 'to_tag', 'to_name', 'to_version', 'to_type']
-    formatted_data = []
-    for relationships in all_relationships:
-        formatted_data.append(__format_relationships_to_csv_data(relationships))
-    file_name = 'all_relationships.{}'.format(FileType.CSV.value)
 
     if export_path is None:
         with tempfile.TemporaryDirectory() as tempdir:

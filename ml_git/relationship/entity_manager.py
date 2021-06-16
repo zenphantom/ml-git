@@ -2,15 +2,14 @@
 © Copyright 2021 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
-from ml_git.relationship.models.linked_entity import LinkedEntity
-
 from ml_git.constants import SPEC_EXTENSION, FileType
 from ml_git.relationship.github_manager import GithubManager
 from ml_git.relationship.models.config import Config
 from ml_git.relationship.models.entity import Entity
+from ml_git.relationship.models.linked_entity import LinkedEntity
 from ml_git.relationship.models.relationship import Relationship
 from ml_git.relationship.models.spec_version import SpecVersion
-from ml_git.relationship.utils import export_relationships_to_csv, export_all_relationships_to_csv
+from ml_git.relationship.utils import export_relationships_to_csv
 from ml_git.utils import yaml_load_str
 
 
@@ -192,16 +191,23 @@ class EntityManager:
             relationships = export_relationships_to_csv(entity_name, relationships, export_path)
         return relationships
 
-    def get_all_relationships(self, metadata_repo_name, export_type=FileType.JSON.value, export_path=None):
-        entities = self.get_entities(repo_name=metadata_repo_name)
+    def get_project_entities_relationships(self, config_repo_name, export_type=FileType.JSON.value, export_path=None):
+        project_entities = self.get_entities(repo_name=config_repo_name)
+
+        config_repo = self._manager.find_repository(config_repo_name)
+        if config_repo is None or self.__is_config_repo(config_repo) is False:
+            return
+        config_bytes = self._manager.get_file_content(config_repo, self.MLGIT_CONFIG_FILE)
+        config_yaml = yaml_load_str(config_bytes)
+        config = Config(config_yaml)
 
         all_relationships = []
-
-        for entity in entities:
-            entity_relationships = self.get_entity_relationships(entity.name, metadata_repo_name, export_type, export_path)
-            all_relationships.append(entity_relationships)
+        for entity in project_entities:
+            entity_relationships = self.get_entity_relationships(entity.name, config.get_entity_type_remote(entity.entity_type))
+            all_relationships.extend(entity_relationships)
 
         if export_type == FileType.CSV.value:
-            all_relationships = export_all_relationships_to_csv(entity_relationships, export_path)
+            file_name = 'project_relationships'
+            all_relationships = export_relationships_to_csv(file_name, all_relationships, export_path)
 
         return all_relationships
