@@ -316,7 +316,7 @@ class Entity:
 <br>
 
 ```python
-class Entity:
+class SpecVersion:
     """Class that's represents a ml-entity spec version.
 
     Attributes:
