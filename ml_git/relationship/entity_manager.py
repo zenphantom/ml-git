@@ -207,7 +207,7 @@ class EntityManager:
             all_relationships.extend(entity_relationships)
 
         if export_type == FileType.CSV.value:
-            file_name = 'project_relationships'
+            file_name = 'project'
             all_relationships = export_relationships_to_csv(file_name, all_relationships, export_path)
 
         return all_relationships
