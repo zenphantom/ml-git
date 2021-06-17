@@ -236,27 +236,27 @@ class ApiTestCases(unittest.TestCase):
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_get_entities_from_config_path(self):
         entities = self.manager.get_entities(config_path=self.config_path)
-        self.assertEquals(3, len(entities))
-        self.assertEquals(entities[0].name, 'datasets-ex')
-        self.assertEquals(entities[1].name, 'labels-ex')
-        self.assertEquals(entities[2].name, 'models-ex')
+        self.assertEqual(3, len(entities))
+        self.assertEqual(entities[0].name, 'datasets-ex')
+        self.assertEqual(entities[1].name, 'labels-ex')
+        self.assertEqual(entities[2].name, 'models-ex')
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_get_entities_from_repo_name(self):
         self.requests_mock.get(dummy_config_remote_url, status_code=200, headers=HEADERS, json=config_repo_response)
         self.requests_mock.get(dummy_config_content_url, status_code=200, headers=HEADERS, json=config_content_response)
         entities = self.manager.get_entities(repo_name='dummy/dummy_config')
-        self.assertEquals(3, len(entities))
-        self.assertEquals(entities[0].name, 'datasets-ex')
-        self.assertEquals(entities[1].name, 'labels-ex')
-        self.assertEquals(entities[2].name, 'models-ex')
+        self.assertEqual(3, len(entities))
+        self.assertEqual(entities[0].name, 'datasets-ex')
+        self.assertEqual(entities[1].name, 'labels-ex')
+        self.assertEqual(entities[2].name, 'models-ex')
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_get_entity_spec_path(self):
         self.requests_mock.get(dummy_config_remote_url, status_code=200, headers=HEADERS, json=config_repo_response)
         repository = self.manager._manager.find_repository('dummy/dummy_datasets_repo')
         spec_path = self.manager._get_entity_spec_path(repository, 'datasets-ex')
-        self.assertEquals('datasets-ex/datasets-ex.spec', spec_path)
+        self.assertEqual('datasets-ex/datasets-ex.spec', spec_path)
         with self.assertRaises(Exception):
             self.manager._get_entity_spec_path(repository, 'worng-dataset-name')
 
@@ -265,23 +265,23 @@ class ApiTestCases(unittest.TestCase):
         self.requests_mock.get(dummy_config_remote_url, status_code=200, headers=HEADERS, json=config_repo_response)
         entity_versions = self.manager.get_entity_versions('datasets-ex', 'dummy/dummy_datasets_repo')
         self.assertTrue(len(entity_versions) == 1)
-        self.assertEquals(entity_versions[0].version, 1)
-        self.assertEquals(entity_versions[0].tag, 'test__datasets-ex__1')
-        self.assertEquals(entity_versions[0].mutability, MutabilityType.MUTABLE.value)
-        self.assertEquals(entity_versions[0].categories, ['test'])
-        self.assertEquals(entity_versions[0].storage_type, StorageType.S3H.value)
-        self.assertEquals(entity_versions[0].bucket, 'mlgit-bucket')
-        self.assertEquals(entity_versions[0].amount, 2)
-        self.assertEquals(entity_versions[0].size, '7.2 kB')
+        self.assertEqual(entity_versions[0].version, 1)
+        self.assertEqual(entity_versions[0].tag, 'test__datasets-ex__1')
+        self.assertEqual(entity_versions[0].mutability, MutabilityType.MUTABLE.value)
+        self.assertEqual(entity_versions[0].categories, ['test'])
+        self.assertEqual(entity_versions[0].storage.type, StorageType.S3H.value)
+        self.assertEqual(entity_versions[0].storage.bucket, 'mlgit-bucket')
+        self.assertEqual(entity_versions[0].amount, 2)
+        self.assertEqual(entity_versions[0].size, '7.2 kB')
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_get_linked_entities(self):
         self.requests_mock.get(dummy_config_remote_url, status_code=200, headers=HEADERS, json=config_repo_response)
         self.requests_mock.get(dummy_config_content_url, status_code=200, headers=HEADERS, json=config_content_response)
         related_entities = self.manager.get_linked_entities('models-ex', 1, 'dummy/dummy_models_repo')
-        self.assertEquals(2, len(related_entities))
-        self.assertEquals(related_entities[0].tag, 'test__datasets-ex__1')
-        self.assertEquals(related_entities[1].tag, 'test__labels-ex__1')
+        self.assertEqual(2, len(related_entities))
+        self.assertEqual(related_entities[0].tag, 'test__datasets-ex__1')
+        self.assertEqual(related_entities[1].tag, 'test__labels-ex__1')
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_get_entity_relationships(self):
@@ -316,5 +316,5 @@ class ApiTestCases(unittest.TestCase):
                 else:
                     expected_data = 'test__models-ex__1,models-ex,1,model,test__labels-ex__1,labels-ex,1,labels'
                 line_count += 1
-                self.assertEquals(expected_data, ','.join(row))
+                self.assertEqual(expected_data, ','.join(row))
         self.manager.get_entity_relationships('models-ex', 'dummy/dummy_models_repo', export_type=FileType.CSV.value)
