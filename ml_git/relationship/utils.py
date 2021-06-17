@@ -39,20 +39,23 @@ def get_repo_name_from_url(repository_url: str) -> str:
     return repository_url.replace('.git', '').split(':')[-1]
 
 
-def export_relationships_to_csv(entity_name, relationships, export_path):
+def export_relationships_to_csv(entity_name, entity_type, relationships, export_path):
     csv_header = ['from_tag', 'from_name', 'from_version', 'from_type', 'to_tag', 'to_name', 'to_version', 'to_type']
     formatted_data = []
-    for relationship in relationships:
-        formatted_data.append({
-            'from_tag': relationship.from_entity.tag,
-            'from_name': relationship.from_entity.name,
-            'from_version': relationship.from_entity.version,
-            'from_type': relationship.from_entity.entity_type,
-            'to_tag': relationship.to_entity.tag,
-            'to_name': relationship.to_entity.name,
-            'to_version': relationship.to_entity.version,
-            'to_type': relationship.to_entity.entity_type
-        })
+    for value in relationships[entity_name]:
+        from_entity_version = value.version
+        from_entity_tag = value.tag
+        for to_entity in value.relationships:
+            formatted_data.append({
+                'from_tag': from_entity_tag,
+                'from_name': entity_name,
+                'from_version': from_entity_version,
+                'from_type': entity_type,
+                'to_tag': to_entity.tag,
+                'to_name': to_entity.name,
+                'to_version': to_entity.version,
+                'to_type': to_entity.entity_type
+            })
     file_name = '{}_relationships.{}'.format(entity_name, FileType.CSV.value)
 
     if export_path is None:

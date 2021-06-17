@@ -285,17 +285,20 @@ class ApiTestCases(unittest.TestCase):
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_get_entity_relationships(self):
-        relationships = self.manager.get_entity_relationships('models-ex', 'dummy/dummy_models_repo')
-        self.assertEqual(2, len(relationships))
-        self.assertEqual('test__models-ex__1', relationships[0].from_entity.tag)
-        self.assertEqual('test__datasets-ex__1', relationships[0].to_entity.tag)
-        self.assertEqual('test__models-ex__1', relationships[1].from_entity.tag)
-        self.assertEqual('test__labels-ex__1', relationships[1].to_entity.tag)
+        entity_name = 'models-ex'
+        output = self.manager.get_entity_relationships(entity_name, 'dummy/dummy_models_repo')
+        self.assertEqual('test__models-ex__1', output[entity_name][0].tag)
+        self.assertEqual(1, output[entity_name][0].version)
+        entity_relationships = output[entity_name][0].relationships
+        self.assertEqual(2, len(entity_relationships))
+        self.assertEqual('test__datasets-ex__1', entity_relationships[0].tag)
+        self.assertEqual('test__labels-ex__1', entity_relationships[1].tag)
 
         with self.assertRaises(Exception):
             self.manager.get_entity_relationships('worng-model-name', 'dummy/dummy_models_repo')
 
-        self.assertEqual([], self.manager.get_entity_relationships('datasets-ex', 'dummy/dummy_datasets_repo'))
+        unlinked_entity = self.manager.get_entity_relationships('datasets-ex', 'dummy/dummy_datasets_repo')
+        self.assertEqual([], unlinked_entity['datasets-ex'][0].relationships)
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_get_entity_relationships_export_to_csv(self):
