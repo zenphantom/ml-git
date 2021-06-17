@@ -335,11 +335,7 @@ class Entity:
         name (str): The name of the entity.
         entity_type (str): The type of the ml-entity (datasets, models, labels).
         private (str): The access of entity metadata.
-        metadata_full_name (str): The name of the repository metadata.
-        metadata_git_url (str): The git url of the repository metadata.
-        metadata_html_url (str): The html url of the repository metadata.
-        metadata_owner_name (str): The name of the repository owner.
-        metadata_owner_email (str): The email of the repository owner.
+        metadata (Metadata): The metadata of the entity.
         last_spec_version (SpecVersion): The spec file of entity last version.
     """
 ```
@@ -354,12 +350,13 @@ class SpecVersion:
     """Class that's represents a ml-entity spec version.
 
     Attributes:
-        tag (str): The tag of the ml-entity spec version.
+        name (str): The name of the entity.
+        entity_type (str): The type of the ml-entity (datasets, models, labels).
         version (str): The version of the ml-entity.
-        name (str): The name of the ml-entity.
+        tag (str): The tag of the ml-entity spec version.
         mutability (str): The mutability of the ml-entity.
         categories (list): Labels to categorize the entity.
-        storage (dict): The storage configuration.
+        storage (Storage): The storage of the ml-entity.
         amount (str): The amount of the version files.
         size (str): The size of the version files.
     """
@@ -383,6 +380,39 @@ class LinkedEntity:
 ```
 </details>
 
+
+<details markdown="1">
+<summary><code> Metadata </code></summary>
+<br>
+
+```python
+class Metadata:
+    """Class that's represents an ml-entity metadata.
+
+    Attributes:
+        full_name (str): The full name of the metadata.
+        git_url (str): The git url of the metadata.
+        html_url (str): The html url of the metadata.
+        owner_email (str): The owner email of the ml-entity metadata.
+        owner_name (str): The owner name of the ml-entity metadata.
+    """
+```
+</details>
+
+<details markdown="1">
+<summary><code> Storage </code></summary>
+<br>
+
+```python
+class Storage:
+    """Class that's represents an ml-entity storage.
+
+    Attributes:
+        type (str): The storage type (s3h|azureblobh|gdriveh|sftph).
+        bucket (str): The name of the bucket.
+    """
+```
+</details>
 <details markdown="1">
 <summary><code> EntityVersionRelationships </code></summary>
 <br>
