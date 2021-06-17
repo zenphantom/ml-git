@@ -192,6 +192,16 @@ class EntityManager:
         return relationships
 
     def get_project_entities_relationships(self, config_repo_name, export_type=FileType.JSON.value, export_path=None):
+        """Get a list of relationships for all project entities.
+
+        Args:
+            config_repo_name (str): The repository name where the metadata is located in GitHub.
+            export_type (str): Choose the format of the return [default: json].
+            export_path (str): Set the path to export metrics to a file.
+
+        Returns:
+            list of Relationship.
+        """
         project_entities = self.get_entities(repo_name=config_repo_name)
 
         config_repo = self._manager.find_repository(config_repo_name)
