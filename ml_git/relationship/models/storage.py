@@ -9,12 +9,12 @@ class Storage:
     """Class that's represents an ml-entity storage.
 
     Attributes:
-        storage_type (str): The storage type (s3h|azureblobh|gdriveh|sftph).
+        type (str): The storage type (s3h|azureblobh|gdriveh|sftph).
         bucket (str): The name of the bucket.
     """
 
-    def __init__(self, storage_type, bucket):
-        self.storage_type = storage_type
+    def __init__(self, type, bucket):
+        self.type = type
         self.bucket = bucket
 
     @staticmethod

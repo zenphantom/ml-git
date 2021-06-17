@@ -29,10 +29,11 @@ class Entity:
 
     def to_dict(self, obj):
         attrs = obj.__dict__.copy()
-        ignore_attributes = ['last_spec_version']
+        ignore_attributes = ['last_spec_version', 'metadata']
         for attr in obj.__dict__.keys():
             if attr.startswith('_') or not attrs[attr] or attr in ignore_attributes:
                 del attrs[attr]
+        attrs['metadata'] = Metadata.to_dict(self.metadata)
         attrs['last_spec_version'] = self.last_spec_version.to_dict(self.last_spec_version)
         return attrs
 

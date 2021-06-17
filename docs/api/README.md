@@ -385,7 +385,7 @@ class Storage:
     """Class that's represents an ml-entity storage.
 
     Attributes:
-        storage_type (str): The storage type (s3h|azureblobh|gdriveh|sftph).
+        type (str): The storage type (s3h|azureblobh|gdriveh|sftph).
         bucket (str): The name of the bucket.
     """
 ```

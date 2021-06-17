@@ -70,7 +70,8 @@ class SpecVersion:
     def __get_storage_info(self):
         manifest = self.__spec[self.entity_type]['manifest']
         storage_key = STORAGE_SPEC_KEY if STORAGE_SPEC_KEY in manifest else V1_STORAGE_KEY
-        return Storage(manifest[storage_key].split('://'))
+        storage_data = manifest[storage_key].split('://')
+        return Storage(storage_data[0], storage_data[1])
 
     def get_related_entities_info(self):
         all_related_tags = self._related_datasets + self._related_labels + self._related_models
@@ -86,13 +87,13 @@ class SpecVersion:
                                                  version=value.split('__')[-1], entity_type=entity_type))
         return related_entities
 
-    @staticmethod
-    def to_dict(obj):
+    def to_dict(self, obj):
         attrs = obj.__dict__.copy()
-        ignore_attributes = ['entity_type', 'name']
+        ignore_attributes = ['entity_type', 'name', 'storage']
         for attr in obj.__dict__.keys():
             if attr.startswith('_') or not attrs[attr] or attr in ignore_attributes:
                 del attrs[attr]
+        attrs['storage'] = Storage.to_dict(self.storage)
         return attrs
 
     def __repr__(self):
