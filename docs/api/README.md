@@ -307,7 +307,7 @@ class EntityManager:
             export_path (str): Set the path to export metrics to a file.
 
         Returns:
-            list of Relationship.
+            list of EntityVersionRelationships.
         """
     def get_project_entities_relationships(self, config_repo_name, export_type=FileType.JSON.value, export_path=None):
         """Get a list of relationships for all project entities.
@@ -318,7 +318,7 @@ class EntityManager:
             export_path (str): Set the path to export metrics to a file.
 
         Returns:
-            list of Relationship.
+            list of EntityVersionRelationships.
         """
 ```
 </details>
@@ -384,16 +384,17 @@ class LinkedEntity:
 </details>
 
 <details markdown="1">
-<summary><code> Relationship </code></summary>
+<summary><code> EntityVersionRelationships </code></summary>
 <br>
 
 ```python
 class Relationship:
-    """Class that's represents an relationship of ml-entity.
+    """Class that's represents the relationships of an ml-entity in a specified version.
 
     Attributes:
-        from_entity (LinkedEntity): The from LinkedEntity of the entity relationship.
-        to_entity (LinkedEntity): The to LinkedEntity of the entity relationship.
+        version (str): The version of the ml-entity.
+        tag (str): The tag of the ml-entity.
+        relationships (list): List of linked entities of the ml-entity in the specified version.
     """
 ```
 </details>
