@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-2.0-only
 import json
 
 from ml_git.relationship.models.spec_version import SpecVersion
+from ml_git.relationship.models.metadata import Metadata
 
 
 class Entity:
@@ -15,11 +16,7 @@ class Entity:
         name (str): The name of the entity.
         entity_type (str): The type of the ml-entity (datasets, models, labels).
         private (str): The access of entity metadata.
-        metadata_full_name (str): The name of the repository metadata.
-        metadata_git_url (str): The git url of the repository metadata.
-        metadata_html_url (str): The html url of the repository metadata.
-        metadata_owner_name (str): The name of the repository owner.
-        metadata_owner_email (str): The email of the repository owner.
+        metadata (Metadata): The metadata of the entity.
         last_spec_version (SpecVersion): The spec file of entity last version.
     """
 
@@ -27,12 +24,8 @@ class Entity:
         self.last_spec_version = SpecVersion(spec_yaml)
         self.name = self.last_spec_version.name
         self.entity_type = self.last_spec_version.entity_type
-        self.metadata_full_name = repository.full_name
-        self.metadata_git_url = repository.ssh_url
+        self.metadata = Metadata(repository)
         self.private = repository.private
-        self.metadata_html_url = repository.html_url
-        self.metadata_owner_email = repository.owner.email
-        self.metadata_owner_name = repository.owner.name
 
     def to_dict(self, obj):
         attrs = obj.__dict__.copy()
