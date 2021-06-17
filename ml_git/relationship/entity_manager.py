@@ -155,7 +155,7 @@ class EntityManager:
         entity_spec_path = self._get_entity_spec_path(repository, entity_name)
 
         for tag in repository.get_tags():
-            if tag.name.split('__')[-2] != entity_name and tag.name.split('__')[-1] != entity_version:
+            if tag.name.split('__')[-2] != entity_name or tag.name.split('__')[-1] != entity_version:
                 continue
 
             content = self._manager.get_file_content(repository, entity_spec_path, tag.name)
