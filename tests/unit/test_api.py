@@ -202,7 +202,7 @@ class ApiTestCases(unittest.TestCase):
     def test_get_entities_from_repo_name(self):
         self.requests_mock.get(dummy_config_remote_url, status_code=200, headers=HEADERS, json=config_repo_response)
         self.requests_mock.get(dummy_config_content_url, status_code=200, headers=HEADERS, json=config_content_response)
-        entities = self.manager.get_entities(repo_name='dummy/dummy_config')
+        entities = self.manager.get_entities(config_repo_name='dummy/dummy_config')
         self.assertTrue(len(entities) == 1)
         self.assertEqual(entities[0].name, 'dataset-ex')
 

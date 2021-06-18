@@ -266,12 +266,12 @@ Some methods uses the classes described below:
 ```python
 class EntityManager:
     """Class that operate over github api to manage entity's operations"""
-    def get_entities(self, config_path=None, repo_name=None):
+    def get_entities(self, config_path=None, config_repo_name=None):
         """Get a list of entities found in config.yaml.
 
         Args:
             config_path (str): The absolute path of the config.yaml file.
-            repo_name (str): The repository name where is the config.yaml is located in github.
+            config_repo_name (str): The repository name where is the config.yaml located in github.
 
         Returns:
             list of class Entity.
@@ -281,7 +281,7 @@ class EntityManager:
 
         Args:
             entity_name (str): The name of the entity you want to get the versions.
-            metadata_repo_name (str): The repository name where the metadata is located in GitHub.
+            metadata_repo_name (str): The repository name where the entity metadata is located in GitHub.
 
         Returns:
             list of class SpecVersion.

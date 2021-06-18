@@ -282,7 +282,7 @@ github_token = ''
 api_url = 'https://api.github.com'
 manager = api.init_entity_manager(github_token, api_url)
 
-entities = manager.get_entities(repo_name='user/config_repository')
+entities = manager.get_entities(config_repo_name='user/config_repository')
 ```
 
 
