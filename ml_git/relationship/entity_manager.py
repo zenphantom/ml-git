@@ -195,7 +195,7 @@ class EntityManager:
         """Get a list of relationships for all project entities.
 
         Args:
-            config_repo_name (str): The repository name where the metadata is located in GitHub.
+            config_repo_name (str): The repository name where the config is located in GitHub.
             export_type (str): Choose the format of the return [default: json].
             export_path (str): Set the path to export metrics to a file.
 
