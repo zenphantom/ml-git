@@ -302,7 +302,7 @@ class EntityManager:
 
         Args:
             entity_name (str): The name of the entity you want to get the linked entities.
-            metadata_repo_name (str): The repository name where the metadata is located in GitHub.
+            metadata_repo_name (str): The repository name where the entity metadata is located in GitHub.
             export_type (str): Choose the format of the return [default: json].
             export_path (str): Set the path to export metrics to a file.
 
@@ -407,7 +407,7 @@ class Storage:
 <br>
 
 ```python
-class Relationship:
+class EntityVersionRelationships:
     """Class that's represents the relationships of an ml-entity in a specified version.
 
     Attributes:
