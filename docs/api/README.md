@@ -292,7 +292,7 @@ class EntityManager:
         Args:
             entity_name (str): The name of the entity you want to get the linked entities.
             entity_version (str): The version of the entity you want to get the linked entities.
-            metadata_repo_name (str): The repository name where the metadata is located in GitHub.
+            metadata_repo_name (str): The repository name where the entity metadata is located in GitHub.
 
         Returns:
             list of LinkedEntity.
