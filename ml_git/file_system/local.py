@@ -773,24 +773,24 @@ class LocalRepository(MultihashFS):
                 continue
 
             for file in files:
-                bpath = convert_path(base_path, file)
-                if bpath in all_files:
+                file_path = convert_path(base_path, file)
+                if file_path in all_files:
                     full_file_path = os.path.join(root, file)
                     stat = os.stat(full_file_path)
-                    file_in_index = idx_yaml_mf[posix_path(bpath)]
+                    file_in_index = idx_yaml_mf[posix_path(file_path)]
                     if file_in_index['mtime'] != stat.st_mtime and self.get_scid(full_file_path) != \
                             file_in_index['hash']:
-                        bisect.insort(changed_files, bpath)
+                        bisect.insort(changed_files, file_path)
                 else:
-                    is_metadata_file = SPEC_EXTENSION in file or 'README.md' in file
+                    is_metadata_file = SPEC_EXTENSION in file or file_path == 'README.md'
 
                     if not is_metadata_file:
-                        bisect.insort(untracked_files, bpath)
+                        bisect.insort(untracked_files, file_path)
                     else:
                         file_path_metadata = os.path.join(full_metadata_path, file)
                         file_index_path = os.path.join(index_metadata_entity_path, file)
-                        full_base_path = os.path.join(root, bpath)
-                        self._compare_metadata_file(bpath, file_index_path, file_path_metadata, full_base_path,
+                        full_base_path = os.path.join(root, file_path)
+                        self._compare_metadata_file(file_path, file_index_path, file_path_metadata, full_base_path,
                                                     new_files, untracked_files)
         return changed_files, untracked_files
 

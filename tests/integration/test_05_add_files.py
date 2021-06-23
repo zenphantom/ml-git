@@ -218,3 +218,21 @@ class AddFilesAcceptanceTests(unittest.TestCase):
         init_repository(DATASETS, self)
         add_file(self, DATASETS, '--bumpversion', 'new')
         self._check_spec_version(DATASETS, 1)
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
+    def test_13_add_entity_with_readme_file_in_data(self):
+        entity_init(DATASETS, self)
+        workspace = os.path.join(self.tmp_dir, DATASETS, DATASET_NAME)
+        create_file(workspace, 'README.md', '0', file_path='')
+        os.mkdir(os.path.join(workspace, 'data'))
+        create_file(workspace, 'README.md', '0', file_path='data')
+
+        output = check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, ''))
+        self.assertIn(output_messages['INFO_ADDING_PATH'] % DATASETS, output)
+        self.assertNotIn(ERROR_MESSAGE, output)
+
+        metadata = os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'index', 'metadata', DATASET_NAME)
+        metadata_file = os.path.join(metadata, 'MANIFEST.yaml')
+        index_file = os.path.join(metadata, 'INDEX.yaml')
+        self.assertTrue(os.path.exists(metadata_file))
+        self.assertTrue(os.path.exists(index_file))

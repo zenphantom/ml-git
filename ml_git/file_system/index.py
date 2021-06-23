@@ -62,12 +62,12 @@ class MultihashIndex(object):
 
     def _adding_dir_work(self, files, args):
         for k in files:
-            filepath = args['all_files'][k]
-            if (SPEC_EXTENSION in filepath) or ('README' in filepath):
+            file_path = args['all_files'][k]
+            if (SPEC_EXTENSION in file_path) or (file_path == 'README.md'):
                 args['wp'].progress_bar_total_inc(-1)
-                self.add_metadata(args['basepath'], filepath)
+                self.add_metadata(args['basepath'], file_path)
             else:
-                args['wp'].submit(self._add_file, args['basepath'], filepath, args['f_index_file'])
+                args['wp'].submit(self._add_file, args['basepath'], file_path, args['f_index_file'])
         futures = self.wp.wait()
         try:
             self._adding_dir_work_future_process(futures, self.wp)
@@ -85,8 +85,8 @@ class MultihashIndex(object):
         for root, dirs, files in os.walk(os.path.join(dirpath, file_path)):
             if '.' == root[0]:
                 continue
-            basepath = root[:len(dirpath)+1:]
-            relativepath = root[len(dirpath)+1:]
+            basepath = root[:len(dirpath) + 1:]
+            relativepath = root[len(dirpath) + 1:]
             for file in files:
                 all_files.append(os.path.join(relativepath, file))
             self.wp.progress_bar_total_inc(len(all_files))
