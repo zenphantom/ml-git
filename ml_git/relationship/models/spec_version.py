@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-2.0-only
 import json
 
 from ml_git.constants import DATASET_SPEC_KEY, LABELS_SPEC_KEY, MODEL_SPEC_KEY, STORAGE_SPEC_KEY, V1_STORAGE_KEY
+from ml_git.relationship.models.storage import Storage
 
 
 class SpecVersion:
@@ -17,8 +18,7 @@ class SpecVersion:
         tag (str): The tag of the ml-entity spec version.
         mutability (str): The mutability of the ml-entity.
         categories (list): Labels to categorize the entity.
-        storage_type (str): The storage type (s3h|azureblobh|gdriveh|sftph).
-        bucket (str): The name of the bucket.
+        storage (Storage): The storage of the ml-entity.
         amount (str): The amount of the version files.
         size (str): The size of the version files.
     """
@@ -31,7 +31,7 @@ class SpecVersion:
         self.tag = self.__get_tag(spec_tag_yaml)
         self.mutability = spec_tag_yaml[self.entity_type]['mutability']
         self.categories = self.__format_categories()
-        self.storage_type, self.bucket = self.__get_storage_info()
+        self.storage = self.__get_storage_info()
         self.amount = spec_tag_yaml[self.entity_type]['manifest']['amount']
         self.size = spec_tag_yaml[self.entity_type]['manifest']['size']
 
@@ -61,14 +61,16 @@ class SpecVersion:
     def __get_storage_info(self):
         manifest = self.__spec[self.entity_type]['manifest']
         storage_key = STORAGE_SPEC_KEY if STORAGE_SPEC_KEY in manifest else V1_STORAGE_KEY
-        return manifest[storage_key].split('://')
+        storage_data = manifest[storage_key].split('://')
+        return Storage(storage_data[0], storage_data[1])
 
     def to_dict(self, obj):
         attrs = obj.__dict__.copy()
-        ignore_attributes = ['entity_type', 'name']
+        ignore_attributes = ['entity_type', 'name', 'storage']
         for attr in obj.__dict__.keys():
             if attr.startswith('_') or not attrs[attr] or attr in ignore_attributes:
                 del attrs[attr]
+        attrs['storage'] = Storage.to_dict(self.storage)
         return attrs
 
     def __repr__(self):
