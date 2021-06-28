@@ -388,39 +388,6 @@ class LinkedEntity:
 ```
 </details>
 
-
-<details markdown="1">
-<summary><code> Metadata </code></summary>
-<br>
-
-```python
-class Metadata:
-    """Class that's represents an ml-entity metadata.
-
-    Attributes:
-        full_name (str): The full name of the metadata.
-        git_url (str): The git url of the metadata.
-        html_url (str): The html url of the metadata.
-        owner_email (str): The owner email of the ml-entity metadata.
-        owner_name (str): The owner name of the ml-entity metadata.
-    """
-```
-</details>
-
-<details markdown="1">
-<summary><code> Storage </code></summary>
-<br>
-
-```python
-class Storage:
-    """Class that's represents an ml-entity storage.
-
-    Attributes:
-        type (str): The storage type (s3h|azureblobh|gdriveh|sftph).
-        bucket (str): The name of the bucket.
-    """
-```
-</details>
 # <a name="methods"> API notebooks </a> #
 
 In the api_scripts directory you can find notebooks running the ML-Git api for some scenarios. 
