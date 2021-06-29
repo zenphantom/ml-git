@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "3b02e98ead6bab65208e14f2056cd192bb4a3a4376ee11d85b14b250b045dbd6"
+            "sha256": "b6a1b508582d08154906501c84031a75b900cb0f819b001574e223c9607a30ba"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -311,12 +311,6 @@
             "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
             "version": "==2.10"
         },
-        "install-requires": {
-            "hashes": [
-                "sha256:d6229486e085a330041d3cc6f47eeb8d2fd0c255cf81a4b899b287c306deb717"
-            ],
-            "version": "==0.3.0"
-        },
         "isodate": {
             "hashes": [
                 "sha256:2e364a3d5759479cdb2d37cce6b9376ea504db2ff90252a2e5b7cc89cc9ff2d8",
@@ -338,10 +332,6 @@
                 "sha256:cf0bbc6fe1a8e53f0d174a716bc625c4f87043cc21eb55dd8a740cfe22680556"
             ],
             "version": "==0.0.14"
-        },
-        "ml-git": {
-            "editable": true,
-            "path": "."
         },
         "mock": {
             "hashes": [
