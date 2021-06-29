@@ -37,7 +37,6 @@ prettytable = "==2.0.0"
 pydrive2= "==1.7.3"
 funcy = "==1.15"
 PyGithub = "==1.55"
-ml-git = {editable = true, path = "."}
 
 [requires]
 python_version = "3.6.1"
