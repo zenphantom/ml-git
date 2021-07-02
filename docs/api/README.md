@@ -295,7 +295,7 @@ class EntityManager:
 
 ```python
 class Entity:
-    """Class that's represents a ml-entity.
+    """Class that represents an ml-entity.
 
     Attributes:
         name (str): The name of the entity.
@@ -313,7 +313,7 @@ class Entity:
 
 ```python
 class SpecVersion:
-    """Class that's represents a ml-entity spec version.
+    """Class that represents an ml-entity spec version.
 
     Attributes:
         name (str): The name of the entity.
@@ -335,7 +335,7 @@ class SpecVersion:
 
 ```python
 class Metadata:
-    """Class that's represents an ml-entity metadata.
+    """Class that represents an ml-entity metadata.
     Attributes:
         full_name (str): The full name of the metadata.
         git_url (str): The git url of the metadata.
@@ -352,7 +352,7 @@ class Metadata:
 
 ```python
 class Storage:
-    """Class that's represents an ml-entity storage.
+    """Class that represents an ml-entity storage.
     Attributes:
         type (str): The storage type (s3h|azureblobh|gdriveh|sftph).
         bucket (str): The name of the bucket.

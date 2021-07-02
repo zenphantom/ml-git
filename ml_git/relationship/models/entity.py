@@ -10,7 +10,7 @@ from ml_git.relationship.models.metadata import Metadata
 
 
 class Entity:
-    """Class that's represents an ml-entity.
+    """Class that represents an ml-entity.
 
     Attributes:
         name (str): The name of the entity.
