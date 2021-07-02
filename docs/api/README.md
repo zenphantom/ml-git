@@ -377,7 +377,7 @@ class Storage:
 
 ```python
 class LinkedEntity:
-    """Class that's represents an linked ml-entity.
+    """Class that represents a linked ml-entity.
 
     Attributes:
         name (str): The name of the entity.
