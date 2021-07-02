@@ -6,7 +6,7 @@ import json
 
 
 class Metadata:
-    """Class that's represents an ml-entity metadata.
+    """Class that represents an ml-entity metadata.
 
     Attributes:
         full_name (str): The full name of the metadata.
