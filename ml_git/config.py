@@ -14,7 +14,7 @@ from ml_git.constants import FAKE_STORAGE, BATCH_SIZE_VALUE, BATCH_SIZE, Storage
     PUSH_THREADS_COUNT, SPEC_EXTENSION, EntityType, STORAGE_CONFIG_KEY, STORAGE_SPEC_KEY, DATASET_SPEC_KEY
 from ml_git.ml_git_message import output_messages
 from ml_git.spec import get_spec_key
-from ml_git.utils import getOrElse, yaml_load, yaml_save, get_root_path, yaml_load_str
+from ml_git.utils import getOrElse, yaml_load, yaml_save, get_root_path, yaml_load_str, RootPathException
 
 push_threads = os.cpu_count()*5
 
@@ -431,6 +431,7 @@ def merge_conf(local_conf, global_conf):
             global_conf[key] = value
 
     local_conf.update(global_conf)
+    return local_conf
 
 
 def merge_local_with_global_config():
@@ -446,3 +447,15 @@ def get_push_threads_count(config):
         raise RuntimeError(output_messages['ERROR_INVALID_VALUE_IN_CONFIG'] % PUSH_THREADS_COUNT)
 
     return push_threads_count
+
+
+def merged_config_load():
+    try:
+        get_root_path()
+        global mlgit_config
+        global_config = merge_conf(global_config_load(), mlgit_config)
+        local_config = mlgit_config_load()
+        config_file = merge_conf(local_config, global_config)
+    except RootPathException:
+        config_file = global_config_load()
+    return config_file

@@ -9,10 +9,11 @@ import click
 from click_didyoumean import DYMGroup
 
 from ml_git.admin import init_mlgit
+from ml_git.commands import help_msg
+from ml_git.commands.custom_options import MutuallyExclusiveOption
 from ml_git.commands.general import mlgit
 from ml_git.commands.utils import repositories, PROJECT, set_verbose_mode
-from ml_git.config import config_load, global_config_load, mlgit_config_load
-from ml_git.utils import get_root_path, RootPathException
+from ml_git.config import global_config_load, mlgit_config_load, merged_config_load
 
 
 @mlgit.group('repository', help='Management of this ml-git repository.', cls=DYMGroup)
@@ -37,20 +38,20 @@ def init():
 
 
 @config.command('show', help='Configuration of this ML-Git repository')
-@click.option('--local', '-l', is_flag=True, default=False, help='Local configurations')
-@click.option('--global', '-g', is_flag=True, default=False, help='Global configurations')
-@click.option('--verbose', is_flag=True, expose_value=False, callback=set_verbose_mode, help='Debug mode')
+@click.option('--local', '-l', is_flag=True, default=False, help=help_msg.LOCAL_CONFIGURATIONS,
+              cls=MutuallyExclusiveOption, mutually_exclusive=['global'])
+@click.option('--global', '-g', is_flag=True, default=False, help=help_msg.GLOBAL_CONFIGURATIONS,
+              cls=MutuallyExclusiveOption, mutually_exclusive=['local'])
+@click.option('--verbose', is_flag=True, expose_value=False, callback=set_verbose_mode, help=help_msg.VERBOSE_OPTION)
 @click.help_option(hidden=True)
 def show(**kwargs):
-    try:
-        get_root_path()
-        config_file = config_load()
-    except RootPathException:
-        config_file = global_config_load()
     if kwargs['global']:
         config_file = global_config_load()
     elif kwargs['local']:
         config_file = mlgit_config_load()
+    else:
+        config_file = merged_config_load()
+
     print('config:')
     pprint(config_file)
 
