@@ -25,11 +25,13 @@ create_new_github_repository()
               fi
               OUTPUT_FILE=log_${ENTITY_TYPE}_repository
               HTTP_CODE=$(curl -s -o ../../${OUTPUT_FILE} -w "%{http_code}" -H "Authorization: token ${GITHUB_TOKEN}" ${GITHUB_API_URL}${REPO_OWNER} -d "{\"name\": \"${REPONAME:-${REPO_NAME}}\"}")
-              REPO_LINK=$(grep -Po -m2 html_url.+:.+ ../../$OUTPUT_FILE | tail -n1 | cut -d '"' -f 3)
+              USERNAME=$(grep -Po -m1 \"login\".+ ../../$OUTPUT_FILE | cut -d '"' -f 4)
+              REPO_NAME=$(grep -Po -m1 \"name\".+ ../../$OUTPUT_FILE | cut -d '"' -f 4)
               if [[ HTTP_CODE -ne 201 ]]; then
                  echo "Could not create the repository, please see ${OUTPUT_FILE} for more information."
                  clear_workspace_and_exit
               else
+                 REPO_LINK=${GITHUB_BASE_URL}/${USERNAME}/${REPO_NAME}
                  echo "Repository creation done. Go to ${REPO_LINK} to see."
                  echo "${ENTITY_TYPE}:" >> config.yaml
                  echo "  git: ${REPO_LINK}" >> config.yaml
@@ -94,7 +96,7 @@ create_new_bucket_wizard()
 
    if [ -z "${yn}" ]
    then
-     yn="Yes"
+      yn="Yes"
    fi
    case ${yn} in
       [Yy]* ) create_new_bucket;
@@ -129,13 +131,19 @@ push_config_repository()
      REPO_NAME=${INPUT_REPO_NAME}
    fi
    OUTPUT_FILE=log_clone_repository
+   OLD_USERNAME=$USERNAME
    HTTP_CODE=$(curl -s -o ../../$OUTPUT_FILE -w "%{http_code}" -H "Authorization: token ${GITHUB_TOKEN}" ${GITHUB_API_URL}${REPO_OWNER} -d "{\"name\": \"${REPONAME:-$REPO_NAME}\"}")
-   REPO_LINK=$(grep -Po -m2 html_url.+:.+ ../../$OUTPUT_FILE | tail -n1 | cut -d '"' -f 3)
+   USERNAME=$(grep -Po -m1 \"login\".+ ../../$OUTPUT_FILE | cut -d '"' -f 4)
+   REPO_NAME=$(grep -Po -m1 \"name\".+ ../../$OUTPUT_FILE | cut -d '"' -f 4)
+   if [ "${ORGANIZATION_NAME}" == "${OLD_USERNAME}" ]; then
+     ORGANIZATION_NAME=$USERNAME
+   fi
    if [[ HTTP_CODE -ne 201 ]]; then
       echo "Could not create the repository, please see $OUTPUT_FILE for more information."
       clear_workspace_and_exit
    else
       GITHUB_REPOSITORY_URL="https://${USERNAME}:${GITHUB_TOKEN}@${GITHUB_BASE_URL//'https://'}/${ORGANIZATION_NAME}/${REPO_NAME}.git"
+      REPO_LINK=${GITHUB_BASE_URL}/${USERNAME}/${REPO_NAME}
       git remote add origin ${GITHUB_REPOSITORY_URL}
       git push --set-upstream origin main
       if [ $? -eq 0 ]; then
