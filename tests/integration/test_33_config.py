@@ -148,10 +148,10 @@ class ConfigAcceptanceTests(unittest.TestCase):
             expected_result = "config:\n{'batch_size': 20,\n 'cache_path': '',\n 'datasets': {'git': 'local_git_Server.git'}," \
                               "\n 'index_path': '',\n 'labels': {'git': ''},\n 'metadata_path': '',\n 'mlgit_conf': " \
                               "'config.yaml',\n 'mlgit_path': '.ml-git',\n 'models': {'git': ''},\n 'object_path': ''," \
-                              "\n 'push_threads_count': 30,\n 'refs_path': '',\n 'storages': {'s3': {'mlgit-datasets':" \
+                              "\n 'push_threads_count': %s,\n 'refs_path': '',\n 'storages': {'s3': {'mlgit-datasets':" \
                               " {'aws-credentials': {'profile': 'default'}," \
                               "\n                                        'region': 'us-east-1'}}," \
                               "\n              's3h': {'mlgit': {'aws-credentials': {'profile':" \
                               " 'personal'},\n                                'endpoint-url': 'http://127.0.0.1:9000'," \
-                              "\n                                'region': None}}},\n 'verbose': 'info'}"
+                              "\n                                'region': None}}},\n 'verbose': 'info'}" % str(self.push_threads_count)
             self.assertIn(expected_result, check_output(MLGIT_CONFIG_SHOW))
