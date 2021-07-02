@@ -8,13 +8,13 @@ from unittest import mock
 
 import pytest
 
-from ml_git.constants import CONFIG_FILE
+from ml_git.constants import CONFIG_FILE, GLOBAL_ML_GIT_CONFIG, STORAGE_CONFIG_KEY, StorageType
 from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_INIT, MLGIT_CONFIG_SHOW, MLGIT_CLONE, MLGIT_CONFIG_PUSH, \
     MLGIT_CONFIG_REMOTE, MLGIT_REMOTE_ADD_GLOBAL, MLGIT_STORAGE_ADD
 from tests.integration.helper import check_output, CLONE_FOLDER, ERROR_MESSAGE, GIT_PATH, \
     create_git_clone_repo, PATH_TEST, GLOBAL_CONFIG_PATH, DATASETS, clear, edit_global_config_yaml, \
-    BUCKET_NAME, PROFILE, ML_GIT_DIR
+    BUCKET_NAME, PROFILE, ML_GIT_DIR, yaml_processor, MINIO_ENDPOINT_URL
 
 GIT_LOG_COMMAND = 'git log --pretty=format:"%h - %an, %ar : %s"'
 
@@ -112,42 +112,46 @@ class ConfigAcceptanceTests(unittest.TestCase):
         self.assertNotIn(ERROR_MESSAGE,
                          check_output(MLGIT_REMOTE_ADD_GLOBAL % (entity_type, 'local_git_Server.git')))
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_STORAGE_ADD % (BUCKET_NAME, PROFILE + ' --global')))
-        edit_global_config_yaml()
+        with open(os.path.join(self.tmp_dir, GLOBAL_ML_GIT_CONFIG), 'r') as config_file:
+            config = yaml_processor.load(config_file)
+            config[STORAGE_CONFIG_KEY][StorageType.S3H.value]['mlgit']['endpoint-url'] = MINIO_ENDPOINT_URL
+        with open(os.path.join(self.tmp_dir, GLOBAL_ML_GIT_CONFIG), 'w') as config_file:
+            yaml_processor.dump(config, config_file)
         clear(os.path.join(self.tmp_dir, ML_GIT_DIR))
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_08_config_show_local_option(self):
-        mock.patch.dict(os.environ, {'HOME': self.tmp_dir})
-        self.set_up_global()
-        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
-        expected_result = "config:\n{'batch_size': 20,\n 'datasets': {'git': ''},\n 'labels': {'git': ''},\n " \
-                          "'models': {'git': ''},\n 'storages': {'s3': {'mlgit-datasets': {'aws-credentials': " \
-                          "{'profile': 'default'},\n                                        'region': 'us-east-1'}}}}"
-        self.assertIn(expected_result, check_output(MLGIT_CONFIG_SHOW + ' -l'))
+        with mock.patch.dict(os.environ, {'HOME': str(self.tmp_dir)}):
+            self.set_up_global()
+            self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
+            expected_result = "config:\n{'batch_size': 20,\n 'datasets': {'git': ''},\n 'labels': {'git': ''},\n " \
+                              "'models': {'git': ''},\n 'storages': {'s3': {'mlgit-datasets': {'aws-credentials': " \
+                              "{'profile': 'default'},\n                                        'region': 'us-east-1'}}}}"
+            self.assertIn(expected_result, check_output(MLGIT_CONFIG_SHOW + ' -l'))
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_09_config_show_global_option(self):
-        mock.patch.dict(os.environ, {'HOME': self.tmp_dir})
-        self.set_up_global()
-        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
-        expected_result = "config:\n{'datasets': {'git': 'local_git_Server.git'},\n 'storages': {'s3h': {'mlgit': " \
-                          "{'aws-credentials': {'profile': 'personal'}," \
-                          "\n                                'endpoint-url': 'http://127.0.0.1:9000'," \
-                          "\n                                'region': None}}}}"
-        self.assertIn(expected_result, check_output(MLGIT_CONFIG_SHOW + ' -g'))
+        with mock.patch.dict(os.environ, {'HOME': str(self.tmp_dir)}):
+            self.set_up_global()
+            self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
+            expected_result = "config:\n{'datasets': {'git': 'local_git_Server.git'},\n 'storages': {'s3h': {'mlgit': " \
+                              "{'aws-credentials': {'profile': 'personal'}," \
+                              "\n                                'endpoint-url': 'http://127.0.0.1:9000'," \
+                              "\n                                'region': None}}}}"
+            self.assertIn(expected_result, check_output(MLGIT_CONFIG_SHOW + ' -g'))
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_10_config_show_merged(self):
-        mock.patch.dict(os.environ, {'HOME': self.tmp_dir})
-        self.set_up_global()
-        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
-        expected_result = "config:\n{'batch_size': 20,\n 'cache_path': '',\n 'datasets': " \
-                          "{'git': 'local_git_Server.git'},\n 'index_path': '',\n 'labels': {'git': ''},\n " \
-                          "'metadata_path': '',\n 'mlgit_conf': 'config.yaml',\n 'mlgit_path': '.ml-git',\n 'models': " \
-                          "{'git': ''},\n 'object_path': '',\n 'push_threads_count': 30,\n 'refs_path': '',\n 'storages'" \
-                          ": {'s3': {'mlgit-datasets': {'aws-credentials': {'profile': 'default'},\n                  " \
-                          "                      'region': 'us-east-1'}},\n              's3h': " \
-                          "{'mlgit': {'aws-credentials': {'profile': 'personal'},\n                                " \
-                          "'endpoint-url': 'http://127.0.0.1:9000',\n                                " \
-                          "'region': None}}},\n 'verbose': 'info'}\n\n\n\n\n\n\n\n"
-        self.assertIn(expected_result, check_output(MLGIT_CONFIG_SHOW))
+        with mock.patch.dict(os.environ, {'HOME': str(self.tmp_dir)}):
+            self.set_up_global()
+            self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
+            expected_result = "config:\n{'batch_size': 20,\n 'cache_path': '',\n 'datasets': {'git': 'local_git_Server.git'}," \
+                              "\n 'index_path': '',\n 'labels': {'git': ''},\n 'metadata_path': '',\n 'mlgit_conf': " \
+                              "'config.yaml',\n 'mlgit_path': '.ml-git',\n 'models': {'git': ''},\n 'object_path': ''," \
+                              "\n 'push_threads_count': 30,\n 'refs_path': '',\n 'storages': {'s3': {'mlgit-datasets':" \
+                              " {'aws-credentials': {'profile': 'default'}," \
+                              "\n                                        'region': 'us-east-1'}}," \
+                              "\n              's3h': {'mlgit': {'aws-credentials': {'profile':" \
+                              " 'personal'},\n                                'endpoint-url': 'http://127.0.0.1:9000'," \
+                              "\n                                'region': None}}},\n 'verbose': 'info'}"
+            self.assertIn(expected_result, check_output(MLGIT_CONFIG_SHOW))
