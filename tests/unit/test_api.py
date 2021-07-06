@@ -228,5 +228,5 @@ class ApiTestCases(unittest.TestCase):
         self.assertEqual(entity_versions[0].categories, ['test'])
         self.assertEqual(entity_versions[0].storage.type, StorageType.S3H.value)
         self.assertEqual(entity_versions[0].storage.bucket, 'mlgit')
-        self.assertEqual(entity_versions[0].amount, 2)
+        self.assertEqual(entity_versions[0].total_versioned_files, 2)
         self.assertEqual(entity_versions[0].size, '18 Bytes')

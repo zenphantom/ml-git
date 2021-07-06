@@ -19,7 +19,7 @@ class SpecVersion:
         mutability (str): The mutability of the ml-entity.
         categories (list): Labels to categorize the entity.
         storage (Storage): The storage of the ml-entity.
-        amount (str): The amount of the version files.
+        total_versioned_files (int): The amount of the versioned files.
         size (str): The size of the version files.
     """
 
@@ -32,7 +32,7 @@ class SpecVersion:
         self.mutability = spec_tag_yaml[self.entity_type]['mutability']
         self.categories = self.__format_categories()
         self.storage = self.__get_storage_info()
-        self.amount = spec_tag_yaml[self.entity_type]['manifest']['amount']
+        self.total_versioned_files = spec_tag_yaml[self.entity_type]['manifest']['amount']
         self.size = spec_tag_yaml[self.entity_type]['manifest']['size']
 
     def __get_entity_type(self):

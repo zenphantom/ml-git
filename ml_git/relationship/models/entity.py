@@ -17,7 +17,7 @@ class Entity:
         entity_type (str): The type of the ml-entity (datasets, models, labels).
         private (str): The access of entity metadata.
         metadata (Metadata): The metadata of the entity.
-        last_spec_version (SpecVersion): The spec file of entity last version.
+        last_spec_version (SpecVersion): The specification file of the entity last version.
     """
 
     def __init__(self, repository, spec_yaml):
