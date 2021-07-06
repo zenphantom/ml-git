@@ -295,6 +295,7 @@ output_messages = {
     'ERROR_INVALID_SPEC_VALUE_IN': 'Invalid %s spec in %s.  It should look something like this:\n%s',
     'ERROR_SPEC_FILE_NOT_FOUND': '\nCan\'t find  spec file to increment version.  Are you in the '
                                   'root of the repo?\n     %s\n',
+    'ERROR_COMMIT_BEFORE_PUSH': 'It is necessary commit the changes before push.',
     'ERROR_ON_PUSH_BLOBS': 'There was an error sending the data. %s pending blobs to send.',
     'ERROR_ON_GETTING_BLOBS': 'There was an error downloading the data. %s pending blobs to get.',
     'ERROR_CANNOT_RECOVER': 'It was not possible to recover from the error found. Please fix the problem and rerun the command again.',

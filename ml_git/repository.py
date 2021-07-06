@@ -545,7 +545,15 @@ class Repository(object):
         ret = repo.push(objects_path, full_spec_path, retry, clear_on_fail, fail_limit)
 
         # ensure first we're on master !
-        met.checkout()
+        try:
+            met.checkout()
+        except GitError as g:
+            error_message = g.stderr
+            if 'did not match any file(s) known' in error_message:
+                error_message = output_messages['ERROR_COMMIT_BEFORE_PUSH']
+            log.error(error_message, class_name=REPOSITORY_CLASS_NAME)
+            return
+
         if ret == 0:
             # push metadata spec to LocalRepository git repository
             try:
