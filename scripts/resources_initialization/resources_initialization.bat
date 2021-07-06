@@ -27,11 +27,6 @@ ECHO.
 ECHO ## CREATE REPOSITORY WITH CONFIGURATIONS ##
 CALL:PUSH_CONFIG_REPOSITORY
 
-ECHO.
-ECHO If you want to start an ml-git project with these settings you can use:
-ECHO.
-ECHO ml-git clone %REPO_LINK%
-
 GOTO :END
 :::::::::::::::::::::::::::::::::::::: END MAIN ::::::::::::::::::::::::::::::::::::::
 
@@ -69,17 +64,31 @@ GOTO :END
       SET yn=Y
    )
    SET REPO_NAME=%PROJECT_NAME%-mlgit-%ENTITY_TYPE%
+   SET OUTPUT_FILE=log_%ENTITY_TYPE%_repository
    IF /i ["%yn:~0,1%"]==["Y"] (
       SET /p INPUT_REPO_NAME="What name do you want to give to your remote repo? [default: %REPO_NAME%] "
       IF NOT ["%INPUT_REPO_NAME%"]==[""] (
          SET REPO_NAME=%INPUT_REPO_NAME%
       )
-      SET OUTPUT_FILE=log_%ENTITY_TYPE%_repository
-      curl -H "Authorization: token %GITHUB_TOKEN%" %GITHUB_API_URL%%REPO_OWNER% -d "{\"name\": \"%REPO_NAME%\"}"
+      
+      SET HTTP_CODE=
+      FOR /F %%a IN ('curl -s -o ../../%OUTPUT_FILE% -w "%%{http_code}" -H "Authorization: token %GITHUB_TOKEN%" "%GITHUB_API_URL%%REPO_OWNER%" -d "{""name"": ""%REPO_NAME%""}"') do set HTTP_CODE=%%a
+      
+      SET USERNAME=
+      FOR /F "tokens=2 delims=:" %%a in ('findstr \"login\"^: ..\..\%OUTPUT_FILE%') do SET USERNAME=%%a
+      SET USERNAME=%USERNAME:"=%
+      SET REPO_NAME=
+      FOR /F "tokens=2 delims=:" %%a in ('findstr \"name\"^: ..\..\%OUTPUT_FILE%') do SET REPO_NAME=%%a
+      SET REPO_NAME=%REPO_NAME:"=%
       SET REPO_LINK=%GITHUB_BASE_URL%/%USERNAME%/%REPO_NAME%
-      ECHO Repository creation done. Go to !REPO_LINK! to see.
-      ECHO %ENTITY_TYPE%: >> config.yaml
-      ECHO   git: !REPO_LINK! >> config.yaml
+      
+      IF "!HTTP_CODE!"=="201" (
+         ECHO Repository creation done. Go to !REPO_LINK! to see.
+         ECHO %ENTITY_TYPE%: >> config.yaml
+         ECHO   git: !REPO_LINK! >> config.yaml
+      ) ELSE (
+         ECHO Could not create the repository, please see !OUTPUT_FILE! for more information.
+      )
    ) ELSE (
       IF /i ["%yn:~0,1%"]==["n"] (
          EXIT /B 0
@@ -95,12 +104,13 @@ GOTO :END
 
    SET /p STORE_TYPE="What type of storage do you want to configure? [s3h, azureblobh, minio]: "
    SET /p BUCKET_NAME="What name do you want to give to your bucket? "
-
+   SET BUCKET_CREATION_RETURN_CODE=0
    IF ["%STORE_TYPE%"]==["s3h"] (
       ECHO   %STORE_TYPE%: >> config.yaml
       ECHO     %BUCKET_NAME%: >> config.yaml
 
       aws s3api create-bucket --bucket %BUCKET_NAME% --region us-east-1
+      SET BUCKET_CREATION_RETURN_CODE=%ERRORLEVEL%
       ECHO       aws-credentials: >> config.yaml
       ECHO         profile: default >> config.yaml
    ) ELSE IF ["%STORE_TYPE%"]==["minio"] (
@@ -110,6 +120,7 @@ GOTO :END
       ECHO     %BUCKET_NAME%: >> config.yaml
 
       aws --endpoint-url !ENDPOINT! s3 mb s3://%BUCKET_NAME%
+      SET BUCKET_CREATION_RETURN_CODE=%ERRORLEVEL%
       ECHO       aws-credentials: >> config.yaml
       ECHO         profile: default >> config.yaml
       ECHO       endpoint-url: !ENDPOINT! >> config.yaml
@@ -118,11 +129,17 @@ GOTO :END
       ECHO     %BUCKET_NAME%: >> config.yaml
       IF ["%STORE_TYPE%"]==["azureblobh"] (
          az storage container create -n %BUCKET_NAME%
+         SET BUCKET_CREATION_RETURN_CODE=%ERRORLEVEL%
          ECHO       credentials: None >> config.yaml
       ) ELSE (
          ECHO Please enter a valid storage type.
          CALL:CREATE_NEW_BUCKET
       )
+   )
+   IF BUCKET_CREATION_RETURN_CODE EQU 0 (
+      ECHO Bucket successfully created
+   ) ELSE (
+      ECHO The bucket could not be created
    )
    EXIT /B 0
 
@@ -135,7 +152,6 @@ GOTO :END
 
    IF /i ["%yn:~0,1%"]==["Y"] (
       CALL:CREATE_NEW_BUCKET
-      ECHO Bucket successfully created
       CALL:CREATE_NEW_BUCKET_WIZARD
    ) ELSE (
       IF /i ["%yn:~0,1%"]==["n"] (
@@ -154,16 +170,45 @@ GOTO :END
    IF NOT ["%INPUT_REPO_NAME%"]==[""] (
       SET REPO_NAME=%INPUT_REPO_NAME%
    )
-   git add config.yaml
-   git commit -m "Initial commit with .ml-git configured"
-   curl -H "Authorization: token %GITHUB_TOKEN%" %GITHUB_API_URL%%REPO_OWNER% -d "{\"name\": \"%REPO_NAME%\"}"
-   SET str=%str:(Video)=%
-   SET GITHUB_REPOSITORY_URL=https://%USERNAME%:%GITHUB_TOKEN%@%GITHUB_BASE_URL:https://=%/%ORGANIZATION_NAME%/%REPO_NAME%.git"
-   git remote add origin %GITHUB_REPOSITORY_URL%
-   git branch -M main
-   git push --set-upstream origin main
+   SET OUTPUT_FILE=log_clone_repository
+   SET OLD_USERNAME=%USERNAME%
+   SET HTTP_CODE=
+   FOR /F %%a IN ('curl -s -o ../../%OUTPUT_FILE% -w "%%{http_code}" -H "Authorization: token %GITHUB_TOKEN%" "%GITHUB_API_URL%%REPO_OWNER%" -d "{""name"": ""%REPO_NAME%""}"') do set HTTP_CODE=%%a
+
+   SET USERNAME=
+   FOR /F "tokens=2 delims=:" %%a in ('findstr \"login\"^: %OUTPUT_FILE%') do SET USERNAME=%%a
+   SET USERNAME=%USERNAME:"=%
+
+   SET REPO_NAME=
+   FOR /F "tokens=2 delims=:" %%a in ('findstr \"name\"^: %OUTPUT_FILE%') do SET REPO_NAME=%%a
+   SET REPO_NAME=%REPO_NAME:"=%
+
+   IF "%ORGANIZATION_NAME%"=="%OLD_USERNAME%" (
+      SET ORGANIZATION_NAME=%USERNAME%
+   )
+
    SET REPO_LINK=%GITHUB_BASE_URL%/%USERNAME%/%REPO_NAME%
-   ECHO Repository creation done. Go to %REPO_LINK% to see.
+   SET GITHUB_REPOSITORY_URL=https://%USERNAME%:%GITHUB_TOKEN%@%GITHUB_BASE_URL:https://=%/%ORGANIZATION_NAME%/%REPO_NAME%.git
+   
+
+   IF "%HTTP_CODE%"=="201" (
+      git add config.yaml
+      git commit -m "Initial commit with .ml-git configured"
+      git branch -M main
+      git remote add origin %GITHUB_REPOSITORY_URL%
+      git push --set-upstream origin main
+      IF %ERRORLEVEL% EQU 0 (
+         ECHO Repository creation done. Go to %REPO_LINK% to see.
+         ECHO.
+         ECHO If you want to start an ml-git project with these settings you can use:
+         ECHO.
+         ECHO ml-git clone %REPO_LINK%
+      ) ELSE (
+         ECHO Something went wrong, verify your %REPO_LINK%
+      )
+   ) ELSE (
+      ECHO Could not create the repository, please see %OUTPUT_FILE% for more information.
+   )
    EXIT /B 0
 
 
