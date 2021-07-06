@@ -244,7 +244,7 @@ def init(entity):
 
 
 def storage_add(bucket_name, bucket_type=StorageType.S3H.value, credentials=None, global_configuration=False,
-                endpoint_url=None, username=None, private_key=None, port=22):
+                endpoint_url=None, username=None, private_key=None, port=22, region=None):
     """This command will add a storage to the ml-git project.
 
         Examples:
@@ -258,6 +258,7 @@ def storage_add(bucket_name, bucket_type=StorageType.S3H.value, credentials=None
             endpoint_url (str, optional): Storage endpoint url.
             username (str, optional): The username for the sftp login.
             private_key (str, optional): Full path for the private key file.
+            region (str, optional): AWS region for S3 bucket.
     """
 
     if bucket_type not in StorageType.to_list():
@@ -266,7 +267,9 @@ def storage_add(bucket_name, bucket_type=StorageType.S3H.value, credentials=None
     sftp_configs = {'username': username,
                     'private_key': private_key,
                     'port': port}
-    admin.storage_add(bucket_type, bucket_name, credentials, global_configuration, endpoint_url, sftp_configs=sftp_configs)
+    admin.storage_add(storage_type=bucket_type, bucket=bucket_name, credentials_profile=credentials,
+                      global_conf=global_configuration, endpoint_url=endpoint_url,
+                      sftp_configs=sftp_configs, region=region)
 
 
 def remote_add(entity, remote_url, global_configuration=False):
