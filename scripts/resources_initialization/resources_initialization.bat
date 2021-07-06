@@ -73,13 +73,19 @@ GOTO :END
       
       SET HTTP_CODE=
       FOR /F %%a IN ('curl -s -o ../../%OUTPUT_FILE% -w "%%{http_code}" -H "Authorization: token %GITHUB_TOKEN%" "%GITHUB_API_URL%%REPO_OWNER%" -d "{""name"": ""%REPO_NAME%""}"') do set HTTP_CODE=%%a
-      
+
       SET USERNAME=
       FOR /F "tokens=2 delims=:" %%a in ('findstr \"login\"^: ..\..\%OUTPUT_FILE%') do SET USERNAME=%%a
       SET USERNAME=%USERNAME:"=%
+      SET USERNAME=%USERNAME: =%
+      SET USERNAME=%USERNAME:,=%
+      
       SET REPO_NAME=
       FOR /F "tokens=2 delims=:" %%a in ('findstr \"name\"^: ..\..\%OUTPUT_FILE%') do SET REPO_NAME=%%a
       SET REPO_NAME=%REPO_NAME:"=%
+      SET REPO_NAME=%REPO_NAME: =%
+      SET REPO_NAME=%REPO_NAME:,=%
+
       SET REPO_LINK=%GITHUB_BASE_URL%/%USERNAME%/%REPO_NAME%
       
       IF "!HTTP_CODE!"=="201" (
@@ -176,12 +182,16 @@ GOTO :END
    FOR /F %%a IN ('curl -s -o ../../%OUTPUT_FILE% -w "%%{http_code}" -H "Authorization: token %GITHUB_TOKEN%" "%GITHUB_API_URL%%REPO_OWNER%" -d "{""name"": ""%REPO_NAME%""}"') do set HTTP_CODE=%%a
 
    SET USERNAME=
-   FOR /F "tokens=2 delims=:" %%a in ('findstr \"login\"^: %OUTPUT_FILE%') do SET USERNAME=%%a
+   FOR /F "tokens=2 delims=:" %%a in ('findstr \"login\"^: ..\..\%OUTPUT_FILE%') do SET USERNAME=%%a
    SET USERNAME=%USERNAME:"=%
+   SET USERNAME=%USERNAME: =%
+   SET USERNAME=%USERNAME:,=%
 
    SET REPO_NAME=
-   FOR /F "tokens=2 delims=:" %%a in ('findstr \"name\"^: %OUTPUT_FILE%') do SET REPO_NAME=%%a
+   FOR /F "tokens=2 delims=:" %%a in ('findstr \"name\"^: ..\..\%OUTPUT_FILE%') do SET REPO_NAME=%%a
    SET REPO_NAME=%REPO_NAME:"=%
+   SET USERNAME=%USERNAME: =%
+   SET USERNAME=%USERNAME:,=%
 
    IF "%ORGANIZATION_NAME%"=="%OLD_USERNAME%" (
       SET ORGANIZATION_NAME=%USERNAME%
