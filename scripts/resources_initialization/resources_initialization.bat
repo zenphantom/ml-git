@@ -114,7 +114,7 @@ GOTO :END
       ECHO     %BUCKET_NAME%: >> config.yaml
 
       aws s3api create-bucket --bucket %BUCKET_NAME% --region us-east-1
-      SET BUCKET_CREATION_RETURN_CODE=%ERRORLEVEL%
+      SET BUCKET_CREATION_RETURN_CODE=!ERRORLEVEL!
       ECHO       aws-credentials: >> config.yaml
       ECHO         profile: default >> config.yaml
    ) ELSE IF ["%STORE_TYPE%"]==["minio"] (
@@ -124,7 +124,7 @@ GOTO :END
       ECHO     %BUCKET_NAME%: >> config.yaml
 
       aws --endpoint-url !ENDPOINT! s3 mb s3://%BUCKET_NAME%
-      SET BUCKET_CREATION_RETURN_CODE=%ERRORLEVEL%
+      SET BUCKET_CREATION_RETURN_CODE=!ERRORLEVEL!
       ECHO       aws-credentials: >> config.yaml
       ECHO         profile: default >> config.yaml
       ECHO       endpoint-url: !ENDPOINT! >> config.yaml
@@ -133,7 +133,7 @@ GOTO :END
       ECHO     %BUCKET_NAME%: >> config.yaml
       IF ["%STORE_TYPE%"]==["azureblobh"] (
          az storage container create -n %BUCKET_NAME%
-         SET BUCKET_CREATION_RETURN_CODE=%ERRORLEVEL%
+         SET BUCKET_CREATION_RETURN_CODE=!ERRORLEVEL!
          ECHO       credentials: None >> config.yaml
       ) ELSE (
          ECHO Please enter a valid storage type.
