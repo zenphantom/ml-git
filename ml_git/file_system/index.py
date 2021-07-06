@@ -2,7 +2,7 @@
 © Copyright 2020 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
-
+import fnmatch
 import os
 import shutil
 import time
@@ -78,7 +78,13 @@ class MultihashIndex(object):
             return False
         return True
 
-    def _add_dir(self, dirpath, manifestpath, file_path='', trust_links=True):
+    def _should_ignore_file(self, ignore_rules, file_path):
+        for ignore in ignore_rules:
+            if fnmatch.fnmatch(file_path, ignore):
+                return True
+        return False
+
+    def _add_dir(self, dirpath, manifestpath, file_path='', ignore_rules=None):
         self.manifestfiles = yaml_load(manifestpath)
         f_index_file = self._full_idx.get_index()
         all_files = []
@@ -88,7 +94,9 @@ class MultihashIndex(object):
             basepath = root[:len(dirpath) + 1:]
             relativepath = root[len(dirpath) + 1:]
             for file in files:
-                all_files.append(os.path.join(relativepath, file))
+                ignore_rules = ['data/', 'data/0110 - Copia.png']
+                if ignore_rules is None or not self._should_ignore_file(ignore_rules, os.path.join(relativepath, file)):
+                    all_files.append(os.path.join(relativepath, file))
             self.wp.progress_bar_total_inc(len(all_files))
             args = {'wp': self.wp, 'basepath': basepath, 'f_index_file': f_index_file, 'all_files': all_files, 'dirpath': dirpath}
             result = run_function_per_group(range(len(all_files)), 10000, function=self._adding_dir_work, arguments=args)
