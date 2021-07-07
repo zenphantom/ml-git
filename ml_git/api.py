@@ -267,7 +267,7 @@ def storage_add(bucket_name, bucket_type=StorageType.S3H.value, credentials=None
     sftp_configs = {'username': username,
                     'private_key': private_key,
                     'port': port}
-    admin.storage_add(storage_type=bucket_type, bucket=bucket_name, credentials_profile=credentials,
+    admin.storage_add(bucket_type, bucket_name, credentials,
                       global_conf=global_configuration, endpoint_url=endpoint_url,
                       sftp_configs=sftp_configs, region=region)
 
