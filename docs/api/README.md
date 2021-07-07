@@ -15,7 +15,7 @@ def add(entity_type, entity_name, bumpversion=False, fsck=False, file_path=[], m
         add('datasets', 'dataset-ex', bumpversion=True)
 
     Args:
-        entity_type (str): The type of an ML entity. (datasets, labels or models)
+        type (str): The type of an ML entity. (datasets, labels or models)
         entity_name (str): The name of the ML entity you want to add the files.
         bumpversion (bool, optional): Increment the entity version number when adding more files [default: False].
         fsck (bool, optional): Run fsck after command execution [default: False].
@@ -310,7 +310,7 @@ class Entity:
 
     Attributes:
         name (str): The name of the entity.
-        entity_type (str): The type of the ml-entity (datasets, models, labels).
+        type (str): The type of the ml-entity (datasets, models, labels).
         private (str): The access of entity metadata.
         metadata (Metadata): The metadata of the entity.
         last_spec_version (SpecVersion): The spec file of entity last version.
@@ -328,7 +328,7 @@ class SpecVersion:
 
     Attributes:
         name (str): The name of the entity.
-        entity_type (str): The type of the ml-entity (datasets, models, labels).
+        type (str): The type of the ml-entity (datasets, models, labels).
         version (str): The version of the ml-entity.
         tag (str): The tag of the ml-entity spec version.
         mutability (str): The mutability of the ml-entity.
@@ -350,7 +350,7 @@ class LinkedEntity:
 
     Attributes:
         name (str): The name of the entity.
-        entity_type (str): The type of the ml-entity (datasets, models, labels).
+        type (str): The type of the ml-entity (datasets, models, labels).
         version (str): The version of the ml-entity.
         tag (str): The tag of the ml-entity spec version.
     """

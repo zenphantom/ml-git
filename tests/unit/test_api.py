@@ -42,39 +42,39 @@ dummy_config_remote_url = f'{dummy_api_github_url}/search/repositories?q=dummy%2
 dummy_config_content_url = f'{dummy_api_github_url}/repos/dummy/dummy_config/contents//.ml-git/config.yaml'
 
 
-def get_search_repo_response(entity_type):
+def get_search_repo_response(type):
     return {
         'items': [
             {
                 'id': 310705171,
-                'name': 'dummy_{}'.format(entity_type),
-                'full_name': 'dummy_{}'.format(entity_type),
+                'name': 'dummy_{}'.format(type),
+                'full_name': 'dummy_{}'.format(type),
                 'private': False,
                 'owner': {
                     'login': 'dummy',
                     'id': 24386872,
-                    'url': 'https://github.com/dummy_{}_repo'.format(entity_type),
-                    'html_url': 'https://github.com/dummy_{}_repo'.format(entity_type),
+                    'url': 'https://github.com/dummy_{}_repo'.format(type),
+                    'html_url': 'https://github.com/dummy_{}_repo'.format(type),
                     'type': 'User',
                     'site_admin': False
                 },
-                'html_url': 'https://github.com/dummy_{}_repo'.format(entity_type),
-                'url': 'https://api.github.com/repos/dummy_{}_repo'.format(entity_type),
-                'git_url': 'git://github.com/dummy_{}.git'.format(entity_type),
-                'ssh_url': 'git@github.com:dummy/dummy_{}.git'.format(entity_type),
+                'html_url': 'https://github.com/dummy_{}_repo'.format(type),
+                'url': 'https://api.github.com/repos/dummy_{}_repo'.format(type),
+                'git_url': 'git://github.com/dummy_{}.git'.format(type),
+                'ssh_url': 'git@github.com:dummy/dummy_{}.git'.format(type),
             }
         ]
     }
 
 
-def get_search_code_response(entity_type):
+def get_search_code_response(type):
     return {
         'total_count': 1,
         'incomplete_results': False,
         'items': [
             {
-                'name': '{}-ex.spec'.format(entity_type),
-                'path': '{}-ex/{}-ex.spec'.format(entity_type, entity_type),
+                'name': '{}-ex.spec'.format(type),
+                'path': '{}-ex/{}-ex.spec'.format(type, type),
             }
         ]
     }
@@ -84,9 +84,9 @@ def encode_content(content):
     return base64.b64encode(json.dumps(content).encode('ascii')).decode('utf-8')
 
 
-def get_sample_spec(entity_type):
+def get_sample_spec(type):
     spec_test = {
-        get_spec_key(entity_type): {
+        get_spec_key(type): {
             'categories': ['test'],
             'manifest': {
                 'amount': 2,
@@ -95,26 +95,26 @@ def get_sample_spec(entity_type):
                 'storage': 's3h://mlgit-bucket'
             },
             'mutability': 'mutable',
-            'name': '{}-ex'.format(entity_type),
+            'name': '{}-ex'.format(type),
             'version': 1
         }
     }
 
-    if entity_type == EntityType.MODELS.value:
-        spec_test[get_spec_key(entity_type)][get_spec_key(EntityType.DATASETS.value)] = {'tag': 'test__datasets-ex__1'}
-        spec_test[get_spec_key(entity_type)][get_spec_key(EntityType.LABELS.value)] = {'tag': 'test__labels-ex__1'}
+    if type == EntityType.MODELS.value:
+        spec_test[get_spec_key(type)][get_spec_key(EntityType.DATASETS.value)] = {'tag': 'test__datasets-ex__1'}
+        spec_test[get_spec_key(type)][get_spec_key(EntityType.LABELS.value)] = {'tag': 'test__labels-ex__1'}
 
     return spec_test
 
 
-def get_spec_entity_content(entity_type):
+def get_spec_entity_content(type):
     return {
-        'name': '{}-ex.spec'.format(entity_type),
-        'path': '{}-ex/{}-ex.spec'.format(entity_type, entity_type),
+        'name': '{}-ex.spec'.format(type),
+        'path': '{}-ex/{}-ex.spec'.format(type, type),
         'sha': '4997e46c183cbbe23bbeecbb9a336555e24a16e8',
         'size': 191,
         'type': 'file',
-        'content': encode_content(get_sample_spec(entity_type)),
+        'content': encode_content(get_sample_spec(type)),
         'encoding': 'base64',
     }
 
@@ -128,22 +128,22 @@ repo = {
 }
 
 
-def get_repo_tags(entity_type):
+def get_repo_tags(type):
     return [
         {
-            'name': 'test__{}-ex__1'.format(entity_type),
+            'name': 'test__{}-ex__1'.format(type),
         }
     ]
 
 
-def get_content_from_tag(entity_type):
+def get_content_from_tag(type):
     return {
-        'name': '{}-ex.spec'.format(entity_type),
-        'path': '{}-ex/{}-ex.spec'.format(entity_type, entity_type),
+        'name': '{}-ex.spec'.format(type),
+        'path': '{}-ex/{}-ex.spec'.format(type, type),
         'sha': '73c20aceff15b737b37b674e84e321b6d4a461e5',
         'size': 203,
         'type': 'file',
-        'content': encode_content(get_sample_spec(entity_type)),
+        'content': encode_content(get_sample_spec(type)),
         'encoding': 'base64',
     }
 
@@ -204,21 +204,21 @@ class ApiTestCases(unittest.TestCase):
     def requests_mock(self, requests_mock):
         self.requests_mock = requests_mock
 
-    def setUp_mock(self, entity_type):
-        self.requests_mock.get(search_repo_url.format(dummy_api_github_url, entity_type), status_code=200,
-                               headers=HEADERS, json=get_search_repo_response(entity_type))
-        self.requests_mock.get(search_code_url.format(dummy_api_github_url, entity_type), status_code=200,
-                               headers=HEADERS, json=get_search_code_response(entity_type))
+    def setUp_mock(self, type):
+        self.requests_mock.get(search_repo_url.format(dummy_api_github_url, type), status_code=200,
+                               headers=HEADERS, json=get_search_repo_response(type))
+        self.requests_mock.get(search_code_url.format(dummy_api_github_url, type), status_code=200,
+                               headers=HEADERS, json=get_search_code_response(type))
         self.requests_mock.get(
-            entity_content_url.format(dummy_api_github_url, entity_type, entity_type, entity_type, entity_type),
-            status_code=200, headers=HEADERS, json=get_spec_entity_content(entity_type))
-        self.requests_mock.get(get_repo_url.format(dummy_api_github_url.replace("api.", ""), entity_type),
+            entity_content_url.format(dummy_api_github_url, type, type, type, type),
+            status_code=200, headers=HEADERS, json=get_spec_entity_content(type))
+        self.requests_mock.get(get_repo_url.format(dummy_api_github_url.replace("api.", ""), type),
                                status_code=200, headers=HEADERS, json=repo)
-        self.requests_mock.get(get_tags_from_repo_url.format(dummy_api_github_url, entity_type), status_code=200,
-                               headers=HEADERS, json=get_repo_tags(entity_type))
+        self.requests_mock.get(get_tags_from_repo_url.format(dummy_api_github_url, type), status_code=200,
+                               headers=HEADERS, json=get_repo_tags(type))
         self.requests_mock.get(
-            get_spec_content_url.format(dummy_api_github_url, entity_type, entity_type, entity_type, entity_type),
-            status_code=200, headers=HEADERS, json=get_content_from_tag(entity_type))
+            get_spec_content_url.format(dummy_api_github_url, type, type, type, type),
+            status_code=200, headers=HEADERS, json=get_content_from_tag(type))
 
     def setUp(self):
         from ml_git import api
