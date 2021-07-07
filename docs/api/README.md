@@ -313,7 +313,7 @@ class Entity:
         type (str): The type of the ml-entity (datasets, models, labels).
         private (str): The access of entity metadata.
         metadata (Metadata): The metadata of the entity.
-        last_spec_version (SpecVersion): The spec file of entity last version.
+        last_spec_version (SpecVersion): The specification file of the entity last version.
     """
 ```
 </details>
@@ -334,7 +334,7 @@ class SpecVersion:
         mutability (str): The mutability of the ml-entity.
         categories (list): Labels to categorize the entity.
         storage (Storage): The storage of the ml-entity.
-        amount (str): The amount of the version files.
+        total_versioned_files (int): The amount of versioned files.
         size (str): The size of the version files.
     """
 ```
