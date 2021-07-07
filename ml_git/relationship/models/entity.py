@@ -5,71 +5,36 @@ SPDX-License-Identifier: GPL-2.0-only
 
 import json
 
-from ml_git.constants import DATASET_SPEC_KEY, LABELS_SPEC_KEY, MODEL_SPEC_KEY, STORAGE_SPEC_KEY, V1_STORAGE_KEY
+from ml_git.relationship.models.spec_version import SpecVersion
+from ml_git.relationship.models.metadata import Metadata
 
 
 class Entity:
-    """Class that's represents an ml-entity.
+    """Class that represents an ml-entity.
 
     Attributes:
-        entity_type (str): The type of the ml-entity (datasets, models, labels).
         name (str): The name of the entity.
+        entity_type (str): The type of the ml-entity (datasets, models, labels).
         private (str): The access of entity metadata.
-        metadata_full_name (str): The name of the repository metadata.
-        metadata_git_url (str): The git url of the repository metadata.
-        metadata_html_url (str): The html url of the repository metadata.
-        metadata_owner_name (str): The name of the repository owner.
-        metadata_owner_email (str): The email of the repository owner.
-        mutability (str): The mutability of the ml-entity (strict|mutable|flexible).
-        categories (list): Labels to categorize the entity.
-        storage_type (str): The storage type (s3h|azureblobh|gdriveh|sftph).
-        storage (dict): The storage configuration.
-        version (str): The version of the ml-entity.
-        versions (list): List of the entities for each tag found in the repository.
+        metadata (Metadata): The metadata of the entity.
+        last_spec_version (SpecVersion): The specification file of the entity last version.
     """
 
-    def __init__(self, config, spec_yaml):
-        self.__spec = spec_yaml
-        self.entity_type = self.__get_entity_type()
-        self.name = self.__spec[self.entity_type]['name']
-        self.private = False
-        self.metadata_full_name = ''
-        self.metadata_git_url = ''
-        self.metadata_html_url = ''
-        self.metadata_owner_name = ''
-        self.metadata_owner_email = ''
-        self.mutability = self.__spec[self.entity_type]['mutability']
-        self.categories = self.__format_categories()
-        self.storage_type, self.bucket = self.__get_storage_info()
-        self.storage = self.__get_storage(config)
-        self.version = self.__spec[self.entity_type]['version']
-        self.versions = []
-
-    def __get_storage(self, config):
-        return config.storages.get(self.storage_type, {}).get(self.bucket, {})
-
-    def __get_entity_type(self):
-        for entity in [DATASET_SPEC_KEY, LABELS_SPEC_KEY, MODEL_SPEC_KEY]:
-            if entity in self.__spec:
-                return entity
-        return ''
-
-    def __format_categories(self):
-        categories = self.__spec[self.entity_type]['categories']
-        formatted = [categories] if type(categories) == str else categories
-        return formatted
-
-    def __get_storage_info(self):
-        manifest = self.__spec[self.entity_type]['manifest']
-        storage_key = STORAGE_SPEC_KEY if STORAGE_SPEC_KEY in manifest else V1_STORAGE_KEY
-        return manifest[storage_key].split('://')
+    def __init__(self, repository, spec_yaml):
+        self.last_spec_version = SpecVersion(spec_yaml)
+        self.name = self.last_spec_version.name
+        self.entity_type = self.last_spec_version.entity_type
+        self.metadata = Metadata(repository)
+        self.private = repository.private
 
     def to_dict(self, obj):
         attrs = obj.__dict__.copy()
+        ignore_attributes = ['last_spec_version', 'metadata']
         for attr in obj.__dict__.keys():
-            if attr.startswith('_') or not attrs[attr]:
+            if attr.startswith('_') or not attrs[attr] or attr in ignore_attributes:
                 del attrs[attr]
-        attrs['versions'] = [self.to_dict(v) for v in obj.versions]
+        attrs['metadata'] = Metadata.to_dict(self.metadata)
+        attrs['last_spec_version'] = self.last_spec_version.to_dict(self.last_spec_version)
         return attrs
 
     def __repr__(self):

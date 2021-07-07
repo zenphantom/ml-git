@@ -7,6 +7,7 @@ from ml_git.constants import SPEC_EXTENSION
 from ml_git.relationship.github_manager import GithubManager
 from ml_git.relationship.models.config import Config
 from ml_git.relationship.models.entity import Entity
+from ml_git.relationship.models.spec_version import SpecVersion
 from ml_git.utils import yaml_load_str
 
 
@@ -42,19 +43,7 @@ class EntityManager:
             repository = self._manager.find_repository(remote)
             for spec_path in self._manager.search_file(repository, SPEC_EXTENSION):
                 spec_yaml = yaml_load_str(self._manager.get_file_content(repository, spec_path))
-                entity = Entity(config, spec_yaml)
-                entity.metadata_full_name = repository.full_name
-                entity.metadata_git_url = repository.ssh_url
-                entity.private = repository.private
-                entity.metadata_html_url = repository.html_url
-                entity.metadata_owner_email = repository.owner.email
-                entity.metadata_owner_name = repository.owner.name
-                for tag in repository.get_tags():
-                    content = self._manager.get_file_content(repository, spec_path, tag.name)
-                    if not content:
-                        continue
-                    spec_tag_yaml = yaml_load_str(content)
-                    entity.versions.append(Entity(config, spec_tag_yaml))
+                entity = Entity(repository, spec_yaml)
                 entities.append(entity)
         return entities
 
@@ -91,16 +80,60 @@ class EntityManager:
 
         return self._cache_entities
 
-    def get_entities(self, config_path=None, repo_name=None):
+    def _get_entity_spec_path(self, repository, entity_name):
+        """Get the spec path of an entity
+
+         Args:
+             repository (obj): Metadata repository object.
+             entity_name (str): The name of the entity you want to get the versions.
+
+         Returns:
+             Path of the entity
+         """
+        for spec_path in self._manager.search_file(repository, SPEC_EXTENSION):
+            spec_file_name = '{}{}'.format(entity_name, SPEC_EXTENSION)
+            if spec_path.endswith(spec_file_name):
+                return spec_path
+        raise Exception('It was not possible to find the entity.')
+
+    def get_entities(self, config_path=None, config_repo_name=None):
         """Get a list of entities found in config.yaml.
 
         Args:
             config_path (str): The absolute path of the config.yaml file.
-            repo_name (str): The repository name where is the config.yaml is located in github.
+            config_repo_name (str): The repository name where is the config.yaml located in github.
 
         Returns:
             list of class Entity.
         """
-        if repo_name:
-            return self._get_entities_from_repo(repo_name)
+        if config_repo_name:
+            return self._get_entities_from_repo(config_repo_name)
         return self._get_entities_from_config(config_path)
+
+    def get_entity_versions(self, entity_name, metadata_repo_name):
+        """Get a list of spec versions found for an especific entity.
+
+        Args:
+            entity_name (str): The name of the entity you want to get the versions.
+            metadata_repo_name (str): The repository name where the entity metadata is located in GitHub.
+
+        Returns:
+            list of class SpecVersion.
+        """
+
+        versions = []
+        repository = self._manager.find_repository(metadata_repo_name)
+        entity_spec_path = self._get_entity_spec_path(repository, entity_name)
+
+        for tag in repository.get_tags():
+            if tag.name.split('__')[-2] != entity_name:
+                continue
+
+            content = self._manager.get_file_content(repository, entity_spec_path, tag.name)
+            if not content:
+                continue
+
+            spec_tag_yaml = yaml_load_str(content)
+            entity_version = SpecVersion(spec_tag_yaml)
+            versions.append(entity_version)
+        return versions

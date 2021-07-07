@@ -265,15 +265,25 @@ Some methods uses the classes described below:
 ```python
 class EntityManager:
     """Class that operate over github api to manage entity's operations"""
-    def get_entities(self, config_path=None, repo_name=None):
+    def get_entities(self, config_path=None, config_repo_name=None):
         """Get a list of entities found in config.yaml.
 
         Args:
             config_path (str): The absolute path of the config.yaml file.
-            repo_name (str): The repository name where is the config.yaml is located in github.
+            config_repo_name (str): The repository name where is the config.yaml located in github.
 
         Returns:
             list of class Entity.
+        """
+    def get_entity_versions(self, entity_name, metadata_repo_name):
+        """Get a list of spec versions found for an especific entity.
+
+        Args:
+            entity_name (str): The name of the entity you want to get the versions.
+            metadata_repo_name (str): The repository name where the entity metadata is located in GitHub.
+
+        Returns:
+            list of class SpecVersion.
         """
 ```
 </details>
@@ -284,23 +294,67 @@ class EntityManager:
 
 ```python
 class Entity:
-    """Class that's represents a ml-entity.
+    """Class that represents an ml-entity.
 
     Attributes:
-        entity_type (str): The type of the ml-entity (datasets, models, labels).
         name (str): The name of the entity.
+        entity_type (str): The type of the ml-entity (datasets, models, labels).
         private (str): The access of entity metadata.
-        metadata_full_name (str): The name of the repository metadata.
-        metadata_git_url (str): The git url of the repository metadata.
-        metadata_html_url (str): The html url of the repository metadata.
-        metadata_owner_name (str): The name of the repository owner.
-        metadata_owner_email (str): The email of the repository owner.
-        mutability (str): The mutability of the ml-entity (strict|mutable|flexible).
-        categories (list): Labels to categorize the entity.
-        storage_type (str): The storage type (s3h|azureblobh|gdriveh|sftph).
-        storage (dict): The storage configuration.
+        metadata (Metadata): The metadata of the entity.
+        last_spec_version (SpecVersion): The specification file of the entity last version.
+    """
+```
+</details>
+
+<details markdown="1">
+<summary><code> SpecVersion </code></summary>
+<br>
+
+```python
+class SpecVersion:
+    """Class that represents an ml-entity spec version.
+
+    Attributes:
+        name (str): The name of the entity.
+        entity_type (str): The type of the ml-entity (datasets, models, labels).
         version (str): The version of the ml-entity.
-        versions (list): List of the entities for each tag found in the repository.
+        tag (str): The tag of the ml-entity spec version.
+        mutability (str): The mutability of the ml-entity.
+        categories (list): Labels to categorize the entity.
+        storage (Storage): The storage of the ml-entity.
+        total_versioned_files (int): The amount of versioned files.
+        size (str): The size of the version files.
+    """
+```
+</details>
+
+<details markdown="1">
+<summary><code> Metadata </code></summary>
+<br>
+
+```python
+class Metadata:
+    """Class that represents an ml-entity metadata.
+    Attributes:
+        full_name (str): The full name of the metadata.
+        git_url (str): The git url of the metadata.
+        html_url (str): The html url of the metadata.
+        owner_email (str): The owner email of the ml-entity metadata.
+        owner_name (str): The owner name of the ml-entity metadata.
+    """
+```
+</details>
+
+<details markdown="1">
+<summary><code> Storage </code></summary>
+<br>
+
+```python
+class Storage:
+    """Class that represents an ml-entity storage.
+    Attributes:
+        type (str): The storage type (s3h|azureblobh|gdriveh|sftph).
+        bucket (str): The name of the bucket.
     """
 ```
 </details>
