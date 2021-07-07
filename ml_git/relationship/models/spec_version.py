@@ -10,7 +10,7 @@ from ml_git.relationship.models.storage import Storage
 
 
 class SpecVersion:
-    """Class that's represents an ml-entity spec version.
+    """Class that represents an ml-entity spec version.
 
     Attributes:
         name (str): The name of the entity.
