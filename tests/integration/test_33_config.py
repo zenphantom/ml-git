@@ -110,7 +110,7 @@ class ConfigAcceptanceTests(unittest.TestCase):
     def set_up_global(self, entity_type=DATASETS):
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_INIT))
         self.assertNotIn(ERROR_MESSAGE,
-                         check_output(MLGIT_REMOTE_ADD_GLOBAL % (entity_type, 'local_git_Server.git')))
+                         check_output(MLGIT_REMOTE_ADD_GLOBAL % (entity_type, 'local_git_server.git')))
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_STORAGE_ADD % (BUCKET_NAME, PROFILE + ' --global')))
         with open(os.path.join(self.tmp_dir, GLOBAL_ML_GIT_CONFIG), 'r') as config_file:
             config = yaml_processor.load(config_file)
@@ -134,7 +134,7 @@ class ConfigAcceptanceTests(unittest.TestCase):
         with mock.patch.dict(os.environ, {'HOME': str(self.tmp_dir)}):
             self.set_up_global()
             self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
-            expected_result = "config:\n{'datasets': {'git': 'local_git_Server.git'},\n 'storages': {'s3h': {'mlgit': " \
+            expected_result = "config:\n{'datasets': {'git': 'local_git_server.git'},\n 'storages': {'s3h': {'mlgit': " \
                               "{'aws-credentials': {'profile': 'personal'}," \
                               "\n                                'endpoint-url': 'http://127.0.0.1:9000'," \
                               "\n                                'region': None}}}}"
@@ -145,7 +145,7 @@ class ConfigAcceptanceTests(unittest.TestCase):
         with mock.patch.dict(os.environ, {'HOME': str(self.tmp_dir)}):
             self.set_up_global()
             self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
-            expected_result = "config:\n{'batch_size': 20,\n 'cache_path': '',\n 'datasets': {'git': 'local_git_Server.git'}," \
+            expected_result = "config:\n{'batch_size': 20,\n 'cache_path': '',\n 'datasets': {'git': 'local_git_server.git'}," \
                               "\n 'index_path': '',\n 'labels': {'git': ''},\n 'metadata_path': '',\n 'mlgit_conf': " \
                               "'config.yaml',\n 'mlgit_path': '.ml-git',\n 'models': {'git': ''},\n 'object_path': ''," \
                               "\n 'push_threads_count': %s,\n 'refs_path': '',\n 'storages': {'s3': {'mlgit-datasets':" \
