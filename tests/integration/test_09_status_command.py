@@ -117,17 +117,17 @@ class StatusAcceptanceTests(unittest.TestCase):
         create_file(workspace, 'file1', '0')
 
         self.assertRegex(check_output(MLGIT_STATUS % (DATASETS, DATASET_NAME)),
-                         r'Changes to be committed:\n\nUntracked files:\n\tdata\\file1\n\tdata\\image.png\n\tdatasets-ex.spec')
+                         r'Changes to be committed:\s+Untracked files:\s+data(?:\\|/)file1\s+data(?:\\|/)image.png\s+datasets-ex.spec')
 
         create_ignore_file(workspace)
         self.assertRegex(check_output(MLGIT_STATUS % (DATASETS, DATASET_NAME)),
-                         r'Changes to be committed:\n\nUntracked files:\n\t.mlgitignore\n\tdata\\file1\n\tdatasets-ex.spec')
+                         r'Changes to be committed:\s+Untracked files:\s+.mlgitignore\s+data(?:\\|/)file1\s+datasets-ex.spec')
 
         self.assertIn(output_messages['INFO_ADDING_PATH'] % DATASETS,
                       check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, '--bumpversion')))
         self.assertRegex(check_output(MLGIT_STATUS % (DATASETS, DATASET_NAME)),
-                         r'Changes to be committed:\n\tNew file: .mlgitignore\n\tNew file: data/file1'
-                         r'\n\tNew file: datasets-ex.spec\n\nUntracked files:\n\n')
+                         r'Changes to be committed:\s+New file: .mlgitignore\s+'
+                         r'New file: data(?:\\|/)file1\s+New file: datasets-ex.spec\s+Untracked files:\s+')
 
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_COMMIT % (DATASETS, DATASET_NAME, '')))
-        self.assertRegex(check_output(MLGIT_STATUS % (DATASETS, DATASET_NAME)), r'Changes to be committed:\n\nUntracked files:\n\n')
+        self.assertRegex(check_output(MLGIT_STATUS % (DATASETS, DATASET_NAME)), r'Changes to be committed:\s+Untracked files:\s+')
