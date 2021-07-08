@@ -15,7 +15,7 @@ from zipfile import ZipFile
 from ruamel.yaml import YAML
 
 from ml_git.constants import GLOBAL_ML_GIT_CONFIG, MutabilityType, StorageType, EntityType, STORAGE_SPEC_KEY, \
-    STORAGE_CONFIG_KEY, FileType
+    STORAGE_CONFIG_KEY, FileType, MLGIT_IGNORE_FILE_NAME
 from ml_git.ml_git_message import output_messages
 from ml_git.spec import get_spec_key
 from ml_git.utils import ensure_path_exists
@@ -345,3 +345,11 @@ def move_entity_to_dir(tmp_dir, artifact_name, entity_type):
     ensure_path_exists(workspace_with_dir)
     shutil.move(workspace, workspace_with_dir)
     return entity_dir, workspace, workspace_with_dir
+
+
+def create_ignore_file(dir, ignore_rules=None):
+    if not ignore_rules:
+        ignore_rules = ['data/*.png\n', 'ignored-folder/']
+    file = os.path.join(dir, MLGIT_IGNORE_FILE_NAME)
+    with open(file, 'wt') as file:
+        file.writelines(ignore_rules)

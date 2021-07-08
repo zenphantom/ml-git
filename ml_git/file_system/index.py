@@ -2,7 +2,6 @@
 © Copyright 2020 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
-import fnmatch
 import os
 import shutil
 import time
@@ -10,13 +9,14 @@ from builtins import FileNotFoundError
 from enum import Enum
 
 from ml_git import log
-from ml_git.constants import MULTI_HASH_CLASS_NAME, MutabilityType, SPEC_EXTENSION, INDEX_FILE
+from ml_git.constants import MULTI_HASH_CLASS_NAME, MutabilityType, SPEC_EXTENSION, INDEX_FILE, MLGIT_IGNORE_FILE_NAME
 from ml_git.file_system.cache import Cache
 from ml_git.file_system.hashfs import MultihashFS
 from ml_git.manifest import Manifest
 from ml_git.ml_git_message import output_messages
 from ml_git.pool import pool_factory
-from ml_git.utils import ensure_path_exists, yaml_load, posix_path, set_read_only, get_file_size, run_function_per_group
+from ml_git.utils import ensure_path_exists, yaml_load, posix_path, set_read_only, get_file_size, \
+    run_function_per_group, get_ignore_rules, should_ignore_file
 
 
 class MultihashIndex(object):
@@ -38,20 +38,22 @@ class MultihashIndex(object):
 
     def add(self, path, manifestpath, files=[]):
         self.wp = pool_factory(pb_elts=0, pb_desc='files')
+        ignore_rules = get_ignore_rules(path)
         if len(files) > 0:
             single_files = filter(lambda x: os.path.isfile(os.path.join(path, x)), files)
             self.wp.progress_bar_total_inc(len(list(single_files)))
             for f in files:
                 fullpath = os.path.join(path, f)
                 if os.path.isdir(fullpath):
-                    self._add_dir(path, manifestpath, f)
+                    self._add_dir(path, manifestpath, f, ignore_rules=ignore_rules)
                 elif os.path.isfile(fullpath):
-                    self._add_single_file(path, manifestpath, f)
+                    if not should_ignore_file(ignore_rules, path):
+                        self._add_single_file(path, manifestpath, f)
                 else:
                     log.warn(output_messages['WARN_NOT_FOUND'] % fullpath, class_name=MULTI_HASH_CLASS_NAME)
         else:
             if os.path.isdir(path):
-                self._add_dir(path, manifestpath)
+                self._add_dir(path, manifestpath, ignore_rules=ignore_rules)
         self.wp.progress_bar_close()
 
     def _adding_dir_work_future_process(self, futures, wp):
@@ -63,7 +65,7 @@ class MultihashIndex(object):
     def _adding_dir_work(self, files, args):
         for k in files:
             file_path = args['all_files'][k]
-            if (SPEC_EXTENSION in file_path) or (file_path == 'README.md'):
+            if (SPEC_EXTENSION in file_path) or (file_path == 'README.md') or (file_path == MLGIT_IGNORE_FILE_NAME):
                 args['wp'].progress_bar_total_inc(-1)
                 self.add_metadata(args['basepath'], file_path)
             else:
@@ -78,27 +80,21 @@ class MultihashIndex(object):
             return False
         return True
 
-    def _should_ignore_file(self, ignore_rules, file_path):
-        for ignore in ignore_rules:
-            if fnmatch.fnmatch(file_path, ignore):
-                return True
-        return False
-
     def _add_dir(self, dirpath, manifestpath, file_path='', ignore_rules=None):
         self.manifestfiles = yaml_load(manifestpath)
         f_index_file = self._full_idx.get_index()
         all_files = []
         for root, dirs, files in os.walk(os.path.join(dirpath, file_path)):
-            if '.' == root[0]:
+            base_path = root[:len(dirpath) + 1:]
+            relative_path = root[len(dirpath) + 1:]
+            if '.' == root[0] or should_ignore_file(ignore_rules, '{}/'.format(relative_path)):
                 continue
-            basepath = root[:len(dirpath) + 1:]
-            relativepath = root[len(dirpath) + 1:]
             for file in files:
-                ignore_rules = ['data/', 'data/0110 - Copia.png']
-                if ignore_rules is None or not self._should_ignore_file(ignore_rules, os.path.join(relativepath, file)):
-                    all_files.append(os.path.join(relativepath, file))
+                file_path = os.path.join(relative_path, file)
+                if ignore_rules is None or not should_ignore_file(ignore_rules, file_path):
+                    all_files.append(file_path)
             self.wp.progress_bar_total_inc(len(all_files))
-            args = {'wp': self.wp, 'basepath': basepath, 'f_index_file': f_index_file, 'all_files': all_files, 'dirpath': dirpath}
+            args = {'wp': self.wp, 'basepath': base_path, 'f_index_file': f_index_file, 'all_files': all_files, 'dirpath': dirpath}
             result = run_function_per_group(range(len(all_files)), 10000, function=self._adding_dir_work, arguments=args)
             if not result:
                 return False
@@ -109,7 +105,7 @@ class MultihashIndex(object):
         self.manifestfiles = yaml_load(manifestpath)
 
         f_index_file = self._full_idx.get_index()
-        if (SPEC_EXTENSION in file_path) or ('README' in file_path):
+        if (SPEC_EXTENSION in file_path) or ('README' in file_path) or (MLGIT_IGNORE_FILE_NAME in file_path):
             self.wp.progress_bar_total_inc(-1)
             self.add_metadata(base_path, file_path)
         else:

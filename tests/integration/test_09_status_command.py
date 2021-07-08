@@ -12,7 +12,8 @@ import pytest
 from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_COMMIT, MLGIT_PUSH, MLGIT_ENTITY_INIT, MLGIT_STATUS, MLGIT_ADD, \
     MLGIT_CHECKOUT
-from tests.integration.helper import ML_GIT_DIR, GIT_PATH, ERROR_MESSAGE, DATASETS, DATASET_NAME, DATASET_TAG
+from tests.integration.helper import ML_GIT_DIR, GIT_PATH, ERROR_MESSAGE, DATASETS, DATASET_NAME, DATASET_TAG, \
+    create_ignore_file
 from tests.integration.helper import check_output, clear, init_repository, add_file, create_file
 
 
@@ -106,3 +107,27 @@ class StatusAcceptanceTests(unittest.TestCase):
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, '--bumpversion')))
         self.assertRegex(check_output(MLGIT_STATUS % (DATASETS, DATASET_NAME)),
                          r'Changes to be committed:\n\tNew file: Ls87x\n\tNew file: datasets-ex.spec\n\nUntracked files:\n\nCorrupted files:\n\tnewfile4\n')
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
+    def test_08_status_with_ignore_file(self):
+        self.set_up_status(DATASETS)
+        workspace = os.path.join(self.tmp_dir, DATASETS, DATASET_NAME)
+        os.mkdir(os.path.join(workspace, 'data'))
+        create_file(workspace, 'image.png', '0')
+        create_file(workspace, 'file1', '0')
+
+        self.assertRegex(check_output(MLGIT_STATUS % (DATASETS, DATASET_NAME)),
+                         r'Changes to be committed:\n\nUntracked files:\n\tdata\\file1\n\tdata\\image.png\n\tdatasets-ex.spec')
+
+        create_ignore_file(workspace)
+        self.assertRegex(check_output(MLGIT_STATUS % (DATASETS, DATASET_NAME)),
+                         r'Changes to be committed:\n\nUntracked files:\n\t.mlgitignore\n\tdata\\file1\n\tdatasets-ex.spec')
+
+        self.assertIn(output_messages['INFO_ADDING_PATH'] % DATASETS,
+                      check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, '--bumpversion')))
+        self.assertRegex(check_output(MLGIT_STATUS % (DATASETS, DATASET_NAME)),
+                         r'Changes to be committed:\n\tNew file: .mlgitignore\n\tNew file: data/file1'
+                         r'\n\tNew file: datasets-ex.spec\n\nUntracked files:\n\n')
+
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_COMMIT % (DATASETS, DATASET_NAME, '')))
+        self.assertRegex(check_output(MLGIT_STATUS % (DATASETS, DATASET_NAME)), r'Changes to be committed:\n\nUntracked files:\n\n')

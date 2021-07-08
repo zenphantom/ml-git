@@ -4,6 +4,7 @@ SPDX-License-Identifier: GPL-2.0-only
 """
 import bisect
 import csv
+import fnmatch
 import itertools
 import json
 import os
@@ -21,7 +22,7 @@ from ruamel.yaml.compat import StringIO
 
 from ml_git import log
 from ml_git.constants import SPEC_EXTENSION, CONFIG_FILE, EntityType, ROOT_FILE_NAME, V1_STORAGE_KEY, V1_DATASETS_KEY, \
-    V1_MODELS_KEY, STORAGE_SPEC_KEY, STORAGE_CONFIG_KEY
+    V1_MODELS_KEY, STORAGE_SPEC_KEY, STORAGE_CONFIG_KEY, MLGIT_IGNORE_FILE_NAME
 from ml_git.ml_git_message import output_messages
 from ml_git.pool import pool_factory
 
@@ -389,3 +390,24 @@ def create_or_update_gitignore():
         file.write('\n')
         for remaining_file in ignored_files:
             file.write(remaining_file + '\n')
+
+
+def should_ignore_file(ignore_rules, file_path):
+    if not ignore_rules:
+        return False
+    for ignore in ignore_rules:
+        if fnmatch.fnmatch(file_path, ignore):
+            return True
+    return False
+
+
+def get_ignore_rules(path):
+    mlgit_ignore_file = os.path.join(path, MLGIT_IGNORE_FILE_NAME)
+    if os.path.exists(mlgit_ignore_file):
+        ignore_rules = []
+        with open(mlgit_ignore_file) as fp:
+            rules = fp.read().splitlines()
+            for rule in rules:
+                ignore_rules.append(rule)
+        return ignore_rules
+    return None

@@ -12,7 +12,8 @@ from ml_git import log
 from ml_git._metadata import MetadataManager
 from ml_git.config import get_refs_path, get_sample_spec_doc
 from ml_git.constants import METADATA_CLASS_NAME, LOCAL_REPOSITORY_CLASS_NAME, ROOT_FILE_NAME, MutabilityType, \
-    SPEC_EXTENSION, MANIFEST_FILE, EntityType, STORAGE_SPEC_KEY, DATASET_SPEC_KEY, LABELS_SPEC_KEY
+    SPEC_EXTENSION, MANIFEST_FILE, EntityType, STORAGE_SPEC_KEY, DATASET_SPEC_KEY, LABELS_SPEC_KEY, \
+    MLGIT_IGNORE_FILE_NAME
 from ml_git.manifest import Manifest
 from ml_git.ml_git_message import output_messages
 from ml_git.plugin_interface.data_plugin_constants import ADD_METADATA
@@ -127,20 +128,25 @@ class Metadata(MetadataManager):
         entity_dir = get_entity_dir(self.__repo_type, specname)
         return os.path.join(self.__path, entity_dir)
 
+    def _copy_to_metadata_path(self, src_path, full_metadata_path, file_name):
+        if os.path.exists(src_path):
+            dst_path = os.path.join(full_metadata_path, file_name)
+            try:
+                shutil.copy2(src_path, dst_path)
+            except Exception as e:
+                log.error(output_messages['ERROR_COULD_NOT_FIND_FILE'] % file_name,
+                          class_name=METADATA_CLASS_NAME)
+                raise e
+
     def __commit_metadata(self, full_metadata_path, index_path, metadata, specs, ws_path):
         idx_path = os.path.join(index_path, 'metadata', self._spec)
         log.debug(output_messages['DEBUG_COMMIT_SPEC'] % self._spec, class_name=METADATA_CLASS_NAME)
         # saves README.md if any
         readme = 'README.md'
         src_readme = os.path.join(idx_path, readme)
-        if os.path.exists(src_readme):
-            dst_readme = os.path.join(full_metadata_path, readme)
-            try:
-                shutil.copy2(src_readme, dst_readme)
-            except Exception as e:
-                log.error(output_messages['ERROR_COULD_NOT_FIND_README'],
-                          class_name=METADATA_CLASS_NAME)
-                raise e
+        self._copy_to_metadata_path(src_readme, full_metadata_path, 'README.md')
+        src_ignore_path = os.path.join(idx_path, MLGIT_IGNORE_FILE_NAME)
+        self._copy_to_metadata_path(src_ignore_path, full_metadata_path, MLGIT_IGNORE_FILE_NAME)
         amount, workspace_size = self._get_amount_and_size_of_workspace_files(full_metadata_path, ws_path)
         # saves metadata and commit
 

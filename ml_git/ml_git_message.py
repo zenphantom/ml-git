@@ -205,7 +205,7 @@ output_messages = {
     'ERROR_INVALID_ENTERED_ENTITY_TYPE': 'The type of entity entered is invalid. Valid types are: [repository, dataset, labels or model]',
     'ERROR_METADATA_MESSAGE': '\t%s',
     'ERROR_NO_MANIFEST_FILE_FOUND': 'No manifest file found in [%s]',
-    'ERROR_COULD_NOT_FIND_README': 'Could not find file README.md. Entity repository must have README.md file',
+    'ERROR_COULD_NOT_FIND_FILE': 'Could not find file {}. Entity repository must have {} file',
     'ERROR_ENTITY_NEEDS_CATATEGORY': 'You must place at least one category in the entity .spec file',
     'ERROR_INVALID_DATASET_SPEC': 'Error: invalid dataset spec (Missing name). It should look something like this:\n%s',
     'ERROR_REPOSITORY_NOT_FOUND': 'No repositories found, verify your configurations!',
