@@ -328,4 +328,3 @@ class UtilsTestCases(unittest.TestCase):
         expected_rules = ['data/*.png', 'ignored-folder/']
         self.assertEqual(result, expected_rules)
         self.assertEqual(None, get_ignore_rules('wrong-path'))
-
