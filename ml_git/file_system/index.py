@@ -2,6 +2,7 @@
 © Copyright 2020 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
+
 import os
 import shutil
 import time
@@ -80,13 +81,13 @@ class MultihashIndex(object):
             return False
         return True
 
-    def _add_dir(self, dirpath, manifestpath, file_path='', ignore_rules=None):
-        self.manifestfiles = yaml_load(manifestpath)
+    def _add_dir(self, dir_path, manifest_path, file_path='', ignore_rules=None):
+        self.manifestfiles = yaml_load(manifest_path)
         f_index_file = self._full_idx.get_index()
         all_files = []
-        for root, dirs, files in os.walk(os.path.join(dirpath, file_path)):
-            base_path = root[:len(dirpath) + 1:]
-            relative_path = root[len(dirpath) + 1:]
+        for root, dirs, files in os.walk(os.path.join(dir_path, file_path)):
+            base_path = root[:len(dir_path) + 1:]
+            relative_path = root[len(dir_path) + 1:]
             if '.' == root[0] or should_ignore_file(ignore_rules, '{}/'.format(relative_path)):
                 continue
             for file in files:
@@ -94,7 +95,7 @@ class MultihashIndex(object):
                 if ignore_rules is None or not should_ignore_file(ignore_rules, file_path):
                     all_files.append(file_path)
             self.wp.progress_bar_total_inc(len(all_files))
-            args = {'wp': self.wp, 'basepath': base_path, 'f_index_file': f_index_file, 'all_files': all_files, 'dirpath': dirpath}
+            args = {'wp': self.wp, 'basepath': base_path, 'f_index_file': f_index_file, 'all_files': all_files, 'dirpath': dir_path}
             result = run_function_per_group(range(len(all_files)), 10000, function=self._adding_dir_work, arguments=args)
             if not result:
                 return False
