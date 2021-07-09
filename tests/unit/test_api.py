@@ -269,9 +269,9 @@ class ApiTestCases(unittest.TestCase):
         self.assertEqual(entity_versions[0].mutability, MutabilityType.MUTABLE.value)
         self.assertEqual(entity_versions[0].categories, ['test'])
         self.assertEqual(entity_versions[0].storage.type, StorageType.S3H.value)
-        self.assertEqual(entity_versions[0].storage.bucket, 'mlgit')
+        self.assertEqual(entity_versions[0].storage.bucket, 'mlgit-bucket')
         self.assertEqual(entity_versions[0].total_versioned_files, 2)
-        self.assertEqual(entity_versions[0].size, '18 Bytes')
+        self.assertEqual(entity_versions[0].size, '7.2 kB')
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_get_linked_entities(self):
