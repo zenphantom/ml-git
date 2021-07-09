@@ -340,23 +340,6 @@ class SpecVersion:
 ```
 </details>
 
-<details markdown="1">
-<summary><code> LinkedEntity </code></summary>
-<br>
-
-```python
-class LinkedEntity:
-    """Class that's represents an linked ml-entity.
-
-    Attributes:
-        name (str): The name of the entity.
-        type (str): The type of the ml-entity (datasets, models, labels).
-        version (str): The version of the ml-entity.
-        tag (str): The tag of the ml-entity spec version.
-    """
-```
-</details>
-
 
 <details markdown="1">
 <summary><code> Metadata </code></summary>

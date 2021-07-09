@@ -54,7 +54,7 @@ class EntityManager:
             config_path (str): The absolute path of config.yaml file.
 
         Returns:
-            list of objects of class Entity.m
+            list of objects of class Entity.
         """
         self._cache_entities = []
         with open(config_path, 'rb') as config:
