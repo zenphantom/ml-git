@@ -8,7 +8,7 @@ from ml_git.relationship.models.linked_entity import LinkedEntity
 
 
 class EntityVersionRelationships:
-    """Class that's represents the relationships of an ml-entity in a specified version.
+    """Class that represents the relationships of an ml-entity in a specified version.
 
     Attributes:
         version (str): The version of the ml-entity.
