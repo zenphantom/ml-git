@@ -10,20 +10,20 @@ from ml_git.relationship.models.metadata import Metadata
 
 
 class Entity:
-    """Class that's represents an ml-entity.
+    """Class that represents an ml-entity.
 
     Attributes:
         name (str): The name of the entity.
         entity_type (str): The type of the ml-entity (datasets, models, labels).
         private (str): The access of entity metadata.
         metadata (Metadata): The metadata of the entity.
-        last_spec_version (SpecVersion): The spec file of entity last version.
+        last_spec_version (SpecVersion): The specification file of the entity last version.
     """
 
     def __init__(self, repository, spec_yaml):
         self.last_spec_version = SpecVersion(spec_yaml)
         self.name = self.last_spec_version.name
-        self.entity_type = self.last_spec_version.entity_type
+        self.type = self.last_spec_version.type
         self.metadata = Metadata(repository)
         self.private = repository.private
 

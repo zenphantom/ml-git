@@ -6,7 +6,7 @@ import json
 
 
 class Storage:
-    """Class that's represents an ml-entity storage.
+    """Class that represents an ml-entity storage.
 
     Attributes:
         type (str): The storage type (s3h|azureblobh|gdriveh|sftph).

@@ -6,20 +6,20 @@ import json
 
 
 class LinkedEntity:
-    """Class that's represents an linked ml-entity.
+    """Class that represents a linked ml-entity.
 
     Attributes:
         name (str): The name of the entity.
-        entity_type (str): The type of the ml-entity (datasets, models, labels).
+        type (str): The type of the ml-entity (datasets, models, labels).
         version (str): The version of the ml-entity.
         tag (str): The tag of the ml-entity spec version.
     """
 
-    def __init__(self, tag, name, version, entity_type):
+    def __init__(self, tag, name, version, type):
         self.tag = tag
         self.name = name
         self.version = version
-        self.entity_type = entity_type
+        self.type = type
 
     @staticmethod
     def to_dict(obj):

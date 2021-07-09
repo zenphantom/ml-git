@@ -15,7 +15,7 @@ def add(entity_type, entity_name, bumpversion=False, fsck=False, file_path=[], m
         add('datasets', 'dataset-ex', bumpversion=True)
 
     Args:
-        entity_type (str): The type of an ML entity. (datasets, labels or models)
+        type (str): The type of an ML entity. (datasets, labels or models)
         entity_name (str): The name of the ML entity you want to add the files.
         bumpversion (bool, optional): Increment the entity version number when adding more files [default: False].
         fsck (bool, optional): Run fsck after command execution [default: False].
@@ -266,12 +266,12 @@ Some methods uses the classes described below:
 ```python
 class EntityManager:
     """Class that operate over github api to manage entity's operations"""
-    def get_entities(self, config_path=None, repo_name=None):
+    def get_entities(self, config_path=None, config_repo_name=None):
         """Get a list of entities found in config.yaml.
 
         Args:
             config_path (str): The absolute path of the config.yaml file.
-            repo_name (str): The repository name where is the config.yaml is located in github.
+            config_repo_name (str): The repository name where is the config.yaml located in github.
 
         Returns:
             list of class Entity.
@@ -281,7 +281,7 @@ class EntityManager:
 
         Args:
             entity_name (str): The name of the entity you want to get the versions.
-            metadata_repo_name (str): The repository name where the metadata is located in GitHub.
+            metadata_repo_name (str): The repository name where the entity metadata is located in GitHub.
 
         Returns:
             list of class SpecVersion.
@@ -292,7 +292,7 @@ class EntityManager:
         Args:
             entity_name (str): The name of the entity you want to get the linked entities.
             entity_version (str): The version of the entity you want to get the linked entities.
-            metadata_repo_name (str): The repository name where the metadata is located in GitHub.
+            metadata_repo_name (str): The repository name where the entity metadata is located in GitHub.
 
         Returns:
             list of LinkedEntity.
@@ -318,14 +318,14 @@ class EntityManager:
 
 ```python
 class Entity:
-    """Class that's represents a ml-entity.
+    """Class that represents an ml-entity.
 
     Attributes:
         name (str): The name of the entity.
-        entity_type (str): The type of the ml-entity (datasets, models, labels).
+        type (str): The type of the ml-entity (datasets, models, labels).
         private (str): The access of entity metadata.
         metadata (Metadata): The metadata of the entity.
-        last_spec_version (SpecVersion): The spec file of entity last version.
+        last_spec_version (SpecVersion): The specification file of the entity last version.
     """
 ```
 </details>
@@ -336,35 +336,18 @@ class Entity:
 
 ```python
 class SpecVersion:
-    """Class that's represents a ml-entity spec version.
+    """Class that represents an ml-entity spec version.
 
     Attributes:
         name (str): The name of the entity.
-        entity_type (str): The type of the ml-entity (datasets, models, labels).
+        type (str): The type of the ml-entity (datasets, models, labels).
         version (str): The version of the ml-entity.
         tag (str): The tag of the ml-entity spec version.
         mutability (str): The mutability of the ml-entity.
         categories (list): Labels to categorize the entity.
         storage (Storage): The storage of the ml-entity.
-        amount (str): The amount of the version files.
+        total_versioned_files (int): The amount of versioned files.
         size (str): The size of the version files.
-    """
-```
-</details>
-
-<details markdown="1">
-<summary><code> LinkedEntity </code></summary>
-<br>
-
-```python
-class LinkedEntity:
-    """Class that's represents an linked ml-entity.
-
-    Attributes:
-        name (str): The name of the entity.
-        entity_type (str): The type of the ml-entity (datasets, models, labels).
-        version (str): The version of the ml-entity.
-        tag (str): The tag of the ml-entity spec version.
     """
 ```
 </details>
@@ -376,8 +359,7 @@ class LinkedEntity:
 
 ```python
 class Metadata:
-    """Class that's represents an ml-entity metadata.
-
+    """Class that represents an ml-entity metadata.
     Attributes:
         full_name (str): The full name of the metadata.
         git_url (str): The git url of the metadata.
@@ -394,8 +376,7 @@ class Metadata:
 
 ```python
 class Storage:
-    """Class that's represents an ml-entity storage.
-
+    """Class that represents an ml-entity storage.
     Attributes:
         type (str): The storage type (s3h|azureblobh|gdriveh|sftph).
         bucket (str): The name of the bucket.
@@ -414,6 +395,23 @@ class EntityVersionRelationships:
         version (str): The version of the ml-entity.
         tag (str): The tag of the ml-entity.
         relationships (list): List of linked entities of the ml-entity in the specified version.
+    """
+```
+</details>
+
+<details markdown="1">
+<summary><code> LinkedEntity </code></summary>
+<br>
+
+```python
+class LinkedEntity:
+    """Class that represents a linked ml-entity.
+
+    Attributes:
+        name (str): The name of the entity.
+        entity_type (str): The type of the ml-entity (datasets, models, labels).
+        version (str): The version of the ml-entity.
+        tag (str): The tag of the ml-entity spec version.
     """
 ```
 </details>
