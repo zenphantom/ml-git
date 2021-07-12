@@ -937,7 +937,7 @@ Usage: ml-git repository storage add [OPTIONS] BUCKET_NAME
 
 Options:
   --credentials TEXT              Profile name for storage credentials
-  --region TEXT                   Aws region name for S3 bucket
+  --region TEXT                   AWS region name for S3 bucket
   --type [s3h|s3|azureblobh|gdriveh|sftph]
                                   Storage type (s3h, s3, azureblobh, gdriveh
                                   ...) [default: s3h]

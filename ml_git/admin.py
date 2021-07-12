@@ -91,14 +91,16 @@ def valid_storage_type(storage_type):
     return True
 
 
-def storage_add(storage_type, bucket, credentials_profile, global_conf=False, endpoint_url=None, sftp_configs=None):
+def storage_add(storage_type, bucket, credentials_profile, global_conf=False, endpoint_url=None, sftp_configs=None, region=None):
     if not valid_storage_type(storage_type):
         return
 
     try:
-        region = get_bucket_region(bucket, credentials_profile)
+        if not region and storage_type is StorageType.S3H.value:
+            region = get_bucket_region(bucket, credentials_profile)
     except Exception:
-        region = None
+        log.debug(output_messages['DEBUG_BUCKET_REGION_NOT_FIND'], class_name=ADMIN_CLASS_NAME)
+
     if storage_type not in (StorageType.S3H.value, StorageType.S3.value) or credentials_profile is None:
         log.info(output_messages['INFO_ADD_STORAGE_WITHOUT_PROFILE'] % (storage_type, bucket), class_name=ADMIN_CLASS_NAME)
     else:
