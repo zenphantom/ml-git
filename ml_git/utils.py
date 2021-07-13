@@ -395,8 +395,8 @@ def create_or_update_gitignore():
 def should_ignore_file(ignore_rules, file_path):
     if not ignore_rules:
         return False
-    for ignore in ignore_rules:
-        if fnmatch.fnmatch(file_path, ignore):
+    for rule in ignore_rules:
+        if fnmatch.fnmatch(file_path, rule):
             return True
     return False
 

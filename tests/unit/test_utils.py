@@ -309,7 +309,8 @@ class UtilsTestCases(unittest.TestCase):
                     self.assertTrue(formatted_line in ignored_files)
 
     def test_should_ignore_file(self):
-        ignore_rules = ['data/*.png', 'ignored-folder/', '*.jpg', 'data/file-ignored.txt']
+        ignore_rules = ['data/*.png', 'ignored-folder/', '*.jpg', 'data/file-ignored.txt',
+                        'data/**/*.tx*', '**/*.test*', '**/access.[0-2].log', 'access.[a-c]*']
         self.assertTrue(should_ignore_file(ignore_rules, 'data/file.png'))
         self.assertTrue(should_ignore_file(ignore_rules, 'data/file.jpg'))
         self.assertTrue(should_ignore_file(ignore_rules, 'file.jpg'))
@@ -318,6 +319,13 @@ class UtilsTestCases(unittest.TestCase):
         self.assertTrue(should_ignore_file(ignore_rules, 'data/file-ignored.txt'))
         self.assertFalse(should_ignore_file(ignore_rules, 'file.txt'))
         self.assertFalse(should_ignore_file(None, 'file.txt'))
+        self.assertTrue(should_ignore_file(ignore_rules, 'data/other-folder/file.txt'))
+        self.assertFalse(should_ignore_file(ignore_rules, 'data/other-folder/file.tsc'))
+        self.assertTrue(should_ignore_file(ignore_rules, 'data/file.test.ts'))
+        self.assertTrue(should_ignore_file(ignore_rules, 'data/access.0.log'))
+        self.assertFalse(should_ignore_file(ignore_rules, 'data/access.3.log'))
+        self.assertTrue(should_ignore_file(ignore_rules, 'access.b.log'))
+        self.assertFalse(should_ignore_file(ignore_rules, 'access.d.log'))
 
     def test_get_ignore_rules(self):
         ignore_rules = ['data/*.png\n', 'ignored-folder/']
