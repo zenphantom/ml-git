@@ -15,10 +15,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Set up Python 3.7
+      - name: Set up Python 3.6
         uses: actions/setup-python@v1
         with:
-          python-version: 3.7
+          python-version: 3.6
 
       - name: Install dependencies
         run: |
@@ -34,14 +34,17 @@ jobs:
     name: Unit Tests
 
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.6, 3.7, 3.8]
 
     steps:
       - uses: actions/checkout@v2
 
-      - name: Set up Python 3.7
+      - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v1
         with:
-          python-version: 3.7
+          python-version: ${{ matrix.python-version }}
 
       - name: Install dependencies
         run: |
@@ -62,20 +65,25 @@ jobs:
 
       - name: Unit Tests
         run: |
+          pipenv --python ${{ matrix.python-version }}
           chmod +x ./scripts/run_unit_tests.sh
           make test.unit
+
   integration-tests:
     name: Integration Tests
 
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.6, 3.7, 3.8]
 
     steps:
       - uses: actions/checkout@v2
 
-      - name: Set up Python 3.7
+      - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v1
         with:
-          python-version: 3.7
+          python-version: ${{ matrix.python-version }}
 
       - name: Install dependencies
         run: |
@@ -96,5 +104,6 @@ jobs:
 
       - name: Integration Tests
         run: |
+          pipenv --python ${{ matrix.python-version }}
           chmod +x ./scripts/run_integration_tests.sh
           make test.integration

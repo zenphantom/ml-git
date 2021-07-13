@@ -114,7 +114,7 @@ def __wait_dir_removal(path):
 
 
 def check_output(command):
-    return subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, shell=True).stdout
+    return subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True, shell=True).stdout
 
 
 def init_repository(entity, self, version=1, storage_type=S3H, profile=PROFILE, artifact_name=None, category='images'):
