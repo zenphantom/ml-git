@@ -99,18 +99,18 @@ class EntityManager:
                 return spec_path
         raise Exception('It was not possible to find the entity.')
 
-    def get_entities(self, config_path=None, repo_name=None):
+    def get_entities(self, config_path=None, config_repo_name=None):
         """Get a list of entities found in config.yaml.
 
         Args:
             config_path (str): The absolute path of the config.yaml file.
-            repo_name (str): The repository name where is the config.yaml is located in github.
+            config_repo_name (str): The repository name where is the config.yaml located in github.
 
         Returns:
             list of class Entity.
         """
-        if repo_name:
-            return self._get_entities_from_repo(repo_name)
+        if config_repo_name:
+            return self._get_entities_from_repo(config_repo_name)
         return self._get_entities_from_config(config_path)
 
     def get_entity_versions(self, entity_name, metadata_repo_name):
@@ -118,7 +118,7 @@ class EntityManager:
 
         Args:
             entity_name (str): The name of the entity you want to get the versions.
-            metadata_repo_name (str): The repository name where the metadata is located in GitHub.
+            metadata_repo_name (str): The repository name where the entity metadata is located in GitHub.
 
         Returns:
             list of class SpecVersion.
@@ -172,8 +172,8 @@ class EntityManager:
 
         Args:
             entity_name (str): The name of the entity you want to get the linked entities.
-            metadata_repo_name (str): The repository name where the metadata is located in GitHub.
-            export_type (str): Choose the format of the return [default: json].
+            metadata_repo_name (str): The repository name where the entity metadata is located in GitHub.
+            export_type (str): Set the format of the return [default: json].
             export_path (str): Set the path to export metrics to a file.
 
         Returns:
@@ -196,7 +196,7 @@ class EntityManager:
 
         Args:
             config_repo_name (str): The repository name where the config is located in GitHub.
-            export_type (str): Choose the format of the return [default: json].
+            export_type (str): Set the format of the return [default: json].
             export_path (str): Set the path to export metrics to a file.
 
         Returns:

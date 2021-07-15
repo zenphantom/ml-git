@@ -39,7 +39,18 @@ def get_repo_name_from_url(repository_url: str) -> str:
     return repository_url.replace('.git', '').split(':')[-1]
 
 
-def __format_relationships_to_csv_data(entity_name, entity_type, relationships, formatted_data=None):
+def create_relationships_csv_file(csv_header, file_name, formatted_data, dir, export_path=False):
+    file_path = os.path.join(dir, file_name)
+    create_csv_file(file_path, csv_header, formatted_data)
+    if export_path:
+        print('A CSV file was created with the relationships information in {}'.format(file_path))
+    with open(file_path) as csv_file:
+        return io.StringIO(csv_file.read())
+
+
+def export_relationships_to_csv(entity_name, entity_type, relationships, export_path):
+    csv_header = ['from_tag', 'from_name', 'from_version', 'from_type', 'to_tag', 'to_name', 'to_version', 'to_type']
+    formatted_data = []
     for value in relationships[entity_name]:
         from_entity_version = value.version
         from_entity_tag = value.tag
@@ -61,7 +72,7 @@ def export_relationships_to_csv(entities, relationships, export_path):
     csv_header = ['from_tag', 'from_name', 'from_version', 'from_type', 'to_tag', 'to_name', 'to_version', 'to_type']
     formatted_data = []
     for entity in entities:
-        formatted_data = __format_relationships_to_csv_data(entity.name, entity.entity_type, relationships, formatted_data)
+        formatted_data = export_relationships_to_csv(entity.name, entity.entity_type, relationships, formatted_data)
 
     file_name_prefix = 'project'
     if len(entities) == 1:
@@ -70,13 +81,6 @@ def export_relationships_to_csv(entities, relationships, export_path):
 
     if export_path is None:
         with tempfile.TemporaryDirectory() as tempdir:
-            file_path = os.path.join(tempdir, file_name)
-            create_csv_file(file_path, csv_header, formatted_data)
-            with open(file_path) as csv_file:
-                return io.StringIO(csv_file.read())
+            return create_relationships_csv_file(csv_header, file_name, formatted_data, tempdir)
     else:
-        file_path = os.path.join(export_path, file_name)
-        create_csv_file(file_path, csv_header, formatted_data)
-        print('A CSV file was created with the relationship information in {}'.format(file_path))
-        with open(file_path) as csv_file:
-            return io.StringIO(csv_file.read())
+        return create_relationships_csv_file(csv_header, file_name, formatted_data, export_path, True)
