@@ -48,9 +48,7 @@ def create_relationships_csv_file(csv_header, file_name, formatted_data, dir, ex
         return io.StringIO(csv_file.read())
 
 
-def export_relationships_to_csv(entity_name, entity_type, relationships, export_path):
-    csv_header = ['from_tag', 'from_name', 'from_version', 'from_type', 'to_tag', 'to_name', 'to_version', 'to_type']
-    formatted_data = []
+def __format_relationships_to_csv_data(entity_name, entity_type, relationships, formatted_data=None):
     for value in relationships[entity_name]:
         from_entity_version = value.version
         from_entity_tag = value.tag
@@ -63,7 +61,7 @@ def export_relationships_to_csv(entity_name, entity_type, relationships, export_
                 'to_tag': to_entity.tag,
                 'to_name': to_entity.name,
                 'to_version': to_entity.version,
-                'to_type': to_entity.entity_type
+                'to_type': to_entity.type
             })
     return formatted_data
 
@@ -72,7 +70,7 @@ def export_relationships_to_csv(entities, relationships, export_path):
     csv_header = ['from_tag', 'from_name', 'from_version', 'from_type', 'to_tag', 'to_name', 'to_version', 'to_type']
     formatted_data = []
     for entity in entities:
-        formatted_data = export_relationships_to_csv(entity.name, entity.entity_type, relationships, formatted_data)
+        formatted_data = __format_relationships_to_csv_data(entity.name, entity.type, relationships, formatted_data)
 
     file_name_prefix = 'project'
     if len(entities) == 1:
@@ -81,6 +79,13 @@ def export_relationships_to_csv(entities, relationships, export_path):
 
     if export_path is None:
         with tempfile.TemporaryDirectory() as tempdir:
-            return create_relationships_csv_file(csv_header, file_name, formatted_data, tempdir)
+            file_path = os.path.join(tempdir, file_name)
+            create_csv_file(file_path, csv_header, formatted_data)
+            with open(file_path) as csv_file:
+                return io.StringIO(csv_file.read())
     else:
-        return create_relationships_csv_file(csv_header, file_name, formatted_data, export_path, True)
+        file_path = os.path.join(export_path, file_name)
+        create_csv_file(file_path, csv_header, formatted_data)
+        print('A CSV file was created with the relationship information in {}'.format(file_path))
+        with open(file_path) as csv_file:
+            return io.StringIO(csv_file.read())

@@ -183,7 +183,7 @@ class EntityManager:
 
         relationships = {entity_name: []}
         for entity_version in entity_versions:
-            target_entity = LinkedEntity(entity_version.tag, entity_version.name, entity_version.version, entity_version.entity_type)
+            target_entity = LinkedEntity(entity_version.tag, entity_version.name, entity_version.version, entity_version.type)
             linked_entities = self.get_linked_entities(target_entity.name, target_entity.version, metadata_repo_name)
             relationships[entity_name].append(EntityVersionRelationships(target_entity.version, target_entity.tag, linked_entities))
 
@@ -202,7 +202,7 @@ class EntityManager:
         Returns:
             list of EntityVersionRelationships.
         """
-        project_entities = self.get_entities(repo_name=config_repo_name)
+        project_entities = self.get_entities(config_repo_name=config_repo_name)
 
         config_repo = self._manager.find_repository(config_repo_name)
         if config_repo is None or self.__is_config_repo(config_repo) is False:
@@ -213,7 +213,7 @@ class EntityManager:
 
         all_relationships = {}
         for entity in project_entities:
-            entity_relationships = self.get_entity_relationships(entity.name, config.get_entity_type_remote(entity.entity_type))
+            entity_relationships = self.get_entity_relationships(entity.name, config.get_entity_type_remote(entity.type))
             all_relationships[entity.name] = entity_relationships[entity.name]
 
         if export_type == FileType.CSV.value:
