@@ -8,7 +8,9 @@ import os
 import tempfile
 import urllib
 
-from ml_git.constants import FileType
+import pydot
+
+from ml_git.constants import FileType, GraphEntityColors, DATASET_SPEC_KEY, LABELS_SPEC_KEY, MODEL_SPEC_KEY
 from ml_git.utils import create_csv_file
 
 
@@ -67,6 +69,7 @@ def __format_relationships_to_csv_data(entity_name, entity_type, relationships, 
 
 
 def export_relationships_to_csv(entities, relationships, export_path):
+    
     csv_header = ['from_tag', 'from_name', 'from_version', 'from_type', 'to_tag', 'to_name', 'to_version', 'to_type']
     formatted_data = []
     for entity in entities:
@@ -89,3 +92,56 @@ def export_relationships_to_csv(entities, relationships, export_path):
         print('A CSV file was created with the relationship information in {}'.format(file_path))
         with open(file_path) as csv_file:
             return io.StringIO(csv_file.read())
+
+
+def __format_relationships_to_dot(entities, relationships):
+    colors = {
+        DATASET_SPEC_KEY: GraphEntityColors.DATASET_COLOR.value,
+        LABELS_SPEC_KEY: GraphEntityColors.LABEL_COLOR.value,
+        MODEL_SPEC_KEY: GraphEntityColors.MODEL_COLOR.value
+    }
+    graph = pydot.Dot('Entities Graph', graph_type='digraph')
+
+    print('entities')
+    print(entities)
+
+    for entity in entities:
+        for value in relationships[entity.name]:
+            print('value')
+            print(value)
+            from_entity_version = value.version
+            for to_entity in value.relationships:
+                print('to_entity')
+                print(to_entity)
+                from_entity_formatted = '{} ({})'.format(entity.name, from_entity_version)
+                to_entity_formatted = '{} ({})'.format(to_entity.name, to_entity.version)
+                graph.add_node(pydot.Node(from_entity_formatted, color=colors[entity.type]))
+                graph.add_node(pydot.Node(to_entity_formatted, color=colors[to_entity.type]))
+                graph.add_edge(pydot.Edge(from_entity_formatted, to_entity_formatted))
+    return graph.to_string()
+
+
+def export_relationships_to_dot(entities, relationships, export_path):
+    dot_data = __format_relationships_to_dot(entities, relationships)
+
+    print(dot_data)
+
+    return dot_data
+
+    # file_name_prefix = 'project'
+    # if len(entities) == 1:
+    #     file_name_prefix = entities[0].name
+    # file_name = '{}_relationships.{}'.format(file_name_prefix, FileType.CSV.value)
+
+    # if export_path is None:
+    #     with tempfile.TemporaryDirectory() as tempdir:
+    #         file_path = os.path.join(tempdir, file_name)
+    #         create_csv_file(file_path, csv_header, formatted_data)
+    #         with open(file_path) as csv_file:
+    #             return io.StringIO(csv_file.read())
+    # else:
+    #     file_path = os.path.join(export_path, file_name)
+    #     create_csv_file(file_path, csv_header, formatted_data)
+    #     print('A CSV file was created with the relationship information in {}'.format(file_path))
+    #     with open(file_path) as csv_file:
+    #         return io.StringIO(csv_file.read())

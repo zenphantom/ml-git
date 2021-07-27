@@ -10,7 +10,7 @@ from ml_git.relationship.models.entity import Entity
 from ml_git.relationship.models.entity_version_relationships import EntityVersionRelationships
 from ml_git.relationship.models.linked_entity import LinkedEntity
 from ml_git.relationship.models.spec_version import SpecVersion
-from ml_git.relationship.utils import export_relationships_to_csv
+from ml_git.relationship.utils import export_relationships_to_csv, export_relationships_to_dot
 from ml_git.utils import yaml_load_str
 
 
