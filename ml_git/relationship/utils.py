@@ -124,24 +124,14 @@ def __format_relationships_to_dot(entities, relationships):
 def export_relationships_to_dot(entities, relationships, export_path):
     dot_data = __format_relationships_to_dot(entities, relationships)
 
-    print(dot_data)
+    file_name_prefix = 'project'
+    if len(entities) == 1:
+        file_name_prefix = entities[0].name
+    file_name = '{}_relationships.{}'.format(file_name_prefix, FileType.DOT.value)
 
+    if export_path is None:
+        file_path = os.path.join(export_path, file_name)
+        with open(file_path, 'w') as out:
+            out.write(dot_data)
+        return
     return dot_data
-
-    # file_name_prefix = 'project'
-    # if len(entities) == 1:
-    #     file_name_prefix = entities[0].name
-    # file_name = '{}_relationships.{}'.format(file_name_prefix, FileType.CSV.value)
-
-    # if export_path is None:
-    #     with tempfile.TemporaryDirectory() as tempdir:
-    #         file_path = os.path.join(tempdir, file_name)
-    #         create_csv_file(file_path, csv_header, formatted_data)
-    #         with open(file_path) as csv_file:
-    #             return io.StringIO(csv_file.read())
-    # else:
-    #     file_path = os.path.join(export_path, file_name)
-    #     create_csv_file(file_path, csv_header, formatted_data)
-    #     print('A CSV file was created with the relationship information in {}'.format(file_path))
-    #     with open(file_path) as csv_file:
-    #         return io.StringIO(csv_file.read())
