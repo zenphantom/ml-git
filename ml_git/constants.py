@@ -114,6 +114,7 @@ class EntityType(Enum):
 class FileType(Enum):
     CSV = 'csv'
     JSON = 'json'
+    DOT = 'dot'
 
     @staticmethod
     def to_list():
