@@ -133,5 +133,4 @@ def export_relationships_to_dot(entities, relationships, export_path):
         file_path = os.path.join(export_path, file_name)
         with open(file_path, 'w') as out:
             out.write(dot_data)
-        return
     return dot_data
