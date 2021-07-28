@@ -303,7 +303,7 @@ class EntityManager:
         Args:
             entity_name (str): The name of the entity you want to get the linked entities.
             metadata_repo_name (str): The repository name where the entity metadata is located in GitHub.
-            export_type (str): Set the format of the return [default: json].
+            export_type (str): Set the format of the return (json, csv, dot) [default: json].
             export_path (str): Set the path to export metrics to a file.
 
         Returns:
