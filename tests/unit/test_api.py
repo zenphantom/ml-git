@@ -33,21 +33,19 @@ dummy_config = {
     },
 }
 
-search_repo_url = '{}/search/repositories?q=dummy%2Fdummy_{}_repo'  # dummy_api_github_url
+search_repo_url = '{}/repos/dummy/dummy_{}_repo'  # dummy_api_github_url
 search_code_url = '{}/search/code?q=repo%3Adummy_{}+extension%3A.spec'  # dummy_api_github_url
 entity_content_url = '{}/repos/dummy_{}_repo/contents/{}-ex/{}-ex.spec'
 get_repo_url = '{}/dummy_{}_repo'  # dummy_api_github_url.replace("api.","")
 get_tags_from_repo_url = '{}/repos/dummy_{}_repo/tags'
 get_spec_content_url = '{}/repos/dummy/dummy_{}_repo/contents/{}-ex/{}-ex.spec?ref=test__{}-ex__1'
 
-dummy_config_remote_url = f'{dummy_api_github_url}/search/repositories?q=dummy%2Fdummy_config'
+dummy_config_remote_url = f'{dummy_api_github_url}/repos/dummy/dummy_config'
 dummy_config_content_url = f'{dummy_api_github_url}/repos/dummy/dummy_config/contents//.ml-git/config.yaml'
 
 
 def get_search_repo_response(type):
     return {
-        'items': [
-            {
                 'id': 310705171,
                 'name': 'dummy_{}'.format(type),
                 'full_name': 'dummy_{}'.format(type),
@@ -65,8 +63,6 @@ def get_search_repo_response(type):
                 'git_url': 'git://github.com/dummy_{}.git'.format(type),
                 'ssh_url': 'git@github.com:dummy/dummy_{}.git'.format(type),
             }
-        ]
-    }
 
 
 def get_search_code_response(type):
@@ -151,9 +147,7 @@ def get_content_from_tag(type):
     }
 
 
-config_repo_response = {
-    'items': [
-        {
+config_repo_response =  {
             'id': 310705171,
             'name': 'dummy_config',
             'full_name': 'dummy_config',
@@ -171,8 +165,6 @@ config_repo_response = {
             'git_url': 'git://github.com/dummy/dummy_config.git',
             'ssh_url': 'git@github.com:dummy/dummy/dummy_config.git',
         }
-    ]
-}
 
 config_content_response = {
     'name': 'config.yaml',
@@ -375,3 +367,27 @@ class ApiTestCases(unittest.TestCase):
                     expected_data = 'test__models-ex__1,models-ex,1,model,test__labels-ex__1,labels-ex,1,labels'
                 line_count += 1
                 self.assertEqual(expected_data, ','.join(row))
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir')
+    def test_get_project_entities_relationships_export_to_dot(self):
+        self.requests_mock.get(dummy_config_remote_url, status_code=200, headers=HEADERS, json=config_repo_response)
+        self.requests_mock.get(dummy_config_content_url, status_code=200, headers=HEADERS, json=config_content_response)
+        self.manager.get_project_entities_relationships('dummy/dummy_config', export_type=FileType.DOT.value, export_path='.')
+        file_path = os.path.join(self.tmp_dir, 'project_relationships.dot')
+        self.assertTrue(os.path.exists(file_path))
+
+        with open(file_path) as dot_file:
+            graph = pydot.graph_from_dot_data(dot_file.read())[0]
+            self.assertEqual(graph.get_graph_type(), 'digraph')
+            models = graph.get_node('"models-ex (1)"')
+            datasets = graph.get_node('"datasets-ex (1)"')
+            labels = graph.get_node('"labels-ex (1)"')
+            self.assertIsNotNone(models)
+            self.assertIsNotNone(datasets)
+            self.assertIsNotNone(labels)
+            self.assertEqual(graph.get_edges()[0].get_source(), labels[0].get_name())
+            self.assertEqual(graph.get_edges()[0].get_destination(), datasets[0].get_name())
+            self.assertEqual(graph.get_edges()[1].get_source(), models[0].get_name())
+            self.assertEqual(graph.get_edges()[1].get_destination(), datasets[0].get_name())
+            self.assertEqual(graph.get_edges()[2].get_source(), models[0].get_name())
+            self.assertEqual(graph.get_edges()[2].get_destination(), labels[0].get_name())

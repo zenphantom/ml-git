@@ -19,7 +19,7 @@ class GithubManager:
         :param: repository_name (str). The name of repository.
         :return: :class: github.Repository.Repository
         """
-        return next(iter(self.__client.search_repositories(repository_name)), None)
+        return self.__client.get_repo(repository_name)
 
     @staticmethod
     def file_exists(repository, file_path):

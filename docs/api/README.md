@@ -314,7 +314,7 @@ class EntityManager:
 
         Args:
             config_repo_name (str): The repository name where the config file is located in GitHub.
-            export_type (str): Set the format of the return [default: json].
+            export_type (str): Set the format of the return (json, csv, dot) [default: json].
             export_path (str): Set the path to export metrics to a file.
 
         Returns:
