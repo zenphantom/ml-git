@@ -120,6 +120,7 @@ class FileType(Enum):
     def to_list():
         return [file.value for file in FileType]
 
+
 @unique
 class GraphEntityColors(Enum):
     DATASET_COLOR = '#2271b1'

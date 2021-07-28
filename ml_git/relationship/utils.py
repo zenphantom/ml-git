@@ -69,7 +69,6 @@ def __format_relationships_to_csv_data(entity_name, entity_type, relationships, 
 
 
 def export_relationships_to_csv(entities, relationships, export_path):
-    
     csv_header = ['from_tag', 'from_name', 'from_version', 'from_type', 'to_tag', 'to_name', 'to_version', 'to_type']
     formatted_data = []
     for entity in entities:
@@ -102,17 +101,10 @@ def __format_relationships_to_dot(entities, relationships):
     }
     graph = pydot.Dot('Entities Graph', graph_type='digraph')
 
-    print('entities')
-    print(entities)
-
     for entity in entities:
         for value in relationships[entity.name]:
-            print('value')
-            print(value)
             from_entity_version = value.version
             for to_entity in value.relationships:
-                print('to_entity')
-                print(to_entity)
                 from_entity_formatted = '{} ({})'.format(entity.name, from_entity_version)
                 to_entity_formatted = '{} ({})'.format(to_entity.name, to_entity.version)
                 graph.add_node(pydot.Node(from_entity_formatted, color=colors[entity.type]))
@@ -133,4 +125,6 @@ def export_relationships_to_dot(entities, relationships, export_path):
         file_path = os.path.join(export_path, file_name)
         with open(file_path, 'w') as out:
             out.write(dot_data)
+            print('A DOT file was created with the relationship information in {}'.format(file_path))
+        return
     return dot_data

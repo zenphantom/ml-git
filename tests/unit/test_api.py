@@ -8,6 +8,7 @@ import json
 import os
 import unittest
 
+import pydot
 import pytest
 
 from ml_git.constants import EntityType, STORAGE_CONFIG_KEY, StorageType, MutabilityType, FileType
@@ -214,7 +215,7 @@ class ApiTestCases(unittest.TestCase):
         self.requests_mock.get(
             entity_content_url.format(dummy_api_github_url, type, type, type, type),
             status_code=200, headers=HEADERS, json=get_spec_entity_content(type))
-        self.requests_mock.get(get_repo_url.format(dummy_api_github_url.replace("api.", ""), type),
+        self.requests_mock.get(get_repo_url.format(dummy_api_github_url.replace('api.', ''), type),
                                status_code=200, headers=HEADERS, json=repo)
         self.requests_mock.get(get_tags_from_repo_url.format(dummy_api_github_url, type), status_code=200,
                                headers=HEADERS, json=get_repo_tags(type))
@@ -318,7 +319,26 @@ class ApiTestCases(unittest.TestCase):
                     expected_data = 'test__models-ex__1,models-ex,1,model,test__labels-ex__1,labels-ex,1,labels'
                 line_count += 1
                 self.assertEqual(expected_data, ','.join(row))
-        self.manager.get_entity_relationships('models-ex', 'dummy/dummy_models_repo', export_type=FileType.CSV.value)
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir')
+    def test_get_entity_relationships_export_to_dot(self):
+        self.manager.get_entity_relationships('models-ex', 'dummy/dummy_models_repo', export_type=FileType.DOT.value, export_path='.')
+        file_path = os.path.join(self.tmp_dir, 'models-ex_relationships.dot')
+        self.assertTrue(os.path.exists(file_path))
+
+        with open(file_path) as dot_file:
+            graph = pydot.graph_from_dot_data(dot_file.read())[0]
+            self.assertEqual(graph.get_graph_type(), 'digraph')
+            models = graph.get_node('"models-ex (1)"')
+            datasets = graph.get_node('"datasets-ex (1)"')
+            labels = graph.get_node('"labels-ex (1)"')
+            self.assertIsNotNone(models)
+            self.assertIsNotNone(datasets)
+            self.assertIsNotNone(labels)
+            self.assertEqual(graph.get_edges()[0].get_source(), models[0].get_name())
+            self.assertEqual(graph.get_edges()[0].get_destination(), datasets[0].get_name())
+            self.assertEqual(graph.get_edges()[1].get_source(), models[0].get_name())
+            self.assertEqual(graph.get_edges()[1].get_destination(), labels[0].get_name())
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_get_project_entities_relationships(self):
