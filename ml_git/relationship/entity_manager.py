@@ -189,7 +189,7 @@ class EntityManager:
             target_entity = LinkedEntity(entity_version.tag, entity_version.name, entity_version.version, entity_version.type)
             linked_entities = self.get_linked_entities(target_entity.name, target_entity.version, metadata_repo_name)
 
-            if previous_version != None:
+            if previous_version:
                 linked_entities.append(LinkedEntity(previous_version.tag, previous_version.name, previous_version.version, previous_version.type))
 
             relationships[entity_name].append(EntityVersionRelationships(target_entity.version, target_entity.tag, linked_entities))
