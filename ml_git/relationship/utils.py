@@ -50,16 +50,16 @@ def create_relationships_csv_file(csv_header, file_name, formatted_data, dir, ex
         return io.StringIO(csv_file.read())
 
 
-def __format_relationships_to_csv_data(entity_name, entity_type, relationships, formatted_data=None):
-    for value in relationships[entity_name]:
+def __format_relationships_to_csv_data(name, type, relationships, formatted_data=None):
+    for value in relationships[name]:
         from_entity_version = value.version
         from_entity_tag = value.tag
         for to_entity in value.relationships:
             formatted_data.append({
                 'from_tag': from_entity_tag,
-                'from_name': entity_name,
+                'from_name': name,
                 'from_version': from_entity_version,
-                'from_type': entity_type,
+                'from_type': type,
                 'to_tag': to_entity.tag,
                 'to_name': to_entity.name,
                 'to_version': to_entity.version,
