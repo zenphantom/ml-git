@@ -78,19 +78,14 @@ class SpecVersion:
         all_related_tags = self._related_datasets + self._related_labels + self._related_models
         related_entities = []
         for value in all_related_tags:
-            type = DATASET_SPEC_KEY
+            entity_type = DATASET_SPEC_KEY
             if value in self._related_labels:
-                type = LABELS_SPEC_KEY
+                entity_type = LABELS_SPEC_KEY
             elif value in self._related_models:
-                type = MODEL_SPEC_KEY
+                entity_type = MODEL_SPEC_KEY
 
             related_entities.append(LinkedEntity(tag=value, name=value.split('__')[-2],
-                                                 version=value.split('__')[-1], type=type))
-
-        ##if self.parent != None:
-        ##    related_entities.append(LinkedEntity(tag=self.parent.tag, name=self.parent.name,
-        ##                                        version=self.parent.version, type=self.parent.type))
-
+                                                 version=value.split('__')[-1], type=entity_type))
         return related_entities
 
     def to_dict(self, obj):

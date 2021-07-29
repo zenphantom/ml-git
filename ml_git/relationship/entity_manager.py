@@ -228,5 +228,4 @@ class EntityManager:
 
         if export_type == FileType.CSV.value:
             all_relationships = export_relationships_to_csv(project_entities, all_relationships, export_path)
-        
         return all_relationships

@@ -69,7 +69,6 @@ def __format_relationships_to_csv_data(entity_name, entity_type, relationships, 
 
 
 def export_relationships_to_csv(entities, relationships, export_path):
-    
     csv_header = ['from_tag', 'from_name', 'from_version', 'from_type', 'to_tag', 'to_name', 'to_version', 'to_type']
     formatted_data = []
     for entity in entities:
