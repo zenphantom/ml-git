@@ -48,24 +48,24 @@ def create_relationships_csv_file(csv_header, file_name, formatted_data, dir, ex
         return io.StringIO(csv_file.read())
 
 
-def export_relationships_to_csv(entity_name, entity_type, relationships, export_path):
+def export_relationships_to_csv(name, type, relationships, export_path):
     csv_header = ['from_tag', 'from_name', 'from_version', 'from_type', 'to_tag', 'to_name', 'to_version', 'to_type']
     formatted_data = []
-    for value in relationships[entity_name]:
+    for value in relationships[name]:
         from_entity_version = value.version
         from_entity_tag = value.tag
         for to_entity in value.relationships:
             formatted_data.append({
                 'from_tag': from_entity_tag,
-                'from_name': entity_name,
+                'from_name': name,
                 'from_version': from_entity_version,
-                'from_type': entity_type,
+                'from_type': type,
                 'to_tag': to_entity.tag,
                 'to_name': to_entity.name,
                 'to_version': to_entity.version,
-                'to_type': to_entity.entity_type
+                'to_type': to_entity.type
             })
-    file_name = '{}_relationships.{}'.format(entity_name, FileType.CSV.value)
+    file_name = '{}_relationships.{}'.format(name, FileType.CSV.value)
 
     if export_path is None:
         with tempfile.TemporaryDirectory() as tempdir:

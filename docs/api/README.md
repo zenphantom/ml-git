@@ -276,32 +276,32 @@ class EntityManager:
         Returns:
             list of class Entity.
         """
-    def get_entity_versions(self, entity_name, metadata_repo_name):
+    def get_entity_versions(self, name, metadata_repo_name):
         """Get a list of spec versions found for an especific entity.
 
         Args:
-            entity_name (str): The name of the entity you want to get the versions.
+            name (str): The name of the entity you want to get the versions.
             metadata_repo_name (str): The repository name where the entity metadata is located in GitHub.
 
         Returns:
             list of class SpecVersion.
         """
-    def get_linked_entities(self, entity_name, entity_version, metadata_repo_name):
+    def get_linked_entities(self, name, version, metadata_repo_name):
         """Get a list of linked entities found for an entity version.
 
         Args:
-            entity_name (str): The name of the entity you want to get the linked entities.
-            entity_version (str): The version of the entity you want to get the linked entities.
+            name (str): The name of the entity you want to get the linked entities.
+            version (str): The version of the entity you want to get the linked entities.
             metadata_repo_name (str): The repository name where the entity metadata is located in GitHub.
 
         Returns:
             list of LinkedEntity.
         """
-    def get_entity_relationships(self, entity_name, metadata_repo_name, export_type=FileType.JSON.value, export_path=None):
+    def get_entity_relationships(self, name, metadata_repo_name, export_type=FileType.JSON.value, export_path=None):
         """Get a list of relationships for an entity.
 
         Args:
-            entity_name (str): The name of the entity you want to get the linked entities.
+            name (str): The name of the entity you want to get the linked entities.
             metadata_repo_name (str): The repository name where the entity metadata is located in GitHub.
             export_type (str): Choose the format of the return [default: json].
             export_path (str): Set the path to export metrics to a file.
@@ -409,7 +409,7 @@ class LinkedEntity:
 
     Attributes:
         name (str): The name of the entity.
-        entity_type (str): The type of the ml-entity (datasets, models, labels).
+        type (str): The type of the ml-entity (datasets, models, labels).
         version (str): The version of the ml-entity.
         tag (str): The tag of the ml-entity spec version.
     """
