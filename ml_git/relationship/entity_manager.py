@@ -128,7 +128,7 @@ class EntityManager:
         repository = self._manager.find_repository(metadata_repo_name)
         entity_spec_path = self._get_entity_spec_path(repository, entity_name)
 
-        for tag in repository.get_tags():
+        for tag in repository.get_tags().reversed:
             if tag.name.split('__')[-2] != entity_name:
                 continue
 
@@ -138,6 +138,7 @@ class EntityManager:
 
             spec_tag_yaml = yaml_load_str(content)
             entity_version = SpecVersion(spec_tag_yaml)
+
             versions.append(entity_version)
         return versions
 
@@ -155,7 +156,7 @@ class EntityManager:
         repository = self._manager.find_repository(metadata_repo_name)
         entity_spec_path = self._get_entity_spec_path(repository, entity_name)
 
-        for tag in repository.get_tags():
+        for tag in repository.get_tags().reversed:
             if tag.name.split('__')[-2] != entity_name or tag.name.split('__')[-1] != str(entity_version):
                 continue
 
@@ -165,6 +166,7 @@ class EntityManager:
 
             spec_tag_yaml = yaml_load_str(content)
             entity = SpecVersion(spec_tag_yaml)
+
             return entity.get_related_entities_info()
 
     def get_entity_relationships(self, entity_name, metadata_repo_name, export_type=FileType.JSON.value, export_path=None):
@@ -182,10 +184,16 @@ class EntityManager:
         entity_versions = self.get_entity_versions(entity_name, metadata_repo_name)
 
         relationships = {entity_name: []}
+        previous_version = None
         for entity_version in entity_versions:
             target_entity = LinkedEntity(entity_version.tag, entity_version.name, entity_version.version, entity_version.type)
             linked_entities = self.get_linked_entities(target_entity.name, target_entity.version, metadata_repo_name)
+
+            if previous_version:
+                linked_entities.append(LinkedEntity(previous_version.tag, previous_version.name, previous_version.version, previous_version.type))
+
             relationships[entity_name].append(EntityVersionRelationships(target_entity.version, target_entity.tag, linked_entities))
+            previous_version = target_entity
 
         if export_type == FileType.CSV.value:
             relationships = export_relationships_to_csv([entity_versions[0]], relationships, export_path)
