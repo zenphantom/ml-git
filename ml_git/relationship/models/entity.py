@@ -23,7 +23,7 @@ class Entity:
     def __init__(self, repository, spec_yaml):
         self.last_spec_version = SpecVersion(spec_yaml)
         self.name = self.last_spec_version.name
-        self.entity_type = self.last_spec_version.entity_type
+        self.type = self.last_spec_version.type
         self.metadata = Metadata(repository)
         self.private = repository.private
 

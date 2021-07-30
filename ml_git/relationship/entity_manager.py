@@ -80,18 +80,18 @@ class EntityManager:
 
         return self._cache_entities
 
-    def _get_entity_spec_path(self, repository, entity_name):
+    def _get_entity_spec_path(self, repository, name):
         """Get the spec path of an entity
 
          Args:
              repository (obj): Metadata repository object.
-             entity_name (str): The name of the entity you want to get the versions.
+             name (str): The name of the entity you want to get the versions.
 
          Returns:
              Path of the entity
          """
         for spec_path in self._manager.search_file(repository, SPEC_EXTENSION):
-            spec_file_name = '{}{}'.format(entity_name, SPEC_EXTENSION)
+            spec_file_name = '{}{}'.format(name, SPEC_EXTENSION)
             if spec_path.endswith(spec_file_name):
                 return spec_path
         raise Exception('It was not possible to find the entity.')
@@ -110,11 +110,11 @@ class EntityManager:
             return self._get_entities_from_repo(config_repo_name)
         return self._get_entities_from_config(config_path)
 
-    def get_entity_versions(self, entity_name, metadata_repo_name):
+    def get_entity_versions(self, name, metadata_repo_name):
         """Get a list of spec versions found for an especific entity.
 
         Args:
-            entity_name (str): The name of the entity you want to get the versions.
+            name (str): The name of the entity you want to get the versions.
             metadata_repo_name (str): The repository name where the entity metadata is located in GitHub.
 
         Returns:
@@ -123,17 +123,43 @@ class EntityManager:
 
         versions = []
         repository = self._manager.find_repository(metadata_repo_name)
-        entity_spec_path = self._get_entity_spec_path(repository, entity_name)
+        spec_path = self._get_entity_spec_path(repository, name)
 
         for tag in repository.get_tags():
-            if tag.name.split('__')[-2] != entity_name:
+            if tag.name.split('__')[-2] != name:
                 continue
 
-            content = self._manager.get_file_content(repository, entity_spec_path, tag.name)
+            content = self._manager.get_file_content(repository, spec_path, tag.name)
             if not content:
                 continue
 
             spec_tag_yaml = yaml_load_str(content)
-            entity_version = SpecVersion(spec_tag_yaml)
-            versions.append(entity_version)
+            spec_version = SpecVersion(spec_tag_yaml)
+            versions.append(spec_version)
         return versions
+
+    def get_linked_entities(self, name, version, metadata_repo_name):
+        """Get a list of linked entities found for an entity version.
+
+        Args:
+            name (str): The name of the entity you want to get the linked entities.
+            version (str): The version of the entity you want to get the linked entities.
+            metadata_repo_name (str): The repository name where the metadata is located in GitHub.
+
+        Returns:
+            list of LinkedEntity.
+        """
+        repository = self._manager.find_repository(metadata_repo_name)
+        spec_path = self._get_entity_spec_path(repository, name)
+
+        for tag in repository.get_tags():
+            if tag.name.split('__')[-2] != name and tag.name.split('__')[-1] != str(version):
+                continue
+
+            content = self._manager.get_file_content(repository, spec_path, tag.name)
+            if not content:
+                continue
+
+            spec_tag_yaml = yaml_load_str(content)
+            entity = SpecVersion(spec_tag_yaml)
+            return entity.get_related_entities_info()

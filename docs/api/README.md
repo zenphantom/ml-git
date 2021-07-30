@@ -15,7 +15,7 @@ def add(entity_type, entity_name, bumpversion=False, fsck=False, file_path=[], m
         add('datasets', 'dataset-ex', bumpversion=True)
 
     Args:
-        entity_type (str): The type of an ML entity. (datasets, labels or models)
+        type (str): The type of an ML entity. (datasets, labels or models)
         entity_name (str): The name of the ML entity you want to add the files.
         bumpversion (bool, optional): Increment the entity version number when adding more files [default: False].
         fsck (bool, optional): Run fsck after command execution [default: False].
@@ -278,15 +278,26 @@ class EntityManager:
         Returns:
             list of class Entity.
         """
-    def get_entity_versions(self, entity_name, metadata_repo_name):
+    def get_entity_versions(self, name, metadata_repo_name):
         """Get a list of spec versions found for an especific entity.
 
         Args:
-            entity_name (str): The name of the entity you want to get the versions.
+            name (str): The name of the entity you want to get the versions.
             metadata_repo_name (str): The repository name where the entity metadata is located in GitHub.
 
         Returns:
             list of class SpecVersion.
+        """
+    def get_linked_entities(self, name, version, metadata_repo_name):
+        """Get a list of linked entities found for an entity version.
+
+        Args:
+            name (str): The name of the entity you want to get the linked entities.
+            version (str): The version of the entity you want to get the linked entities.
+            metadata_repo_name (str): The repository name where the entity metadata is located in GitHub.
+
+        Returns:
+            list of LinkedEntity.
         """
 ```
 </details>
@@ -301,7 +312,7 @@ class Entity:
 
     Attributes:
         name (str): The name of the entity.
-        entity_type (str): The type of the ml-entity (datasets, models, labels).
+        type (str): The type of the ml-entity (datasets, models, labels).
         private (str): The access of entity metadata.
         metadata (Metadata): The metadata of the entity.
         last_spec_version (SpecVersion): The specification file of the entity last version.
@@ -319,7 +330,7 @@ class SpecVersion:
 
     Attributes:
         name (str): The name of the entity.
-        entity_type (str): The type of the ml-entity (datasets, models, labels).
+        type (str): The type of the ml-entity (datasets, models, labels).
         version (str): The version of the ml-entity.
         tag (str): The tag of the ml-entity spec version.
         mutability (str): The mutability of the ml-entity.
@@ -330,6 +341,7 @@ class SpecVersion:
     """
 ```
 </details>
+
 
 <details markdown="1">
 <summary><code> Metadata </code></summary>
@@ -358,6 +370,23 @@ class Storage:
     Attributes:
         type (str): The storage type (s3h|azureblobh|gdriveh|sftph).
         bucket (str): The name of the bucket.
+    """
+```
+</details>
+
+<details markdown="1">
+<summary><code> LinkedEntity </code></summary>
+<br>
+
+```python
+class LinkedEntity:
+    """Class that represents a linked ml-entity.
+
+    Attributes:
+        name (str): The name of the entity.
+        type (str): The type of the ml-entity (datasets, models, labels).
+        version (str): The version of the ml-entity.
+        tag (str): The tag of the ml-entity spec version.
     """
 ```
 </details>

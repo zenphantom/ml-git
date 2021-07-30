@@ -5,17 +5,21 @@ SPDX-License-Identifier: GPL-2.0-only
 import json
 
 
-class Storage:
-    """Class that represents an ml-entity storage.
+class LinkedEntity:
+    """Class that represents a linked ml-entity.
 
     Attributes:
-        type (str): The storage type (s3h|azureblobh|gdriveh|sftph).
-        bucket (str): The name of the bucket.
+        name (str): The name of the entity.
+        type (str): The type of the ml-entity (datasets, models, labels).
+        version (str): The version of the ml-entity.
+        tag (str): The tag of the ml-entity spec version.
     """
 
-    def __init__(self, type, bucket):
+    def __init__(self, tag, name, version, type):
+        self.tag = tag
+        self.name = name
+        self.version = version
         self.type = type
-        self.bucket = bucket
 
     @staticmethod
     def to_dict(obj):
