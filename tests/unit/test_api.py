@@ -3,13 +3,14 @@
 SPDX-License-Identifier: GPL-2.0-only
 """
 import base64
+import csv
 import json
 import os
 import unittest
 
 import pytest
 
-from ml_git.constants import EntityType, STORAGE_CONFIG_KEY, StorageType, MutabilityType
+from ml_git.constants import EntityType, STORAGE_CONFIG_KEY, StorageType, MutabilityType, FileType
 from ml_git.spec import get_spec_key
 from ml_git.utils import yaml_save
 
@@ -281,3 +282,39 @@ class ApiTestCases(unittest.TestCase):
         self.assertEqual(2, len(related_entities))
         self.assertEqual(related_entities[0].tag, 'test__datasets-ex__1')
         self.assertEqual(related_entities[1].tag, 'test__labels-ex__1')
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir')
+    def test_get_entity_relationships(self):
+        entity_name = 'models-ex'
+        output = self.manager.get_entity_relationships(entity_name, 'dummy/dummy_models_repo')
+        self.assertEqual('test__models-ex__1', output[entity_name][0].tag)
+        self.assertEqual(1, output[entity_name][0].version)
+        entity_relationships = output[entity_name][0].relationships
+        self.assertEqual(2, len(entity_relationships))
+        self.assertEqual('test__datasets-ex__1', entity_relationships[0].tag)
+        self.assertEqual('test__labels-ex__1', entity_relationships[1].tag)
+
+        with self.assertRaises(Exception):
+            self.manager.get_entity_relationships('worng-model-name', 'dummy/dummy_models_repo')
+
+        unlinked_entity = self.manager.get_entity_relationships('datasets-ex', 'dummy/dummy_datasets_repo')
+        self.assertEqual([], unlinked_entity['datasets-ex'][0].relationships)
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir')
+    def test_get_entity_relationships_export_to_csv(self):
+        self.manager.get_entity_relationships('models-ex', 'dummy/dummy_models_repo', export_type=FileType.CSV.value, export_path='.')
+        file_path = os.path.join(self.tmp_dir, 'models-ex_relationships.csv')
+        self.assertTrue(os.path.exists(file_path))
+        with open(file_path) as csv_file:
+            csv_reader = csv.reader(csv_file, delimiter=',')
+            line_count = 0
+            for row in csv_reader:
+                if line_count == 0:
+                    expected_data = 'from_tag,from_name,from_version,from_type,to_tag,to_name,to_version,to_type'
+                elif line_count == 1:
+                    expected_data = 'test__models-ex__1,models-ex,1,model,test__datasets-ex__1,datasets-ex,1,dataset'
+                else:
+                    expected_data = 'test__models-ex__1,models-ex,1,model,test__labels-ex__1,labels-ex,1,labels'
+                line_count += 1
+                self.assertEqual(expected_data, ','.join(row))
+        self.manager.get_entity_relationships('models-ex', 'dummy/dummy_models_repo', export_type=FileType.CSV.value)

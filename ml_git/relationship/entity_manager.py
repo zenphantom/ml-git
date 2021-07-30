@@ -2,12 +2,14 @@
 © Copyright 2021 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
-
-from ml_git.constants import SPEC_EXTENSION
+from ml_git.constants import SPEC_EXTENSION, FileType
 from ml_git.relationship.github_manager import GithubManager
 from ml_git.relationship.models.config import Config
 from ml_git.relationship.models.entity import Entity
+from ml_git.relationship.models.entity_version_relationships import EntityVersionRelationships
+from ml_git.relationship.models.linked_entity import LinkedEntity
 from ml_git.relationship.models.spec_version import SpecVersion
+from ml_git.relationship.utils import export_relationships_to_csv
 from ml_git.utils import yaml_load_str
 
 
@@ -153,7 +155,7 @@ class EntityManager:
         spec_path = self._get_entity_spec_path(repository, name)
 
         for tag in repository.get_tags():
-            if tag.name.split('__')[-2] != name and tag.name.split('__')[-1] != str(version):
+            if tag.name.split('__')[-2] != name or tag.name.split('__')[-1] != str(version):
                 continue
 
             content = self._manager.get_file_content(repository, spec_path, tag.name)
@@ -163,3 +165,30 @@ class EntityManager:
             spec_tag_yaml = yaml_load_str(content)
             entity = SpecVersion(spec_tag_yaml)
             return entity.get_related_entities_info()
+
+    def get_entity_relationships(self, name, metadata_repo_name, export_type=FileType.JSON.value, export_path=None):
+        """Get a list of relationships for an entity.
+
+        Args:
+            name (str): The name of the entity you want to get the linked entities.
+            metadata_repo_name (str): The repository name where the entity metadata is located in GitHub.
+            export_type (str): Choose the format of the return [default: json].
+            export_path (str): Set the path to export metrics to a file.
+
+        Returns:
+            list of EntityVersionRelationships.
+        """
+        entity_versions = self.get_entity_versions(name, metadata_repo_name)
+
+        relationships = {name: []}
+        for entity_version in entity_versions:
+            target_entity = LinkedEntity(entity_version.tag, entity_version.name,
+                                         entity_version.version, entity_version.type)
+            linked_entities = self.get_linked_entities(target_entity.name, target_entity.version, metadata_repo_name)
+            relationships[name].append(EntityVersionRelationships(target_entity.version,
+                                                                  target_entity.tag, linked_entities))
+
+        if export_type == FileType.CSV.value:
+            relationships = export_relationships_to_csv(name, entity_versions[0].type,
+                                                        relationships, export_path)
+        return relationships

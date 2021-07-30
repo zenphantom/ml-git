@@ -299,6 +299,18 @@ class EntityManager:
         Returns:
             list of LinkedEntity.
         """
+    def get_entity_relationships(self, name, metadata_repo_name, export_type=FileType.JSON.value, export_path=None):
+        """Get a list of relationships for an entity.
+
+        Args:
+            name (str): The name of the entity you want to get the linked entities.
+            metadata_repo_name (str): The repository name where the entity metadata is located in GitHub.
+            export_type (str): Choose the format of the return [default: json].
+            export_path (str): Set the path to export metrics to a file.
+
+        Returns:
+            list of EntityVersionRelationships.
+        """
 ```
 </details>
 
@@ -370,6 +382,21 @@ class Storage:
     Attributes:
         type (str): The storage type (s3h|azureblobh|gdriveh|sftph).
         bucket (str): The name of the bucket.
+    """
+```
+</details>
+<details markdown="1">
+<summary><code> EntityVersionRelationships </code></summary>
+<br>
+
+```python
+class EntityVersionRelationships:
+    """Class that represents the relationships of an ml-entity in a specified version.
+
+    Attributes:
+        version (str): The version of the ml-entity.
+        tag (str): The tag of the ml-entity.
+        relationships (list): List of linked entities of the ml-entity in the specified version.
     """
 ```
 </details>
