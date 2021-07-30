@@ -127,7 +127,6 @@ class EntityManager:
         versions = []
         repository = self._manager.find_repository(metadata_repo_name)
         spec_path = self._get_entity_spec_path(repository, name)
-        
         for tag in repository.get_tags():
             if tag.name.split('__')[-2] != name:
                 continue
@@ -180,8 +179,8 @@ class EntityManager:
         Returns:
             list of EntityVersionRelationships.
         """
+
         entity_versions = self.get_entity_versions(name, metadata_repo_name)
-        
         relationships = {name: []}
         previous_version = None
         for entity_version in entity_versions:

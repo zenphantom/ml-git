@@ -8,7 +8,9 @@ from click_didyoumean import DYMGroup
 from click_plugins import with_plugins
 from pkg_resources import iter_entry_points
 
+from ml_git import api
 from ml_git.commands.utils import repositories, PROJECT, set_verbose_mode
+from ml_git.constants import FileType
 from ml_git.utils import check_metadata_directories
 from ml_git.version import get_version
 
@@ -31,3 +33,12 @@ def mlgit():
 @click.option('--verbose', is_flag=True, expose_value=False, callback=set_verbose_mode, help='Debug mode')
 def clone(**kwargs):
     repositories[PROJECT].clone_config(kwargs['repository_url'], kwargs['folder'], kwargs['track'])
+
+
+# Concrete ml-git Commands Implementation
+@mlgit.command('graph', help='Create a graph of all entities relationships as DOT language')
+@click.help_option(hidden=True)
+@click.option('--verbose', is_flag=True, expose_value=False, callback=set_verbose_mode, help='Debug mode')
+def graph():
+    em = api.init_local_entity_manager()
+    print(em.get_project_entities_relationships(export_type=FileType.DOT.value))

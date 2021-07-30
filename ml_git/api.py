@@ -341,4 +341,3 @@ def init_local_entity_manager():
 
     """
     return LocalEntityManager()
-

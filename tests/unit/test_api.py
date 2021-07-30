@@ -147,7 +147,7 @@ def get_content_from_tag(type):
     }
 
 
-config_repo_response =  {
+config_repo_response = {
             'id': 310705171,
             'name': 'dummy_config',
             'full_name': 'dummy_config',
