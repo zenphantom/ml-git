@@ -104,7 +104,8 @@ def get_sample_spec(type):
     if type == EntityType.MODELS.value:
         spec_test[get_spec_key(type)][get_spec_key(EntityType.DATASETS.value)] = {'tag': 'test__datasets-ex__1'}
         spec_test[get_spec_key(type)][get_spec_key(EntityType.LABELS.value)] = {'tag': 'test__labels-ex__1'}
-
+    elif type == EntityType.LABELS.value:
+        spec_test[get_spec_key(type)][get_spec_key(EntityType.DATASETS.value)] = {'tag': 'test__datasets-ex__1'}
     return spec_test
 
 
@@ -318,3 +319,39 @@ class ApiTestCases(unittest.TestCase):
                 line_count += 1
                 self.assertEqual(expected_data, ','.join(row))
         self.manager.get_entity_relationships('models-ex', 'dummy/dummy_models_repo', export_type=FileType.CSV.value)
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir')
+    def test_get_project_entities_relationships(self):
+        self.requests_mock.get(dummy_config_remote_url, status_code=200, headers=HEADERS, json=config_repo_response)
+        self.requests_mock.get(dummy_config_content_url, status_code=200, headers=HEADERS, json=config_content_response)
+        entities_relationships = self.manager.get_project_entities_relationships('dummy/dummy_config')
+        self.assertEqual(3, len(entities_relationships))
+        entity_name = 'models-ex'
+        self.assertEqual('test__models-ex__1', entities_relationships[entity_name][0].tag)
+        self.assertEqual(1, entities_relationships[entity_name][0].version)
+        entity_relationships = entities_relationships[entity_name][0].relationships
+        self.assertEqual(2, len(entity_relationships))
+        self.assertEqual('test__datasets-ex__1', entity_relationships[0].tag)
+        self.assertEqual('test__labels-ex__1', entity_relationships[1].tag)
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir')
+    def test_get_project_entities_relationships_export_to_csv(self):
+        self.requests_mock.get(dummy_config_remote_url, status_code=200, headers=HEADERS, json=config_repo_response)
+        self.requests_mock.get(dummy_config_content_url, status_code=200, headers=HEADERS, json=config_content_response)
+        self.manager.get_project_entities_relationships('dummy/dummy_config', export_type=FileType.CSV.value, export_path='.')
+        file_path = os.path.join(self.tmp_dir, 'project_relationships.csv')
+        self.assertTrue(os.path.exists(file_path))
+        with open(file_path) as csv_file:
+            csv_reader = csv.reader(csv_file, delimiter=',')
+            line_count = 0
+            for row in csv_reader:
+                if line_count == 0:
+                    expected_data = 'from_tag,from_name,from_version,from_type,to_tag,to_name,to_version,to_type'
+                elif line_count == 1:
+                    expected_data = 'test__labels-ex__1,labels-ex,1,labels,test__datasets-ex__1,datasets-ex,1,dataset'
+                elif line_count == 2:
+                    expected_data = 'test__models-ex__1,models-ex,1,model,test__datasets-ex__1,datasets-ex,1,dataset'
+                else:
+                    expected_data = 'test__models-ex__1,models-ex,1,model,test__labels-ex__1,labels-ex,1,labels'
+                line_count += 1
+                self.assertEqual(expected_data, ','.join(row))

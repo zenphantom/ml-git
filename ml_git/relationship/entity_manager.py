@@ -2,6 +2,7 @@
 © Copyright 2021 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
+
 from ml_git.constants import SPEC_EXTENSION, FileType
 from ml_git.relationship.github_manager import GithubManager
 from ml_git.relationship.models.config import Config
@@ -172,7 +173,7 @@ class EntityManager:
         Args:
             name (str): The name of the entity you want to get the linked entities.
             metadata_repo_name (str): The repository name where the entity metadata is located in GitHub.
-            export_type (str): Choose the format of the return [default: json].
+            export_type (str): Set the format of the return [default: json].
             export_path (str): Set the path to export metrics to a file.
 
         Returns:
@@ -189,6 +190,35 @@ class EntityManager:
                                                                   target_entity.tag, linked_entities))
 
         if export_type == FileType.CSV.value:
-            relationships = export_relationships_to_csv(name, entity_versions[0].type,
-                                                        relationships, export_path)
+            relationships = export_relationships_to_csv([entity_versions[0]], relationships, export_path)
         return relationships
+
+    def get_project_entities_relationships(self, config_repo_name, export_type=FileType.JSON.value, export_path=None):
+        """Get a list of relationships for all project entities.
+
+        Args:
+            config_repo_name (str): The repository name where the config is located in GitHub.
+            export_type (str): Set the format of the return [default: json].
+            export_path (str): Set the path to export metrics to a file.
+
+        Returns:
+            list of EntityVersionRelationships.
+        """
+        project_entities = self.get_entities(config_repo_name=config_repo_name)
+
+        config_repo = self._manager.find_repository(config_repo_name)
+        if config_repo is None or self.__is_config_repo(config_repo) is False:
+            return
+        config_bytes = self._manager.get_file_content(config_repo, self.MLGIT_CONFIG_FILE)
+        config_yaml = yaml_load_str(config_bytes)
+        config = Config(config_yaml)
+
+        all_relationships = {}
+        for entity in project_entities:
+            entity_relationships = self.get_entity_relationships(entity.name, config.get_entity_type_remote(entity.type))
+            all_relationships[entity.name] = entity_relationships[entity.name]
+
+        if export_type == FileType.CSV.value:
+            all_relationships = export_relationships_to_csv(project_entities, all_relationships, export_path)
+
+        return all_relationships

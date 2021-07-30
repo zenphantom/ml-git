@@ -305,7 +305,18 @@ class EntityManager:
         Args:
             name (str): The name of the entity you want to get the linked entities.
             metadata_repo_name (str): The repository name where the entity metadata is located in GitHub.
-            export_type (str): Choose the format of the return [default: json].
+            export_type (str): Set the format of the return [default: json].
+            export_path (str): Set the path to export metrics to a file.
+
+        Returns:
+            list of EntityVersionRelationships.
+        """
+    def get_project_entities_relationships(self, config_repo_name, export_type=FileType.JSON.value, export_path=None):
+        """Get a list of relationships for all project entities.
+
+        Args:
+            config_repo_name (str): The repository name where the config file is located in GitHub.
+            export_type (str): Set the format of the return [default: json].
             export_path (str): Set the path to export metrics to a file.
 
         Returns:
