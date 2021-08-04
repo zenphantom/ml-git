@@ -72,6 +72,8 @@ output_messages = {
     'DEBUG_IPLD_NOT_PRESENT': 'LocalRepository: ipld [%s] not present for full verification',
     'DEBUG_FILE_NOT_CACHE': 'File is not in cache',
     'DEBUG_BLOB_ALREADY_EXISTS': 'The specified blob [%s] already exists.',
+    'DEBUG_ALREADY_IN_GIT_REPOSITORY': 'There is already a git repository initialized in the project root [%s]',
+    'DEBUG_BUCKET_REGION_NOT_FIND': 'Could not find bucket region entered',
 
     'INFO_INITIALIZED_PROJECT_IN': 'Initialized empty ml-git repository in %s',
     'INFO_ADD_REMOTE': 'Add remote repository [%s] for [%s]',
@@ -155,6 +157,11 @@ output_messages = {
     'INFO_REMOTE_FSCK_TOTAL': 'remote-fsck -- total   : ipld[%d] / blob[%d]',
     'INFO_LISTING_BLOBS': '\nListing blobs in container:',
     'INFO_FILE_LOCATED_IN_TRASH': 'File [{}] located in trash.',
+    'INFO_CREATING_GIT_REPOSITORY': 'Creating new git repository at project root [%s]',
+    'INFO_CREATING_REMOTE': 'Adding remote to the initialized project [%s]',
+    'INFO_PUSH_CONFIG_FILE': 'Pushing config file to remote repository',
+    'INFO_CHANGE_IN_CONFIG_FILE': 'When making changes to the config file we strongly recommend that you upload these changes to '
+                                  'the Git repository. For this, see: ml-git repository config push --help',
 
     'ERROR_PATH_NOT_EMPTY': 'The path [%s] is not an empty directory. Consider using --folder to create an empty folder.',
     'ERROR_WITHOUT_TAG_FOR_THIS_ENTITY': 'No entity with that name was found.',
@@ -199,7 +206,7 @@ output_messages = {
     'ERROR_INVALID_ENTERED_ENTITY_TYPE': 'The type of entity entered is invalid. Valid types are: [repository, dataset, labels or model]',
     'ERROR_METADATA_MESSAGE': '\t%s',
     'ERROR_NO_MANIFEST_FILE_FOUND': 'No manifest file found in [%s]',
-    'ERROR_COULD_NOT_FIND_README': 'Could not find file README.md. Entity repository must have README.md file',
+    'ERROR_COULD_NOT_FIND_FILE': 'Could not find file {}. Entity repository must have {} file',
     'ERROR_ENTITY_NEEDS_CATATEGORY': 'You must place at least one category in the entity .spec file',
     'ERROR_INVALID_DATASET_SPEC': 'Error: invalid dataset spec (Missing name). It should look something like this:\n%s',
     'ERROR_REPOSITORY_NOT_FOUND': 'No repositories found, verify your configurations!',
@@ -289,10 +296,12 @@ output_messages = {
     'ERROR_INVALID_SPEC_VALUE_IN': 'Invalid %s spec in %s.  It should look something like this:\n%s',
     'ERROR_SPEC_FILE_NOT_FOUND': '\nCan\'t find  spec file to increment version.  Are you in the '
                                   'root of the repo?\n     %s\n',
+    'ERROR_COMMIT_BEFORE_PUSH': 'It is necessary commit the changes before push.',
     'ERROR_ON_PUSH_BLOBS': 'There was an error sending the data. %s pending blobs to send.',
     'ERROR_ON_GETTING_BLOBS': 'There was an error downloading the data. %s pending blobs to get.',
     'ERROR_CANNOT_RECOVER': 'It was not possible to recover from the error found. Please fix the problem and rerun the command again.',
     'ERROR_FOUND': 'ERROR FOUND: %s - %s',
+    'ERROR_PUSH_CONFIG': 'Could not push configuration file. ERROR: %s',
     'ERROR_FIND_FILE_PATH_LOCATION': 'A complete log of this run can be found in: %s',
 
     'WARN_CORRUPTED_CANNOT_BE_ADD': 'The following files cannot be added because they are corrupted:',

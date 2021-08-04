@@ -2,7 +2,7 @@
 
 **Requirements**:
 
-*  Python 3.7
+*  Python 3.6.1+
 *  [Pipenv](https://github.com/pypa/pipenv)
 *  [Git](https://git-scm.com/)
 *  [Docker](https://www.docker.com/) (required only for Integration Tests execution)

@@ -605,7 +605,7 @@ def define_command(descriptor):
 
     command = click.help_option(hidden=True)(command)
     verbose_option = click.option('--verbose', is_flag=True, expose_value=False, callback=set_verbose_mode,
-                                  help='Debug mode')
+                                  help=help_msg.VERBOSE_OPTION)
     command = verbose_option(command)
 
     for group in descriptor['groups']:

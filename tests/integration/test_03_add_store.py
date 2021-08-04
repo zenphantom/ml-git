@@ -131,3 +131,17 @@ class AddStoreAcceptanceTests(unittest.TestCase):
             config = yaml_processor.load(c)
             self.assertEqual(None, config[STORAGE_CONFIG_KEY][S3H][BUCKET_NAME]['aws-credentials']['profile'])
             self.assertEqual(None, config[STORAGE_CONFIG_KEY][S3H][BUCKET_NAME]['region'])
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir')
+    def test_11_add_storage_with_region(self):
+        bucket_region = 'my-aws-region'
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
+        self.check_storage()
+        self.assertIn(output_messages['INFO_ADD_STORAGE_WITHOUT_PROFILE'] % (STORAGE_TYPE, BUCKET_NAME),
+                      check_output(MLGIT_STORAGE_ADD_WITHOUT_CREDENTIALS %
+                                   ('{} --region={}'.format(BUCKET_NAME, bucket_region))))
+        with open(os.path.join(self.tmp_dir, ML_GIT_DIR, 'config.yaml'), 'r') as c:
+            config = yaml_processor.load(c)
+            self.assertIn(BUCKET_NAME, config[STORAGE_CONFIG_KEY][S3H])
+            self.assertEqual(bucket_region, config[STORAGE_CONFIG_KEY][S3H][BUCKET_NAME]['region'])
+            self.assertEqual(None, config[STORAGE_CONFIG_KEY][S3H][BUCKET_NAME]['aws-credentials']['profile'])

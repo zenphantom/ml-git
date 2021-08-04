@@ -10,6 +10,7 @@ import unittest
 
 import pytest
 
+from ml_git.constants import MLGIT_IGNORE_FILE_NAME
 from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_CHECKOUT, MLGIT_PUSH, MLGIT_COMMIT, MLGIT_STORAGE_ADD
 from tests.integration.helper import ML_GIT_DIR, MLGIT_INIT, MLGIT_REMOTE_ADD, MLGIT_ENTITY_INIT, MLGIT_ADD, \
@@ -17,7 +18,7 @@ from tests.integration.helper import ML_GIT_DIR, MLGIT_INIT, MLGIT_REMOTE_ADD, M
     add_file, GIT_PATH, check_output, clear, init_repository, BUCKET_NAME, PROFILE, edit_config_yaml, \
     create_spec, set_write_read, STORAGE_TYPE, create_file, populate_entity_with_new_data, DATASETS, DATASET_NAME, \
     MODELS, \
-    LABELS, DATASET_TAG
+    LABELS, DATASET_TAG, create_ignore_file
 
 
 @pytest.mark.usefixtures('tmp_dir', 'aws_session')
@@ -408,3 +409,27 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
         self.check_amount_of_files(DATASETS, number_of_files_in_workspace, sampling=False)
         self.assertTrue(os.path.exists(file))
         self.assertNotIn('Failed', output)
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
+    def test_28_checkout_entity_with_ignore_file(self):
+        entity = DATASETS
+        init_repository(entity, self)
+        workspace = os.path.join(self.tmp_dir, DATASETS, DATASET_NAME)
+        os.mkdir(os.path.join(workspace, 'data'))
+        create_file(workspace, 'image.png', '0')
+        create_file(workspace, 'file1', '0')
+        create_ignore_file(workspace)
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, '--bumpversion')))
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_COMMIT % (DATASETS, DATASET_NAME, '')))
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_PUSH % (DATASETS, DATASET_NAME)))
+
+        clear(os.path.join(self.tmp_dir, ML_GIT_DIR, entity))
+        clear(workspace)
+
+        mlgit_ignore_file_path = os.path.join(workspace, MLGIT_IGNORE_FILE_NAME)
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ENTITY_INIT % entity))
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_CHECKOUT % (entity, DATASET_NAME)))
+
+        self.assertTrue(os.path.exists(mlgit_ignore_file_path))
+        self.assertTrue(os.path.exists(os.path.join(workspace, 'data', 'file1')))
+        self.assertFalse(os.path.exists(os.path.join(workspace, 'data', 'image.png')))

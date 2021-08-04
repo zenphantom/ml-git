@@ -15,8 +15,10 @@ from ml_git.config import validate_config_spec_hash, get_sample_config_spec, get
     validate_spec_hash, config_verbose, get_refs_path, config_load, mlgit_config_load, list_repos, \
     get_index_path, get_objects_path, get_cache_path, get_metadata_path, import_dir, \
     extract_storage_info_from_list, create_workspace_tree_structure, get_batch_size, merge_conf, \
-    merge_local_with_global_config, mlgit_config, save_global_config_in_local, start_wizard_questions
-from ml_git.constants import BATCH_SIZE_VALUE, BATCH_SIZE, STORAGE_CONFIG_KEY, STORAGE_SPEC_KEY, DATASET_SPEC_KEY
+    merge_local_with_global_config, mlgit_config, save_global_config_in_local, start_wizard_questions, \
+    merged_config_load
+from ml_git.constants import BATCH_SIZE_VALUE, BATCH_SIZE, STORAGE_CONFIG_KEY, STORAGE_SPEC_KEY, DATASET_SPEC_KEY, \
+    PUSH_THREADS_COUNT
 from ml_git.utils import get_root_path, yaml_load
 from tests.unit.conftest import DATASETS, LABELS, MODELS, STRICT, S3H, S3, GDRIVEH
 
@@ -229,3 +231,16 @@ class ConfigTestCases(unittest.TestCase):
             self.assertIsNone(endpoint_url)
             self.assertEqual(git_repo, 'git_repo')
             self.assertTrue(has_new_storage)
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir')
+    def test_merged_config_load(self):
+        global_conf = {DATASETS: {'git': 'global-url'}, MODELS: {'git': 'url'}, PUSH_THREADS_COUNT: 10}
+        local_conf = {DATASETS: {'git': 'url'}}
+        init_mlgit()
+
+        with mock.patch('ml_git.config.mlgit_config_load', return_value=local_conf):
+            with mock.patch('ml_git.config.global_config_load', return_value=global_conf):
+                config_file = merged_config_load()
+                self.assertEqual(config_file[DATASETS]['git'], 'url')
+                self.assertEqual(config_file[MODELS]['git'], 'url')
+                self.assertEqual(config_file[PUSH_THREADS_COUNT], 10)
