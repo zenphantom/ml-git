@@ -22,7 +22,8 @@ def storage_add(context, **kwargs):
                     'private_key': kwargs['private_key'],
                     'port': kwargs['port']}
     admin.storage_add(kwargs['type'], kwargs['bucket_name'], kwargs['credentials'],
-                      kwargs['global'], kwargs['endpoint_url'], sftp_configs=sftp_configs)
+                      global_conf=kwargs['global'], endpoint_url=kwargs['endpoint_url'],
+                      sftp_configs=sftp_configs, region=kwargs['region'])
 
 
 def storage_del(context, **kwargs):

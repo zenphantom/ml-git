@@ -11,7 +11,7 @@ ML-Git is a tool which provides a Distributed Version Control system to enable e
 **Prerequisites:**
 
 - [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
-- [Python 3.7+](https://www.python.org/downloads/release/python-370/)
+- [Python 3.6.1+](https://www.python.org/downloads/release/python-361/)
 
 **With pip:**
 ```
@@ -26,14 +26,14 @@ Download ML-Git from repository and execute commands below:
 
     ```
     cd ml-git/
-    python3.7 setup.py install
+    python3.6 setup.py install
     ```
 
 - Linux:
 
     ```
     cd ml-git/
-    sudo python3.7 setup.py install
+    sudo python3.6 setup.py install
     ```
 
 ### How to configure

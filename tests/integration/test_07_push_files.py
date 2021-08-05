@@ -130,3 +130,16 @@ class PushFilesAcceptanceTests(unittest.TestCase):
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_PUSH % (DATASETS, DATASET_NAME)))
         self.assertTrue(os.path.exists(workspace_with_dir))
         self.assertTrue(os.path.exists(os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'metadata', entity_dir)))
+
+    @pytest.mark.usefixtures('start_empty_git_server', 'switch_to_tmp_dir')
+    def test_10_push_without_commit(self):
+        entity_type = DATASETS
+        init_repository(entity_type, self)
+        add_file(self, entity_type, '--bumpversion', 'new', file_content='0')
+        output = check_output(MLGIT_PUSH % (entity_type, DATASET_NAME))
+        self.assertIn(output_messages['INFO_NO_BLOBS_TO_PUSH'], output)
+        self.assertIn(output_messages['ERROR_COMMIT_BEFORE_PUSH'], output)
+        self.assertNotIn('did not match any file(s) known to git', output)
+        metadata_path = os.path.join(self.tmp_dir, ML_GIT_DIR, entity_type, 'metadata')
+        os.chdir(metadata_path)
+        self.assertNotIn('computer-vision__images__' + entity_type + '-ex__2', check_output('git describe --tags'))

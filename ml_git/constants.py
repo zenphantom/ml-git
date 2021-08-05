@@ -73,6 +73,7 @@ LABELS_SPEC_KEY = 'labels'
 MODEL_SPEC_KEY = 'model'
 STORAGE_SPEC_KEY = 'storage'
 STORAGE_CONFIG_KEY = 'storages'
+MLGIT_IGNORE_FILE_NAME = '.mlgitignore'
 
 
 class MutabilityType(Enum):

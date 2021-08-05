@@ -93,7 +93,7 @@ def checkout(entity, tag, sampling=None, retries=2, force=False, dataset=False, 
     return data_path
 
 
-def clone(repository_url, folder=None, track=False):
+def clone(repository_url, folder=None, untracked=False):
     """This command will clone minimal configuration files from repository-url with valid .ml-git/config.yaml,
     then initialize the metadata according to configurations.
 
@@ -103,18 +103,17 @@ def clone(repository_url, folder=None, track=False):
     Args:
         repository_url (str): The git repository that will be cloned.
         folder (str, optional): Directory that can be created to execute the clone command [default: current path].
-        track (bool, optional): Set if the tracking of the cloned repository should be kept [default: False].
-
+        untracked (bool, optional): Set whether cloned repository trace should not be kept [default: False].
     """
 
     repo = get_repository_instance('project')
     if folder is not None:
-        repo.clone_config(repository_url, folder, track)
+        repo.clone_config(repository_url, folder, untracked)
     else:
         current_directory = os.getcwd()
         with tempfile.TemporaryDirectory(dir=current_directory) as tempdir:
             mlgit_path = os.path.join(tempdir, 'mlgit')
-            repo.clone_config(repository_url, mlgit_path, track)
+            repo.clone_config(repository_url, mlgit_path, untracked)
             if not os.path.exists(os.path.join(current_directory, '.ml-git')):
                 shutil.move(os.path.join(mlgit_path, '.ml-git'), current_directory)
             os.chdir(current_directory)
@@ -245,7 +244,7 @@ def init(entity):
 
 
 def storage_add(bucket_name, bucket_type=StorageType.S3H.value, credentials=None, global_configuration=False,
-                endpoint_url=None, username=None, private_key=None, port=22):
+                endpoint_url=None, username=None, private_key=None, port=22, region=None):
     """This command will add a storage to the ml-git project.
 
         Examples:
@@ -259,6 +258,7 @@ def storage_add(bucket_name, bucket_type=StorageType.S3H.value, credentials=None
             endpoint_url (str, optional): Storage endpoint url.
             username (str, optional): The username for the sftp login.
             private_key (str, optional): Full path for the private key file.
+            region (str, optional): AWS region for S3 bucket.
     """
 
     if bucket_type not in StorageType.to_list():
@@ -267,7 +267,9 @@ def storage_add(bucket_name, bucket_type=StorageType.S3H.value, credentials=None
     sftp_configs = {'username': username,
                     'private_key': private_key,
                     'port': port}
-    admin.storage_add(bucket_type, bucket_name, credentials, global_configuration, endpoint_url, sftp_configs=sftp_configs)
+    admin.storage_add(bucket_type, bucket_name, credentials,
+                      global_conf=global_configuration, endpoint_url=endpoint_url,
+                      sftp_configs=sftp_configs, region=region)
 
 
 def remote_add(entity, remote_url, global_configuration=False):

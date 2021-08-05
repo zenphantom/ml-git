@@ -14,11 +14,13 @@ import humanize
 import pytest
 import yaml
 
-from ml_git.constants import ROOT_FILE_NAME, V1_STORAGE_KEY, V1_DATASETS_KEY, V1_MODELS_KEY, STORAGE_CONFIG_KEY
+from ml_git.constants import ROOT_FILE_NAME, V1_STORAGE_KEY, V1_DATASETS_KEY, V1_MODELS_KEY, STORAGE_CONFIG_KEY, \
+    EntityType, MLGIT_IGNORE_FILE_NAME
 from ml_git.utils import json_load, yaml_load, yaml_save, RootPathException, get_root_path, change_mask_for_routine, \
     ensure_path_exists, yaml_load_str, get_yaml_str, run_function_per_group, unzip_files_in_directory, \
     remove_from_workspace, group_files_by_path, remove_other_files, remove_unnecessary_files, change_keys_in_config, \
-    update_directories_to_plural, validate_config_keys, create_csv_file
+    update_directories_to_plural, validate_config_keys, create_csv_file, create_or_update_gitignore, should_ignore_file, \
+    get_ignore_rules
 from tests.unit.conftest import DATASETS, MODELS, S3H, S3
 
 
@@ -287,3 +289,50 @@ class UtilsTestCases(unittest.TestCase):
                     self.assertEqual(row_values, row)
                     line_count += 1
             self.assertEqual(4, line_count)
+
+    def test_create_or_update_gitignore(self):
+        root_path = get_root_path()
+        gitignore_path = os.path.join(root_path, '.gitignore')
+        self.assertFalse(os.path.exists(gitignore_path))
+        create_or_update_gitignore()
+        self.assertTrue(os.path.exists(gitignore_path))
+
+        ignored_files = ['', '%s/%s' % (ROOT_FILE_NAME, EntityType.DATASETS.value),
+                         '%s/%s' % (ROOT_FILE_NAME, EntityType.MODELS.value),
+                         '%s/%s' % (ROOT_FILE_NAME, EntityType.LABELS.value),
+                         EntityType.DATASETS.value, EntityType.LABELS.value, EntityType.MODELS.value]
+
+        if os.path.exists(gitignore_path):
+            with open(gitignore_path, 'r') as file:
+                for line in file:
+                    formatted_line = line.rstrip('\n')
+                    self.assertTrue(formatted_line in ignored_files)
+
+    def test_should_ignore_file(self):
+        ignore_rules = ['data/*.png', 'ignored-folder/', '*.jpg', 'data/file-ignored.txt',
+                        'data/**/*.tx*', '**/*.test*', '**/access.[0-2].log', 'access.[a-c]*']
+        self.assertTrue(should_ignore_file(ignore_rules, 'data/file.png'))
+        self.assertTrue(should_ignore_file(ignore_rules, 'data/file.jpg'))
+        self.assertTrue(should_ignore_file(ignore_rules, 'file.jpg'))
+        self.assertFalse(should_ignore_file(ignore_rules, 'data/file.txt'))
+        self.assertTrue(should_ignore_file(ignore_rules, 'ignored-folder/'))
+        self.assertTrue(should_ignore_file(ignore_rules, 'data/file-ignored.txt'))
+        self.assertFalse(should_ignore_file(ignore_rules, 'file.txt'))
+        self.assertFalse(should_ignore_file(None, 'file.txt'))
+        self.assertTrue(should_ignore_file(ignore_rules, 'data/other-folder/file.txt'))
+        self.assertFalse(should_ignore_file(ignore_rules, 'data/other-folder/file.tsc'))
+        self.assertTrue(should_ignore_file(ignore_rules, 'data/file.test.ts'))
+        self.assertTrue(should_ignore_file(ignore_rules, 'data/access.0.log'))
+        self.assertFalse(should_ignore_file(ignore_rules, 'data/access.3.log'))
+        self.assertTrue(should_ignore_file(ignore_rules, 'access.b.log'))
+        self.assertFalse(should_ignore_file(ignore_rules, 'access.d.log'))
+
+    def test_get_ignore_rules(self):
+        ignore_rules = ['data/*.png\n', 'ignored-folder/']
+        file = os.path.join(self.tmp_dir, MLGIT_IGNORE_FILE_NAME)
+        with open(file, 'wt') as file:
+            file.writelines(ignore_rules)
+        result = get_ignore_rules(self.tmp_dir)
+        expected_rules = ['data/*.png', 'ignored-folder/']
+        self.assertEqual(result, expected_rules)
+        self.assertEqual(None, get_ignore_rules('wrong-path'))

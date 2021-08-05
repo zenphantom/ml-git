@@ -67,8 +67,8 @@ def checkout(entity, tag, sampling=None, retries=2, force=False, dataset=False, 
 <br>
 
 ```python
-def clone(repository_url, folder=None, track=False):
- """This command will clone minimal configuration files from repository-url with valid .ml-git/config.yaml,
+def clone(repository_url, folder=None, untracked=False):
+    """This command will clone minimal configuration files from repository-url with valid .ml-git/config.yaml,
     then initialize the metadata according to configurations.
 
     Example:
@@ -76,9 +76,8 @@ def clone(repository_url, folder=None, track=False):
 
     Args:
         repository_url (str): The git repository that will be cloned.
-        folder (str, optional): Directory that can be created to execute the clone command. [Default: current path]
-        track (bool, optional): Set if the tracking of the cloned repository should be kept. [Default: False]
-
+        folder (str, optional): Directory that can be created to execute the clone command [default: current path].
+        untracked (bool, optional): Set whether cloned repository trace should not be kept [default: False].
     """
 ```
 </details>
@@ -217,7 +216,7 @@ def remote_add(entity, remote_url, global_configuration=False):
 <br>
 
 ```python
-def storage_add(bucket_name, bucket_type=StorageType.S3H.value, credentials=None, global_configuration=False, endpoint_url=None):
+def storage_add(bucket_name, bucket_type=StorageType.S3H.value, credentials=None, global_configuration=False, endpoint_url=None, username=None, private_key=None, port=22, region=None):
     """This command will add a storage to the ml-git project.
 
         Examples:
@@ -225,10 +224,13 @@ def storage_add(bucket_name, bucket_type=StorageType.S3H.value, credentials=None
 
         Args:
             bucket_name (str): The name of the bucket in the storage.
-            bucket_type (str, optional): Store type (s3h, azureblobh or gdriveh) [default: s3h].
+            bucket_type (str, optional): Storage type (s3h, azureblobh or gdriveh) [default: s3h].
             credentials (str, optional): Name of the profile that stores the credentials or the path to the credentials.
             global_configuration (bool, optional): Use this option to set configuration at global level [default: False].
-            endpoint_url (str, optional): Store endpoint url.
+            endpoint_url (str, optional): Storage endpoint url.
+            username (str, optional): The username for the sftp login.
+            private_key (str, optional): Full path for the private key file.
+            region (str, optional): AWS region for S3 bucket.
     """
 ```
 </details>
