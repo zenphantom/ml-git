@@ -18,7 +18,7 @@ from ml_git.relationship.models.entity_version_relationships import EntityVersio
 from ml_git.relationship.models.linked_entity import LinkedEntity
 from ml_git.relationship.models.spec_version import SpecVersion
 from ml_git.relationship.utils import export_relationships_to_csv, export_relationships_to_dot
-from ml_git.utils import yaml_load_str
+from ml_git.utils import yaml_load_str, get_root_path, RootPathException
 
 
 class LocalEntityManager:
@@ -26,15 +26,15 @@ class LocalEntityManager:
 
     def __init__(self):
         self._manager = None
-        self._config = None
 
     def __init_manager(self, entity_type):
+        get_root_path()
         try:
-            self._config = config_load()
-            if not self._config[entity_type]['git']:
+            config = config_load()
+            if not config[entity_type]['git']:
                 log.warn(output_messages['ERROR_REPOSITORY_NOT_FOUND'])
                 return
-            self._manager = MetadataManager(self._config, repo_type=entity_type)
+            self._manager = MetadataManager(config, repo_type=entity_type)
             if not self._manager.check_exists():
                 self._manager.init()
         except Exception as e:
@@ -52,8 +52,9 @@ class LocalEntityManager:
         for e_type in EntityType:
             try:
                 self.__init_manager(e_type.value)
-            except Exception as e:
+            except RootPathException as e:
                 log.error(e)
+                return
             if not self._manager:
                 continue
             repository = metadata_repository(False, '', '', '', metadata_owner('', ''))
@@ -92,11 +93,12 @@ class LocalEntityManager:
 
         try:
             self.__init_manager(entity_type)
-        except Exception as e:
+        except RootPathException as e:
             log.error(e)
 
         if not self._manager:
             return
+
         versions = []
         for content in self.__get_spec_each_tag(name):
             spec_tag_yaml = yaml_load_str(content)
@@ -117,7 +119,7 @@ class LocalEntityManager:
         """
         try:
             self.__init_manager(entity_type)
-        except Exception as e:
+        except RootPathException as e:
             log.error(e)
 
         if not self._manager:
