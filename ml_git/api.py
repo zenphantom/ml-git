@@ -329,17 +329,10 @@ def init_entity_manager(github_token, url):
 
 
 def init_local_entity_manager():
-    """Initialize an entity manager to operate over github API.
-
-        Examples:
-            init_entity_manager('github_token', 'https://api.github.com')
-
-        Args:
-            github_token (str): The personal access github token.
-            url (str): The github api url.
+    """Initialize an entity manager to operate over local git repository.
 
         Returns:
-            object of class EntityManager.
+            object of class LocalEntityManager.
 
     """
     return LocalEntityManager()

@@ -264,8 +264,8 @@ def init_entity_manager(github_token, url):
 <br>
 
 ```python
-def init_entity_manager():
-    """Initialize an entity manager to operate over github API.
+def init_local_entity_manager():
+    """Initialize an entity manager to operate over local git repository.
 
         Returns:
             object of class LocalEntityManager.
@@ -282,63 +282,6 @@ Some methods uses the classes described below:
 <br>
 
 ```python
-class LocalEntityManager:
-    """Class that operate over github api to manage entity's operations"""
-
-    def get_entities(self):
-        """Get a list of entities found in config.yaml.
-
-        Returns:
-            list of class Entity.
-        """
-
-    def get_entity_versions(self, name, entity_type):
-        """Get a list of spec versions found for an especific entity.
-
-        Args:
-            name (str): The name of the entity you want to get the versions.
-            entity_type (str): The type of the ml-entity (datasets, models, labels).
-
-        Returns:
-            list of class SpecVersion.
-        """
-
-    def get_linked_entities(self, name, version, entity_type):
-        """Get a list of linked entities found for an entity version.
-
-        Args:
-            name (str): The name of the entity you want to get the linked entities.
-            version (str): The version of the entity you want to get the linked entities.
-            entity_type (str): The type of the ml-entity (datasets, models, labels).
-
-        Returns:
-            list of LinkedEntity.
-        """
-
-    def get_entity_relationships(self, name, entity_type, export_type=FileType.JSON.value, export_path=None):
-        """Get a list of relationships for an entity.
-
-        Args:
-            name (str): The name of the entity you want to get the linked entities.
-            entity_type (str): The type of the ml-entity (datasets, models, labels).
-            export_type (str): Set the format of the return (json, csv, dot) [default: json].
-            export_path (str): Set the path to export metrics to a file.
-
-        Returns:
-            list of EntityVersionRelationships.
-        """
-
-    def get_project_entities_relationships(self, export_type=FileType.JSON.value, export_path=None):
-        """Get a list of relationships for all project entities.
-
-        Args:
-            export_type (str): Set the format of the return [default: json].
-            export_path (str): Set the path to export metrics to a file.
-
-        Returns:
-            list of EntityVersionRelationships.
-        """
-
 class EntityManager:
     """Class that operate over github api to manage entity's operations"""
     def get_entities(self, config_path=None, config_repo_name=None):
