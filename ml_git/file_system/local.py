@@ -14,7 +14,6 @@ from asyncio import CancelledError
 from pathlib import Path
 
 from botocore.client import ClientError
-from ml_git.error_handler import error_handler
 from tqdm import tqdm
 
 from ml_git import log
@@ -22,7 +21,8 @@ from ml_git.config import get_index_path, get_objects_path, get_refs_path, get_i
     get_metadata_path, get_batch_size, get_push_threads_count
 from ml_git.constants import LOCAL_REPOSITORY_CLASS_NAME, STORAGE_FACTORY_CLASS_NAME, REPOSITORY_CLASS_NAME, \
     MutabilityType, StorageType, SPEC_EXTENSION, MANIFEST_FILE, INDEX_FILE, EntityType, PERFORMANCE_KEY, \
-    STORAGE_SPEC_KEY, STORAGE_CONFIG_KEY
+    STORAGE_SPEC_KEY, STORAGE_CONFIG_KEY, MLGIT_IGNORE_FILE_NAME
+from ml_git.error_handler import error_handler
 from ml_git.file_system.cache import Cache
 from ml_git.file_system.hashfs import MultihashFS
 from ml_git.file_system.index import MultihashIndex, FullIndex, Status
@@ -34,7 +34,8 @@ from ml_git.sample import SampleValidate
 from ml_git.spec import spec_parse, search_spec_file, get_entity_dir, get_spec_key
 from ml_git.storages.store_utils import storage_factory
 from ml_git.utils import yaml_load, ensure_path_exists, convert_path, normalize_path, \
-    posix_path, set_write_read, change_mask_for_routine, run_function_per_group, get_root_path, yaml_save
+    posix_path, set_write_read, change_mask_for_routine, run_function_per_group, get_root_path, yaml_save, \
+    get_ignore_rules, should_ignore_file
 
 
 class LocalRepository(MultihashFS):
@@ -348,7 +349,7 @@ class LocalRepository(MultihashFS):
 
     @staticmethod
     def _update_metadata(full_md_path, ws_path, spec_name):
-        for md in ['README.md', spec_name + SPEC_EXTENSION]:
+        for md in ['README.md', spec_name + SPEC_EXTENSION, MLGIT_IGNORE_FILE_NAME]:
             md_path = os.path.join(full_md_path, md)
             if os.path.exists(md_path) is False:
                 continue
@@ -751,6 +752,7 @@ class LocalRepository(MultihashFS):
         bare_mode = os.path.exists(os.path.join(index_metadata_path, spec, 'bare'))
         new_files, deleted_files, all_files, corrupted_files = self._get_index_files_status(bare_mode, idx_yaml_mf,
                                                                                             path, status_directory)
+
         if path is not None:
             changed_files, untracked_files = \
                 self._get_workspace_files_status(all_files, full_metadata_path, idx_yaml_mf,
@@ -765,32 +767,37 @@ class LocalRepository(MultihashFS):
                                     new_files, status_directory=''):
         changed_files = []
         untracked_files = []
+        ignore_rules = get_ignore_rules(path)
         for root, dirs, files in os.walk(path):
             base_path = root[len(path) + 1:]
             base_path_with_separator = base_path + os.path.sep
 
-            if status_directory and not base_path_with_separator.startswith(status_directory + os.path.sep):
+            if (status_directory and not base_path_with_separator.startswith(status_directory + os.path.sep)) \
+                    or should_ignore_file(ignore_rules, '{}/'.format(base_path)):
                 continue
 
             for file in files:
-                bpath = convert_path(base_path, file)
-                if bpath in all_files:
+                file_path = convert_path(base_path, file)
+                if should_ignore_file(ignore_rules, file_path):
+                    continue
+
+                if file_path in all_files:
                     full_file_path = os.path.join(root, file)
                     stat = os.stat(full_file_path)
-                    file_in_index = idx_yaml_mf[posix_path(bpath)]
+                    file_in_index = idx_yaml_mf[posix_path(file_path)]
                     if file_in_index['mtime'] != stat.st_mtime and self.get_scid(full_file_path) != \
                             file_in_index['hash']:
-                        bisect.insort(changed_files, bpath)
+                        bisect.insort(changed_files, file_path)
                 else:
-                    is_metadata_file = SPEC_EXTENSION in file or 'README.md' in file
+                    is_metadata_file = SPEC_EXTENSION in file or file_path == 'README.md' or file_path == MLGIT_IGNORE_FILE_NAME
 
                     if not is_metadata_file:
-                        bisect.insort(untracked_files, bpath)
+                        bisect.insort(untracked_files, file_path)
                     else:
                         file_path_metadata = os.path.join(full_metadata_path, file)
                         file_index_path = os.path.join(index_metadata_entity_path, file)
-                        full_base_path = os.path.join(root, bpath)
-                        self._compare_metadata_file(bpath, file_index_path, file_path_metadata, full_base_path,
+                        full_base_path = os.path.join(root, file_path)
+                        self._compare_metadata_file(file_path, file_index_path, file_path_metadata, full_base_path,
                                                     new_files, untracked_files)
         return changed_files, untracked_files
 

@@ -188,17 +188,16 @@ class APIAcceptanceTests(unittest.TestCase):
         self.assertTrue(os.path.exists('.ml-git'))
 
     @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
-    def test_09_clone_with_track_and_folder(self):
+    def test_09_clone_with_untracked_and_folder(self):
         self.set_up_clone_test()
-
         clone_folder = os.path.join(self.tmp_dir, CLONE_FOLDER)
 
         self.assertFalse(os.path.exists(clone_folder))
-        api.clone(self.GIT_CLONE, clone_folder, track=True)
+        api.clone(self.GIT_CLONE, clone_folder, untracked=True)
         os.chdir(self.tmp_dir)
         self.assertTrue(os.path.exists(clone_folder))
         self.assertTrue(os.path.exists(os.path.join(clone_folder, '.ml-git')))
-        self.assertTrue(os.path.exists(os.path.join(clone_folder, '.git')))
+        self.assertFalse(os.path.exists(os.path.join(clone_folder, '.git')))
 
     def create_file_in_ws(self, entity, name, value):
         with open(os.path.join(entity, entity + '-ex', name), 'wt') as z:
@@ -480,3 +479,13 @@ class APIAcceptanceTests(unittest.TestCase):
         self.check_metadata()
         self.assertTrue(os.path.exists(self.file1))
         self.assertTrue(os.path.exists(self.file2))
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir')
+    def test_32_add_storage_with_region(self):
+        bucket_region = 'my-bucket-region'
+        api.init('repository')
+        api.storage_add(bucket_name=BUCKET_NAME, credentials=PROFILE, region=bucket_region)
+        with open(os.path.join(self.tmp_dir, ML_GIT_DIR, 'config.yaml'), 'r') as c:
+            config = yaml_processor.load(c)
+            self.assertEqual(PROFILE, config[STORAGE_CONFIG_KEY][S3H][BUCKET_NAME]['aws-credentials']['profile'])
+            self.assertEqual(bucket_region, config[STORAGE_CONFIG_KEY][S3H][BUCKET_NAME]['region'])

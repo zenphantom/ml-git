@@ -21,13 +21,11 @@ def mlgit():
     check_metadata_directories()
 
 
-# Concrete ml-git Commands Implementation
 @mlgit.command('clone', help='Clone a ml-git repository ML_GIT_REPOSITORY_URL')
 @click.argument('repository_url')
 @click.option('--folder', default=None, help='The configuration files are cloned in specified folder.')
-@click.option('--track', is_flag=True, default=False, help='Preserves .git folder in the same directory '
-                                                           'of cloned configuration files.')
+@click.option('--untracked', is_flag=True, default=False, help='Does not preserve git repository tracking.')
 @click.help_option(hidden=True)
 @click.option('--verbose', is_flag=True, expose_value=False, callback=set_verbose_mode, help='Debug mode')
 def clone(**kwargs):
-    repositories[PROJECT].clone_config(kwargs['repository_url'], kwargs['folder'], kwargs['track'])
+    repositories[PROJECT].clone_config(kwargs['repository_url'], kwargs['folder'], kwargs['untracked'])

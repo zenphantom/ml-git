@@ -61,6 +61,19 @@ class MetadataRepo(object):
                 raise GitError(g.stderr)
             return
 
+    def init_local_repo(self):
+        if os.path.exists(os.path.join(self.__path, '.git')):
+            log.debug(output_messages['DEBUG_ALREADY_IN_GIT_REPOSITORY'] % self.__path, class_name=METADATA_MANAGER_CLASS_NAME)
+            return False
+        log.info(output_messages['INFO_CREATING_GIT_REPOSITORY'] % self.__path, class_name=METADATA_MANAGER_CLASS_NAME)
+        Repo.init(self.__path)
+        return True
+
+    def create_remote(self):
+        config_repo = Repo(path=self.__path)
+        origin = config_repo.create_remote(name='origin', url=self.__git)
+        origin.fetch()
+
     def remote_set_url(self, mlgit_remote):
         try:
             if self.check_exists():

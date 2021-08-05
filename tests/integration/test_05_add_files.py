@@ -9,12 +9,13 @@ from stat import S_IWUSR, S_IREAD
 
 import pytest
 
+from ml_git.constants import MLGIT_IGNORE_FILE_NAME
 from ml_git.ml_git_message import output_messages
 from ml_git.spec import get_spec_key
 from ml_git.utils import ensure_path_exists
 from tests.integration.commands import MLGIT_COMMIT, MLGIT_PUSH, MLGIT_CHECKOUT
 from tests.integration.helper import ML_GIT_DIR, create_spec, init_repository, ERROR_MESSAGE, MLGIT_ADD, \
-    create_file, DATASETS, DATASET_NAME, MODELS, LABELS
+    create_file, DATASETS, DATASET_NAME, MODELS, LABELS, create_ignore_file
 from tests.integration.helper import clear, check_output, add_file, entity_init, yaml_processor
 
 
@@ -218,3 +219,47 @@ class AddFilesAcceptanceTests(unittest.TestCase):
         init_repository(DATASETS, self)
         add_file(self, DATASETS, '--bumpversion', 'new')
         self._check_spec_version(DATASETS, 1)
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
+    def test_13_add_entity_with_readme_file_in_data(self):
+        entity_init(DATASETS, self)
+        workspace = os.path.join(self.tmp_dir, DATASETS, DATASET_NAME)
+        create_file(workspace, 'README.md', '0', file_path='')
+        os.mkdir(os.path.join(workspace, 'data'))
+        create_file(workspace, 'README.md', '0', file_path='data')
+
+        output = check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, ''))
+        self.assertIn(output_messages['INFO_ADDING_PATH'] % DATASETS, output)
+        self.assertNotIn(ERROR_MESSAGE, output)
+
+        metadata = os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'index', 'metadata', DATASET_NAME)
+        metadata_file = os.path.join(metadata, 'MANIFEST.yaml')
+        index_file = os.path.join(metadata, 'INDEX.yaml')
+        self.assertTrue(os.path.exists(metadata_file))
+        self.assertTrue(os.path.exists(index_file))
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
+    def test_14_add_with_ignore_file(self):
+        entity_init(DATASETS, self)
+        workspace = os.path.join(self.tmp_dir, DATASETS, DATASET_NAME)
+        os.mkdir(os.path.join(workspace, 'data'))
+        os.mkdir(os.path.join(workspace, 'ignored-folder'))
+        create_file(workspace, 'image.png', '0')
+        create_file(workspace, 'image2.jpg', '1', file_path='ignored-folder')
+        create_file(workspace, 'file1', '0')
+        create_file(workspace, 'file2', '1')
+
+        create_ignore_file(workspace)
+
+        output = check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, ''))
+        self.assertIn(output_messages['INFO_ADDING_PATH'] % DATASETS, output)
+        self.assertNotIn(ERROR_MESSAGE, output)
+
+        metadata = os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'index', 'metadata', DATASET_NAME)
+        metadata_file = os.path.join(metadata, 'MANIFEST.yaml')
+        index_file = os.path.join(metadata, 'INDEX.yaml')
+        ignore_file = os.path.join(metadata, MLGIT_IGNORE_FILE_NAME)
+        self.assertTrue(os.path.exists(metadata_file))
+        self.assertTrue(os.path.exists(ignore_file))
+        self.assertTrue(os.path.exists(index_file))
+        self._check_index(index_file, ['data/file1', 'data/file2'], ['data/image.png', 'ignored-folder/image2.jpg'])
