@@ -329,6 +329,42 @@ in the future, fsck should be able to fix some errors of detected corruption.
 </details>
 
 <details markdown="1">
+<summary><code> ml-git graph </code></summary>
+<br>
+
+```
+Usage: ml-git graph
+
+  Create a graph of all entities relationships as DOT language.
+
+Options:
+  --verbose  Debug mode
+```
+
+Example:
+```
+$ ml-git graph
+
+digraph "Entities Graph" {
+"models-ex (1)" [color="#d63638"];
+"dataset-ex (1)" [color="#2271b1"];
+"models-ex (1)" -> "dataset-ex (1)";
+"models-ex (1)" [color="#d63638"];
+"labels-ex (1)" [color="#996800"];
+"models-ex (1)" -> "labels-ex (1)";
+}
+```
+
+This command will iterate through the tags of all ml-git entities and create the relationships between them.
+
+Note: 
+
+```
+To successfully execute the command it is necessary that it is in an ml-git project initialized, and with the urls of the remote repositories properly configured.```
+
+</details>
+
+<details markdown="1">
 <summary><code> ml-git &lt;ml-entity&gt; import </code></summary>
 <br>
 
