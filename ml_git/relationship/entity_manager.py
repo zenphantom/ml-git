@@ -87,7 +87,7 @@ class EntityManager:
         """Get the spec path of an entity
 
          Args:
-             repository (obj): Metadata repository object.
+             repository (github.Repository.Repository): Metadata repository object.
              name (str): The name of the entity you want to get the versions.
 
          Returns:
@@ -113,20 +113,19 @@ class EntityManager:
             return self._get_entities_from_repo(config_repo_name)
         return self._get_entities_from_config(config_path)
 
-    def get_entity_versions(self, name, metadata_repo_name):
-        """Get a list of spec versions found for an especific entity.
+    def _get_entity_versions(self, name, spec_path, repository):
+        """Get a list of spec versions found for an specific entity.
 
         Args:
             name (str): The name of the entity you want to get the versions.
-            metadata_repo_name (str): The repository name where the entity metadata is located in GitHub.
+            spec_path (str): The path where the entity spec is located.
+            repository (Repository): The instance of github.Repository.Repository.
 
         Returns:
             list of class SpecVersion.
         """
 
         versions = []
-        repository = self._manager.find_repository(metadata_repo_name)
-        spec_path = self._get_entity_spec_path(repository, name)
 
         for tag in repository.get_tags():
             if tag.name.split('__')[-2] != name:
@@ -141,19 +140,32 @@ class EntityManager:
             versions.append(spec_version)
         return versions
 
-    def get_linked_entities(self, name, version, metadata_repo_name):
+    def get_entity_versions(self, name, metadata_repo_name):
+        """Get a list of spec versions found for an especific entity.
+
+        Args:
+            name (str): The name of the entity you want to get the versions.
+            metadata_repo_name (str): The repository name where the entity metadata is located in GitHub.
+
+        Returns:
+            list of class SpecVersion.
+        """
+        repository = self._manager.find_repository(metadata_repo_name)
+        spec_path = self._get_entity_spec_path(repository, name)
+        return self._get_entity_versions(name, spec_path, repository)
+
+    def _get_linked_entities(self, name, version, spec_path, repository):
         """Get a list of linked entities found for an entity version.
 
         Args:
             name (str): The name of the entity you want to get the linked entities.
             version (str): The version of the entity you want to get the linked entities.
-            metadata_repo_name (str): The repository name where the metadata is located in GitHub.
+            spec_path (str): The path where the entity spec is located.
+            repository (Repository): The instance of github.Repository.Repository.
 
         Returns:
             list of LinkedEntity.
         """
-        repository = self._manager.find_repository(metadata_repo_name)
-        spec_path = self._get_entity_spec_path(repository, name)
 
         for tag in repository.get_tags():
             if tag.name.split('__')[-2] != name or tag.name.split('__')[-1] != str(version):
@@ -167,6 +179,21 @@ class EntityManager:
             entity = SpecVersion(spec_tag_yaml)
             return entity.get_related_entities_info()
 
+    def get_linked_entities(self, name, version, metadata_repo_name):
+        """Get a list of linked entities found for an entity version.
+
+        Args:
+            name (str): The name of the entity you want to get the linked entities.
+            version (str): The version of the entity you want to get the linked entities.
+            metadata_repo_name (str): The repository name where the metadata is located in GitHub.
+
+        Returns:
+            list of LinkedEntity.
+        """
+        repository = self._manager.find_repository(metadata_repo_name)
+        spec_path = self._get_entity_spec_path(repository, name)
+        return self._get_linked_entities(name, version, spec_path, repository)
+
     def get_entity_relationships(self, name, metadata_repo_name, export_type=FileType.JSON.value, export_path=None):
         """Get a list of relationships for an entity.
 
@@ -179,13 +206,16 @@ class EntityManager:
         Returns:
             list of EntityVersionRelationships.
         """
-        entity_versions = self.get_entity_versions(name, metadata_repo_name)
+        repository = self._manager.find_repository(metadata_repo_name)
+        spec_path = self._get_entity_spec_path(repository, name)
+        entity_versions = self._get_entity_versions(name, spec_path, repository)
 
         relationships = {name: []}
         for entity_version in entity_versions:
             target_entity = LinkedEntity(entity_version.tag, entity_version.name,
                                          entity_version.version, entity_version.type)
-            linked_entities = self.get_linked_entities(target_entity.name, target_entity.version, metadata_repo_name)
+            linked_entities = self._get_linked_entities(target_entity.name, target_entity.version,
+                                                        spec_path, repository)
             relationships[name].append(EntityVersionRelationships(target_entity.version,
                                                                   target_entity.tag, linked_entities))
 

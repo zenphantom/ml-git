@@ -3,6 +3,7 @@
 SPDX-License-Identifier: GPL-2.0-only
 """
 import github
+from github import UnknownObjectException
 
 
 class GithubManager:
@@ -19,7 +20,13 @@ class GithubManager:
         :param: repository_name (str). The name of repository.
         :return: :class: github.Repository.Repository
         """
-        return next(iter(self.__client.search_repositories(repository_name)), None)
+        try:
+            return self.__client.get_repo(repository_name)
+        except UnknownObjectException as e:
+            if e.status == 404:
+                raise RuntimeError('Repository not found: {}'.format(repository_name))
+            else:
+                raise e
 
     @staticmethod
     def file_exists(repository, file_path):
