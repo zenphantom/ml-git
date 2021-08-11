@@ -70,8 +70,8 @@ class GithubManager:
     def alert_rate_limits(self):
         search_rem, search_reset, core_rem, core_reset = self.__retrieve_rate_limit()
         if search_rem <= self.NUMBER_OF_LIMIT_TO_WARN:
-            log.warn('Remaining {} rate limit: [{}]. It will reset after [{}s]'.
+            log.debug('Remaining {} rate limit: [{}]. It will reset after [{}s]'.
                      format('SEARCH', search_rem, search_reset))
         if core_rem <= self.NUMBER_OF_LIMIT_TO_WARN:
-            log.warn('Remaining {} rate limit: [{}]. It will reset after [{}s]'.
+            log.debug('Remaining {} rate limit: [{}]. It will reset after [{}s]'.
                      format('CORE', core_rem, core_reset))
