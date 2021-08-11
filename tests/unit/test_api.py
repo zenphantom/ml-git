@@ -42,6 +42,8 @@ get_spec_content_url = '{}/repos/dummy/dummy_{}_repo/contents/{}-ex/{}-ex.spec?r
 dummy_config_remote_url = f'{dummy_api_github_url}/repos/dummy/dummy_config'
 dummy_config_content_url = f'{dummy_api_github_url}/repos/dummy/dummy_config/contents//.ml-git/config.yaml'
 
+rate_limit_url = '{}/rate_limit'  # dummy_rate_limit_github_url
+
 
 def get_search_repo_response(type):
     return {
@@ -175,7 +177,49 @@ config_content_response = {
     'encoding': 'base64',
 }
 
+rate_limit_response = {
+    'resources': {
+        'core': {
+          'limit': 10,
+          'remaining': 4999,
+          'reset': 1372700873,
+          'used': 1
+        },
+        'search': {
+          'limit': 10,
+          'remaining': 18,
+          'reset': 1372697452,
+          'used': 12
+        },
+        'graphql': {
+          'limit': 5000,
+          'remaining': 4993,
+          'reset': 1372700389,
+          'used': 7
+        },
+        'integration_manifest': {
+          'limit': 5000,
+          'remaining': 4999,
+          'reset': 1551806725,
+          'used': 1
+        },
+        'code_scanning_upload': {
+          'limit': 500,
+          'remaining': 499,
+          'reset': 1551806725,
+          'used': 1
+        }
+    },
+    'rate': {
+        'limit': 5000,
+        'remaining': 4999,
+        'reset': 1372700873,
+        'used': 1
+    }
+}
+
 HEADERS = {
+    'date': 'Fri, 12 Oct 2012 23:33:14 GMT',
     'access-control-allow-origin': '*',
     'access-control-expose-headers': 'ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit,'
                                      ' X-RateLimit-Remaining, X-RateLimit-Used, X-RateLimit-Reset, X-OAuth-Scopes,'
@@ -206,13 +250,15 @@ class ApiTestCases(unittest.TestCase):
         self.requests_mock.get(
             entity_content_url.format(dummy_api_github_url, type, type, type, type),
             status_code=200, headers=HEADERS, json=get_spec_entity_content(type))
-        self.requests_mock.get(get_repo_url.format(dummy_api_github_url.replace("api.", ""), type),
+        self.requests_mock.get(get_repo_url.format(dummy_api_github_url.replace('api.', ''), type),
                                status_code=200, headers=HEADERS, json=repo)
         self.requests_mock.get(get_tags_from_repo_url.format(dummy_api_github_url, type), status_code=200,
                                headers=HEADERS, json=get_repo_tags(type))
         self.requests_mock.get(
             get_spec_content_url.format(dummy_api_github_url, type, type, type, type),
             status_code=200, headers=HEADERS, json=get_content_from_tag(type))
+        self.requests_mock.get(rate_limit_url.format(dummy_api_github_url), status_code=200,
+                               headers=HEADERS, json=rate_limit_response)
 
     def setUp(self):
         from ml_git import api

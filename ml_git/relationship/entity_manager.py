@@ -48,6 +48,9 @@ class EntityManager:
                 spec_yaml = yaml_load_str(self._manager.get_file_content(repository, spec_path))
                 entity = Entity(repository, spec_yaml)
                 entities.append(entity)
+
+        self._manager.alert_rate_limits()
+
         return entities
 
     def _get_entities_from_config(self, config_path):
@@ -111,6 +114,7 @@ class EntityManager:
         """
         if config_repo_name:
             return self._get_entities_from_repo(config_repo_name)
+
         return self._get_entities_from_config(config_path)
 
     def _get_entity_versions(self, name, spec_path, repository):
@@ -152,6 +156,8 @@ class EntityManager:
         """
         repository = self._manager.find_repository(metadata_repo_name)
         spec_path = self._get_entity_spec_path(repository, name)
+        self._manager.alert_rate_limits()
+
         return self._get_entity_versions(name, spec_path, repository)
 
     def _get_linked_entities(self, name, version, spec_path, repository):
@@ -192,6 +198,8 @@ class EntityManager:
         """
         repository = self._manager.find_repository(metadata_repo_name)
         spec_path = self._get_entity_spec_path(repository, name)
+
+        self._manager.alert_rate_limits()
         return self._get_linked_entities(name, version, spec_path, repository)
 
     def get_entity_relationships(self, name, metadata_repo_name, export_type=FileType.JSON.value, export_path=None):
@@ -221,6 +229,8 @@ class EntityManager:
 
         if export_type == FileType.CSV.value:
             relationships = export_relationships_to_csv([entity_versions[0]], relationships, export_path)
+
+        self._manager.alert_rate_limits()
         return relationships
 
     def get_project_entities_relationships(self, config_repo_name, export_type=FileType.JSON.value, export_path=None):
@@ -251,4 +261,5 @@ class EntityManager:
         if export_type == FileType.CSV.value:
             all_relationships = export_relationships_to_csv(project_entities, all_relationships, export_path)
 
+        self._manager.alert_rate_limits()
         return all_relationships
