@@ -33,10 +33,9 @@ def clone(**kwargs):
     repositories[PROJECT].clone_config(kwargs['repository_url'], kwargs['folder'], kwargs['untracked'])
 
 
-# Concrete ml-git Commands Implementation
 @mlgit.command('graph', help='Create a graph of all entities relationships as DOT language')
 @click.help_option(hidden=True)
 @click.option('--verbose', is_flag=True, expose_value=False, callback=set_verbose_mode, help='Debug mode')
 def graph():
-    em = api.init_local_entity_manager()
-    print(em.get_project_entities_relationships(export_type=FileType.DOT.value))
+    local_entity_manager = api.init_local_entity_manager()
+    print(local_entity_manager.get_project_entities_relationships(export_type=FileType.DOT.value))

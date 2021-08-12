@@ -18,7 +18,7 @@ from ml_git.relationship.models.entity_version_relationships import EntityVersio
 from ml_git.relationship.models.linked_entity import LinkedEntity
 from ml_git.relationship.models.spec_version import SpecVersion
 from ml_git.relationship.utils import export_relationships_to_csv, export_relationships_to_dot
-from ml_git.utils import yaml_load_str, get_root_path, RootPathException
+from ml_git.utils import yaml_load_str, get_root_path
 
 
 class LocalEntityManager:
@@ -28,8 +28,8 @@ class LocalEntityManager:
         self._manager = None
 
     def __init_manager(self, entity_type):
-        get_root_path()
         try:
+            get_root_path()
             config = config_load()
             if not config[entity_type]['git']:
                 log.warn(output_messages['ERROR_REPOSITORY_NOT_FOUND'])
@@ -50,11 +50,7 @@ class LocalEntityManager:
         metadata_repository = namedtuple('Repository', ['private', 'full_name', 'ssh_url', 'html_url', 'owner'])
         metadata_owner = namedtuple('Owner', ['email', 'name'])
         for e_type in EntityType:
-            try:
-                self.__init_manager(e_type.value)
-            except RootPathException as e:
-                log.error(e)
-                return
+            self.__init_manager(e_type.value)
             if not self._manager:
                 continue
             repository = metadata_repository(False, '', '', '', metadata_owner('', ''))
@@ -91,10 +87,7 @@ class LocalEntityManager:
             list of class SpecVersion.
         """
 
-        try:
-            self.__init_manager(entity_type)
-        except RootPathException as e:
-            log.error(e)
+        self.__init_manager(entity_type)
 
         if not self._manager:
             return
@@ -117,10 +110,8 @@ class LocalEntityManager:
         Returns:
             list of LinkedEntity.
         """
-        try:
-            self.__init_manager(entity_type)
-        except RootPathException as e:
-            log.error(e)
+
+        self.__init_manager(entity_type)
 
         if not self._manager:
             return
