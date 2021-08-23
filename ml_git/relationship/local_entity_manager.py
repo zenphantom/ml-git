@@ -27,14 +27,14 @@ class LocalEntityManager:
     def __init__(self):
         self._manager = None
 
-    def __init_manager(self, entity_type):
+    def __init_manager(self, type):
         try:
             get_root_path()
             config = config_load()
-            if not config[entity_type]['git']:
+            if not config[type]['git']:
                 log.warn(output_messages['ERROR_REPOSITORY_NOT_FOUND'])
                 return
-            self._manager = MetadataManager(config, repo_type=entity_type)
+            self._manager = MetadataManager(config, repo_type=type)
             if not self._manager.check_exists():
                 self._manager.init()
         except Exception as e:
@@ -49,8 +49,8 @@ class LocalEntityManager:
         entities = []
         metadata_repository = namedtuple('Repository', ['private', 'full_name', 'ssh_url', 'html_url', 'owner'])
         metadata_owner = namedtuple('Owner', ['email', 'name'])
-        for e_type in EntityType:
-            self.__init_manager(e_type.value)
+        for entity_type in EntityType:
+            self.__init_manager(entity_type.value)
             if not self._manager:
                 continue
             repository = metadata_repository(False, '', '', '', metadata_owner('', ''))
@@ -58,7 +58,7 @@ class LocalEntityManager:
                 if SPEC_EXTENSION in obj.name:
                     entity_spec = yaml_load_str(io.BytesIO(obj.data_stream.read()))
                     entity = Entity(repository, entity_spec)
-                    if entity.type in e_type.value and entity not in entities:
+                    if entity.type in entity_type.value and entity not in entities:
                         entities.append(entity)
 
         return entities
@@ -76,18 +76,18 @@ class LocalEntityManager:
                 continue
             yield content
 
-    def get_entity_versions(self, name, entity_type):
+    def get_entity_versions(self, name, type):
         """Get a list of spec versions found for an especific entity.
 
         Args:
             name (str): The name of the entity you want to get the versions.
-            entity_type (str): The type of the ml-entity (datasets, models, labels).
+            type (str): The type of the ml-entity (datasets, models, labels).
 
         Returns:
             list of class SpecVersion.
         """
 
-        self.__init_manager(entity_type)
+        self.__init_manager(type)
 
         if not self._manager:
             return
@@ -99,19 +99,19 @@ class LocalEntityManager:
             versions.append(spec_version)
         return versions
 
-    def get_linked_entities(self, name, version, entity_type):
+    def get_linked_entities(self, name, version, type):
         """Get a list of linked entities found for an entity version.
 
         Args:
             name (str): The name of the entity you want to get the linked entities.
             version (str): The version of the entity you want to get the linked entities.
-            entity_type (str): The type of the ml-entity (datasets, models, labels).
+            type (str): The type of the ml-entity (datasets, models, labels).
 
         Returns:
             list of LinkedEntity.
         """
 
-        self.__init_manager(entity_type)
+        self.__init_manager(type)
 
         if not self._manager:
             return
@@ -121,12 +121,12 @@ class LocalEntityManager:
             entity = SpecVersion(spec_tag_yaml)
             return entity.get_related_entities_info()
 
-    def get_entity_relationships(self, name, entity_type, export_type=FileType.JSON.value, export_path=None):
+    def get_entity_relationships(self, name, type, export_type=FileType.JSON.value, export_path=None):
         """Get a list of relationships for an entity.
 
         Args:
             name (str): The name of the entity you want to get the linked entities.
-            entity_type (str): The type of the ml-entity (datasets, models, labels).
+            type (str): The type of the ml-entity (datasets, models, labels).
             export_type (str): Set the format of the return (json, csv, dot) [default: json].
             export_path (str): Set the path to export metrics to a file.
 
@@ -134,7 +134,7 @@ class LocalEntityManager:
             list of EntityVersionRelationships.
         """
 
-        entity_versions = self.get_entity_versions(name, entity_type)
+        entity_versions = self.get_entity_versions(name, type)
         if not entity_versions:
             return
 
@@ -143,7 +143,7 @@ class LocalEntityManager:
         for entity_version in entity_versions:
             target_entity = LinkedEntity(entity_version.tag, entity_version.name,
                                          entity_version.version, entity_version.type)
-            linked_entities = self.get_linked_entities(target_entity.name, target_entity.version, entity_type)
+            linked_entities = self.get_linked_entities(target_entity.name, target_entity.version, type)
 
             if previous_version:
                 linked_entities.append(LinkedEntity(previous_version.tag, previous_version.name, previous_version.version, previous_version.type))
@@ -174,8 +174,8 @@ class LocalEntityManager:
 
         all_relationships = {}
         for entity in project_entities:
-            e_type = entity.type if entity.type.endswith('s') else '{}s'.format(entity.type)
-            entity_relationships = self.get_entity_relationships(entity.name, e_type)
+            entity_type = entity.type if entity.type.endswith('s') else '{}s'.format(entity.type)
+            entity_relationships = self.get_entity_relationships(entity.name, entity_type)
             all_relationships[entity.name] = entity_relationships[entity.name]
 
         if export_type == FileType.CSV.value:
