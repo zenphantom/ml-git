@@ -356,35 +356,35 @@ class LocalEntityManager:
             list of class Entity.
         """
 
-    def get_entity_versions(self, name, type):
+    def get_entity_versions(self, name, type_entity):
         """Get a list of spec versions found for an especific entity.
 
         Args:
             name (str): The name of the entity you want to get the versions.
-            type (str): The type of the ml-entity (datasets, models, labels).
+            type_entity (str): The type of the ml-entity (datasets, models, labels).
 
         Returns:
             list of class SpecVersion.
         """
 
-    def get_linked_entities(self, name, version, type):
+    def get_linked_entities(self, name, version, type_entity):
         """Get a list of linked entities found for an entity version.
 
         Args:
             name (str): The name of the entity you want to get the linked entities.
             version (str): The version of the entity you want to get the linked entities.
-            type (str): The type of the ml-entity (datasets, models, labels).
+            type_entity (str): The type of the ml-entity (datasets, models, labels).
 
         Returns:
             list of LinkedEntity.
         """
 
-    def get_entity_relationships(self, name, type, export_type=FileType.JSON.value, export_path=None):
+    def get_entity_relationships(self, name, type_entity, export_type=FileType.JSON.value, export_path=None):
         """Get a list of relationships for an entity.
 
         Args:
             name (str): The name of the entity you want to get the linked entities.
-            type (str): The type of the ml-entity (datasets, models, labels).
+            type_entity (str): The type of the ml-entity (datasets, models, labels).
             export_type (str): Set the format of the return (json, csv, dot) [default: json].
             export_path (str): Set the path to export metrics to a file.
 
