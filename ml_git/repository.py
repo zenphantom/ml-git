@@ -268,7 +268,7 @@ class Repository(object):
             path, spec_file = search_spec_file(self.__repo_type, spec)
             plugin_caller = self.__load_plugin_caller(path, spec_file)
             log.info(output_messages['INFO_STATUS_OF'] % (repo_type, spec), class_name=REPOSITORY_CLASS_NAME)
-            new_files, deleted_files, untracked_files, corruped_files, changed_files = repo.status(spec, status_directory)
+            new_files, deleted_files, untracked_files, corrupted_files, changed_files = repo.status(spec, status_directory)
             specialized_plugin_data = plugin_caller.call(GET_STATUS_OUTPUT, path, untracked_files, new_files, full_option)
         except Exception as e:
             log.error(e, class_name=REPOSITORY_CLASS_NAME)
@@ -298,9 +298,9 @@ class Repository(object):
             else:
                 self._print_files(untracked_files, full_option)
 
-        if corruped_files:
+        if corrupted_files:
             print('\nCorrupted files:')
-            self._print_files(corruped_files, full_option)
+            self._print_files(corrupted_files, full_option)
 
         if changed_files:
             print('\nChanges not staged for commit:')
