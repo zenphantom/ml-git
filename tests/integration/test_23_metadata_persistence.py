@@ -77,8 +77,10 @@ class MetadataPersistenceTests(unittest.TestCase):
 
         self.assertIn('No blobs', check_output(MLGIT_PUSH % (DATASETS, DATASET_NAME)))
 
-        self.assertRegex(check_output(MLGIT_STATUS % (DATASETS, DATASET_NAME)),
-                         r'\nUntracked files:\n\nCorrupted files')
+        status_output = check_output(MLGIT_STATUS % (DATASETS, DATASET_NAME))
+        self.assertNotIn('Changes to be committed', status_output)
+        self.assertNotIn('Untracked files', status_output)
+        self.assertNotIn('Corrupted files', status_output)
 
         clear(ML_GIT_DIR)
         clear(DATASETS)
