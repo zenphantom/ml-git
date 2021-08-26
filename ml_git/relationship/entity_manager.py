@@ -205,7 +205,7 @@ class EntityManager:
 
         Args:
             config_repo_name (str): The repository name where the config is located in GitHub.
-            export_type (str): Set the format of the return [default: json].
+            export_type (str): Set the format of the return (json, csv, dot) [default: json].
             export_path (str): Set the path to export metrics to a file.
 
         Returns:
@@ -227,4 +227,7 @@ class EntityManager:
 
         if export_type == FileType.CSV.value:
             all_relationships = export_relationships_to_csv(project_entities, all_relationships, export_path)
+        elif export_type == FileType.DOT.value:
+            all_relationships = export_relationships_to_dot(project_entities, all_relationships, export_path)
+
         return all_relationships
