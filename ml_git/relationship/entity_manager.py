@@ -118,7 +118,7 @@ class EntityManager:
         return self._get_entities_from_config(config_path)
 
     def _get_entity_versions(self, name, spec_path, repository):
-        """Get a list of spec versions found for an specific entity.
+        """Get a list of spec versions found for a specific entity.
 
         Args:
             name (str): The name of the entity you want to get the versions.
@@ -145,7 +145,7 @@ class EntityManager:
         return versions
 
     def get_entity_versions(self, name, metadata_repo_name):
-        """Get a list of spec versions found for an specific entity.
+        """Get a list of spec versions found for a specific entity.
 
         Args:
             name (str): The name of the entity you want to get the versions.
