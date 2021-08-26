@@ -56,7 +56,7 @@ class GithubManager:
         for file in files:
             yield file.path
 
-    def __retrieve_rate_limit(self):
+    def __retrieve_rate_limits(self):
         rate_limit = self.__client.get_rate_limit()
         search_remaining_limit = rate_limit.search.remaining
         core_remaining_limit = rate_limit.core.remaining
@@ -68,7 +68,7 @@ class GithubManager:
         return search_remaining_limit, search_seconds_to_reset, core_remaining_limit, core_seconds_to_reset
 
     def alert_rate_limits(self):
-        search_rem, search_reset, core_rem, core_reset = self.__retrieve_rate_limit()
+        search_rem, search_reset, core_rem, core_reset = self.__retrieve_rate_limits()
         if search_rem <= self.NUMBER_OF_LIMIT_TO_WARN:
             log.debug('Remaining {} rate limit: [{}]. It will reset after [{}s]'.
                       format('SEARCH', search_rem, search_reset))

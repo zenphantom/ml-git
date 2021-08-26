@@ -145,7 +145,7 @@ class EntityManager:
         return versions
 
     def get_entity_versions(self, name, metadata_repo_name):
-        """Get a list of spec versions found for an especific entity.
+        """Get a list of spec versions found for an specific entity.
 
         Args:
             name (str): The name of the entity you want to get the versions.
