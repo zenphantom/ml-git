@@ -179,6 +179,7 @@ class EntityManager:
         Returns:
             list of EntityVersionRelationships.
         """
+
         entity_versions = self.get_entity_versions(name, metadata_repo_name)
         relationships = {name: []}
         previous_version = None
