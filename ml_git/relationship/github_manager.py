@@ -9,6 +9,7 @@ import github
 from github import UnknownObjectException
 
 from ml_git import log
+from ml_git.ml_git_message import output_messages
 
 
 class GithubManager:
@@ -70,8 +71,6 @@ class GithubManager:
     def alert_rate_limits(self):
         search_rem, search_reset, core_rem, core_reset = self.__retrieve_rate_limits()
         if search_rem <= self.NUMBER_OF_LIMIT_TO_WARN:
-            log.debug('Remaining {} rate limit: [{}]. It will reset after [{}s]'.
-                      format('SEARCH', search_rem, search_reset))
+            log.debug(output_messages['DEBUG_RATE_LIMIT'].format('SEARCH', search_rem, search_reset))
         if core_rem <= self.NUMBER_OF_LIMIT_TO_WARN:
-            log.debug('Remaining {} rate limit: [{}]. It will reset after [{}s]'.
-                      format('CORE', core_rem, core_reset))
+            log.debug(output_messages['DEBUG_RATE_LIMIT'].format('CORE', core_rem, core_reset))
