@@ -10,7 +10,7 @@ from ml_git.relationship.models.entity import Entity
 from ml_git.relationship.models.entity_version_relationships import EntityVersionRelationships
 from ml_git.relationship.models.linked_entity import LinkedEntity
 from ml_git.relationship.models.spec_version import SpecVersion
-from ml_git.relationship.utils import export_relationships_to_csv
+from ml_git.relationship.utils import export_relationships_to_csv, export_relationships_to_dot
 from ml_git.utils import yaml_load_str
 
 
@@ -183,6 +183,7 @@ class EntityManager:
 
             spec_tag_yaml = yaml_load_str(content)
             entity = SpecVersion(spec_tag_yaml)
+
             return entity.get_related_entities_info()
 
     def get_linked_entities(self, name, version, metadata_repo_name):
@@ -208,7 +209,7 @@ class EntityManager:
         Args:
             name (str): The name of the entity you want to get the linked entities.
             metadata_repo_name (str): The repository name where the entity metadata is located in GitHub.
-            export_type (str): Set the format of the return [default: json].
+            export_type (str): Set the format of the return (json, csv, dot) [default: json].
             export_path (str): Set the path to export metrics to a file.
 
         Returns:
@@ -219,16 +220,23 @@ class EntityManager:
         entity_versions = self._get_entity_versions(name, spec_path, repository)
 
         relationships = {name: []}
+        previous_version = None
         for entity_version in entity_versions:
             target_entity = LinkedEntity(entity_version.tag, entity_version.name,
                                          entity_version.version, entity_version.type)
             linked_entities = self._get_linked_entities(target_entity.name, target_entity.version,
                                                         spec_path, repository)
+            if previous_version:
+                linked_entities.append(LinkedEntity(previous_version.tag, previous_version.name, previous_version.version, previous_version.type))
+
+            previous_version = target_entity
             relationships[name].append(EntityVersionRelationships(target_entity.version,
                                                                   target_entity.tag, linked_entities))
 
         if export_type == FileType.CSV.value:
             relationships = export_relationships_to_csv([entity_versions[0]], relationships, export_path)
+        elif export_type == FileType.DOT.value:
+            relationships = export_relationships_to_dot([entity_versions[0]], relationships, export_path)
 
         self._manager.alert_rate_limits()
         return relationships
@@ -238,7 +246,7 @@ class EntityManager:
 
         Args:
             config_repo_name (str): The repository name where the config is located in GitHub.
-            export_type (str): Set the format of the return [default: json].
+            export_type (str): Set the format of the return (json, csv, dot) [default: json].
             export_path (str): Set the path to export metrics to a file.
 
         Returns:
@@ -260,6 +268,8 @@ class EntityManager:
 
         if export_type == FileType.CSV.value:
             all_relationships = export_relationships_to_csv(project_entities, all_relationships, export_path)
+        elif export_type == FileType.DOT.value:
+            all_relationships = export_relationships_to_dot(project_entities, all_relationships, export_path)
 
         self._manager.alert_rate_limits()
         return all_relationships
