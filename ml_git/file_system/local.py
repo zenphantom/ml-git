@@ -15,6 +15,7 @@ from pathlib import Path
 
 from botocore.client import ClientError
 from tqdm import tqdm
+from git import Repo
 
 from ml_git import log
 from ml_git.config import get_index_path, get_objects_path, get_refs_path, get_index_metadata_path, \
@@ -1130,3 +1131,10 @@ class LocalRepository(MultihashFS):
 
         spec_file[get_spec_key(self.__repo_type)][PERFORMANCE_KEY] = metrics_to_save
         yaml_save(spec_file, spec_path)
+
+    def get_unpublished_commits_quantity(self, metadata_path):
+        repo = Repo(metadata_path)
+        active_branch = repo.active_branch
+        unpublished_commits = list(repo.iter_commits(f'{active_branch}@{{u}}..{active_branch}'))
+        quantity = len(unpublished_commits)
+        return quantity
