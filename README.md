@@ -6,6 +6,9 @@ ML-Git is a tool which provides a Distributed Version Control system to enable e
 - Distribute these ML artifacts between members of a team or across organizations.
 - Apply the right data governance and security models to their artifacts.
 
+If you are seeking to learn more about ML-Git, access [ML-Git Page](https://hpinc.github.io/ml-git/).
+
+
 ### How to install
 
 **Prerequisites:**

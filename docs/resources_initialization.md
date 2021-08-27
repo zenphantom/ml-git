@@ -10,7 +10,7 @@ As mentioned in [ML-Git internals](mlgit_internals.md), the design concept about
 This script aims to facilitate the creation of resources (buckets and repositories) that are needed to use ML-Git.
 
 
-### Prerequisites:
+## Prerequisites
 
 To use this script, you must have configured it in your environment:
 
@@ -29,7 +29,7 @@ If you are setting up a bucket of azure type:
 - [Azure CLI](https://docs.microsoft.com/pt-br/cli/azure/): The Azure command-line interface (Azure CLI) is a set of commands used to create and manage Azure resources.
 
 
-### **How to use:**
+## How to use
 
 Once all the necessary requirements for the settings you want to make are installed, just run the command:
 
