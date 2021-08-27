@@ -264,9 +264,12 @@ class Repository(object):
         repo_type = self.__repo_type
         try:
             objects_path = get_objects_path(self.__config, repo_type)
+            metadata_path = get_metadata_path(self.__config, repo_type)
             repo = LocalRepository(self.__config, objects_path, repo_type)
+            metadata = Metadata(spec, metadata_path, self.__config, repo_type)
             path, spec_file = search_spec_file(self.__repo_type, spec)
             plugin_caller = self.__load_plugin_caller(path, spec_file)
+            unpublished_commits_quantity = metadata.get_unpublished_commits_quantity()
             log.info(output_messages['INFO_STATUS_OF'] % (repo_type, spec), class_name=REPOSITORY_CLASS_NAME)
             new_files, deleted_files, untracked_files, corrupted_files, changed_files = repo.status(spec, status_directory)
             specialized_plugin_data = plugin_caller.call(GET_STATUS_OUTPUT, path, untracked_files, new_files, full_option)
@@ -274,12 +277,19 @@ class Repository(object):
             log.error(e, class_name=REPOSITORY_CLASS_NAME)
             return
 
+        if unpublished_commits_quantity == 0:
+            print('Your {} has no commits to be published.'.format(spec))
+        else:
+            print('Your {} has {} commit{} to be published.'.format(spec, unpublished_commits_quantity,
+                                                                    '' if unpublished_commits_quantity == 1 else 's'))
+            print('  (use "ml-git {} push {}" to publish your local commits)'.format(repo_type, spec))
+
         untracked_specialized, new_files_specialized, total_registry = None, None, None
         if specialized_plugin_data:
             untracked_specialized, new_files_specialized, total_registry = specialized_plugin_data
 
         if new_files or new_files_specialized or deleted_files:
-            print('Changes to be committed:')
+            print('\nChanges to be committed:')
 
             if new_files_specialized:
                 self._print_files(new_files_specialized, True, STATUS_NEW_FILE)
@@ -293,6 +303,7 @@ class Repository(object):
 
         if untracked_files or untracked_specialized:
             print('\nUntracked files:')
+            print('  (use "ml-git {} add {} <file>..." to include in what will be committed)'.format(repo_type, spec))
             if untracked_specialized:
                 self._print_files(untracked_specialized, True)
             else:
