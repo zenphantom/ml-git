@@ -25,11 +25,9 @@ class MetadataPersistenceTests(unittest.TestCase):
         init_repository(DATASETS, self)
         self.assertRegex(check_output(MLGIT_STATUS % (DATASETS, DATASET_NAME)),
                          DATASET_NO_COMMITS_INFO_REGEX +
-                         r'Changes to be committed:\s+'
                          r'Untracked files:\s+' +
                          DATASET_ADD_INFO_REGEX +
-                         r'datasets-ex.spec\s+'
-                         r'Corrupted files:')
+                         r'datasets-ex.spec')
 
         self.assertIn(output_messages['INFO_ADDING_PATH'] % DATASETS, check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, '')))
 
@@ -44,8 +42,7 @@ class MetadataPersistenceTests(unittest.TestCase):
                          r'New file: datasets-ex.spec\s+'
                          r'Untracked files:\s+' +
                          DATASET_ADD_INFO_REGEX +
-                         r'README.md\s+'
-                         r'Corrupted files:')
+                         r'README.md')
 
         self.assertIn(output_messages['INFO_ADDING_PATH'] % DATASETS, check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, '')))
 
@@ -89,11 +86,7 @@ class MetadataPersistenceTests(unittest.TestCase):
         self.assertIn('No blobs', check_output(MLGIT_PUSH % (DATASETS, DATASET_NAME)))
 
         self.assertRegex(check_output(MLGIT_STATUS % (DATASETS, DATASET_NAME)),
-                         DATASET_NO_COMMITS_INFO_REGEX +
-                         r'Changes to be committed:\s+'
-                         r'Untracked files:\s+' +
-                         DATASET_ADD_INFO_REGEX +
-                         r'Corrupted files:')
+                         DATASET_NO_COMMITS_INFO_REGEX)
 
         clear(ML_GIT_DIR)
         clear(DATASETS)

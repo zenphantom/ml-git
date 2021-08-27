@@ -50,12 +50,10 @@ class StatusShortModeAcceptanceTests(unittest.TestCase):
         create_file(data_path, 'file', '0', '')
         self.assertRegex(check_output(MLGIT_STATUS_SHORT % (DATASETS, DATASET_NAME)),
                          DATASET_NO_COMMITS_INFO_REGEX +
-                         r'Changes to be committed:\s+'
                          r'Untracked files:\s+' +
                          DATASET_ADD_INFO_REGEX +
                          r'data(\\|/)file\s+'
-                         r'datasets-ex.spec\s+'
-                         r'Corrupted files:')
+                         r'datasets-ex.spec')
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_02_status_after_put_more_than_one_file_in_dataset(self):
@@ -66,12 +64,10 @@ class StatusShortModeAcceptanceTests(unittest.TestCase):
         create_file(data_path, 'file2', '0', '')
         self.assertRegex(check_output(MLGIT_STATUS_SHORT % (DATASETS, DATASET_NAME)),
                          DATASET_NO_COMMITS_INFO_REGEX +
-                         r'Changes to be committed:\s+'
                          r'Untracked files:\s+' +
                          DATASET_ADD_INFO_REGEX +
                          r'data/\t->\t2 FILES\s+'
-                         r'datasets-ex.spec\s+'
-                         r'Corrupted files:')
+                         r'datasets-ex.spec')
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_03_status_after_add_command_in_dataset(self):
@@ -84,10 +80,7 @@ class StatusShortModeAcceptanceTests(unittest.TestCase):
                          DATASET_NO_COMMITS_INFO_REGEX +
                          r'Changes to be committed:\s+'
                          r'New file: data(\\|/)file0\s+'
-                         r'New file: datasets-ex.spec\s+'
-                         r'Untracked files:\s+' +
-                         DATASET_ADD_INFO_REGEX +
-                         r'Corrupted files:')
+                         r'New file: datasets-ex.spec')
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_04_status_after_commit_command_in_dataset(self):
@@ -103,22 +96,14 @@ class StatusShortModeAcceptanceTests(unittest.TestCase):
                       check_output(MLGIT_COMMIT % (DATASETS, DATASET_NAME, '')))
         self.assertRegex(check_output(MLGIT_STATUS_SHORT % (DATASETS, DATASET_NAME)),
                          DATASET_UNPUBLISHED_COMMITS_INFO_REGEX.format(unpublished_commits=1, pluralize_char='') +
-                         DATASET_PUSH_INFO_REGEX +
-                         r'Changes to be committed:\s+'
-                         r'Untracked files:\s+' +
-                         DATASET_ADD_INFO_REGEX +
-                         r'Corrupted files:')
+                         DATASET_PUSH_INFO_REGEX)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_05_status_after_checkout_in_dataset(self):
         self.set_up_checkout(DATASETS)
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG)))
         self.assertRegex(check_output(MLGIT_STATUS_SHORT % (DATASETS, DATASET_NAME)),
-                         DATASET_NO_COMMITS_INFO_REGEX +
-                         r'Changes to be committed:\s+'
-                         r'Untracked files:\s+' +
-                         DATASET_ADD_INFO_REGEX +
-                         r'Corrupted files:')
+                         DATASET_NO_COMMITS_INFO_REGEX)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_06_status_after_delete_file(self):
@@ -132,7 +117,4 @@ class StatusShortModeAcceptanceTests(unittest.TestCase):
         self.assertRegex(check_output(MLGIT_STATUS_SHORT % (DATASETS, DATASET_NAME)),
                          DATASET_NO_COMMITS_INFO_REGEX +
                          r'Changes to be committed:\s+'
-                         r'Deleted: data/\t->\t2 FILES\s+'
-                         r'Untracked files:\s+' +
-                         DATASET_ADD_INFO_REGEX +
-                         r'Corrupted files:')
+                         r'Deleted: data/\t->\t2 FILES')

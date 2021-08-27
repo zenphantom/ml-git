@@ -45,10 +45,7 @@ class ResetAcceptanceTests(unittest.TestCase):
                          DATASET_PUSH_INFO_REGEX +
                          r'Changes to be committed:\s+'
                          r'New file: datasets-ex.spec\s+'
-                         r'New file: file2\s+'
-                         r'Untracked files:\s+' +
-                         DATASET_ADD_INFO_REGEX +
-                         r'Corrupted files:')
+                         r'New file: file2')
 
         self._check_dir(self.dataset_tag)
 
@@ -64,8 +61,7 @@ class ResetAcceptanceTests(unittest.TestCase):
                          r'New file: datasets-ex.spec\s+'
                          r'Untracked files:\s+' +
                          DATASET_ADD_INFO_REGEX +
-                         r'file2\s+'
-                         r'Corrupted files:')
+                         r'file2')
         self._check_dir(self.dataset_tag)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
@@ -79,10 +75,7 @@ class ResetAcceptanceTests(unittest.TestCase):
                          DATASET_UNPUBLISHED_COMMITS_INFO_REGEX.format(unpublished_commits=2, pluralize_char='s') +
                          DATASET_PUSH_INFO_REGEX +
                          r'Changes to be committed:\s+'
-                         r'New file: datasets-ex.spec\s+'
-                         r'Untracked files:\s+' +
-                         DATASET_ADD_INFO_REGEX +
-                         r'Corrupted files:')
+                         r'New file: datasets-ex.spec')
         self._check_dir('computer-vision__images__datasets-ex__2')
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
@@ -94,10 +87,7 @@ class ResetAcceptanceTests(unittest.TestCase):
                          DATASET_UNPUBLISHED_COMMITS_INFO_REGEX.format(unpublished_commits=1, pluralize_char='') +
                          DATASET_PUSH_INFO_REGEX +
                          r'Changes to be committed:\s+'
-                         r'New file: datasets-ex.spec\s+'
-                         r'Untracked files:\s+' +
-                         DATASET_ADD_INFO_REGEX +
-                         r'Corrupted files:')
+                         r'New file: datasets-ex.spec')
         self._check_dir(self.dataset_tag)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
@@ -128,10 +118,7 @@ class ResetAcceptanceTests(unittest.TestCase):
                          DATASET_UNPUBLISHED_COMMITS_INFO_REGEX.format(unpublished_commits=1, pluralize_char='') +
                          DATASET_PUSH_INFO_REGEX +
                          r'Changes to be committed:\s+'
-                         r'New file: datasets-ex.spec\s+'
-                         r'Untracked files:\s+' +
-                         DATASET_ADD_INFO_REGEX +
-                         r'Corrupted files:')
+                         r'New file: datasets-ex.spec')
         self._check_dir(self.dataset_tag)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')

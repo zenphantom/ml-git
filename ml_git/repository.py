@@ -271,7 +271,7 @@ class Repository(object):
             plugin_caller = self.__load_plugin_caller(path, spec_file)
             unpublished_commits_quantity = metadata.get_unpublished_commits_quantity()
             log.info(output_messages['INFO_STATUS_OF'] % (repo_type, spec), class_name=REPOSITORY_CLASS_NAME)
-            new_files, deleted_files, untracked_files, corruped_files, changed_files = repo.status(spec, status_directory)
+            new_files, deleted_files, untracked_files, corrupted_files, changed_files = repo.status(spec, status_directory)
             specialized_plugin_data = plugin_caller.call(GET_STATUS_OUTPUT, path, untracked_files, new_files, full_option)
         except Exception as e:
             log.error(e, class_name=REPOSITORY_CLASS_NAME)
@@ -288,7 +288,7 @@ class Repository(object):
         if specialized_plugin_data:
             untracked_specialized, new_files_specialized, total_registry = specialized_plugin_data
 
-        if new_files is not None and deleted_files is not None and untracked_files is not None:
+        if new_files or new_files_specialized or deleted_files:
             print('\nChanges to be committed:')
 
             if new_files_specialized:
@@ -301,6 +301,7 @@ class Repository(object):
             if total_registry:
                 print(total_registry)
 
+        if untracked_files or untracked_specialized:
             print('\nUntracked files:')
             print('  (use "ml-git {} add {} <file>..." to include in what will be committed)'.format(repo_type, spec))
             if untracked_specialized:
@@ -308,12 +309,13 @@ class Repository(object):
             else:
                 self._print_files(untracked_files, full_option)
 
+        if corrupted_files:
             print('\nCorrupted files:')
-            self._print_files(corruped_files, full_option)
+            self._print_files(corrupted_files, full_option)
 
-            if changed_files and len(changed_files) > 0:
-                print('\nChanges not staged for commit:')
-                self._print_files(changed_files, full_option)
+        if changed_files:
+            print('\nChanges not staged for commit:')
+            self._print_files(changed_files, full_option)
 
     @staticmethod
     def _print_full_option(files, files_status=''):

@@ -29,12 +29,10 @@ class StatusPathDirectoryAcceptanceTests(unittest.TestCase):
 
         self.assertRegex(check_output(MLGIT_STATUS_DIRECTORY % (DATASETS, DATASET_NAME, '')),
                          DATASET_NO_COMMITS_INFO_REGEX +
-                         r'Changes to be committed:\s+'
                          r'Untracked files:\s+' +
                          DATASET_ADD_INFO_REGEX +
                          r'datasets-ex.spec\s+'
-                         r'file1\s+'
-                         r'Corrupted files:')
+                         r'file1')
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_02_status_after_put_on_new_file_in_dataset_with_directory(self):
@@ -44,11 +42,9 @@ class StatusPathDirectoryAcceptanceTests(unittest.TestCase):
         create_file(data_path, 'file2', '0', '')
         self.assertRegex(check_output(MLGIT_STATUS_DIRECTORY % (DATASETS, DATASET_NAME, 'data')),
                          DATASET_NO_COMMITS_INFO_REGEX +
-                         r'Changes to be committed:\s+'
                          r'Untracked files:\s+' +
                          DATASET_ADD_INFO_REGEX +
-                         r'data(\\|/)file2\s+'
-                         r'Corrupted files:')
+                         r'data(\\|/)file2')
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_03_status_after_put_more_than_one_file_in_dataset_with_directory(self):
@@ -59,11 +55,9 @@ class StatusPathDirectoryAcceptanceTests(unittest.TestCase):
         create_file(data_path, 'file4', '0', '')
         self.assertRegex(check_output(MLGIT_STATUS_DIRECTORY % (DATASETS, DATASET_NAME, 'data')),
                          DATASET_NO_COMMITS_INFO_REGEX +
-                         r'Changes to be committed:\s+'
                          r'Untracked files:\s+' +
                          DATASET_ADD_INFO_REGEX +
-                         r'data/\t->\t2 FILES\s+'
-                         r'Corrupted files:')
+                         r'data/\t->\t2 FILES')
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_04_status_after_put_more_than_one_file_in_dataset_with_invalid_directory(self):
@@ -86,7 +80,4 @@ class StatusPathDirectoryAcceptanceTests(unittest.TestCase):
         self.assertRegex(check_output(MLGIT_STATUS_DIRECTORY % (DATASETS, DATASET_NAME, 'data')),
                          DATASET_NO_COMMITS_INFO_REGEX +
                          r'Changes to be committed:\s+'
-                         r'New file: data(/|\\)file7\s+'
-                         r'Untracked files:\s+' +
-                         DATASET_ADD_INFO_REGEX +
-                         r'Corrupted files:')
+                         r'New file: data(/|\\)file7')

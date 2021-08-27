@@ -46,12 +46,10 @@ class StatusAcceptanceTests(unittest.TestCase):
         create_file(os.path.join(self.tmp_dir, DATASETS, DATASET_NAME), 'file', '0', '')
         self.assertRegex(check_output(MLGIT_STATUS % (DATASETS, DATASET_NAME)),
                          DATASET_NO_COMMITS_INFO_REGEX +
-                         r'Changes to be committed:\s+'
                          r'Untracked files:\s+' +
                          DATASET_ADD_INFO_REGEX +
                          r'datasets-ex\.spec\s+'
-                         r'file\s+'
-                         r'Corrupted files:')
+                         r'file')
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_02_status_after_add_command_in_dataset(self):
@@ -62,10 +60,7 @@ class StatusAcceptanceTests(unittest.TestCase):
                          DATASET_NO_COMMITS_INFO_REGEX +
                          r'Changes to be committed:\s+'
                          r'New file: datasets-ex.spec\s+'
-                         r'New file: file0\s+'
-                         r'Untracked files:\s+' +
-                         DATASET_ADD_INFO_REGEX +
-                         r'Corrupted files:')
+                         r'New file: file0')
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_03_status_after_commit_command_in_dataset(self):
@@ -79,22 +74,14 @@ class StatusAcceptanceTests(unittest.TestCase):
                       check_output(MLGIT_COMMIT % (DATASETS, DATASET_NAME, '')))
         self.assertRegex(check_output(MLGIT_STATUS % (DATASETS, DATASET_NAME)),
                          DATASET_UNPUBLISHED_COMMITS_INFO_REGEX.format(unpublished_commits=1, pluralize_char='') +
-                         DATASET_PUSH_INFO_REGEX +
-                         r'Changes to be committed:\s+'
-                         r'Untracked files:\s+' +
-                         DATASET_ADD_INFO_REGEX +
-                         r'Corrupted files:')
+                         DATASET_PUSH_INFO_REGEX)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_04_status_after_checkout_in_dataset(self):
         self.set_up_checkout(DATASETS)
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG)))
         self.assertRegex(check_output(MLGIT_STATUS % (DATASETS, DATASET_NAME)),
-                         DATASET_NO_COMMITS_INFO_REGEX +
-                         r'Changes to be committed:\s+'
-                         r'Untracked files:\s+' +
-                         DATASET_ADD_INFO_REGEX +
-                         r'Corrupted files:')
+                         DATASET_NO_COMMITS_INFO_REGEX)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_05_status_after_delete_file(self):
@@ -106,10 +93,7 @@ class StatusAcceptanceTests(unittest.TestCase):
         self.assertRegex(check_output(MLGIT_STATUS % (DATASETS, DATASET_NAME)),
                          DATASET_NO_COMMITS_INFO_REGEX +
                          r'Changes to be committed:\s+'
-                         r'Deleted: newfile4\s+'
-                         r'Untracked files:\s+' +
-                         DATASET_ADD_INFO_REGEX +
-                         r'Corrupted files:')
+                         r'Deleted: newfile4')
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_06_status_after_rename_file(self):
@@ -124,8 +108,7 @@ class StatusAcceptanceTests(unittest.TestCase):
                          r'Deleted: newfile4\s+'
                          r'Untracked files:\s+' +
                          DATASET_ADD_INFO_REGEX +
-                         r'file4_renamed\s+'
-                         r'Corrupted files:')
+                         r'file4_renamed')
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_07_status_corrupted_files(self):
@@ -143,8 +126,6 @@ class StatusAcceptanceTests(unittest.TestCase):
                          r'Changes to be committed:\s+'
                          r'New file: Ls87x\s+'
                          r'New file: datasets-ex.spec\s+'
-                         r'Untracked files:\s+' +
-                         DATASET_ADD_INFO_REGEX +
                          r'Corrupted files:\s+'
                          r'newfile4')
 
@@ -158,24 +139,20 @@ class StatusAcceptanceTests(unittest.TestCase):
 
         self.assertRegex(check_output(MLGIT_STATUS % (DATASETS, DATASET_NAME)),
                          DATASET_NO_COMMITS_INFO_REGEX +
-                         r'Changes to be committed:\s+'
                          r'Untracked files:\s+' +
                          DATASET_ADD_INFO_REGEX +
                          r'data(?:\\|/)file1\s+'
                          r'data(?:\\|/)image.png\s+'
-                         r'datasets-ex.spec\s+'
-                         r'Corrupted files:')
+                         r'datasets-ex.spec')
 
         create_ignore_file(workspace)
         self.assertRegex(check_output(MLGIT_STATUS % (DATASETS, DATASET_NAME)),
                          DATASET_NO_COMMITS_INFO_REGEX +
-                         r'Changes to be committed:\s+'
                          r'Untracked files:\s+' +
                          DATASET_ADD_INFO_REGEX +
                          r'.mlgitignore\s+'
                          r'data(?:\\|/)file1\s+'
-                         r'datasets-ex.spec\s+'
-                         r'Corrupted files:')
+                         r'datasets-ex.spec')
 
         self.assertIn(output_messages['INFO_ADDING_PATH'] % DATASETS,
                       check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, '--bumpversion')))
@@ -184,19 +161,12 @@ class StatusAcceptanceTests(unittest.TestCase):
                          r'Changes to be committed:\s+'
                          r'New file: .mlgitignore\s+'
                          r'New file: data(?:\\|/)file1\s+'
-                         r'New file: datasets-ex.spec\s+'
-                         r'Untracked files:\s+' +
-                         DATASET_ADD_INFO_REGEX +
-                         r'Corrupted files:')
+                         r'New file: datasets-ex.spec')
 
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_COMMIT % (DATASETS, DATASET_NAME, '')))
         self.assertRegex(check_output(MLGIT_STATUS % (DATASETS, DATASET_NAME)),
                          DATASET_UNPUBLISHED_COMMITS_INFO_REGEX.format(unpublished_commits=1, pluralize_char='') +
-                         DATASET_PUSH_INFO_REGEX +
-                         r'Changes to be committed:\s+'
-                         r'Untracked files:\s+' +
-                         DATASET_ADD_INFO_REGEX +
-                         r'Corrupted files:')
+                         DATASET_PUSH_INFO_REGEX)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_09_status_after_multiple_commits(self):
@@ -206,23 +176,17 @@ class StatusAcceptanceTests(unittest.TestCase):
 
         self.assertRegex(check_output(MLGIT_STATUS % (DATASETS, DATASET_NAME)),
                          DATASET_NO_COMMITS_INFO_REGEX +
-                         r'Changes to be committed:\s+'
                          r'Untracked files:\s+' +
                          DATASET_ADD_INFO_REGEX +
                          r'datasets-ex.spec\s+'
-                         r'image1.png\s+'
-                         r'Corrupted files:')
+                         r'image1.png')
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, '--bumpversion')))
         self.assertIn(output_messages['INFO_COMMIT_REPO'] % (os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'metadata'), DATASET_NAME),
                       check_output(MLGIT_COMMIT % (DATASETS, DATASET_NAME, '')))
 
         self.assertRegex(check_output(MLGIT_STATUS % (DATASETS, DATASET_NAME)),
                          DATASET_UNPUBLISHED_COMMITS_INFO_REGEX.format(unpublished_commits=1, pluralize_char='') +
-                         DATASET_PUSH_INFO_REGEX +
-                         r'Changes to be committed:\s+'
-                         r'Untracked files:\s+' +
-                         DATASET_ADD_INFO_REGEX +
-                         r'Corrupted files:')
+                         DATASET_PUSH_INFO_REGEX)
 
         create_file(workspace, 'image2.png', '0', '')
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, '--bumpversion')))
@@ -231,11 +195,7 @@ class StatusAcceptanceTests(unittest.TestCase):
 
         self.assertRegex(check_output(MLGIT_STATUS % (DATASETS, DATASET_NAME)),
                          DATASET_UNPUBLISHED_COMMITS_INFO_REGEX.format(unpublished_commits=2, pluralize_char='s') +
-                         DATASET_PUSH_INFO_REGEX +
-                         r'Changes to be committed:\s+'
-                         r'Untracked files:\s+' +
-                         DATASET_ADD_INFO_REGEX +
-                         r'Corrupted files:')
+                         DATASET_PUSH_INFO_REGEX)
         create_file(workspace, 'image3.png', '0', '')
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, '--bumpversion')))
         self.assertIn(output_messages['INFO_COMMIT_REPO'] % (os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'metadata'), DATASET_NAME),
@@ -243,8 +203,4 @@ class StatusAcceptanceTests(unittest.TestCase):
 
         self.assertRegex(check_output(MLGIT_STATUS % (DATASETS, DATASET_NAME)),
                          DATASET_UNPUBLISHED_COMMITS_INFO_REGEX.format(unpublished_commits=3, pluralize_char='s') +
-                         DATASET_PUSH_INFO_REGEX +
-                         r'Changes to be committed:\s+'
-                         r'Untracked files:\s+' +
-                         DATASET_ADD_INFO_REGEX +
-                         r'Corrupted files:')
+                         DATASET_PUSH_INFO_REGEX)
