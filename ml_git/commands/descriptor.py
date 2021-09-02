@@ -1,5 +1,5 @@
 """
-© Copyright 2020 HP Development Company, L.P.
+© Copyright 2020-2021 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
 
@@ -589,7 +589,7 @@ commands = [
 def define_command(descriptor):
     callback = descriptor['callback']
 
-    command = click.command(name=descriptor['name'], help=descriptor['help'], cls=DeprecatedOptionsCommand)(click.pass_context(callback))
+    command = click.command(name=descriptor['name'], short_help=descriptor['help'], cls=DeprecatedOptionsCommand)(click.pass_context(callback))
 
     if 'arguments' in descriptor:
         for key, value in descriptor['arguments'].items():
@@ -611,7 +611,7 @@ def define_command(descriptor):
     for group in descriptor['groups']:
         command_copy = copy.deepcopy(command)
         if '%s' in descriptor['help']:
-            command_copy.help = descriptor['help'] % group.name
+            command_copy.short_help = descriptor['help'] % group.name
         group.add_command(command_copy)
 
 
