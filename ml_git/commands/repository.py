@@ -1,5 +1,5 @@
 """
-© Copyright 2020 HP Development Company, L.P.
+© Copyright 2020-2021 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
 
@@ -33,7 +33,7 @@ def config():
     pass
 
 
-@repository.command('init', help='Initialiation of this ml-git repository')
+@repository.command('init', help='Initialization of this ML-Git repository')
 def init():
     init_mlgit()
 
