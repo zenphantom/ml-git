@@ -324,5 +324,6 @@ output_messages = {
     'WARN_WORKER_EXCEPTION': 'Worker exception - [%s] -- retry [%d]',
     'WARN_NOT_EXIST_FOR_RELATED_DOWNLOAD': 'Repository: the %s does not exist for related download.',
     'WARN_NOT_FOUND': '[%s] Not found!',
-    'WARN_FILE_EXISTS_IN_REPOSITORY': 'The file %s already exists in the repository. If you commit, the file will be overwritten.'
+    'WARN_FILE_EXISTS_IN_REPOSITORY': 'The file %s already exists in the repository. If you commit, the file will be overwritten.',
+    'WARN_REPOSITORY_NOT_FOUND_FOR_ENTITY': 'No repositories found for %s, verify your configurations!'
 }
