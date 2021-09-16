@@ -6,9 +6,9 @@
 
 In case you want to run MinIO locally for testing purposes, it's possible to run a docker container using the following command:
 ```
-$ docker run --name=minio --network=host minio/minio server --console-address ":9001" /data
+$ docker run -v path/to/your/dir:/data --name=minio --network=host minio/minio server --console-address ":9001" /data
 ```
-The command will start the MinIO API and Console servers in ports 9000 and 9001, respectively. 
+The command will start the MinIO API and Console servers in ports 9000 and 9001, respectively.
 
 Once you have successfully started the container, you can access the Console URL (usually http://127.0.0.1:9001) using the default user (username: minioadmin, password: minioadmin) to create a new user (setting up its Access Key and Secret Access Key) or create new buckets.
 
