@@ -6,7 +6,7 @@
 
 In case you want to run MinIO locally for testing purposes, it's possible to run a docker container using the following command:
 ```
-$ docker run -v path/to/your/dir:/data --name=minio --network=host minio/minio server --console-address ":9001" /data
+$ docker run -v /path/to/your/dir:/data --name=minio --network=host minio/minio server --console-address ":9001" /data
 ```
 The command will start the MinIO API and Console servers in ports 9000 and 9001, respectively.
 
