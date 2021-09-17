@@ -23,7 +23,7 @@ This section explains how to configure the settings that the ML-Git uses to inte
 1. Profile Name
 2. Access Key ID
 3. Secret Access Key
-5. Output Format
+4. Output Format
 
 The _Access Key ID_ and _Secret Access Key_ are the credentials for your MinIO user. The _Output Format_ specifies how the results are formatted.
 
