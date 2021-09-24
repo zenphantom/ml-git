@@ -270,3 +270,12 @@ class CreateAcceptanceTests(unittest.TestCase):
         with open(spec, 'r') as s:
             spec_file = yaml_processor.load(s)
             self.assertEqual(spec_file[MODEL_SPEC_KEY]['categories'], ['cat1', 'cat2', 'cat3', 'cat4'])
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir')
+    def test_20_create_with_invalid_version_number(self):
+        entity_type = DATASETS
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
+        result = check_output(MLGIT_CREATE % (entity_type, entity_type + '-ex') + ' --version=-2 --categories=imgs'
+                              + ' --mutability=' + STRICT)
+        expected_error_message = '-2 is not in the valid range of 0 to 99999999.'
+        self.assertIn(expected_error_message, result)
