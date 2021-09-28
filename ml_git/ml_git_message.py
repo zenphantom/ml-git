@@ -172,6 +172,7 @@ output_messages = {
     'INFO_SAVE_RELATIONSHIP_GRAPH': 'The relationship graph was saved in: {}',
     'INFO_ENTITIES_RELATIONSHIPS_NOT_FOUND': 'No relationships were found for your project entities.',
     'INFO_TOTAL_UNZIPPED_FILES': 'Total unzipped files: {}',
+    'INFO_FILE_AUTOMATICALLY_ADDED': 'File {} has been automatically added to staged files.',
 
     'ERROR_PATH_NOT_EMPTY': 'The path [%s] is not an empty directory. Consider using --folder to create an empty folder.',
     'ERROR_WITHOUT_TAG_FOR_THIS_ENTITY': 'No entity with that name was found.',
