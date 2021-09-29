@@ -172,6 +172,7 @@ output_messages = {
     'INFO_SAVE_RELATIONSHIP_GRAPH': 'The relationship graph was saved in: {}',
     'INFO_ENTITIES_RELATIONSHIPS_NOT_FOUND': 'No relationships were found for your project entities.',
     'INFO_TOTAL_UNZIPPED_FILES': 'Total unzipped files: {}',
+    'INFO_FILE_AUTOMATICALLY_ADDED': 'File {} has been automatically added to staged files.',
 
     'ERROR_PATH_NOT_EMPTY': 'The path [%s] is not an empty directory. Consider using --folder to create an empty folder.',
     'ERROR_WITHOUT_TAG_FOR_THIS_ENTITY': 'No entity with that name was found.',
@@ -316,7 +317,7 @@ output_messages = {
     'ERROR_FOUND': 'ERROR FOUND: %s - %s',
     'ERROR_PUSH_CONFIG': 'Could not push configuration file. ERROR: %s',
     'ERROR_FIND_FILE_PATH_LOCATION': 'A complete log of this run can be found in: %s',
-    'ERROR_EMPTY_STRING': 'Value cannot be empty.',
+    'ERROR_EMPTY_VALUE': 'Value cannot be empty.',
     'ERROR_REQUIRED_OPTION_MISSING': 'The option `{}` is required if `{}` is used.',
 
     'WARN_CORRUPTED_CANNOT_BE_ADD': 'The following files cannot be added because they are corrupted:',

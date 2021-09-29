@@ -13,7 +13,7 @@ from halo import Halo
 
 from ml_git import log
 from ml_git._metadata import MetadataRepo
-from ml_git.admin import remote_add, storage_add, clone_config_repository, init_mlgit, remote_del
+from ml_git.admin import remote_add, clone_config_repository, init_mlgit, remote_del
 from ml_git.config import get_index_path, get_objects_path, get_cache_path, get_metadata_path, get_refs_path, \
     validate_config_spec_hash, validate_spec_hash, get_sample_config_spec, get_sample_spec_doc, \
     get_index_metadata_path, create_workspace_tree_structure, start_wizard_questions, config_load, \
@@ -176,7 +176,11 @@ class Repository(object):
         if not self._update_spec_version(spec, spec_path, metadata, bump_version):
             return None
 
-        idx.add_metadata(path, file)
+        automatically_added = False
+        index_spec_path = os.path.join(index_path, 'metadata', spec, file)
+        if file_path and (not os.path.exists(index_spec_path) or bump_version):
+            automatically_added = True
+        idx.add_metadata(path, file, automatically_added)
 
         self._check_corrupted_files(spec, repo)
 
@@ -399,7 +403,7 @@ class Repository(object):
 
         if version:
             set_version_in_spec(version, spec_path, self.__repo_type)
-            idx.add_metadata(path, file)
+            idx.add_metadata(path, file, automatically_added=True)
 
         # Check tag before anything to avoid creating unstable state
         log.debug(output_messages['DEBUG_TAG_CHECK'], class_name=REPOSITORY_CLASS_NAME)
@@ -1030,8 +1034,7 @@ class Repository(object):
 
     def create(self, kwargs):
         artifact_name = kwargs['artifact_name']
-        categories_arg = kwargs['categories'] if type(kwargs['categories']) is list else kwargs['categories'].split(',')
-        categories = [category.strip() for category in categories_arg if category.strip()]
+        categories = [category.strip() for category in kwargs['categories'] if category.strip()]
         version = int(kwargs['version'])
         imported_dir = kwargs['import']
         storage_type = kwargs['storage_type']
@@ -1041,23 +1044,22 @@ class Repository(object):
         unzip_file = kwargs['unzip']
         credentials_path = kwargs['credentials_path']
         repo_type = self.__repo_type
+        entity_dir = kwargs['entity_dir'] or ''
+
         try:
             create_workspace_tree_structure(repo_type, artifact_name, categories, storage_type, bucket_name,
-                                            version, imported_dir, kwargs['mutability'], kwargs['entity_dir'])
+                                            version, imported_dir, kwargs['mutability'], entity_dir)
             if start_wizard:
-                has_new_storage, storage_type, bucket, profile, endpoint_url, git_repo = start_wizard_questions(repo_type)
-                if has_new_storage:
-                    storage_add(storage_type, bucket, profile, endpoint_url)
-                update_storage_spec(repo_type, artifact_name, storage_type, bucket, kwargs['entity_dir'])
-                remote_add(repo_type, git_repo)
+                storage_type, bucket = start_wizard_questions(repo_type)
+                update_storage_spec(repo_type, artifact_name, storage_type, bucket, entity_dir)
             if import_url:
                 self.create_config_storage(StorageType.GDRIVE.value, credentials_path)
                 local = LocalRepository(self.__config, get_objects_path(self.__config, repo_type))
-                destine_path = os.path.join(repo_type, kwargs['entity_dir'], artifact_name, 'data')
+                destine_path = os.path.join(repo_type, entity_dir, artifact_name, 'data')
                 local.import_file_from_url(destine_path, import_url, StorageType.GDRIVE.value)
             if unzip_file:
                 log.info(output_messages['INFO_CHECKING_FILES_TO_BE_UNZIPPED'], CLASS_NAME=REPOSITORY_CLASS_NAME)
-                data_path = os.path.join(get_root_path(), repo_type, kwargs['entity_dir'], artifact_name, 'data')
+                data_path = os.path.join(get_root_path(), repo_type, entity_dir, artifact_name, 'data')
                 unzip_files_in_directory(data_path)
             message_key = 'INFO_{}_CREATED'.format(self.__repo_type.upper())
             log.info(output_messages[message_key], CLASS_NAME=REPOSITORY_CLASS_NAME)
