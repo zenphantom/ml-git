@@ -100,10 +100,8 @@ labels:
 models:
   git: ''
 storages:
-  s3:
-    mlgit-datasets:
-      aws-credentials:
-        profile: default
-      region: us-east-1
+  gdriveh:
+    dataset-gdrive:
+      credentials-path: /home/profile/.gdrive
 ```
 
