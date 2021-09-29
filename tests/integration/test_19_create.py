@@ -333,3 +333,11 @@ class CreateAcceptanceTests(unittest.TestCase):
                                                                              ' --categories=imgs --mutability=' + STRICT))
         folder_data = os.path.join(self.tmp_dir, DATASETS, DATASET_NAME, 'data')
         self.assertTrue(os.path.exists(folder_data))
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir')
+    def test_28_create_with_invalid_entity_dir(self):
+        entity_type = DATASETS
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
+        self.assertIn(output_messages['ERROR_EMPTY_VALUE'],
+                      check_output(MLGIT_CREATE % (entity_type, entity_type + '-ex')
+                      + ' --categories=img --mutability=' + STRICT + ' --bucket-name=test --entity-dir='))
