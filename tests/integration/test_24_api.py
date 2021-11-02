@@ -749,3 +749,32 @@ class APIAcceptanceTests(unittest.TestCase):
             content = graph_file.read()
             self.assertIn('\\"{} (1)\\" -> \\"{} (2)\\"'.format(DATASET_NAME, DATASET_NAME), content)
             self.assertIn('\\"{} (2)\\" -> \\"{} (10)\\"'.format(DATASET_NAME, DATASET_NAME), content)
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir')
+    def test_43_using_api_class_without_path(self):
+        config = os.path.join(self.tmp_dir, ML_GIT_DIR, 'config.yaml')
+        self.assertFalse(os.path.exists(config))
+
+        api_instance = api.MLGitAPI()
+        api_instance.init('repository')
+        self.assertTrue(os.path.exists(config))
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir')
+    def test_44_working_with_two_projects(self):
+        project_1_dir_name = 'project-test-1'
+        project_2_dir_name = 'project-test-2'
+        os.mkdir(project_1_dir_name)
+        os.mkdir(project_2_dir_name)
+
+        config_project_1 = os.path.join(self.tmp_dir, project_1_dir_name, ML_GIT_DIR, 'config.yaml')
+        config_project_2 = os.path.join(self.tmp_dir, project_2_dir_name,  ML_GIT_DIR, 'config.yaml')
+        self.assertFalse(os.path.exists(config_project_1))
+        self.assertFalse(os.path.exists(config_project_2))
+
+        api_project_1 = api.MLGitAPI(root_path='./{}'.format(project_1_dir_name))
+        api_project_1.init('repository')
+        self.assertTrue(os.path.exists(config_project_1))
+
+        api_project_2 = api.MLGitAPI(root_path='./{}'.format(project_2_dir_name))
+        api_project_2.init('repository')
+        self.assertTrue(os.path.exists(config_project_2))
