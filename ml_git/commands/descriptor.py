@@ -1,5 +1,5 @@
 """
-© Copyright 2020-2021 HP Development Company, L.P.
+© Copyright 2020-2022 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
 
@@ -40,7 +40,12 @@ commands = [
         'callback': entity.fsck,
         'groups': [entity.datasets, entity.models, entity.labels],
 
-        'help': 'Perform fsck on %s in this ml-git repository.'
+        'help': 'Perform fsck on %s in this ml-git repository.',
+
+        'options': {
+            '--full': {'is_flag': True, 'default': False, 'help': help_msg.FSCK_FULL_OPTION},
+        },
+
 
     },
 
@@ -79,7 +84,8 @@ commands = [
             '--force': {'default': False, 'is_flag': True, 'help': help_msg.FORCE_CHECKOUT},
             '--bare': {'default': False, 'is_flag': True, 'help': help_msg.BARE_OPTION},
             '--version': {'default': -1, 'help': help_msg.ARTIFACT_VERSION},
-            '--fail-limit': {'type': int, 'help': help_msg.FAIL_LIMIT}
+            '--fail-limit': {'type': int, 'help': help_msg.FAIL_LIMIT},
+            '--full': {'is_flag': True, 'default': False, 'help': help_msg.STATUS_FULL_OPTION}
         },
 
         'arguments': {
@@ -108,7 +114,8 @@ commands = [
             '--force': {'is_flag': True, 'default': False, 'help': help_msg.FORCE_CHECKOUT},
             '--bare': {'default': False, 'is_flag': True, 'help': help_msg.BARE_OPTION},
             '--version': {'default': -1, 'help': help_msg.ARTIFACT_VERSION},
-            '--fail-limit': {'type': int, 'help': help_msg.FAIL_LIMIT}
+            '--fail-limit': {'type': int, 'help': help_msg.FAIL_LIMIT},
+            '--full': {'is_flag': True, 'default': False, 'help': help_msg.STATUS_FULL_OPTION}
         },
 
         'help': 'Checkout the ML_ENTITY_TAG|ML_ENTITY of a label set into user workspace.'
@@ -127,7 +134,8 @@ commands = [
             '--force': {'default': False, 'is_flag': True, 'help': help_msg.FORCE_CHECKOUT},
             '--bare': {'default': False, 'is_flag': True, 'help': help_msg.BARE_OPTION},
             '--version': {'default': -1, 'help': help_msg.ARTIFACT_VERSION},
-            '--fail-limit': {'type': int, 'help': help_msg.FAIL_LIMIT}
+            '--fail-limit': {'type': int, 'help': help_msg.FAIL_LIMIT},
+            '--full': {'is_flag': True, 'default': False, 'help': help_msg.STATUS_FULL_OPTION}
         },
 
         'arguments': {
@@ -466,6 +474,7 @@ commands = [
             '--thorough': {'is_flag': True, 'help': help_msg.THOROUGH_OPTION},
             '--paranoid': {'is_flag': True, 'help': help_msg.PARANOID_OPTION},
             '--retry': {'default': 2, 'help': help_msg.RETRY_OPTION},
+            '--full': {'is_flag': True, 'default': False, 'help': help_msg.REMOTE_FSCK_FULL_OPTION},
         },
 
         'arguments': {

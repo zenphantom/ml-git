@@ -1,5 +1,5 @@
 """
-© Copyright 2020-2021 HP Development Company, L.P.
+© Copyright 2020-2022 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
 
@@ -114,6 +114,8 @@ output_messages = {
     'INFO_MLGIT_PULL': 'Pull [%s]',
     'INFO_NO_NEW_DATA_TO_ADD': 'There is no new data to add',
     'INFO_REMOTE_FSCK_FIXED': 'remote-fsck -- fixed   : ipld[%d] / blob[%d]',
+    'INFO_REMOTE_FSCK_FIXED_LIST': '%s fixed: %s',
+    'INFO_REMOTE_FSCK_UNFIXED_LIST': '%s unfixed:',
     'INFO_CORRUPTED_FILES_TOTAL': 'Total of corrupted files: %d',
     'INFO_DATASETS_CREATED': 'Dataset artifact created.',
     'INFO_MODELS_CREATED': 'Model artifact created.',
@@ -173,6 +175,11 @@ output_messages = {
     'INFO_ENTITIES_RELATIONSHIPS_NOT_FOUND': 'No relationships were found for your project entities.',
     'INFO_TOTAL_UNZIPPED_FILES': 'Total unzipped files: {}',
     'INFO_FILE_AUTOMATICALLY_ADDED': 'File {} has been automatically added to staged files.',
+    'INFO_FSCK_CORRUPTED_FILES': '\n[%d] corrupted file(s) in Local Repository %s\n[%d] corrupted file(s) in Index %s\nTotal of corrupted files: %d',
+    'INFO_FSCK_VERBOSE_MODE': 'For more information about the corrupted files you can run the command with the --full option.',
+    'INFO_SEE_ALL_CORRUPTED_FILES': 'You can view the complete list of corrupted files at logs/ml-git_execution.log',
+    'INFO_SEE_ALL_FIXED_FILES': 'You can view the complete list of fixed files at logs/ml-git_execution.log',
+    'INFO_SEE_ALL_UNFIXED_FILES': 'You can view the complete list of unfixed files at logs/ml-git_execution.log',
 
     'ERROR_PATH_NOT_EMPTY': 'The path [%s] is not an empty directory. Consider using --folder to create an empty folder.',
     'ERROR_WITHOUT_TAG_FOR_THIS_ENTITY': 'No entity with that name was found.',
@@ -195,8 +202,8 @@ output_messages = {
     'ERROR_INVALID_VALUE_FOR': 'Error: Invalid value for "%s": %s',
     'ERROR_PROJECT_NEED_BE_UPDATED': 'To continue using this project it is necessary to update it.',
     'ERROR_UNKNOWN_STORAGE_TYPE': 'Unknown data storage type [%s], choose one of these %s.',
-    'ERROR_CORRPUTION_DETECTED': 'Corruption detected for chunk [%s] - got [%s]',
-    'ERROR_CORRPUTION_DETECTED_FOR': 'Corruption detected for chunk [%s]',
+    'ERROR_CORRUPTION_DETECTED': 'Corruption detected for chunk [%s] - got [%s]',
+    'ERROR_CORRUPTION_DETECTED_FOR': 'Corruption detected for chunk [%s]',
     'ERROR_DRIVE_PATH_NOT_FOUND': 'Drive path [%s] not found.',
     'ERROR_NOT_FOUND': '[%s] not found.',
     'ERROR_FILE_COULD_NOT_BE_UPLOADED': 'The file could not be uploaded: [%s]',

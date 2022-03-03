@@ -1,5 +1,5 @@
 """
-© Copyright 2020-2021 HP Development Company, L.P.
+© Copyright 2020-2022 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
 
@@ -95,6 +95,7 @@ def checkout(context, **kwargs):
     options['bare'] = kwargs['bare']
     options['version'] = kwargs['version']
     options['fail_limit'] = kwargs['fail_limit']
+    options['full'] = kwargs['full']
     repo.checkout(kwargs['ml_entity_tag'], sample, options)
 
 
@@ -176,9 +177,9 @@ def reset(context, **kwargs):
     repositories[repo_type].reset(entity_name, reset_type, head)
 
 
-def fsck(context):
+def fsck(context, full):
     repo_type = context.parent.command.name
-    repositories[repo_type].fsck()
+    repositories[repo_type].fsck(full)
 
 
 def import_tag(context, **kwargs):
@@ -229,7 +230,8 @@ def remote_fsck(context, **kwargs):
     thorough = kwargs['thorough']
     paranoid = kwargs['paranoid']
     retry = kwargs['retry']
-    repositories[repo_type].remote_fsck(entity_name, retry, thorough, paranoid)
+    full_log = kwargs['full']
+    repositories[repo_type].remote_fsck(entity_name, retry, thorough, paranoid, full_log)
 
 
 def create(context, **kwargs):

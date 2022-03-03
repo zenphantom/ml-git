@@ -1,5 +1,5 @@
 """
-© Copyright 2020-2021 HP Development Company, L.P.
+© Copyright 2020-2022 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
 import errno
@@ -234,15 +234,17 @@ class Repository(object):
                 cache = Cache(cache_path, path, mf)
                 cache.update()
 
-    def _check_corrupted_files(self, spec, repo):
+    def _check_corrupted_files(self, spec, repo, full_path=False):
         try:
             corrupted_files = repo.get_corrupted_files(spec)
             if corrupted_files is not None and len(corrupted_files) > 0:
                 print('\n')
-                log.warn(output_messages['WARN_CORRUPTED_CANNOT_BE_ADD'],
-                         class_name=REPOSITORY_CLASS_NAME)
-                for file in corrupted_files:
-                    print('\t %s' % file)
+                log.warn(output_messages['WARN_CORRUPTED_CANNOT_BE_ADD'], class_name=REPOSITORY_CLASS_NAME)
+                self._print_files(corrupted_files, full_path)
+                log.info(output_messages['INFO_SEE_ALL_CORRUPTED_FILES'], class_name=REPOSITORY_CLASS_NAME)
+
+                log.debug(output_messages['WARN_CORRUPTED_CANNOT_BE_ADD'], class_name=REPOSITORY_CLASS_NAME)
+                log.debug('\t %s' % corrupted_files, class_name=REPOSITORY_CLASS_NAME)
         except Exception as e:
             log.error(e, class_name=REPOSITORY_CLASS_NAME)
             return
@@ -682,7 +684,7 @@ class Repository(object):
             ** download again corrupted blob
             ** rebuild cache'''
 
-    def fsck(self):
+    def fsck(self, full_log=False):
         repo_type = self.__repo_type
         try:
             objects_path = get_objects_path(self.__config, repo_type)
@@ -696,10 +698,16 @@ class Repository(object):
         idx = MultihashIndex('', index_path, objects_path)
         corrupted_files_idx = idx.fsck()
         corrupted_files_idx_len = len(corrupted_files_idx)
+        total_corrupted_files = corrupted_files_idx_len + corrupted_files_obj_len
 
-        print('[%d] corrupted file(s) in Local Repository: %s' % (corrupted_files_obj_len, corrupted_files_obj))
-        print('[%d] corrupted file(s) in Index: %s' % (corrupted_files_idx_len, corrupted_files_idx))
-        print('Total of corrupted files: %d' % (corrupted_files_obj_len + corrupted_files_idx_len))
+        if not full_log:
+            corrupted_files_obj = ''
+            corrupted_files_idx = ''
+        print(output_messages['INFO_FSCK_CORRUPTED_FILES'] % (corrupted_files_obj_len, corrupted_files_obj,
+                                                              corrupted_files_idx_len, corrupted_files_idx,
+                                                              total_corrupted_files))
+        if total_corrupted_files > 0:
+            log.info(output_messages['INFO_FSCK_VERBOSE_MODE'], class_name=REPOSITORY_CLASS_NAME)
 
     def show(self, spec):
         repo_type = self.__repo_type
@@ -775,7 +783,7 @@ class Repository(object):
 
     '''Performs a fsck on remote storage w.r.t. some specific ML artefact version'''
 
-    def remote_fsck(self, spec, retries=2, thorough=False, paranoid=False):
+    def remote_fsck(self, spec, retries=2, thorough=False, paranoid=False, full_log=False):
         repo_type = self.__repo_type
         try:
             metadata_path = get_metadata_path(self.__config, repo_type)
@@ -796,7 +804,7 @@ class Repository(object):
 
         r = LocalRepository(self.__config, objects_path, repo_type)
 
-        r.remote_fsck(metadata_path, tag, full_spec_path, retries, thorough, paranoid)
+        r.remote_fsck(metadata_path, tag, full_spec_path, retries, thorough, paranoid, full_log)
 
         # ensure first we're on master !
         self._checkout_ref()
@@ -825,6 +833,7 @@ class Repository(object):
         force_get = options['force']
         bare = options['bare']
         version = options['version']
+        full_option = options['full']
         repo_type = self.__repo_type
         try:
             cache_path = get_cache_path(self.__config, repo_type)
@@ -855,7 +864,7 @@ class Repository(object):
 
         local_rep = LocalRepository(self.__config, objects_path, repo_type)
         # check if no data left untracked/uncommitted. otherwise, stop.
-        if not force_get and local_rep.exist_local_changes(spec_name) is True:
+        if not force_get and local_rep.exist_local_changes(spec_name, self._print_files, full_option) is True:
             return None, None
 
         try:
@@ -1150,7 +1159,7 @@ class Repository(object):
             metadata = Metadata(spec, metadata_path, self.__config, repo_type)
             index_path = get_index_path(self.__config, repo_type)
             specialized_data_compared = self._log_compare_spec_from_versions(spec, metadata)
-            log_info = metadata.get_log_info(spec, fullstat, specialized_data_compared)
+            log_info = metadata.get_log_info(spec, fullstat, stat, specialized_data_compared)
         except Exception as e:
             log.error(e, class_name=REPOSITORY_CLASS_NAME)
             return
