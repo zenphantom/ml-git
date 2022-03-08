@@ -98,3 +98,17 @@ class RemoteFsckAcceptanceTests(unittest.TestCase):
         init_repository(DATASETS, self)
         output = check_output(MLGIT_REMOTE_FSCK % (DATASETS, DATASET_NAME))
         self.assertIn(output_messages['WARN_EMPTY_ENTITY'] % DATASET_NAME, output)
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
+    def test_06_remote_fsck_missing_descriptor_files(self):
+        self.setup_remote_fsck()
+        file_path = self._get_file_path()
+        os.remove(file_path)
+
+        message = check_output(MLGIT_REMOTE_FSCK % (DATASETS, DATASET_NAME))
+        self.assertIn(output_messages['INFO_MISSING_DESCRIPTOR_FILES'] % 1, message)
+        self.assertIn(output_messages['INFO_SEE_COMPLETE_LIST_OF_MISSING_FILES'], message)
+
+        message = check_output(MLGIT_REMOTE_FSCK % (DATASETS, DATASET_NAME + ' --full'))
+        self.assertIn(output_messages['INFO_MISSING_DESCRIPTOR_FILES'] % 1, message)
+        self.assertIn(output_messages['INFO_LIST_OF_MISSING_FILES'] % '[', message)
