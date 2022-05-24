@@ -24,8 +24,9 @@ SEED_OPTION = 'Seed to be used in random-based samplers.'
 ASSOCIATED_WITH_DATASET = 'The checkout associated dataset in user workspace as well.'
 ASSOCIATED_WITH_LABELS = 'The checkout associated labels  in user workspace as well.'
 BUMP_VERSION = 'Increment the version number when adding more files.'
-LINK_DATASET = 'Link dataset entity name to this model set version.'
-LINK_LABELS = 'Link labels entity name to this model set version.'
+LINK_DATASET = 'Link a dataset entity name to this model set version'
+LINK_LABELS = 'Link a labels entity name to this model set version'
+LINK_DATASET_TO_LABEL = 'Link a dataset entity name to this label set version'
 RESET_HARD = 'Remove untracked files from workspace, files to be committed from staging area as well '\
              'as committed files upto <reference>.'
 RESET_MIXED = 'Revert the committed files and the staged files to \'Untracked Files\'. This is the default action.'
@@ -79,3 +80,8 @@ GLOBAL_CONFIGURATIONS = 'Global configurations.'
 VERBOSE_OPTION = 'Debug mode'
 FSCK_FULL_OPTION = 'Show the list of corrupted files.'
 REMOTE_FSCK_FULL_OPTION = 'Show the list of fixed and unfixed blobs and IPLDs.'
+CREATE_COMMAND = 'This command will create the workspace structure with data and spec file for an entity and set the ' \
+                 'git and storage configurations. [This command has a wizard that will request the necessary information ' \
+                 'if it is not informed]'
+STORAGE_ADD_COMMAND = 'Add a storage BUCKET_NAME to ml-git. [This command has a wizard that will request the necessary' \
+                      ' information if it is not informed]'

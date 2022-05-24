@@ -200,7 +200,9 @@ Same for ML model, one can specify which dataset and label set that have been us
 Usage: ml-git datasets create [OPTIONS] ARTIFACT_NAME
 
   This command will create the workspace structure with data and spec file
-  for an entity and set the git and storage configurations.
+  for an entity and set the git and storage configurations. [This command 
+  has a wizard that will request the necessary information if it is not 
+  informed]
 
 Options:
   --categories TEXT               Artifact's categories names. The categories
@@ -983,7 +985,7 @@ This is the first command you need to run to initialize a ml-git project. It wil
 ```
 Usage: ml-git repository remote datasets add [OPTIONS] REMOTE_URL
 
-  Add remote dataset metadata REMOTE_URL to this ml-git repository
+  Add remote dataset metadata REMOTE_URL to this ml-git repository.
 
 Options:
   --help  Show this message and exit.
@@ -1043,7 +1045,8 @@ ml-git repository remote config add https://git@github.com/mlgit-config
 ```
 Usage: ml-git repository storage add [OPTIONS] BUCKET_NAME
 
-  Add a storage BUCKET_NAME to ml-git
+  Add a storage BUCKET_NAME to ml-git [This command has a wizard that 
+  will request the necessary information if it is not informed]
 
 Options:
   --credentials TEXT              Profile name for storage credentials

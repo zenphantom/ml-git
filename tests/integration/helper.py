@@ -1,5 +1,5 @@
 """
-© Copyright 2020-2021 HP Development Company, L.P.
+© Copyright 2020-2022 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
 import os
@@ -14,6 +14,7 @@ from zipfile import ZipFile
 
 from ruamel.yaml import YAML
 
+from ml_git.commands.wizard import WIZARD_ENABLE_KEY
 from ml_git.constants import GLOBAL_ML_GIT_CONFIG, MutabilityType, StorageType, EntityType, STORAGE_SPEC_KEY, \
     STORAGE_CONFIG_KEY, FileType, MLGIT_IGNORE_FILE_NAME
 from ml_git.ml_git_message import output_messages
@@ -129,7 +130,7 @@ def init_repository(entity, self, version=1, storage_type=S3H, profile=PROFILE, 
         self.assertIn(output_messages['INFO_ALREADY_IN_RESPOSITORY'], check_output(MLGIT_INIT))
     else:
         self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
-
+    disable_wizard_in_config(self.tmp_dir)
     self.assertIn(output_messages['INFO_ADD_REMOTE'] % (os.path.join(self.tmp_dir, GIT_PATH), entity),
                   check_output(MLGIT_REMOTE_ADD % (entity, os.path.join(self.tmp_dir, GIT_PATH))))
 
@@ -287,6 +288,7 @@ def entity_init(repo_type, self):
     clear(ML_GIT_DIR)
     clear(os.path.join(PATH_TEST, repo_type))
     init_repository(repo_type, self)
+    disable_wizard_in_config(self.tmp_dir)
 
 
 def create_file(workspace, file_name, value, file_path='data'):
@@ -307,6 +309,7 @@ def create_zip_file(dir, number_of_files_in_zip=3):
 def configure_global(self, entity_type):
     self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_INIT))
     self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_REMOTE_ADD_GLOBAL % (entity_type, os.path.join(self.tmp_dir, GIT_PATH))))
+    disable_wizard_in_config(self.tmp_dir)
     self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_STORAGE_ADD % (BUCKET_NAME, PROFILE + ' --global')))
     edit_global_config_yaml()
     clear(os.path.join(self.tmp_dir, ML_GIT_DIR))
@@ -358,3 +361,11 @@ def create_ignore_file(dir, ignore_rules=None):
     file = os.path.join(dir, MLGIT_IGNORE_FILE_NAME)
     with open(file, 'wt') as file:
         file.writelines(ignore_rules)
+
+
+def disable_wizard_in_config(ml_git_dir):
+    with open(os.path.join(ml_git_dir, '.ml-git', 'config.yaml'), 'r') as config_file:
+        config = yaml_processor.load(config_file)
+        config[WIZARD_ENABLE_KEY] = False
+    with open(os.path.join(ml_git_dir, '.ml-git', 'config.yaml'), 'w') as config_file:
+        yaml_processor.dump(config, config_file)
