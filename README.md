@@ -19,7 +19,7 @@ If you are seeking to learn more about ML-Git, access [ML-Git Page](https://hpin
 
 **From repository:**
 ```
-pip install git+git://github.com/HPInc/ml-git.git
+pip install ml-git
 ```
 
 **From source code:**
