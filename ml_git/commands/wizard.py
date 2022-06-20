@@ -59,7 +59,7 @@ def choise_wizard_for_field(context, field, input_message, choises, default, wiz
         return default
     else:
         try:
-            new_field = check_empty_for_none(request_choise_value(input_message, choises, default))
+            new_field = check_empty_for_none(request_choise_value(input_message, choises, default).strip())
             return new_field
         except Exception:
             context.exit()
