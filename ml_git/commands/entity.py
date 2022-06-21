@@ -10,7 +10,7 @@ from click_didyoumean import DYMGroup
 from ml_git.commands import prompt_msg
 from ml_git.commands.custom_types import CategoriesType
 from ml_git.commands.general import mlgit
-from ml_git.commands.utils import repositories, LABELS, DATASETS, MODELS
+from ml_git.commands.utils import repositories, LABELS, DATASETS, MODELS, check_entity_name
 from ml_git.commands.wizard import wizard_for_field, choice_wizard_for_field
 from ml_git.constants import EntityType, MutabilityType
 from ml_git.ml_git_message import output_messages
@@ -249,6 +249,7 @@ def remote_fsck(context, **kwargs):
 
 
 def create(context, **kwargs):
+    check_entity_name(kwargs['artifact_name'])
     wizard_flag = kwargs['wizard']
     kwargs['categories'] = wizard_for_field(context, kwargs['categories'], prompt_msg.CATEGORIES_MESSAGE,
                                             wizard_flag=wizard_flag, required=True, type=CategoriesType())

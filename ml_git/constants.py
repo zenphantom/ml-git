@@ -1,5 +1,5 @@
 """
-© Copyright 2020-2021 HP Development Company, L.P.
+© Copyright 2020-2022 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
 
@@ -41,7 +41,7 @@ BATCH_SIZE_VALUE = 20
 RGX_SIZE_FILES = r'[+]\s+size:\s+(\d+(?:[.]\d+)*\s+.+)'
 RGX_AMOUNT_FILES = r'[+]\s+amount:\s+(\d+)'
 RGX_TAG_FORMAT = r'(?:[^_]+_{2}){2,}\d+$'
-RGX_TAG_NAME = r'^(?!\/|@)((?!\/{2,}|\.{2,}|@{)(?=[^[^?*:\\])[(-}])+(?<!\.lock)(?<![/.])$'
+RGX_TAG_NAME = r'^(?!\/|@)((?!\/{2,}|\.{2,}|@{)(?=[^[^_?*:\\])[(-}])+(?<!\.lock)(?<![\/.])$'
 ADDED = 'Added files'
 DELETED = 'Deleted files'
 AUTHOR = 'Author'
