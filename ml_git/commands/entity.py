@@ -250,8 +250,9 @@ def diff(context, **kwargs):
 
 def remote_fsck(context, **kwargs):
     repo_type = context.parent.command.name
+    wizard_flag = kwargs['wizard']
     entity_name = kwargs['ml_entity_name']
-    thorough = kwargs['thorough']
+    thorough = kwargs['thorough'] if kwargs['thorough'] else request_user_confirmation(prompt_msg.THOROUGH_MESSAGE, wizard_flag=wizard_flag)
     paranoid = kwargs['paranoid']
     retry = kwargs['retry']
     full_log = kwargs['full']
