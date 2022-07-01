@@ -26,3 +26,5 @@ METRIC_FILE = 'If you have a file with the metrics of this model you can associa
               ' define the path to the file [None]'
 COMMIT_VERSION = 'Define the {} version to be commited [{}]'
 COMMIT_MESSAGE = 'Define the commit message'
+VERSION_TO_BE_DOWNLOADED = 'Define the {} version to be downloaded [latest]'
+CHECKOUT_RELATED_ENTITY = 'Do you want to checkout related {}'

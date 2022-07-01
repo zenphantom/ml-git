@@ -8,7 +8,9 @@ import pathlib
 import unittest
 
 import pytest
+from click.testing import CliRunner
 
+from ml_git.commands import entity
 from ml_git.ml_git_message import output_messages
 from ml_git.utils import ensure_path_exists
 from tests.integration.commands import MLGIT_CHECKOUT, MLGIT_PUSH, MLGIT_COMMIT, MLGIT_ADD
@@ -91,7 +93,7 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
         self.assertFalse(os.path.exists(file))
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
-    def test_03_checkout_with_two_entities_wit_same_name(self):
+    def test_03_checkout_with_two_entities_with_same_name(self):
         entity = DATASETS
         self._create_entity(entity, 'images')
         clear(os.path.join(self.tmp_dir, '.ml-git'))
@@ -234,3 +236,28 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
         self.assertNotIn('test-unsaved-file1', output_command)
         self.assertNotIn('test-unsaved-file2', output_command)
         self.assertNotIn('test-unsaved-file3', output_command)
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
+    def test_12_checkout_entity_name_with_wizard(self):
+        entity_type = DATASETS
+        init_repository(entity_type, self)
+        self._create_new_tag(entity_type, 'new')
+        self._clear_workspace(entity_type)
+        runner = CliRunner()
+        result = runner.invoke(entity.datasets, ['checkout', entity_type + '-ex', '--wizard'], input='\n'.join(['']))
+        self.assertNotIn(ERROR_MESSAGE, result.output)
+        file = os.path.join(self.tmp_dir, DATASETS, DATASET_NAME, 'newfile0')
+        self.check_metadata()
+        self.check_amount_of_files(DATASETS, 6)
+        self.assertTrue(os.path.exists(file))
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
+    def test_13_checkout_with_version_number_and_wizard(self):
+        self.set_up_checkout(DATASETS)
+        runner = CliRunner()
+        result = runner.invoke(entity.datasets, ['checkout', DATASETS + '-ex', '--wizard'], input='\n'.join(['1']))
+        self.assertNotIn(ERROR_MESSAGE, result.output)
+        file = os.path.join(self.tmp_dir, DATASETS, DATASET_NAME, 'newfile0')
+        self.check_metadata()
+        self.check_amount_of_files(DATASETS, 6)
+        self.assertTrue(os.path.exists(file))

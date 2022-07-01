@@ -36,7 +36,7 @@ def request_choice_value(input_message, choices=[], default=None):
 
 def request_user_confirmation(confimation_message, default=False, wizard_flag=False):
     if is_wizard_enabled() or wizard_flag:
-        return click.confirm(confimation_message, default=default, abort=False, prompt_suffix='?')
+        return click.confirm(confimation_message, default=default, abort=False, prompt_suffix='? ')
     return False
 
 
