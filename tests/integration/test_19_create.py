@@ -447,3 +447,11 @@ class CreateAcceptanceTests(unittest.TestCase):
         with open(spec, 'r') as s:
             spec_file = yaml_processor.load(s)
             self.assertEqual(spec_file[get_spec_key(entity_type)]['manifest'][STORAGE_SPEC_KEY], storage_type + '://' + bucket_name)
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
+    def test_34_create_entity_out_of_project_dir(self):
+        entity_type = DATASETS
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
+        command = MLGIT_CREATE % (entity_type, entity_type + '-ex' + ' --categories=img --mutability=strict --entity-dir=../')
+        self.assertIn(output_messages['ERROR_INVALID_ENTITY_DIR'].format('../'), check_output(command))
+        self.assertFalse(os.path.exists(os.path.join(self.tmp_dir, '../', entity_type + '-ex')))

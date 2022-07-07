@@ -1,5 +1,5 @@
 """
-© Copyright 2020 HP Development Company, L.P.
+© Copyright 2020-2022 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
 import csv
@@ -20,7 +20,7 @@ from ml_git.utils import json_load, yaml_load, yaml_save, RootPathException, get
     ensure_path_exists, yaml_load_str, get_yaml_str, run_function_per_group, unzip_files_in_directory, \
     remove_from_workspace, group_files_by_path, remove_other_files, remove_unnecessary_files, change_keys_in_config, \
     update_directories_to_plural, validate_config_keys, create_csv_file, create_or_update_gitignore, should_ignore_file, \
-    get_ignore_rules
+    get_ignore_rules, path_is_parent
 from tests.unit.conftest import DATASETS, MODELS, S3H, S3
 
 
@@ -336,3 +336,9 @@ class UtilsTestCases(unittest.TestCase):
         expected_rules = ['data/*.png', 'ignored-folder/']
         self.assertEqual(result, expected_rules)
         self.assertEqual(None, get_ignore_rules('wrong-path'))
+
+    def test_path_is_parent(self):
+        self.assertTrue(path_is_parent('A/B', 'A/B/C'))
+        self.assertTrue(path_is_parent('A/B', 'A/B/../B/C'))
+        self.assertFalse(path_is_parent('A/B', 'A/B/../C'))
+        self.assertFalse(path_is_parent('A/B', 'A/B/../../C'))

@@ -346,6 +346,7 @@ output_messages = {
     'ERROR_COMMIT_WITHOUT_ADD': 'Nothing to commit (create/add files and use "ml-git {} add" command to track them)',
     'ERROR_STORAGE_TYPE_INPUT_INVALID': "invalid choice: {}. (choose from s3h, azureblobh, gdriveh, sftph)",
     'ERROR_BADLY_FORMATTED_URL': 'Badly formatted url {}',
+    'ERROR_INVALID_ENTITY_DIR': 'The entity data directory must be inside the ml-git project entities directory. \'{}\' is not a valid value.',
 
     'WARN_CORRUPTED_CANNOT_BE_ADD': 'The following files cannot be added because they are corrupted:',
     'WARN_HAS_CONFIGURED_REMOTE': 'YOU ALREADY HAS A CONFIGURED REMOTE. All data stored in this repository will be sent to the new one on the first push.',

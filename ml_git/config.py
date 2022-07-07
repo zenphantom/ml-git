@@ -16,7 +16,8 @@ from ml_git.constants import FAKE_STORAGE, BATCH_SIZE_VALUE, BATCH_SIZE, Storage
     MultihashStorageType
 from ml_git.ml_git_message import output_messages
 from ml_git.spec import get_spec_key
-from ml_git.utils import getOrElse, yaml_load, yaml_save, get_root_path, yaml_load_str, RootPathException
+from ml_git.utils import getOrElse, yaml_load, yaml_save, get_root_path, yaml_load_str, RootPathException, \
+    path_is_parent
 
 push_threads = os.cpu_count()*5
 
@@ -302,8 +303,10 @@ def validate_spec_hash(the_hash, entity_key=DATASET_SPEC_KEY):
 def create_workspace_tree_structure(repo_type, artifact_name, categories, storage_type, bucket_name, version,
                                     imported_dir, mutability, entity_dir=''):
     # get root path to create directories and files
-    path = get_root_path()
-    artifact_path = os.path.join(path, repo_type, entity_dir, artifact_name)
+    repo_type_dir = os.path.join(get_root_path(), repo_type)
+    artifact_path = os.path.join(repo_type_dir, entity_dir, artifact_name)
+    if not path_is_parent(repo_type_dir, artifact_path):
+        raise Exception(output_messages['ERROR_INVALID_ENTITY_DIR'].format(entity_dir))
     if os.path.exists(artifact_path):
         raise PermissionError(output_messages['INFO_ENTITY_NAME_EXISTS'])
     data_path = os.path.join(artifact_path, 'data')
