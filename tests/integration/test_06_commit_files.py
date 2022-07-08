@@ -138,7 +138,7 @@ class CommitFilesAcceptanceTests(unittest.TestCase):
         entity_init(entity_type, self)
         add_file(self, entity_type, '--bumpversion', 'new')
         runner = CliRunner()
-        result = runner.invoke(entity.labels, ['commit', 'ENTITY-NAME', '--wizard'], input='\n'.join(['', 'message']))
+        result = runner.invoke(entity.labels, ['commit', entity_type + '-ex', '--wizard'], input='\n'.join(['', 'message']))
         self.assertIn(prompt_msg.COMMIT_VERSION.format('labels', '1'), result.output)
         self.assertIn(prompt_msg.COMMIT_MESSAGE, result.output)
 
@@ -148,7 +148,7 @@ class CommitFilesAcceptanceTests(unittest.TestCase):
         entity_init(entity_type, self)
         add_file(self, entity_type, '--bumpversion', 'new')
         runner = CliRunner()
-        result = runner.invoke(entity.models, ['commit', 'ENTITY-NAME', '--wizard'], input='\n'.join(['', 'message']))
+        result = runner.invoke(entity.models, ['commit', entity_type + '-ex', '--wizard'], input='\n'.join(['', 'message']))
         self.assertIn(prompt_msg.COMMIT_VERSION.format('model', '1'), result.output)
         self.assertIn(prompt_msg.COMMIT_MESSAGE, result.output)
 
@@ -205,9 +205,18 @@ class CommitFilesAcceptanceTests(unittest.TestCase):
         self.assertFalse(os.path.exists(HEAD))
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
-    def test_15_commit_with_version_without_new_data(self):
+    def test_17_commit_with_version_without_new_data(self):
         entity_type = DATASETS
         self._commit_entity(entity_type)
         output = check_output(MLGIT_COMMIT % (entity_type, entity_type + '-ex', ' --version=2'))
         self.assertNotIn(output_messages['INFO_FILE_AUTOMATICALLY_ADDED'].format(entity_type + '-ex.spec'), output)
         self.assertIn(output_messages['ERROR_COMMIT_WITHOUT_ADD'].format(DATASETS), output)
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
+    def test_18_commit_without_add_with_wizard(self):
+        entity_type = DATASETS
+        self._commit_entity(entity_type)
+        output = check_output(MLGIT_COMMIT % (entity_type, entity_type + '-ex', ' --wizard'))
+        self.assertIn(output_messages['ERROR_COMMIT_WITHOUT_ADD'].format(DATASETS), output)
+        self.assertNotIn(prompt_msg.COMMIT_VERSION.format('dataset', '2'), output)
+        self.assertNotIn(prompt_msg.COMMIT_MESSAGE, output)

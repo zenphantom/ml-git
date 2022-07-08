@@ -399,6 +399,27 @@ class Repository(object):
         except SearchSpecException:
             return
 
+    def has_data_to_commit(self, spec):
+        repo_type = self.__repo_type
+        try:
+            index_path = get_index_path(self.__config, repo_type)
+            objects_path = get_objects_path(self.__config, repo_type)
+            path, file = search_spec_file(self.__repo_type, spec)
+            o = Objects(spec, objects_path)
+            changed_files, deleted_files, added_files = o.commit_index(index_path, path, persist_data=False)
+
+            if (len(changed_files + deleted_files + added_files)) == 0:
+                log.warn(output_messages['ERROR_COMMIT_WITHOUT_ADD'].format(self.__repo_type),
+                         class_name=REPOSITORY_CLASS_NAME)
+                return False
+        except OSError:
+            log.warn(output_messages['ERROR_COMMIT_WITHOUT_ADD'].format(self.__repo_type), class_name=REPOSITORY_CLASS_NAME)
+            return False
+        except Exception as e:
+            log.error(e, class_name=REPOSITORY_CLASS_NAME)
+            return False
+        return True
+
     '''commit changes present in the ml-git index to the ml-git repository'''
     def commit(self, spec, specs, version=None, run_fsck=False, msg=None):
         # Move chunks from index to .ml-git/objects

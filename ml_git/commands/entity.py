@@ -159,6 +159,9 @@ def commit(context, **kwargs):
     entity_name = kwargs['ml_entity_name']
     run_fsck = kwargs['fsck']
 
+    if not repositories[repo_type].has_data_to_commit(entity_name):
+        context.exit()
+
     last_version = get_last_entity_version(repo_type, entity_name)
     version = wizard_for_field(context, kwargs['version'],
                                prompt_msg.COMMIT_VERSION.format(parse_entity_type_to_singular(repo_type), last_version),

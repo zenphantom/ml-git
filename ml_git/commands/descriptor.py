@@ -285,6 +285,7 @@ commands = [
             '--version': {'type': click.IntRange(0, int(8 * '9')), 'help': help_msg.SET_VERSION_NUMBER},
             ('--message', '-m'): {'help': help_msg.COMMIT_MSG},
             '--fsck': {'is_flag': True, 'help': help_msg.FSCK_OPTION},
+            '--wizard': {'is_flag': True, 'default': False, 'help': help_msg.WIZARD_OPTION}
         },
 
         'help': 'Commit dataset change set of ML_ENTITY_NAME locally to this ml-git repository.'
