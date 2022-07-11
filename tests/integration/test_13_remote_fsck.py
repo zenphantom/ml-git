@@ -38,7 +38,12 @@ class RemoteFsckAcceptanceTests(unittest.TestCase):
     def test_01_remote_fsck(self):
         self.setup_remote_fsck()
         os.unlink(os.path.join(MINIO_BUCKET_PATH, 'zdj7Wi996ViPiddvDGvzjBBACZzw6YfPujBCaPHunVoyiTUCj'))
-        self.assertIn(output_messages['INFO_REMOTE_FSCK_FIXED'] % (0, 1), check_output(MLGIT_REMOTE_FSCK % (DATASETS, DATASET_NAME)))
+        output = check_output(MLGIT_REMOTE_FSCK % (DATASETS, DATASET_NAME))
+        self.assertIn(output_messages['INFO_STARTING_IPLDS_CHECK'], output)
+        self.assertIn(output_messages['INFO_STARTING_BLOBS_CHECK'], output)
+        self.assertIn(output_messages['INFO_FSCK_COMPLETE'], output)
+        self.assertIn(output_messages['INFO_REMOTE_FSCK_FIXED'] % (0, 1), output)
+        self.assertIn(output_messages['INFO_REMOTE_FSCK_TOTAL'] % (1, 1), output)
         self.assertTrue(os.path.exists(os.path.join(MINIO_BUCKET_PATH, 'zdj7Wi996ViPiddvDGvzjBBACZzw6YfPujBCaPHunVoyiTUCj')))
 
     def _get_file_path(self):
