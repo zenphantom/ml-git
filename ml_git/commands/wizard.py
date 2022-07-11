@@ -24,13 +24,18 @@ def request_new_value(input_message, required=False, input_type=None):
     if required:
         default = None
     field_value = click.prompt(input_message, default=default, show_default=False, type=input_type)
+    log.debug('{}: {}'.format(input_message, field_value))
     if type(field_value) == str:
         field_value = field_value.strip()
+    if not field_value and required:
+        log.info(output_messages['ERROR_EMPTY_VALUE'])
+        field_value = request_new_value(input_message, required, input_type)
     return field_value
 
 
 def request_choice_value(input_message, choices=[], default=None):
     field_value = click.prompt(input_message, default=default, show_default=True, type=choices, show_choices=True)
+    log.debug('{}: {}'.format(input_message, field_value))
     return field_value
 
 

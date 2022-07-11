@@ -10,6 +10,7 @@ import pytest
 from click.testing import CliRunner
 
 from ml_git.commands import entity, prompt_msg
+from ml_git.commands.utils import parse_entity_type_to_singular
 from ml_git.constants import MLGIT_IGNORE_FILE_NAME
 from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_COMMIT, MLGIT_ADD
@@ -220,3 +221,15 @@ class CommitFilesAcceptanceTests(unittest.TestCase):
         self.assertIn(output_messages['ERROR_COMMIT_WITHOUT_ADD'].format(DATASETS), output)
         self.assertNotIn(prompt_msg.COMMIT_VERSION.format('dataset', '2'), output)
         self.assertNotIn(prompt_msg.COMMIT_MESSAGE, output)
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
+    def test_19_commit_files_to_labels_with_wizard_enabled(self):
+        entity_type = LABELS
+        entity_init(entity_type, self)
+        add_file(self, entity_type, '--bumpversion', 'new')
+        runner = CliRunner()
+        result = runner.invoke(entity.labels, ['commit', entity_type + '-ex', '--wizard'], input='\n'.join(['', 'message', 'y', '   ', 'dataset-ex']))
+        self.assertIn(prompt_msg.COMMIT_VERSION.format('labels', '1'), result.output)
+        self.assertIn(prompt_msg.COMMIT_MESSAGE, result.output)
+        self.assertIn(prompt_msg.WANT_LINK_TO_LABEL_ENTITY.format(parse_entity_type_to_singular(DATASETS)), result.output)
+        self.assertIn(prompt_msg.DEFINE_LINKED_DATASET, result.output)
