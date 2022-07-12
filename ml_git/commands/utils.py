@@ -19,6 +19,8 @@ LABELS = EntityType.LABELS.value
 MODELS = EntityType.MODELS.value
 PROJECT = 'project'
 
+MAX_INT_VALUE = int(8 * '9')
+
 
 def init_repository(entity_type=DATASETS):
     return Repository(config_load(), entity_type)

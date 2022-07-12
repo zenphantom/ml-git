@@ -1,5 +1,5 @@
 """
-© Copyright 2020-2021 HP Development Company, L.P.
+© Copyright 2020-2022 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
 
@@ -155,3 +155,12 @@ class PushFilesAcceptanceTests(unittest.TestCase):
         output = check_output(MLGIT_PUSH % (entity_type, artifact_name))
         self.assertIn(ERROR_MESSAGE, output)
         self.assertIn('There was an error checking if bucket \'{}\' exists.'.format(BUCKET_NAME), output)
+
+    @pytest.mark.usefixtures('start_empty_git_server', 'switch_to_tmp_dir')
+    def test_12_push_with_invalid_retry_number(self):
+        entity_type = DATASETS
+        init_repository(entity_type, self)
+        add_file(self, entity_type, '--bumpversion', 'new', file_content='0')
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_COMMIT % (entity_type, DATASET_NAME, '')))
+        expected_error_message = '-2 is not in the valid range of 0 to 99999999.'
+        self.assertIn(expected_error_message, check_output(MLGIT_PUSH % (entity_type, entity_type+'-ex --retry=-2')))

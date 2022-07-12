@@ -1,5 +1,5 @@
 """
-© Copyright 2020 HP Development Company, L.P.
+© Copyright 2020-2022 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
 
@@ -149,3 +149,9 @@ class FetchAcceptanceTests(unittest.TestCase):
         self.set_up_fetch()
         wrong_tag = 'computer-vision__images__datasets-ex__10'
         self.assertIn(output_messages['INFO_PATHSPEC_KNOWN_GIT'] % wrong_tag, check_output(MLGIT_FETCH % (DATASETS, wrong_tag)))
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
+    def test_17_fetch_with_invalid_retry(self):
+        self.set_up_fetch()
+        expected_error_message = '-2 is not in the valid range of 0 to 99999999.'
+        self.assertIn(expected_error_message, check_output(MLGIT_FETCH % (DATASETS, DATASET_TAG + ' --retry=-2')))

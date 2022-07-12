@@ -13,7 +13,7 @@ from ml_git.commands.custom_types import CategoriesType
 from ml_git.commands.general import mlgit
 from ml_git.commands.prompt_msg import VERSION_TO_BE_DOWNLOADED
 from ml_git.commands.utils import repositories, LABELS, DATASETS, MODELS, check_entity_name, \
-    parse_entity_type_to_singular, get_last_entity_version
+    parse_entity_type_to_singular, get_last_entity_version, MAX_INT_VALUE
 from ml_git.commands.wizard import wizard_for_field, choice_wizard_for_field, request_user_confirmation
 from ml_git.constants import EntityType, MutabilityType, RGX_TAG_FORMAT
 from ml_git.ml_git_message import output_messages
@@ -102,7 +102,7 @@ def checkout(context, **kwargs):
     version = kwargs['version']
     if not re.search(RGX_TAG_FORMAT, entity):
         version = wizard_for_field(context, version, VERSION_TO_BE_DOWNLOADED.format(parse_entity_type_to_singular(repo_type)),
-                                   wizard_flag=wizard_flag, type=int)
+                                   wizard_flag=wizard_flag, type=click.IntRange(0, MAX_INT_VALUE))
     if version is None:
         version = -1
     options['version'] = version
@@ -165,7 +165,7 @@ def commit(context, **kwargs):
     last_version = get_last_entity_version(repo_type, entity_name)
     version = wizard_for_field(context, kwargs['version'],
                                prompt_msg.COMMIT_VERSION.format(parse_entity_type_to_singular(repo_type), last_version),
-                               wizard_flag=wizard_flag, type=click.IntRange(0, int(8 * '9')), default=last_version)
+                               wizard_flag=wizard_flag, type=click.IntRange(0, MAX_INT_VALUE), default=last_version)
     msg = wizard_for_field(context, kwargs['message'], prompt_msg.COMMIT_MESSAGE, wizard_flag=wizard_flag)
 
     related_entities = {}

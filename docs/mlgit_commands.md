@@ -115,24 +115,28 @@ Usage: ml-git models checkout [OPTIONS] ML_ENTITY_TAG|ML_ENTITY
   Checkout the ML_ENTITY_TAG|ML_ENTITY of a model set into user workspace.
 
 Options:
-  -l, --with-labels     The checkout associated labels  in user workspace as
-                        well.
-  -d, --with-dataset    The checkout associated dataset in user workspace as
-                        well.
-  --retry INTEGER       Number of retries to download the files from the
-                        storage [default: 2].
-  --force               Force checkout command to delete untracked/uncommitted
-                        files from local repository.
-  --bare                Ability to add/commit/push without having the ml-
-                        entity checked out.
-  --version INTEGER     Number of artifact version to be downloaded [default:
-                        latest].
-  --fail-limit INTEGER  Number of failures before aborting the command
-                        [default: no limit].
-  --full                Show all contents for each directory.
-  --wizard              Enable the wizard to request information when needed.
-  --verbose             Debug mode
-
+  -l, --with-labels           The checkout associated labels  in user
+                              workspace as well.
+  -d, --with-dataset          The checkout associated dataset in user
+                              workspace as well.
+  --retry INTEGER RANGE       Number of retries to download the files from the
+                              storage. This number must be in the range 
+                              0-999999999 [default: 2].
+  --force                     Force checkout command to delete
+                              untracked/uncommitted files from local
+                              repository.
+  --bare                      Ability to add/commit/push without having the
+                              ml-entity checked out.
+  --version INTEGER RANGE     Number of artifact version to be downloaded.
+                              This number must be in the range 0-999999999 
+                              [default: latest].
+  --fail-limit INTEGER RANGE  Number of failures before aborting the command.
+                              This number must be in the range 0-999999999
+                              [default: no limit].
+  --full                      Show all contents for each directory.
+  --wizard                    Enable the wizard to request information when
+                              needed.
+  --verbose                   Debug mode
 ```
 
 Examples:
@@ -166,18 +170,17 @@ Usage: ml-git models commit [OPTIONS] ML_ENTITY_NAME
   repository.
 
 Options:
-  --dataset TEXT                  Link dataset entity name to this model set
-                                  version.
-  --labels TEXT                   Link labels entity name to this model set
-                                  version.
-  --version INTEGER RANGE         Set the version number of the artifact. This 
-                                  number must be in the range 0 to 999999999.
-  -m, --message TEXT              Use the provided <msg> as the commit
-                                  message.
-  --fsck                          Run fsck after command execution.
-  --wizard                        Enable the wizard to request information when
-                                  needed.
-  --verbose                       Debug mode
+  --dataset NOT EMPTY STRING  Link a dataset entity name to this model set
+                              version
+  --labels NOT EMPTY STRING   Link a labels entity name to this model set
+                              version
+  --version INTEGER RANGE     Set the version number of the artifact. This
+                              number must be in the range 0-999999999.
+  -m, --message TEXT          Use the provided <msg> as the commit message.
+  --fsck                      Run fsck after command execution.
+  --wizard                    Enable the wizard to request information when
+                              needed.
+  --verbose                   Debug mode
 ```
 
 Example:
@@ -215,24 +218,26 @@ Options:
   --mutability [strict|flexible|mutable]
                                   Mutability type.  [required]
   --storage-type [s3h|azureblobh|gdriveh|sftph]
-                                  Data storage type [default: s3h].
+                                  Storage type (s3h, azureblobh, gdriveh,
+                                  sftph) [default: s3h]
   --version INTEGER RANGE         Set the version number of the artifact. This
-                                  number must be in the range 0 to 999999999.
-  --import TEXT                   Path to be imported to the project. NOTE:
+                                  number must be in the range 0-999999999.
+  --import NOT EMPTY STRING       Path to be imported to the project. NOTE:
                                   Mutually exclusive with argument:
-                                  import_url, credentials_path.
+                                  credentials_path, import_url.
   --wizard-config                 If specified, ask interactive questions at
                                   console for git & storage configurations.
                                   [DEPRECATED: This option should no longer be
                                   used.]
-  --bucket-name TEXT              Bucket name
-  --import-url TEXT               Import data from a google drive url. NOTE:
+  --bucket-name NOT EMPTY STRING  Bucket name
+  --import-url NOT EMPTY STRING   Import data from a google drive url. NOTE:
                                   Mutually exclusive with argument: import.
-  --credentials-path TEXT         Directory of credentials.json. NOTE: This
+  --credentials-path NOT EMPTY STRING
+                                  Directory of credentials.json. NOTE: This
                                   option is required if --import-url is used.
   --unzip                         Unzip imported zipped files. Only available
                                   if --import-url is used.
-  --entity-dir TEXT               The relative path where the entity will be
+  --entity-dir NOT EMPTY STRING   The relative path where the entity will be
                                   created inside the ml entity directory.
   --wizard                        Enable the wizard to request information
                                   when needed.
@@ -314,12 +319,13 @@ Usage: ml-git datasets export [OPTIONS] ML_ENTITY_TAG BUCKET_NAME
   another (S3|MinIO).
 
 Options:
-  --credentials TEXT  Profile of AWS credentials [default: default].
-  --endpoint TEXT     Endpoint where you want to export
-  --region TEXT       AWS region name [default: us-east-1].
-  --retry INTEGER     Number of retries to upload or download the files from
-                      the storage [default: 2].
-  --verbose           Debug mode
+  --credentials TEXT     Profile of AWS credentials [default: default].
+  --endpoint TEXT        Storage endpoint url.
+  --region TEXT          AWS region name [default: us-east-1].
+  --retry INTEGER RANGE  Number of retries to download the files from the
+                         storage. This number must be in the range
+                         0-999999999 [default: 2].
+  --verbose              Debug mode
 ```
 
 Example:
@@ -354,8 +360,9 @@ Options:
                                   consists of amount and frequency used to
                                   download a sample.
   --seed TEXT                     Seed to be used in random-based samplers.
-  --retry INTEGER                 Number of retries to download the files from
-                                  the storage [default: 2].
+  --retry INTEGER RANGE           Number of retries to download the files from
+                                  the storage. This number must be in the
+                                  range 0-999999999 [default: 2].
   --verbose                       Debug mode
 ```
 
@@ -405,16 +412,19 @@ Usage: ml-git datasets import [OPTIONS] BUCKET_NAME ENTITY_DIR
   Gdrive to ENTITY_DIR.
 
 Options:
-  --credentials TEXT  Profile of AWS credentials [default: default].
-  --region TEXT       AWS region name [default: us-east-1].
-  --retry INTEGER     Number of retries to download the files from the storage
-                      [default: 2].
-  --path TEXT         Bucket folder path.
-  --object TEXT       Filename in bucket.
-  --storage-type [s3|gdrive]
-                      Data storage type [default: s3h].
-  --endpoint-url      Storage endpoint url.
-  --help              Show this message and exit.
+  --credentials TEXT          Input your profile to an s3 storage or your
+                              credentials path to a gdrive storage.(eg,
+                              --credentials=path/to/.credentials
+  --region TEXT               AWS region name [default: us-east-1].
+  --retry INTEGER RANGE       Number of retries to download the files from the
+                              storage. This number must be in the range 
+                              0-999999999 [default: 2].
+  --path TEXT                 Storage folder path.
+  --object TEXT               Filename in storage.
+  --storage-type [s3|gdrive]  Storage type (s3, gdrive) [default: s3]
+  --endpoint-url TEXT         Storage endpoint url.
+  --verbose                   Debug mode
+
 ```
 
 Example:
@@ -546,13 +556,15 @@ Usage: ml-git datasets push [OPTIONS] ML_ENTITY_NAME
   storage.
 
 Options:
-  --retry INTEGER       Number of retries to download the files from the
-                        storage [default: 2].
-  --clearonfail         Remove the files from the storage in case of failure
-                        during the push operation.
-  --fail-limit INTEGER  Number of failures before aborting the command
-                        [default: no limit].
-  --verbose             Debug mode
+  --retry INTEGER RANGE       Number of retries to download the files from the
+                              storage. This number must be in the range 
+                              0-999999999 [default: 2].
+  --clearonfail               Remove the files from the storage in case of
+                              failure during the push operation.
+  --fail-limit INTEGER RANGE  Number of failures before aborting the command.
+                              This number must be in the range 0-999999999 
+                              [default: no limit].
+  --verbose                   Debug mode
 ```
 
 Example:
@@ -577,17 +589,18 @@ Usage: ml-git datasets remote-fsck [OPTIONS] ML_ENTITY_NAME
   specialized repairs.
 
 Options:
-  --thorough       Try to download the IPLD if it is not present in the local
-                   repository to verify the existence of all contained IPLD
-                   links associated.
-  --paranoid       Adds an additional step that will download all IPLD and its
-                   associated IPLD links to verify the content by computing
-                   the multihash of all these.
-  --retry INTEGER  Number of retries to download the files from the storage
-                   [default: 2].
-  --full           Show the list of fixed and unfixed blobs and IPLDs.
-  --wizard         Enable the wizard to request information when needed.
-  --verbose        Debug mode
+  --thorough             Try to download the IPLD if it is not present in the
+                         local repository to verify the existence of all
+                         contained IPLD links associated.
+  --paranoid             Adds an additional step that will download all IPLD
+                         and its associated IPLD links to verify the content
+                         by computing the multihash of all these.
+  --retry INTEGER RANGE  Number of retries to download the files from the
+                         storage. This number must be in the range 0-999999999 
+                         [default: 2].
+  --full                 Show the list of fixed and unfixed blobs and IPLDs.
+  --wizard               Enable the wizard to request information when needed.
+  --verbose              Debug mode
 ```
 
 Example:

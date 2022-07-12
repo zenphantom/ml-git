@@ -434,3 +434,24 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
         self.assertTrue(os.path.exists(mlgit_ignore_file_path))
         self.assertTrue(os.path.exists(os.path.join(workspace, 'data', 'file1')))
         self.assertFalse(os.path.exists(os.path.join(workspace, 'data', 'image.png')))
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
+    def test_29_checkout_with_invalid_retry(self):
+        self.set_up_checkout(DATASETS)
+        output = check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG + ' --retry=-2'))
+        expected_error_message = '-2 is not in the valid range of 0 to 99999999.'
+        self.assertIn(expected_error_message, output)
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
+    def test_30_checkout_with_invalid_fail_limit(self):
+        self.set_up_checkout(DATASETS)
+        output = check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG + ' --fail-limit=-2'))
+        expected_error_message = '-2 is not in the valid range of 0 to 99999999.'
+        self.assertIn(expected_error_message, output)
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
+    def test_31_checkout_with_invalid_fail_version(self):
+        self.set_up_checkout(DATASETS)
+        output = check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG + ' --version=-2'))
+        expected_error_message = '-2 is not in the valid range of 0 to 99999999.'
+        self.assertIn(expected_error_message, output)
