@@ -14,10 +14,10 @@ from ml_git.constants import LABELS_SPEC_KEY, MODEL_SPEC_KEY, STORAGE_SPEC_KEY, 
     StorageType
 from ml_git.ml_git_message import output_messages
 from ml_git.spec import get_spec_key
-from tests.integration.commands import MLGIT_CREATE, MLGIT_INIT
+from tests.integration.commands import MLGIT_CREATE, MLGIT_INIT, MLGIT_REMOTE_ADD, MLGIT_ENTITY_INIT
 from tests.integration.helper import check_output, ML_GIT_DIR, IMPORT_PATH, create_file, ERROR_MESSAGE, yaml_processor, \
     create_zip_file, DATASETS, DATASET_NAME, MODELS, LABELS, STRICT, FLEXIBLE, MUTABLE, GDRIVEH, AZUREBLOBH, S3H, \
-    disable_wizard_in_config, PROFILE, SFTPH
+    disable_wizard_in_config, PROFILE, SFTPH, GIT_PATH
 
 
 @pytest.mark.usefixtures('tmp_dir')
@@ -363,6 +363,10 @@ class CreateAcceptanceTests(unittest.TestCase):
     def test_30_create_entity_and_s3h_storage_with_wizard(self):
         entity_type = DATASETS
         self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_ADD_REMOTE'] % (os.path.join(self.tmp_dir, GIT_PATH), entity_type),
+                      check_output(MLGIT_REMOTE_ADD % (entity_type, (os.path.join(self.tmp_dir, GIT_PATH)))))
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ENTITY_INIT % entity_type))
+
         bucket_name = 'test-wizard'
         endpoint_url = 'www.url.com'
         region = 'us-east-1'
@@ -393,6 +397,9 @@ class CreateAcceptanceTests(unittest.TestCase):
     def test_31_create_entity_and_sftph_storage_with_wizard(self):
         entity_type = DATASETS
         self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_ADD_REMOTE'] % (os.path.join(self.tmp_dir, GIT_PATH), entity_type),
+                      check_output(MLGIT_REMOTE_ADD % (entity_type, (os.path.join(self.tmp_dir, GIT_PATH)))))
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ENTITY_INIT % entity_type))
         bucket_name = 'test-wizard'
         endpoint_url = 'www.url.com'
         storage_type = StorageType.SFTPH.value
@@ -416,6 +423,9 @@ class CreateAcceptanceTests(unittest.TestCase):
     def test_32_create_entity_and_azureblobh_storage_with_wizard(self):
         entity_type = DATASETS
         self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_ADD_REMOTE'] % (os.path.join(self.tmp_dir, GIT_PATH), entity_type),
+                      check_output(MLGIT_REMOTE_ADD % (entity_type, (os.path.join(self.tmp_dir, GIT_PATH)))))
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ENTITY_INIT % entity_type))
         bucket_name = 'test-wizard'
         storage_type = StorageType.AZUREBLOBH.value
         runner = CliRunner()
@@ -434,6 +444,9 @@ class CreateAcceptanceTests(unittest.TestCase):
     def test_33_create_entity_and_gdriveh_storage_with_wizard(self):
         entity_type = DATASETS
         self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_ADD_REMOTE'] % (os.path.join(self.tmp_dir, GIT_PATH), entity_type),
+                      check_output(MLGIT_REMOTE_ADD % (entity_type, (os.path.join(self.tmp_dir, GIT_PATH)))))
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ENTITY_INIT % entity_type))
         bucket_name = 'test-wizard'
         storage_type = StorageType.GDRIVEH.value
         runner = CliRunner()

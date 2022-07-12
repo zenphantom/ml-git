@@ -201,6 +201,7 @@ class AddStoreAcceptanceTests(unittest.TestCase):
 
     @pytest.mark.usefixtures('switch_to_tmp_dir')
     def test_17_del_storage_wizard_enabled_without_type(self):
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
         self.assertIn(prompt_msg.STORAGE_TYPE_MESSAGE,
                       check_output(MLGIT_STORAGE_DEL % BUCKET_NAME + ' --wizard'))
 

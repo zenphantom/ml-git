@@ -15,9 +15,10 @@ from ml_git.commands.storage import storage
 from ml_git.commands.wizard import WizardMode, WIZARD_KEY
 from ml_git.constants import GLOBAL_ML_GIT_CONFIG, STORAGE_CONFIG_KEY
 from ml_git.ml_git_message import output_messages
-from tests.integration.commands import MLGIT_CONFIG_WIZARD, MLGIT_INIT, MLGIT_CREATE
+from tests.integration.commands import MLGIT_CONFIG_WIZARD, MLGIT_INIT, MLGIT_CREATE, MLGIT_ENTITY_INIT, \
+    MLGIT_REMOTE_ADD
 from tests.integration.helper import ML_GIT_DIR, S3H, GLOBAL_CONFIG_PATH, check_output, yaml_processor, \
-    DATASETS, LABELS, entity_init, add_file
+    DATASETS, LABELS, entity_init, add_file, GIT_PATH, ERROR_MESSAGE
 
 
 @pytest.mark.usefixtures('tmp_dir')
@@ -51,6 +52,9 @@ class WizardConfigCommandAcceptanceTests(unittest.TestCase):
                       check_output(MLGIT_CONFIG_WIZARD % mode))
 
         self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
+        self.assertIn(output_messages['INFO_ADD_REMOTE'] % (os.path.join(self.tmp_dir, GIT_PATH), LABELS),
+                      check_output(MLGIT_REMOTE_ADD % (LABELS, (os.path.join(self.tmp_dir, GIT_PATH)))))
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ENTITY_INIT % LABELS))
 
         runner = CliRunner()
         result = runner.invoke(entity.labels, ['create', 'ENTITY-NAME', '--categories=test'], input='strict\n')

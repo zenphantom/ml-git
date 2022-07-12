@@ -40,7 +40,7 @@ def request_choice_value(input_message, choices=[], default=None):
 
 
 def request_user_confirmation(confimation_message, default=False, wizard_flag=False):
-    if is_wizard_enabled() or wizard_flag:
+    if wizard_flag or is_wizard_enabled():
         return click.confirm(confimation_message, default=default, abort=False, prompt_suffix='? ')
     return False
 
@@ -48,7 +48,7 @@ def request_user_confirmation(confimation_message, default=False, wizard_flag=Fa
 def wizard_for_field(context, field, input_message, required=False, wizard_flag=False, type=None, default=None):
     if field:
         return field
-    elif not is_wizard_enabled() and not wizard_flag:
+    elif not wizard_flag and not is_wizard_enabled():
         return default
     else:
         try:
@@ -63,7 +63,7 @@ def wizard_for_field(context, field, input_message, required=False, wizard_flag=
 def choice_wizard_for_field(context, field, input_message, choices, default, wizard_flag=False):
     if field:
         return field
-    elif not is_wizard_enabled() and not wizard_flag:
+    elif not wizard_flag and not is_wizard_enabled():
         return default
     else:
         try:
