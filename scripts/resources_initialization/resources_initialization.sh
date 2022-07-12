@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ################################################################################
-# © Copyright 2020 HP Development Company, L.P.
+# © Copyright 2020-2022 HP Development Company, L.P.
 # SPDX-License-Identifier: GPL-2.0-only
 ################################################################################
 
@@ -195,7 +195,7 @@ create_new_github_repository labels
 create_new_github_repository models
 
 echo -e "\n## BUCKET CONFIGURATION ##"
-echo "storage:" >> config.yaml
+echo "storages:" >> config.yaml
 create_new_bucket_wizard
 
 echo -e "\n## CREATE REPOSITORY WITH CONFIGURATIONS ##"

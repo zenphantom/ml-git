@@ -1,5 +1,5 @@
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-:: © Copyright 2020 HP Development Company, L.P.
+:: © Copyright 2020-2022 HP Development Company, L.P.
 :: SPDX-License-Identifier: GPL-2.0-only
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
@@ -20,7 +20,7 @@ CALL:CREATE_NEW_GITHUB_REPOSITORY models
 
 ECHO.
 ECHO ## BUCKET CONFIGURATION ##
-ECHO storage: >> config.yaml
+ECHO storages: >> config.yaml
 CALL:CREATE_NEW_BUCKET_WIZARD
 
 ECHO.
