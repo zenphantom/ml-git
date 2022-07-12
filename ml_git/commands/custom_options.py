@@ -133,7 +133,7 @@ def check_valid_storage_choice(ctx, param, value):
 def multiple_option_callback(callbacks, ctx, param, value):
     new_value = value
     for callback in callbacks:
-        new_value = callback(ctx, param, value)
+        new_value = callback(ctx, param, new_value)
     return new_value
 
 
@@ -141,5 +141,24 @@ def check_empty_values(ctx, param, value):
     value_present = value is not None
     value_empty = str(value).strip() == '' if value_present else False
     if value_present and value_empty:
+        local_enabled = 'wizard' in ctx.params and ctx.params['wizard']
+        if local_enabled or is_wizard_enabled():
+            error_message = output_messages['ERROR_INVALID_VALUE_FOR'] % (''.join(["--", param.name]),
+                                                                          output_messages['ERROR_EMPTY_VALUE'])
+            return wizard_for_field(ctx, None, '{}\n{}'.format(error_message, prompt_msg.NEW_VALUE), wizard_flag=local_enabled)
         raise click.BadParameter(output_messages['ERROR_EMPTY_VALUE'])
+    return value
+
+
+def check_integer_value(ctx, param, value):
+    value_present = value is not None
+    if value_present:
+        if isinstance(value, int) or value.isdigit():
+            return value
+        local_enabled = ctx.params['wizard']
+        if local_enabled or is_wizard_enabled():
+            error_message = output_messages['ERROR_INVALID_VALUE_FOR'] % (''.join(["--", param.name]),
+                                                                          output_messages['ERROR_NOT_INTEGER_VALUE'].format(value))
+            return wizard_for_field(ctx, None, '{}\n{}'.format(error_message, prompt_msg.NEW_VALUE), wizard_flag=local_enabled, type=int)
+        raise click.BadParameter(output_messages['ERROR_NOT_INTEGER_VALUE'].format(value))
     return value

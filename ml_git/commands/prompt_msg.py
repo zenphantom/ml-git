@@ -24,6 +24,7 @@ PRIVATE_KEY_SFTPH = 'Define the full path for the private key file [None]'
 PORT_SFTPH = 'Define the SFTP port that will be used [22]'
 METRIC_FILE = 'If you have a file with the metrics of this model you can associate it with this version of the entity,' \
               ' define the path to the file [None]'
+NEW_VALUE = 'Please enter a new value'
 COMMIT_VERSION = 'Define the {} version to be commited [{}]'
 COMMIT_MESSAGE = 'Define the commit message'
 VERSION_TO_BE_DOWNLOADED = 'Define the {} version to be downloaded [latest]'

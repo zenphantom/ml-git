@@ -203,3 +203,29 @@ class AddStoreAcceptanceTests(unittest.TestCase):
     def test_17_del_storage_wizard_enabled_without_type(self):
         self.assertIn(prompt_msg.STORAGE_TYPE_MESSAGE,
                       check_output(MLGIT_STORAGE_DEL % BUCKET_NAME + ' --wizard'))
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir')
+    def test_18_add_storage_with_empty_port_with_wizard(self):
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
+        self.check_storage()
+
+        valid_port = '22'
+        runner = CliRunner()
+        result = runner.invoke(repository, ['storage', 'add', BUCKET_NAME, '--port=', '--wizard'], input='{}'.format(valid_port))
+        error_message = output_messages['ERROR_INVALID_VALUE_FOR'] % ("--port", output_messages['ERROR_EMPTY_VALUE'])
+        self.assertIn(error_message, result.output)
+        self.assertIn(prompt_msg.NEW_VALUE, result.output)
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir')
+    def test_19_add_storage_with_empty_port_with_wizard_invalid_input(self):
+        self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
+        self.check_storage()
+
+        invalid_port = 'not a number'
+        valid_port = '22'
+        runner = CliRunner()
+        result = runner.invoke(repository, ['storage', 'add', BUCKET_NAME, '--port=', '--wizard'], input='\n'.join([invalid_port, valid_port]))
+        empty_error_message = output_messages['ERROR_INVALID_VALUE_FOR'] % ("--port", output_messages['ERROR_EMPTY_VALUE'])
+        integer_error_message = output_messages['ERROR_INVALID_VALUE_FOR'] % ("--port", output_messages['ERROR_NOT_INTEGER_VALUE'].format(invalid_port))
+        self.assertIn('{}\n{}'.format(empty_error_message, prompt_msg.NEW_VALUE), result.output)
+        self.assertIn('{}\n{}'.format(integer_error_message, prompt_msg.NEW_VALUE), result.output)

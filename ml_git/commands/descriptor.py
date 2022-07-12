@@ -10,7 +10,8 @@ import click
 
 from ml_git.commands import entity, help_msg, storage
 from ml_git.commands.custom_options import MutuallyExclusiveOption, OptionRequiredIf, DeprecatedOptionsCommand, \
-    DeprecatedOption, check_multiple, check_valid_storage_choice, check_empty_values, multiple_option_callback
+    DeprecatedOption, check_multiple, check_valid_storage_choice, check_empty_values, multiple_option_callback, \
+    check_integer_value
 from ml_git.commands.custom_types import CategoriesType, NotEmptyString
 from ml_git.commands.utils import set_verbose_mode
 from ml_git.commands.wizard import is_wizard_enabled
@@ -587,7 +588,7 @@ commands = [
             '--endpoint-url': {'help': help_msg.ENDPOINT_URL},
             '--username': {'help': help_msg.USERNAME},
             '--private-key': {'help': help_msg.PRIVATE_KEY},
-            '--port': {'help': help_msg.PORT, 'type': int},
+            '--port': {'help': help_msg.PORT, 'callback': check_integer_value},
             ('--global', '-g'): {'is_flag': True, 'default': False, 'help': help_msg.GLOBAL_OPTION},
             '--wizard': {'is_flag': True, 'default': False, 'help': help_msg.WIZARD_OPTION, 'is_eager': True}
         },
