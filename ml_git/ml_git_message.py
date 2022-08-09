@@ -83,6 +83,7 @@ output_messages = {
     'DEBUG_UNPUBLISHED_COMMITS': 'Could not get unpublished commits quantity. Returning default value (0) for %s. %s',
     'DEBUG_ENTITIES_RELATIONSHIP': 'Could not get the entities to list its relationships. {}.',
     'DEBUG_UNZIPPING_FILE': 'Unzipping file: {}',
+    'DEBUG_RESTORED_FILE': 'The file [{}] has been restored to the original version.',
 
     'INFO_INITIALIZED_PROJECT_IN': 'Initialized empty ml-git repository in %s',
     'INFO_ADD_REMOTE': 'Add remote repository [%s] for [%s]',

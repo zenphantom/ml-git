@@ -314,17 +314,21 @@ class FullIndex(object):
         not_unlocked = value['mtime'] != st.st_mtime and 'untime' not in value
         bare_mode = os.path.exists(os.path.join(self._path, 'metadata', self._spec, 'bare'))
         if (is_flexible and not_unlocked) or is_strict:
-            status = Status.c.name
-            prev_hash = None
-            scid_ret = None
-
-            file_path = Cache(cache).get_keypath(value['hash'])
-            if os.path.exists(file_path):
-                os.unlink(file_path)
+            if value['status'] == Status.c.name and 'previous_hash' in value:
+                prev_hash = value['previous_hash']
+                if scid == prev_hash:
+                    prev_hash = None
+                    status = Status.u.name
+                    log.debug(output_messages['DEBUG_RESTORED_FILE'].format(posix_path(filepath)), class_name=MULTI_HASH_CLASS_NAME)
+            else:
+                status = Status.c.name
+                scid_ret = None
+                file_path = Cache(cache).get_keypath(value['hash'])
+                if os.path.exists(file_path):
+                    os.unlink(file_path)
         elif bare_mode and self._mutability == MutabilityType.MUTABLE.value:
             print('\n')
-            log.warn(output_messages['WARN_FILE_EXISTS_IN_REPOSITORY'] % filepath,
-                     class_name=MULTI_HASH_CLASS_NAME)
+            log.warn(output_messages['WARN_FILE_EXISTS_IN_REPOSITORY'] % filepath, class_name=MULTI_HASH_CLASS_NAME)
         self.update_full_index(posix_path(filepath), fullpath, status, scid, prev_hash)
         return scid_ret
 
