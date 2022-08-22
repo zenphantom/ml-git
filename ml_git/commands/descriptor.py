@@ -664,7 +664,7 @@ commands = [
 ]
 
 
-def define_command(descriptor):
+def define_command(descriptor, wizard):
     callback = descriptor['callback']
 
     command = click.command(name=descriptor['name'], short_help=descriptor['help'], cls=DeprecatedOptionsCommand)(click.pass_context(callback))
@@ -675,7 +675,7 @@ def define_command(descriptor):
 
     if 'options' in descriptor:
         for key, value in descriptor['options'].items():
-            if not is_wizard_enabled():
+            if not wizard:
                 value.pop('prompt', None)
             callbacks = [check_empty_values]
             if 'validators' in value:
@@ -700,4 +700,4 @@ def define_command(descriptor):
 
 
 for description in commands:
-    define_command(description)
+    define_command(description, is_wizard_enabled())
