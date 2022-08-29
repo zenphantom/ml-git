@@ -318,3 +318,29 @@ class AddFilesAcceptanceTests(unittest.TestCase):
             f.write('')
         metrics_options = '--metrics-file="{}"'.format(csv_file)
         self.assertIn(output_messages['ERROR_INVALID_METRICS_FILE'], check_output(MLGIT_ADD % (repo_type, entity_name, metrics_options)))
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
+    def test_18_recover_corrupted_file_added(self):
+        entity_init(DATASETS, self)
+
+        add_file(self, DATASETS, '--bumpversion', 'new')
+        corrupted_file = os.path.join(self.tmp_dir, DATASETS, DATASET_NAME, 'newfile0')
+
+        with open(corrupted_file) as f:
+            content = f.read()
+
+        os.chmod(corrupted_file, S_IWUSR | S_IREAD)
+        with open(corrupted_file, 'wb') as z:
+            z.write(b'0' * 0)
+
+        command_output = check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, '--bumpversion'))
+        self.assertIn(output_messages['WARN_CORRUPTED_CANNOT_BE_ADD'], command_output)
+        self.assertIn('newfile0', command_output)
+
+        os.chmod(corrupted_file, S_IWUSR | S_IREAD)
+        with open(corrupted_file, 'w') as z:
+            z.write(content)
+
+        command_output = check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, '--bumpversion'))
+        self.assertNotIn(output_messages['WARN_CORRUPTED_CANNOT_BE_ADD'], command_output)
+        self.assertNotIn('newfile0', command_output)

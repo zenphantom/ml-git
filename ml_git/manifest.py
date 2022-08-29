@@ -18,7 +18,10 @@ class Manifest(object):
     def add(self, key, file, previous_key=None):
         mf = self._manifest
 
-        if previous_key is not None:
+        from ml_git.file_system.index import Status
+        if previous_key is not None and \
+                ((file is not None) and ('status' in file and file['status'] != Status.c.name)
+                 or ('status' not in file)):
             if previous_key in mf and file in mf[previous_key]:
                 self.rm(previous_key, file)
 

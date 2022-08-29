@@ -194,8 +194,8 @@ class MultihashIndex(object):
         shutil.rmtree(self._path)
         os.mkdir(self._path)
 
-    def fsck(self):
-        return self._hfs.fsck()
+    def fsck(self, entity_path):
+        return self._full_idx.fsck(entity_path, self._hfs, self._cache)
 
     def update_index_manifest(self, hash_files):
         for key in hash_files:
@@ -314,17 +314,21 @@ class FullIndex(object):
         not_unlocked = value['mtime'] != st.st_mtime and 'untime' not in value
         bare_mode = os.path.exists(os.path.join(self._path, 'metadata', self._spec, 'bare'))
         if (is_flexible and not_unlocked) or is_strict:
-            status = Status.c.name
-            prev_hash = None
-            scid_ret = None
-
-            file_path = Cache(cache).get_keypath(value['hash'])
-            if os.path.exists(file_path):
-                os.unlink(file_path)
+            if value['status'] == Status.c.name and 'previous_hash' in value:
+                prev_hash = value['previous_hash']
+                if scid == prev_hash:
+                    prev_hash = None
+                    status = Status.u.name
+                    log.debug(output_messages['DEBUG_RESTORED_FILE'].format(posix_path(filepath)), class_name=MULTI_HASH_CLASS_NAME)
+            else:
+                status = Status.c.name
+                scid_ret = None
+                file_path = Cache(cache).get_keypath(value['hash'])
+                if os.path.exists(file_path):
+                    os.unlink(file_path)
         elif bare_mode and self._mutability == MutabilityType.MUTABLE.value:
             print('\n')
-            log.warn(output_messages['WARN_FILE_EXISTS_IN_REPOSITORY'] % filepath,
-                     class_name=MULTI_HASH_CLASS_NAME)
+            log.warn(output_messages['WARN_FILE_EXISTS_IN_REPOSITORY'] % filepath, class_name=MULTI_HASH_CLASS_NAME)
         self.update_full_index(posix_path(filepath), fullpath, status, scid, prev_hash)
         return scid_ret
 
@@ -336,6 +340,22 @@ class FullIndex(object):
 
     def get_total_count(self):
         return len(self.get_index())
+
+    def fsck(self, entity_path, hfs, cache):
+        corrupted_files = {}
+        f_index = self.get_index()
+        for k, v in f_index.items():
+            expected_hash = v['hash']
+            file_path = os.path.join(entity_path, k)
+            if os.path.exists(file_path):
+                if v['status'] == Status.c.name and 'previous_hash' in v:
+                    expected_hash = v['previous_hash']
+                if hfs.get_scid(file_path) != expected_hash:
+                    check_file = f_index.get(posix_path(k))
+                    self.check_and_update(k, check_file, hfs, posix_path(k), file_path, cache)
+                    corrupted_files[file_path] = {'hash': expected_hash, 'key': k}
+        self.save_manifest_index()
+        return corrupted_files
 
 
 class Status(Enum):

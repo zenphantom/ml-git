@@ -711,45 +711,104 @@ class Repository(object):
 
         m.checkout(ref, force=True)
 
-    '''Performs fsck on several aspects of ml-git filesystem.
-        TODO: add options like following:
-        * detect:
-            ** fast: performs checks on all blobs present in index / objects
-            ** thorough: perform check on files within cache
-        * fix:
-            ** download again corrupted blob
-            ** rebuild cache'''
+    def _check_index_and_fix_workspace(self, index_path, cache_path, corrupted_files_idx, fix_workspace, objects_path,
+                                       repo_type):
+        dirs = os.listdir(os.path.join(index_path, 'metadata'))
+        fixed_files = []
+        unfixed_files = []
+        for entity in dirs:
+            try:
+                spec_path, _ = search_spec_file(self.__repo_type, entity)
+                idx = MultihashIndex(entity, index_path, objects_path, cache_path=cache_path)
+                files = idx.fsck(spec_path)
+                corrupted_files_idx.extend(files.keys())
+                if fix_workspace and len(files.keys()) > 0:
+                    log.info(output_messages['INFO_FIXING_CORRUPTED_FILES'].format(len(files.keys()), entity))
+                    local_repository = LocalRepository(self.__config, objects_path, repo_type)
+                    obj_files = {}
+                    for value in files:
+                        obj_files[files[value]['hash']] = {files[value]['key']}
+                    result = local_repository.mount_files(obj_files, entity, cache_path, spec_path)
+                    if result:
+                        fixed_files.extend(files.keys())
+                    else:
+                        unfixed_files.extend(files.keys())
+                else:
+                    unfixed_files.extend(files.keys())
+            except Exception as e:
+                log.debug(output_messages['ERROR_WHILE_CHECKING_WORKSPACE'].format(entity, e))
+        return fixed_files, unfixed_files
 
-    def fsck(self, full_log=False):
+    def _fetch_missing_blobs_and_ilpds(self, index_path, objects_path, repo_type, metadata_path):
+        dirs = os.listdir(os.path.join(index_path, 'metadata'))
+        missing_files = []
+        for entity in dirs:
+            try:
+                spec_dir, spec_file = search_spec_file(self.__repo_type, entity, root_path=metadata_path)
+                local_repository = LocalRepository(self.__config, objects_path, repo_type)
+                files = local_repository.check_and_fetch_missing_files(entity, os.path.join(spec_dir, spec_file), metadata_path)
+                missing_files.extend(files)
+            except Exception as e:
+                log.debug(output_messages['ERROR_WHILE_FETCHING_MISSING_FILES'].format(entity, e))
+        return missing_files
+
+    def fsck(self, full_log=False, fix_workspace=False):
         repo_type = self.__repo_type
         try:
             objects_path = get_objects_path(self.__config, repo_type)
             index_path = get_index_path(self.__config, repo_type)
+            cache_path = get_cache_path(self.__config, repo_type)
             metadata_path = get_metadata_path(self.__config, repo_type)
             m = Metadata('', metadata_path, self.__config, repo_type)
             if not m.check_exists():
                 raise RuntimeError(output_messages['INFO_NOT_INITIALIZED'] % self.__repo_type)
+            if not os.path.exists(index_path):
+                log.info(output_messages['INFO_NONE_ENTITY_MANAGED'], class_name=REPOSITORY_CLASS_NAME)
+                return
         except Exception as e:
             log.error(e, class_name=REPOSITORY_CLASS_NAME)
             return
 
         o = Objects('', objects_path)
-        corrupted_files_obj = o.fsck()
+        corrupted_files_obj = o.fsck(remove_corrupted=True)
         corrupted_files_obj_len = len(corrupted_files_obj)
 
-        idx = MultihashIndex('', index_path, objects_path)
-        corrupted_files_idx = idx.fsck()
+        log.info(output_messages['INFO_STARTING_INTEGRITY_CHECK'].format(index_path), break_line=True)
+        files = self._fetch_missing_blobs_and_ilpds(index_path, objects_path, repo_type, metadata_path)
+        missing_files = [i for i in files if i not in corrupted_files_obj] if len(files) > 0 else []
+        missing_files_len = len(missing_files)
+
+        corrupted_files_idx = []
+        fixed_in_workspace, unfixed_in_workspace = self._check_index_and_fix_workspace(index_path, cache_path,
+                                                                                       corrupted_files_idx, fix_workspace,
+                                                                                       objects_path, repo_type)
+        total_fixed = len(files) + len(fixed_in_workspace)
+        log.info(output_messages['INFO_FINISH_INTEGRITY_CHECK'].format(index_path))
+
         corrupted_files_idx_len = len(corrupted_files_idx)
         total_corrupted_files = corrupted_files_idx_len + corrupted_files_obj_len
 
+        fixed_files = ''
         if not full_log:
             corrupted_files_obj = ''
             corrupted_files_idx = ''
-        print(output_messages['INFO_FSCK_CORRUPTED_FILES'] % (corrupted_files_obj_len, corrupted_files_obj,
-                                                              corrupted_files_idx_len, corrupted_files_idx,
-                                                              total_corrupted_files))
-        if total_corrupted_files > 0:
-            log.info(output_messages['INFO_FSCK_VERBOSE_MODE'], class_name=REPOSITORY_CLASS_NAME)
+            missing_files = ''
+        else:
+            corrupted_files_obj.extend(fixed_in_workspace)
+            corrupted_files_obj.extend(unfixed_in_workspace)
+            corrupted_files_obj_len = len(corrupted_files_obj)
+            fixed_files = missing_files.extend(fixed_in_workspace)
+
+        log.info(output_messages['INFO_FSCK_SUMMARY'], break_line=True)
+        log.debug(output_messages['INFO_FSCK_CORRUPTED_FILES'].format(corrupted_files_obj_len, corrupted_files_obj,
+                                                                      corrupted_files_idx_len, corrupted_files_idx,
+                                                                      total_corrupted_files))
+
+        print(output_messages['INFO_SUMMARY_FSCK_FILES'].format('corrupted', total_corrupted_files, corrupted_files_obj))
+        print(output_messages['INFO_SUMMARY_FSCK_FILES'].format('missing', missing_files_len, missing_files))
+        print(output_messages['INFO_FSCK_FIXED_FILES'].format(total_fixed, fixed_files))
+        if len(unfixed_in_workspace) > 0 and not fix_workspace:
+            log.info(output_messages['INFO_USE_FIX_WORKSPACE'])
 
     def show(self, spec):
         repo_type = self.__repo_type
@@ -1320,7 +1379,8 @@ class Repository(object):
         config_repo = MetadataRepo('', root_path, 'project')
         config_file = os.path.join(root_path, CONFIG_FILE)
         try:
-            config_repo.commit(config_file, message)
+            if not config_repo.commit(config_file, message, check_change=True):
+                return
             log.info(output_messages['INFO_PUSH_CONFIG_FILE'], class_name=REPOSITORY_CLASS_NAME)
             repo = Repo(root_path)
             repo.git.push(['-u', 'origin', config_repo.get_default_branch()])
