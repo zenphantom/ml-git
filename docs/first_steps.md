@@ -54,7 +54,7 @@ ml-git repository remote datasets add git@github.com:user/user-mlgit-project
 
 To configure the storage:
 ```
-ml-git repository storage add mlgit-datasets
+ml-git repository storage add mlgit-datasets --endpoint-url=<minio-endpoint-url>
 ```
 
 ### Adding Your First Dataset
@@ -67,7 +67,7 @@ ml-git datasets init
 
 Then, you can run the below command to create your dataset
 ```
-ml-git datasets create imagenet8 --category=computer-vision --mutability=strict --bucket-name=mlgit-datasets
+ml-git datasets create imagenet8 --categories=computer-vision --mutability=strict --bucket-name=mlgit-datasets
 ```
 It will generate an output saying that the project was created. Also, it will create a series of folders and files with the specifications of the dataset. You can see the generated files looking into the root folder.
 
@@ -89,18 +89,17 @@ Corrupted files:
 ```
 
 Above, the output shows some untracked files. To commit these files, similarly to git, we can run the following sequence of commands:
+
+The following command will add all untracked files:
 ```
-# It will add all untracked files
 ml-git datasets add imagenet8
 ```
-
+The following command will commit the metadata to the local repository:
 ```
-# It will commit the metadata to the local repository
 ml-git datasets commit imagenet8
 ```
-
+The following command  will update the remote metadata repository:
 ```
-# It will update the remote metadata repository
 ml-git datasets push imagenet8
 ```
 
@@ -113,7 +112,12 @@ To clone a repository use the command:
 ml-git clone git@github.com:example/your-mlgit-repository.git
 ```
 
-Then, you can discover which datasets are under ML-Git management by executing the command:
+Then, go to the project directory:
+```
+cd your-mlgit-repository
+```
+
+Now you can discover which datasets are under ML-Git management by executing the command:
 ```
 ml-git datasets list
 ```

@@ -1,5 +1,5 @@
 """
-© Copyright 2020 HP Development Company, L.P.
+© Copyright 2020-2022 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
 import errno
@@ -8,19 +8,20 @@ import re
 import shutil
 
 import humanize
-from git import InvalidGitRepositoryError, GitError
+from git import InvalidGitRepositoryError, GitError, Repo
 from halo import Halo
 
 from ml_git import log
-from ml_git.admin import remote_add, storage_add, clone_config_repository, init_mlgit, remote_del
+from ml_git._metadata import MetadataRepo
+from ml_git.admin import remote_add, clone_config_repository, init_mlgit, remote_del
 from ml_git.config import get_index_path, get_objects_path, get_cache_path, get_metadata_path, get_refs_path, \
     validate_config_spec_hash, validate_spec_hash, get_sample_config_spec, get_sample_spec_doc, \
     get_index_metadata_path, create_workspace_tree_structure, start_wizard_questions, config_load, \
-    get_global_config_path, save_global_config_in_local
+    get_global_config_path, save_global_config_in_local, merged_config_load
 from ml_git.constants import REPOSITORY_CLASS_NAME, LOCAL_REPOSITORY_CLASS_NAME, HEAD, HEAD_1, MutabilityType, \
     StorageType, \
     RGX_TAG_FORMAT, EntityType, MANIFEST_FILE, SPEC_EXTENSION, MANIFEST_KEY, STATUS_NEW_FILE, STATUS_DELETED_FILE, \
-    FileType, STORAGE_CONFIG_KEY
+    FileType, STORAGE_CONFIG_KEY, CONFIG_FILE, WIZARD_KEY
 from ml_git.file_system.cache import Cache
 from ml_git.file_system.hashfs import MultihashFS
 from ml_git.file_system.index import MultihashIndex, Status, FullIndex
@@ -37,7 +38,7 @@ from ml_git.spec import spec_parse, search_spec_file, increment_version_in_spec,
 from ml_git.tag import UsrTag
 from ml_git.utils import yaml_load, ensure_path_exists, get_root_path, \
     RootPathException, change_mask_for_routine, clear, get_yaml_str, unzip_files_in_directory, \
-    remove_from_workspace, disable_exception_traceback, group_files_by_path
+    remove_from_workspace, disable_exception_traceback, group_files_by_path, create_or_update_gitignore
 
 
 class Repository(object):
@@ -65,6 +66,7 @@ class Repository(object):
             metadata_path = get_metadata_path(self.__config)
             m = Metadata('', metadata_path, self.__config, self.__repo_type)
             m.remote_set_url(mlgit_remote)
+            log.info(output_messages['INFO_CHANGE_IN_CONFIG_FILE'], class_name=REPOSITORY_CLASS_NAME)
         except Exception as e:
             log.error(e, class_name=REPOSITORY_CLASS_NAME)
             return
@@ -75,25 +77,36 @@ class Repository(object):
             metadata = Metadata('', metadata_path, self.__config, self.__repo_type)
             if metadata.delete_git_reference():
                 remote_del(self.__repo_type, global_conf)
+            log.info(output_messages['INFO_CHANGE_IN_CONFIG_FILE'], class_name=REPOSITORY_CLASS_NAME)
         except Exception as e:
             log.error(e, class_name=REPOSITORY_CLASS_NAME)
             return
 
-    '''Add dir/files to the ml-git index'''
+    def _update_spec_version(self, entity_name, spec_path, metadata, bump_version):
+        try:
+            if bump_version:
+                last_version = metadata.get_last_tag_version(entity_name)
+                new_version = last_version + 1
+                increment_version_in_spec(spec_path, new_version, self.__repo_type)
+            return True
+        except RuntimeError as e:
+            log.error(e, class_name=REPOSITORY_CLASS_NAME)
+            return None
 
+    '''Add dir/files to the ml-git index'''
     def add(self, spec, file_path, bump_version=False, run_fsck=False, metrics='', metrics_file_path=''):
         repo_type = self.__repo_type
         is_shared_objects = 'objects_path' in self.__config[repo_type]
         is_shared_cache = 'cache_path' in self.__config[repo_type]
 
-        if not validate_config_spec_hash(self.__config):
-            log.error(output_messages['ERROR_INVALID_YAML_CONFIG']
-                      % get_yaml_str(get_sample_config_spec('somebucket', 'someprofile', 'someregion')),
-                      class_name=REPOSITORY_CLASS_NAME)
-            return None
-
         path, file = None, None
         try:
+            get_root_path()
+            if not validate_config_spec_hash(self.__config):
+                log.error(output_messages['ERROR_INVALID_YAML_CONFIG']
+                          % get_yaml_str(get_sample_config_spec('somebucket', 'someprofile', 'someregion')),
+                          class_name=REPOSITORY_CLASS_NAME)
+                return None
 
             refs_path = get_refs_path(self.__config, repo_type)
             index_path = get_index_path(self.__config, repo_type)
@@ -128,26 +141,24 @@ class Repository(object):
             return None
         try:
             repo.add_metrics(spec_path, metrics, metrics_file_path)
-        except FileNotFoundError as e:
+        except Exception as e:
             log.error(e, class_name=REPOSITORY_CLASS_NAME)
             return
 
         # Check tag before anything to avoid creating unstable state
         log.debug(output_messages['DEBUG_TAG_CHECK'], class_name=REPOSITORY_CLASS_NAME)
 
-        m = Metadata(spec, metadata_path, self.__config, repo_type)
-
-        if not m.check_exists():
+        metadata = Metadata(spec, metadata_path, self.__config, repo_type)
+        if not metadata.check_exists():
             log.error(output_messages['ERROR_NOT_INITIALIZED'] % self.__repo_type, class_name=REPOSITORY_CLASS_NAME)
             return
-
         try:
-            m.update()
+            metadata.update()
         except Exception:
             pass
 
         # get version of current manifest file
-        manifest = self._get_current_manifest_file(m, tag)
+        manifest = self._get_current_manifest_file(metadata, tag)
 
         try:
             # adds chunks to ml-git Index
@@ -162,10 +173,14 @@ class Repository(object):
             log.error(e, class_name=REPOSITORY_CLASS_NAME)
             return None
 
-        if bump_version and not increment_version_in_spec(spec_path, self.__repo_type):
+        if not self._update_spec_version(spec, spec_path, metadata, bump_version):
             return None
 
-        idx.add_metadata(path, file)
+        automatically_added = False
+        index_spec_path = os.path.join(index_path, 'metadata', spec, file)
+        if file_path and (not os.path.exists(index_spec_path) or bump_version):
+            automatically_added = True
+        idx.add_metadata(path, file, automatically_added)
 
         self._check_corrupted_files(spec, repo)
 
@@ -219,15 +234,17 @@ class Repository(object):
                 cache = Cache(cache_path, path, mf)
                 cache.update()
 
-    def _check_corrupted_files(self, spec, repo):
+    def _check_corrupted_files(self, spec, repo, full_path=False):
         try:
             corrupted_files = repo.get_corrupted_files(spec)
             if corrupted_files is not None and len(corrupted_files) > 0:
                 print('\n')
-                log.warn(output_messages['WARN_CORRUPTED_CANNOT_BE_ADD'],
-                         class_name=REPOSITORY_CLASS_NAME)
-                for file in corrupted_files:
-                    print('\t %s' % file)
+                log.warn(output_messages['WARN_CORRUPTED_CANNOT_BE_ADD'], class_name=REPOSITORY_CLASS_NAME)
+                self._print_files(corrupted_files, full_path)
+                log.info(output_messages['INFO_SEE_ALL_CORRUPTED_FILES'], class_name=REPOSITORY_CLASS_NAME)
+
+                log.debug(output_messages['WARN_CORRUPTED_CANNOT_BE_ADD'], class_name=REPOSITORY_CLASS_NAME)
+                log.debug('\t %s' % corrupted_files, class_name=REPOSITORY_CLASS_NAME)
         except Exception as e:
             log.error(e, class_name=REPOSITORY_CLASS_NAME)
             return
@@ -253,22 +270,32 @@ class Repository(object):
         repo_type = self.__repo_type
         try:
             objects_path = get_objects_path(self.__config, repo_type)
+            metadata_path = get_metadata_path(self.__config, repo_type)
             repo = LocalRepository(self.__config, objects_path, repo_type)
+            metadata = Metadata(spec, metadata_path, self.__config, repo_type)
             path, spec_file = search_spec_file(self.__repo_type, spec)
             plugin_caller = self.__load_plugin_caller(path, spec_file)
+            unpublished_commits_quantity = metadata.get_unpublished_commits_quantity()
             log.info(output_messages['INFO_STATUS_OF'] % (repo_type, spec), class_name=REPOSITORY_CLASS_NAME)
-            new_files, deleted_files, untracked_files, corruped_files, changed_files = repo.status(spec, status_directory)
+            new_files, deleted_files, untracked_files, corrupted_files, changed_files = repo.status(spec, status_directory)
             specialized_plugin_data = plugin_caller.call(GET_STATUS_OUTPUT, path, untracked_files, new_files, full_option)
         except Exception as e:
             log.error(e, class_name=REPOSITORY_CLASS_NAME)
             return
 
+        if unpublished_commits_quantity == 0:
+            print('Your {} has no commits to be published.'.format(spec))
+        else:
+            print('Your {} has {} commit{} to be published.'.format(spec, unpublished_commits_quantity,
+                                                                    '' if unpublished_commits_quantity == 1 else 's'))
+            print('  (use "ml-git {} push {}" to publish your local commits)'.format(repo_type, spec))
+
         untracked_specialized, new_files_specialized, total_registry = None, None, None
         if specialized_plugin_data:
             untracked_specialized, new_files_specialized, total_registry = specialized_plugin_data
 
-        if new_files is not None and deleted_files is not None and untracked_files is not None:
-            print('Changes to be committed:')
+        if new_files or new_files_specialized or deleted_files:
+            print('\nChanges to be committed:')
 
             if new_files_specialized:
                 self._print_files(new_files_specialized, True, STATUS_NEW_FILE)
@@ -280,18 +307,55 @@ class Repository(object):
             if total_registry:
                 print(total_registry)
 
+        if untracked_files or untracked_specialized:
             print('\nUntracked files:')
+            print('  (use "ml-git {} add {} <file>..." to include in what will be committed)'.format(repo_type, spec))
             if untracked_specialized:
                 self._print_files(untracked_specialized, True)
             else:
                 self._print_files(untracked_files, full_option)
 
+        if corrupted_files:
             print('\nCorrupted files:')
-            self._print_files(corruped_files, full_option)
+            self._print_files(corrupted_files, full_option)
 
-            if changed_files and len(changed_files) > 0:
-                print('\nChanges not staged for commit:')
-                self._print_files(changed_files, full_option)
+        if changed_files:
+            print('\nChanges not staged for commit:')
+            self._print_files(changed_files, full_option)
+
+    def diff(self, spec, full_option, first_tag, second_tag):
+        repo_type = self.__repo_type
+        try:
+            metadata_path = get_metadata_path(self.__config, repo_type)
+            metadata = Metadata(spec, metadata_path, self.__config, repo_type)
+
+            _, first_entity_name, _ = spec_parse(first_tag)
+            _, second_entity_name, _ = spec_parse(second_tag)
+
+            if first_entity_name != spec or second_entity_name != spec:
+                log.error(output_messages['ERROR_TAGS_NOT_MATCH_WITH_ENTITY'], class_name=REPOSITORY_CLASS_NAME)
+                return
+
+            if not self._tag_exists(first_tag) or not self._tag_exists(second_tag):
+                return
+
+            added_files, deleted_files, updated_files = metadata.diff_refs_with_modified_files(spec, first_tag, second_tag)
+
+            if added_files:
+                print('Added files:')
+                self._print_files(added_files, full_option)
+
+            if updated_files:
+                print('\nUpdated files:')
+                self._print_files(updated_files, full_option)
+
+            if deleted_files:
+                print('\nDeleted files:')
+                self._print_files(deleted_files, full_option)
+
+        except Exception as e:
+            log.error(e, class_name=REPOSITORY_CLASS_NAME)
+            return
 
     @staticmethod
     def _print_full_option(files, files_status=''):
@@ -335,6 +399,27 @@ class Repository(object):
         except SearchSpecException:
             return
 
+    def has_data_to_commit(self, spec):
+        repo_type = self.__repo_type
+        try:
+            index_path = get_index_path(self.__config, repo_type)
+            objects_path = get_objects_path(self.__config, repo_type)
+            path, file = search_spec_file(self.__repo_type, spec)
+            o = Objects(spec, objects_path)
+            changed_files, deleted_files, added_files = o.commit_index(index_path, path, persist_data=False)
+
+            if (len(changed_files + deleted_files + added_files)) == 0:
+                log.warn(output_messages['ERROR_COMMIT_WITHOUT_ADD'].format(self.__repo_type),
+                         class_name=REPOSITORY_CLASS_NAME)
+                return False
+        except OSError:
+            log.warn(output_messages['ERROR_COMMIT_WITHOUT_ADD'].format(self.__repo_type), class_name=REPOSITORY_CLASS_NAME)
+            return False
+        except Exception as e:
+            log.error(e, class_name=REPOSITORY_CLASS_NAME)
+            return False
+        return True
+
     '''commit changes present in the ml-git index to the ml-git repository'''
     def commit(self, spec, specs, version=None, run_fsck=False, msg=None):
         # Move chunks from index to .ml-git/objects
@@ -371,28 +456,43 @@ class Repository(object):
             return None, None, None
 
         spec_path = os.path.join(path, file)
-        idx = MultihashIndex(spec, index_path, objects_path)
-
-        if version:
-            set_version_in_spec(version, spec_path, self.__repo_type)
-            idx.add_metadata(path, file)
 
         # Check tag before anything to avoid creating unstable state
         log.debug(output_messages['DEBUG_TAG_CHECK'], class_name=REPOSITORY_CLASS_NAME)
         m = Metadata(spec, metadata_path, self.__config, repo_type)
 
+        valid_related_entities = m.check_related_entities_tags(specs)
+        if not valid_related_entities:
+            return
+
         if not m.check_exists():
             log.error(output_messages['ERROR_NOT_INITIALIZED'] % self.__repo_type, class_name=REPOSITORY_CLASS_NAME)
             return
 
-        full_metadata_path, entity_sub_path, metadata = m.tag_exists(index_path)
-        if metadata is None:
+        idx = MultihashIndex(spec, index_path, objects_path)
+        try:
+            full_metadata_path, entity_sub_path, metadata = m.tag_exists(index_path, version)
+            if metadata is None:
+                return None
+        except OSError:
+            log.warn(output_messages['ERROR_COMMIT_WITHOUT_ADD'].format(self.__repo_type), class_name=REPOSITORY_CLASS_NAME)
+            return None
+        except Exception as e:
+            log.error(e, class_name=REPOSITORY_CLASS_NAME)
             return None
 
         log.debug(output_messages['DEBUG_MESSAGE_VALUE'] % (index_path, objects_path), class_name=REPOSITORY_CLASS_NAME)
         # commit objects in index to ml-git objects
         o = Objects(spec, objects_path)
-        changed_files, deleted_files = o.commit_index(index_path, path)
+        changed_files, deleted_files, added_files = o.commit_index(index_path, path)
+
+        if (len(changed_files + deleted_files + added_files)) == 0:
+            log.warn(output_messages['ERROR_COMMIT_WITHOUT_ADD'].format(self.__repo_type), class_name=REPOSITORY_CLASS_NAME)
+            return None
+
+        if version:
+            set_version_in_spec(version, spec_path, self.__repo_type)
+            idx.add_metadata(path, file, automatically_added=True)
 
         bare_mode = os.path.exists(os.path.join(index_path, 'metadata', spec, 'bare'))
 
@@ -433,8 +533,9 @@ class Repository(object):
         except GitError as g:
             error_message = g.stderr
             if 'did not match any file(s) known' in error_message:
-                error_message = 'You don\'t have any entity being managed.'
-            log.error(error_message, class_name=REPOSITORY_CLASS_NAME)
+                log.info(output_messages['INFO_NONE_ENTITY_MANAGED'], class_name=REPOSITORY_CLASS_NAME)
+            else:
+                log.error(error_message, class_name=REPOSITORY_CLASS_NAME)
             return
         except Exception as e:
             log.error(e, class_name=REPOSITORY_CLASS_NAME)
@@ -499,7 +600,7 @@ class Repository(object):
 
     '''push all data related to a ml-git repository to the LocalRepository git repository and data storage'''
 
-    def push(self, spec, retry=2, clear_on_fail=False):
+    def push(self, spec, retry=2, clear_on_fail=False, fail_limit=None):
         repo_type = self.__repo_type
         try:
             objects_path = get_objects_path(self.__config, repo_type)
@@ -531,10 +632,18 @@ class Repository(object):
         full_spec_path = os.path.join(spec_path, spec_file)
 
         repo = LocalRepository(self.__config, objects_path, repo_type)
-        ret = repo.push(objects_path, full_spec_path, retry, clear_on_fail)
+        ret = repo.push(objects_path, full_spec_path, retry, clear_on_fail, fail_limit)
 
         # ensure first we're on master !
-        met.checkout()
+        try:
+            met.checkout()
+        except GitError as g:
+            error_message = g.stderr
+            if 'did not match any file(s) known' in error_message:
+                error_message = output_messages['ERROR_COMMIT_BEFORE_PUSH']
+            log.error(error_message, class_name=REPOSITORY_CLASS_NAME)
+            return
+
         if ret == 0:
             # push metadata spec to LocalRepository git repository
             try:
@@ -553,7 +662,7 @@ class Repository(object):
             m = Metadata('', metadata_path, self.__config, repo_type)
             m.update()
         except GitError as error:
-            log.error(output_messages['ERROR_METADATA_COULD_NOT_UPDATED'] % error.stderr, class_name=REPOSITORY_CLASS_NAME)
+            log.error(output_messages['ERROR_METADATA_COULD_NOT_UPDATED'].format(error), class_name=REPOSITORY_CLASS_NAME)
         except Exception as e:
             log.error(e, class_name=REPOSITORY_CLASS_NAME)
 
@@ -611,13 +720,19 @@ class Repository(object):
             ** download again corrupted blob
             ** rebuild cache'''
 
-    def fsck(self):
+    def fsck(self, full_log=False):
         repo_type = self.__repo_type
         try:
             objects_path = get_objects_path(self.__config, repo_type)
             index_path = get_index_path(self.__config, repo_type)
-        except RootPathException:
+            metadata_path = get_metadata_path(self.__config, repo_type)
+            m = Metadata('', metadata_path, self.__config, repo_type)
+            if not m.check_exists():
+                raise RuntimeError(output_messages['INFO_NOT_INITIALIZED'] % self.__repo_type)
+        except Exception as e:
+            log.error(e, class_name=REPOSITORY_CLASS_NAME)
             return
+
         o = Objects('', objects_path)
         corrupted_files_obj = o.fsck()
         corrupted_files_obj_len = len(corrupted_files_obj)
@@ -625,10 +740,16 @@ class Repository(object):
         idx = MultihashIndex('', index_path, objects_path)
         corrupted_files_idx = idx.fsck()
         corrupted_files_idx_len = len(corrupted_files_idx)
+        total_corrupted_files = corrupted_files_idx_len + corrupted_files_obj_len
 
-        print('[%d] corrupted file(s) in Local Repository: %s' % (corrupted_files_obj_len, corrupted_files_obj))
-        print('[%d] corrupted file(s) in Index: %s' % (corrupted_files_idx_len, corrupted_files_idx))
-        print('Total of corrupted files: %d' % (corrupted_files_obj_len + corrupted_files_idx_len))
+        if not full_log:
+            corrupted_files_obj = ''
+            corrupted_files_idx = ''
+        print(output_messages['INFO_FSCK_CORRUPTED_FILES'] % (corrupted_files_obj_len, corrupted_files_obj,
+                                                              corrupted_files_idx_len, corrupted_files_idx,
+                                                              total_corrupted_files))
+        if total_corrupted_files > 0:
+            log.info(output_messages['INFO_FSCK_VERBOSE_MODE'], class_name=REPOSITORY_CLASS_NAME)
 
     def show(self, spec):
         repo_type = self.__repo_type
@@ -704,7 +825,7 @@ class Repository(object):
 
     '''Performs a fsck on remote storage w.r.t. some specific ML artefact version'''
 
-    def remote_fsck(self, spec, retries=2, thorough=False, paranoid=False):
+    def remote_fsck(self, spec, retries=2, thorough=False, paranoid=False, full_log=False):
         repo_type = self.__repo_type
         try:
             metadata_path = get_metadata_path(self.__config, repo_type)
@@ -725,7 +846,7 @@ class Repository(object):
 
         r = LocalRepository(self.__config, objects_path, repo_type)
 
-        r.remote_fsck(metadata_path, tag, full_spec_path, retries, thorough, paranoid)
+        r.remote_fsck(metadata_path, spec, full_spec_path, retries, thorough, paranoid, full_log)
 
         # ensure first we're on master !
         self._checkout_ref()
@@ -754,6 +875,7 @@ class Repository(object):
         force_get = options['force']
         bare = options['bare']
         version = options['version']
+        full_option = options['full']
         repo_type = self.__repo_type
         try:
             cache_path = get_cache_path(self.__config, repo_type)
@@ -784,7 +906,7 @@ class Repository(object):
 
         local_rep = LocalRepository(self.__config, objects_path, repo_type)
         # check if no data left untracked/uncommitted. otherwise, stop.
-        if not force_get and local_rep.exist_local_changes(spec_name) is True:
+        if not force_get and local_rep.exist_local_changes(spec_name, self._print_files, full_option) is True:
             return None, None
 
         try:
@@ -813,7 +935,7 @@ class Repository(object):
 
         try:
             r = LocalRepository(self.__config, objects_path, repo_type)
-            r.checkout(cache_path, metadata_path, ws_path, tag, samples, bare, entity_dir)
+            r.checkout(cache_path, metadata_path, ws_path, tag, samples, bare, entity_dir, options['fail_limit'])
         except OSError as e:
             self._checkout_ref()
             if e.errno == errno.ENOSPC:
@@ -997,36 +1119,38 @@ class Repository(object):
 
     def create(self, kwargs):
         artifact_name = kwargs['artifact_name']
-        categories = list(kwargs['category'])
+        categories = [category.strip() for category in kwargs['categories'] if category.strip()]
         version = int(kwargs['version'])
         imported_dir = kwargs['import']
         storage_type = kwargs['storage_type']
         bucket_name = kwargs['bucket_name']
-        start_wizard = kwargs['wizard_config']
+        config_file = merged_config_load()
+        is_wizard_enabled = kwargs['wizard'] or (WIZARD_KEY in config_file and config_file[WIZARD_KEY] == 'enabled')
+        start_wizard = kwargs['wizard_config'] or is_wizard_enabled
         import_url = kwargs['import_url']
         unzip_file = kwargs['unzip']
         credentials_path = kwargs['credentials_path']
         repo_type = self.__repo_type
+        entity_dir = kwargs['entity_dir'] or ''
+
         try:
             create_workspace_tree_structure(repo_type, artifact_name, categories, storage_type, bucket_name,
-                                            version, imported_dir, kwargs['mutability'], kwargs['entity_dir'])
+                                            version, imported_dir, kwargs['mutability'], entity_dir)
             if start_wizard:
-                has_new_storage, storage_type, bucket, profile, endpoint_url, git_repo = start_wizard_questions(repo_type)
-                if has_new_storage:
-                    storage_add(storage_type, bucket, profile, endpoint_url)
-                update_storage_spec(repo_type, artifact_name, storage_type, bucket, kwargs['entity_dir'])
-                remote_add(repo_type, git_repo)
+                storage_type, bucket = start_wizard_questions(bucket_name)
+                update_storage_spec(repo_type, artifact_name, storage_type, bucket, entity_dir)
             if import_url:
                 self.create_config_storage(StorageType.GDRIVE.value, credentials_path)
                 local = LocalRepository(self.__config, get_objects_path(self.__config, repo_type))
-                destine_path = os.path.join(repo_type, kwargs['entity_dir'], artifact_name, 'data')
+                destine_path = os.path.join(repo_type, entity_dir, artifact_name, 'data')
                 local.import_file_from_url(destine_path, import_url, StorageType.GDRIVE.value)
             if unzip_file:
-                log.info(output_messages['INFO_UNZIPPING_FILES'], CLASS_NAME=REPOSITORY_CLASS_NAME)
-                data_path = os.path.join(get_root_path(), repo_type, kwargs['entity_dir'], artifact_name, 'data')
+                log.info(output_messages['INFO_CHECKING_FILES_TO_BE_UNZIPPED'], CLASS_NAME=REPOSITORY_CLASS_NAME)
+                data_path = os.path.join(get_root_path(), repo_type, entity_dir, artifact_name, 'data')
                 unzip_files_in_directory(data_path)
-            log.info(output_messages['INFO_PROJECT_CREATED'], CLASS_NAME=REPOSITORY_CLASS_NAME)
-        except Exception as e:
+            message_key = 'INFO_{}_CREATED'.format(self.__repo_type.upper())
+            log.info(output_messages[message_key], CLASS_NAME=REPOSITORY_CLASS_NAME)
+        except BaseException as e:
             if not isinstance(e, PermissionError):
                 clear(os.path.join(repo_type, artifact_name))
             if isinstance(e, KeyboardInterrupt):
@@ -1034,8 +1158,8 @@ class Repository(object):
             else:
                 log.error(e, CLASS_NAME=REPOSITORY_CLASS_NAME)
 
-    def clone_config(self, url, folder=None, track=False):
-        if clone_config_repository(url, folder, track):
+    def clone_config(self, url, folder=None, untracked=False):
+        if clone_config_repository(url, folder, untracked):
             self.__config = config_load()
             m = Metadata('', get_metadata_path(self.__config), self.__config)
             m.clone_config_repo()
@@ -1079,7 +1203,7 @@ class Repository(object):
             metadata = Metadata(spec, metadata_path, self.__config, repo_type)
             index_path = get_index_path(self.__config, repo_type)
             specialized_data_compared = self._log_compare_spec_from_versions(spec, metadata)
-            log_info = metadata.get_log_info(spec, fullstat, specialized_data_compared)
+            log_info = metadata.get_log_info(spec, fullstat, stat, specialized_data_compared)
         except Exception as e:
             log.error(e, class_name=REPOSITORY_CLASS_NAME)
             return
@@ -1174,3 +1298,32 @@ class Repository(object):
                  class_name=REPOSITORY_CLASS_NAME)
         log.info(output_messages['INFO_RECLAIMED_SPACE'] % humanize.naturalsize(reclaimed_space),
                  class_name=REPOSITORY_CLASS_NAME)
+
+    @staticmethod
+    def repo_config_init(remote_url):
+        config_repo = MetadataRepo(remote_url, get_root_path(), 'project')
+        try:
+            created_repository = config_repo.init_local_repo()
+            log.info(output_messages['INFO_CREATING_REMOTE'] % remote_url, class_name=REPOSITORY_CLASS_NAME)
+            if created_repository:
+                config_repo.create_remote()
+            else:
+                config_repo.remote_set_url(remote_url)
+            create_or_update_gitignore()
+        except Exception as e:
+            log.error(e, class_name=REPOSITORY_CLASS_NAME)
+            return e
+
+    @staticmethod
+    def repo_config_push(message):
+        root_path = get_root_path()
+        config_repo = MetadataRepo('', root_path, 'project')
+        config_file = os.path.join(root_path, CONFIG_FILE)
+        try:
+            config_repo.commit(config_file, message)
+            log.info(output_messages['INFO_PUSH_CONFIG_FILE'], class_name=REPOSITORY_CLASS_NAME)
+            repo = Repo(root_path)
+            repo.git.push(['-u', 'origin', config_repo.get_default_branch()])
+        except Exception as e:
+            log.error(output_messages['ERROR_PUSH_CONFIG'] % e, class_name=REPOSITORY_CLASS_NAME)
+            return e

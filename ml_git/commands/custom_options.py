@@ -1,11 +1,15 @@
 """
-© Copyright 2020 HP Development Company, L.P.
+© Copyright 2020-2022 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
-
-from click import Option, UsageError, MissingParameter, Command
+import click
+from click import Option, UsageError, Command, MissingParameter
 
 from ml_git import log
+from ml_git.commands import prompt_msg
+from ml_git.commands.wizard import wizard_for_field, is_wizard_enabled, choice_wizard_for_field
+from ml_git.constants import MultihashStorageType, StorageType
+from ml_git.ml_git_message import output_messages
 
 
 class MutuallyExclusiveOption(Option):
@@ -46,18 +50,20 @@ class OptionRequiredIf(Option):
             kwargs['help'] = help + (' NOTE: This option is required if --' + ex_str + ' is used.')
         super(OptionRequiredIf, self).__init__(*args, **kwargs)
 
-    def full_process_value(self, ctx, value):
-        value = super(OptionRequiredIf, self).full_process_value(ctx, value)
-
-        ex_str = ', '.join(self.required_option)
-        ex_str = ex_str.replace("-", "_")
-        if value is None and ctx.params[ex_str] is not None:
-            msg = 'The argument `{}` is required if `{}` is used.'.format(
-                self.name,
-                ', '.join(self.required_option)
-            )
-            raise MissingParameter(ctx=ctx, param=self, message=msg)
-        return value
+    def handle_parse_result(self, ctx, opts, args):
+        using_required_option = self.name in opts
+        using_dependent_options = all(opt.replace('-', '_') in opts for opt in self.required_option)
+        option_name = self.name.replace('_', '-')
+        if not using_required_option and using_dependent_options:
+            msg = output_messages['ERROR_REQUIRED_OPTION_MISSING'].format(option_name, ', '.join(self.required_option), option_name)
+            if not is_wizard_enabled():
+                raise MissingParameter(ctx=ctx, param=self, message=msg)
+            requested_value = wizard_for_field(ctx, None, msg, required=True)
+            opts[self.name] = requested_value
+            return super(OptionRequiredIf, self).handle_parse_result(ctx, opts, args)
+        elif using_required_option and not using_dependent_options:
+            log.warn(output_messages['WARN_USELESS_OPTION'].format(option_name, ', '.join(self.required_option)))
+        return super(OptionRequiredIf, self).handle_parse_result(ctx, opts, args)
 
 
 class DeprecatedOption(Option):
@@ -102,3 +108,57 @@ class DeprecatedOptionsCommand(Command):
                 return process
             option.process = make_process(option)
         return parser
+
+
+def check_multiple(ctx, param, value):
+    if len(value) == 0:
+        return None
+    elif len(value) > 1:
+        raise click.BadParameter(output_messages['ERROR_OPTION_WITH_MULTIPLE_VALUES'].format(param))
+    return value[0]
+
+
+def check_valid_storage_choice(ctx, param, value):
+    local_enabled = ctx.params['wizard']
+    if value and (value not in MultihashStorageType.to_list()):
+        if local_enabled or is_wizard_enabled():
+            return choice_wizard_for_field(ctx, None, prompt_msg.INVALID_STORAGE_TYPE_MESSAGE.format(value),
+                                           click.Choice(MultihashStorageType.to_list()), default=StorageType.S3H.value,
+                                           wizard_flag=local_enabled)
+        else:
+            raise click.BadParameter(output_messages['ERROR_STORAGE_TYPE_INPUT_INVALID'].format(value))
+    return value
+
+
+def multiple_option_callback(callbacks, ctx, param, value):
+    new_value = value
+    for callback in callbacks:
+        new_value = callback(ctx, param, new_value)
+    return new_value
+
+
+def check_empty_values(ctx, param, value):
+    value_present = value is not None
+    value_empty = str(value).strip() == '' if value_present else False
+    if value_present and value_empty:
+        local_enabled = 'wizard' in ctx.params and ctx.params['wizard']
+        if local_enabled or is_wizard_enabled():
+            error_message = output_messages['ERROR_INVALID_VALUE_FOR'] % (''.join(["--", param.name]),
+                                                                          output_messages['ERROR_EMPTY_VALUE'])
+            return wizard_for_field(ctx, None, '{}\n{}'.format(error_message, prompt_msg.NEW_VALUE), wizard_flag=local_enabled)
+        raise click.BadParameter(output_messages['ERROR_EMPTY_VALUE'])
+    return value
+
+
+def check_integer_value(ctx, param, value):
+    value_present = value is not None
+    if value_present:
+        if isinstance(value, int) or value.isdigit():
+            return value
+        local_enabled = ctx.params['wizard']
+        if local_enabled or is_wizard_enabled():
+            error_message = output_messages['ERROR_INVALID_VALUE_FOR'] % (''.join(["--", param.name]),
+                                                                          output_messages['ERROR_NOT_INTEGER_VALUE'].format(value))
+            return wizard_for_field(ctx, None, '{}\n{}'.format(error_message, prompt_msg.NEW_VALUE), wizard_flag=local_enabled, type=int)
+        raise click.BadParameter(output_messages['ERROR_NOT_INTEGER_VALUE'].format(value))
+    return value

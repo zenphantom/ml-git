@@ -1,5 +1,5 @@
 """
-© Copyright 2020 HP Development Company, L.P.
+© Copyright 2020-2022 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
 
@@ -7,7 +7,9 @@ import os
 import unittest
 
 import pytest
+from click.testing import CliRunner
 
+from ml_git.commands import entity, prompt_msg
 from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_REMOTE_FSCK, MLGIT_PUSH, MLGIT_COMMIT
 from tests.integration.helper import ML_GIT_DIR, ERROR_MESSAGE, MLGIT_ADD, DATASETS, DATASET_NAME
@@ -36,7 +38,12 @@ class RemoteFsckAcceptanceTests(unittest.TestCase):
     def test_01_remote_fsck(self):
         self.setup_remote_fsck()
         os.unlink(os.path.join(MINIO_BUCKET_PATH, 'zdj7Wi996ViPiddvDGvzjBBACZzw6YfPujBCaPHunVoyiTUCj'))
-        self.assertIn(output_messages['INFO_REMOTE_FSCK_FIXED'] % (0, 1), check_output(MLGIT_REMOTE_FSCK % (DATASETS, DATASET_NAME)))
+        output = check_output(MLGIT_REMOTE_FSCK % (DATASETS, DATASET_NAME))
+        self.assertIn(output_messages['INFO_STARTING_IPLDS_CHECK'], output)
+        self.assertIn(output_messages['INFO_STARTING_BLOBS_CHECK'], output)
+        self.assertIn(output_messages['INFO_FSCK_COMPLETE'], output)
+        self.assertIn(output_messages['INFO_REMOTE_FSCK_FIXED'] % (0, 1), output)
+        self.assertIn(output_messages['INFO_REMOTE_FSCK_TOTAL'] % (1, 1), output)
         self.assertTrue(os.path.exists(os.path.join(MINIO_BUCKET_PATH, 'zdj7Wi996ViPiddvDGvzjBBACZzw6YfPujBCaPHunVoyiTUCj')))
 
     def _get_file_path(self):
@@ -78,8 +85,49 @@ class RemoteFsckAcceptanceTests(unittest.TestCase):
 
         output = check_output(MLGIT_REMOTE_FSCK % (DATASETS, DATASET_NAME) + ' --paranoid')
 
-        self.assertIn(output_messages['ERROR_CORRPUTION_DETECTED_FOR'] % self.file, output)
+        self.assertNotIn(output_messages['DEBUG_CORRUPTION_DETECTED_FOR'] % self.file, output)  # msg is debug-only
         self.assertIn(output_messages['INFO_REMOTE_FSCK_FIXED'] % (1, 0), output)
 
-        self.assertNotIn(output_messages['ERROR_CORRPUTION_DETECTED_FOR'], check_output(MLGIT_REMOTE_FSCK % (DATASETS, DATASET_NAME) + ' --paranoid'))
+        self.assertNotIn(output_messages['DEBUG_CORRUPTION_DETECTED_FOR'], check_output(MLGIT_REMOTE_FSCK % (DATASETS, DATASET_NAME) + ' --paranoid'))
         self.assertTrue(os.path.exists(os.path.join(MINIO_BUCKET_PATH, self.file)))
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
+    def test_04_remote_fsck_with_full_option(self):
+        self.setup_remote_fsck()
+        os.unlink(os.path.join(MINIO_BUCKET_PATH, 'zdj7Wi996ViPiddvDGvzjBBACZzw6YfPujBCaPHunVoyiTUCj'))
+        output = check_output(MLGIT_REMOTE_FSCK % (DATASETS, DATASET_NAME + ' --full'))
+        self.assertIn(output_messages['INFO_REMOTE_FSCK_FIXED'] % (0, 1), output)
+        self.assertTrue(os.path.exists(os.path.join(MINIO_BUCKET_PATH, 'zdj7Wi996ViPiddvDGvzjBBACZzw6YfPujBCaPHunVoyiTUCj')))
+        self.assertIn(output_messages['INFO_REMOTE_FSCK_FIXED_LIST'] % ('Blobs', ['zdj7Wi996ViPiddvDGvzjBBACZzw6YfPujBCaPHunVoyiTUCj']), output)
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
+    def test_05_remote_fsck_empty_entity(self):
+        init_repository(DATASETS, self)
+        output = check_output(MLGIT_REMOTE_FSCK % (DATASETS, DATASET_NAME))
+        self.assertIn(output_messages['WARN_EMPTY_ENTITY'] % DATASET_NAME, output)
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
+    def test_06_remote_fsck_missing_descriptor_files(self):
+        self.setup_remote_fsck()
+        file_path = self._get_file_path()
+        os.remove(file_path)
+
+        message = check_output(MLGIT_REMOTE_FSCK % (DATASETS, DATASET_NAME))
+        self.assertIn(output_messages['INFO_MISSING_DESCRIPTOR_FILES'] % 1, message)
+        self.assertIn(output_messages['INFO_SEE_COMPLETE_LIST_OF_MISSING_FILES'], message)
+
+        message = check_output(MLGIT_REMOTE_FSCK % (DATASETS, DATASET_NAME + ' --full'))
+        self.assertIn(output_messages['INFO_MISSING_DESCRIPTOR_FILES'] % 1, message)
+        self.assertIn(output_messages['INFO_LIST_OF_MISSING_FILES'] % '[', message)
+
+    @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
+    def test_07_remote_fsck_with_wizard_enabled(self):
+        self.setup_remote_fsck()
+        file_path = self._get_file_path()
+        os.remove(file_path)
+        self.assertIn(output_messages['INFO_MISSING_DESCRIPTOR_FILES'] % 1, check_output(MLGIT_REMOTE_FSCK % (DATASETS, DATASET_NAME)))
+        self.assertFalse(os.path.exists(file_path))
+        runner = CliRunner()
+        result = runner.invoke(entity.datasets, ['remote-fsck', DATASET_NAME, '--wizard'], input='y\n')
+        self.assertIn(prompt_msg.THOROUGH_MESSAGE, result.output)
+        self.assertTrue(os.path.exists(file_path))

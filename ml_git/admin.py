@@ -1,18 +1,19 @@
 """
-© Copyright 2020 HP Development Company, L.P.
+© Copyright 2020-2022 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
 
 import os
 
-from git import Repo, GitCommandError
+from git import GitCommandError, GitError
 
 from ml_git import log
 from ml_git.config import mlgit_config_save, get_global_config_path
 from ml_git.constants import ROOT_FILE_NAME, CONFIG_FILE, ADMIN_CLASS_NAME, StorageType, STORAGE_CONFIG_KEY
+from ml_git.git_client import GitClient
 from ml_git.ml_git_message import output_messages
 from ml_git.storages.store_utils import get_bucket_region
-from ml_git.utils import get_root_path
+from ml_git.utils import get_root_path, create_or_update_gitignore
 from ml_git.utils import yaml_load, yaml_save, RootPathException, clear, ensure_path_exists
 
 
@@ -91,14 +92,17 @@ def valid_storage_type(storage_type):
     return True
 
 
-def storage_add(storage_type, bucket, credentials_profile, global_conf=False, endpoint_url=None, sftp_configs=None):
+def storage_add(storage_type, bucket, credentials_profile, global_conf=False, endpoint_url=None, sftp_configs=None, region=None):
     if not valid_storage_type(storage_type):
         return
 
     try:
-        region = get_bucket_region(bucket, credentials_profile)
+        if not region and storage_type is StorageType.S3H.value:
+            region = get_bucket_region(bucket, credentials_profile)
     except Exception:
-        region = None
+        region = 'us-east-1'
+        log.debug(output_messages['DEBUG_BUCKET_REGION_NOT_FIND'], class_name=ADMIN_CLASS_NAME)
+
     if storage_type not in (StorageType.S3H.value, StorageType.S3.value) or credentials_profile is None:
         log.info(output_messages['INFO_ADD_STORAGE_WITHOUT_PROFILE'] % (storage_type, bucket), class_name=ADMIN_CLASS_NAME)
     else:
@@ -128,6 +132,7 @@ def storage_add(storage_type, bucket, credentials_profile, global_conf=False, en
         conf[STORAGE_CONFIG_KEY][storage_type][bucket]['private-key'] = sftp_configs['private_key']
         conf[STORAGE_CONFIG_KEY][storage_type][bucket]['port'] = sftp_configs['port']
     yaml_save(conf, file)
+    log.info(output_messages['INFO_CHANGE_IN_CONFIG_FILE'], class_name=ADMIN_CLASS_NAME)
 
 
 def storage_del(storage_type, bucket, global_conf=False):
@@ -151,9 +156,22 @@ def storage_del(storage_type, bucket, global_conf=False):
     log.info(output_messages['INFO_REMOVED_STORAGE'] % (storage_type, bucket), class_name=ADMIN_CLASS_NAME)
 
     yaml_save(conf, config_path)
+    log.info(output_messages['INFO_CHANGE_IN_CONFIG_FILE'], class_name=ADMIN_CLASS_NAME)
 
 
-def clone_config_repository(url, folder, track):
+def get_repo_name_from_url(url):
+    last_slash_index = url.rfind('/')
+    last_suffix_index = url.rfind('.git')
+    if last_suffix_index < 0:
+        last_suffix_index = len(url)
+
+    if last_slash_index < 0 or last_suffix_index <= last_slash_index:
+        raise Exception(output_messages['ERROR_BADLY_FORMATTED_URL'].format(url))
+
+    return url[last_slash_index + 1:last_suffix_index]
+
+
+def clone_config_repository(url, folder, untracked):
     try:
         if get_root_path():
             log.error(output_messages['ERROR_IN_INTIALIZED_PROJECT'], class_name=ADMIN_CLASS_NAME)
@@ -164,17 +182,19 @@ def clone_config_repository(url, folder, track):
     git_dir = '.git'
 
     try:
+        project_dir = None
         if folder is not None:
             project_dir = os.path.join(os.getcwd(), folder)
             ensure_path_exists(project_dir)
+            if len(os.listdir(project_dir)) != 0:
+                log.error(output_messages['ERROR_PATH_ALREAD_EXISTS'] % project_dir, class_name=ADMIN_CLASS_NAME)
+                return False
+            git_client = GitClient(url, project_dir)
         else:
-            project_dir = os.getcwd()
-
-        if len(os.listdir(project_dir)) != 0:
-            log.error(output_messages['ERROR_PATH_NOT_EMPTY']
-                      % project_dir, class_name=ADMIN_CLASS_NAME)
-            return False
-        Repo.clone_from(url, project_dir)
+            folder = get_repo_name_from_url(url)
+            project_dir = os.path.join(os.getcwd(), folder)
+            git_client = GitClient(url)
+        git_client.clone()
     except Exception as e:
         error_msg = handle_clone_exception(e, folder, project_dir)
         log.error(error_msg, class_name=ADMIN_CLASS_NAME)
@@ -183,9 +203,10 @@ def clone_config_repository(url, folder, track):
     if not check_successfully_clone(project_dir, git_dir):
         return False
 
-    if not track:
+    if untracked:
         clear(os.path.join(project_dir, git_dir))
 
+    create_or_update_gitignore()
     return True
 
 
@@ -193,6 +214,8 @@ def handle_clone_exception(e, folder, project_dir):
     error_msg = str(e)
     if (e.__class__ == GitCommandError and 'Permission denied' in str(e.args[2])) or e.__class__ == PermissionError:
         error_msg = 'Permission denied in folder %s' % project_dir
+    elif e.__class__ == GitError and 'not an empty directory' in error_msg:
+        error_msg = output_messages['ERROR_PATH_ALREAD_EXISTS'] % folder
     else:
         if folder is not None:
             clear(project_dir)

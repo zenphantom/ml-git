@@ -1,5 +1,5 @@
 """
-© Copyright 2020 HP Development Company, L.P.
+© Copyright 2020-2022 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
 
@@ -14,7 +14,7 @@ import pytest
 from ml_git.ml_git_message import output_messages
 from ml_git.utils import ensure_path_exists
 from tests.integration.commands import MLGIT_COMMIT, MLGIT_PUSH
-from tests.integration.helper import ML_GIT_DIR, MINIO_BUCKET_PATH, GIT_PATH, DATASETS, LABELS, MODELS, DATASET_NAME
+from tests.integration.helper import BUCKET_NAME, ML_GIT_DIR, MINIO_BUCKET_PATH, GIT_PATH, DATASETS, LABELS, MODELS, DATASET_NAME
 from tests.integration.helper import check_output, clear, init_repository, add_file, ERROR_MESSAGE
 
 
@@ -40,7 +40,7 @@ class PushFilesAcceptanceTests(unittest.TestCase):
         os.chdir(metadata_path)
         self.assertTrue(os.path.exists(
             os.path.join(MINIO_BUCKET_PATH, 'zdj7WWjGAAJ8gdky5FKcVLfd63aiRUGb8fkc8We2bvsp9WW12')))
-        self.assertIn('computer-vision__images__' + entity_type + '-ex__2', check_output('git describe --tags'))
+        self.assertIn('computer-vision__images__' + entity_type + '-ex__1', check_output('git describe --tags'))
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_01_push_files_to_dataset(self):
@@ -130,3 +130,37 @@ class PushFilesAcceptanceTests(unittest.TestCase):
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_PUSH % (DATASETS, DATASET_NAME)))
         self.assertTrue(os.path.exists(workspace_with_dir))
         self.assertTrue(os.path.exists(os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'metadata', entity_dir)))
+
+    @pytest.mark.usefixtures('start_empty_git_server', 'switch_to_tmp_dir')
+    def test_10_push_without_commit(self):
+        entity_type = DATASETS
+        init_repository(entity_type, self)
+        add_file(self, entity_type, '--bumpversion', 'new', file_content='0')
+        output = check_output(MLGIT_PUSH % (entity_type, DATASET_NAME))
+        self.assertIn(output_messages['INFO_NO_BLOBS_TO_PUSH'], output)
+        self.assertIn(output_messages['ERROR_COMMIT_BEFORE_PUSH'], output)
+        self.assertNotIn('did not match any file(s) known to git', output)
+        metadata_path = os.path.join(self.tmp_dir, ML_GIT_DIR, entity_type, 'metadata')
+        os.chdir(metadata_path)
+        self.assertNotIn('computer-vision__images__' + entity_type + '-ex__2', check_output('git describe --tags'))
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
+    @mock.patch('tests.integration.helper.MINIO_ENDPOINT_URL', 'http://127.0.0.1:9100')
+    def test_11_push_with_wrong_minio_endpoint(self):
+        entity_type = DATASETS
+        artifact_name = DATASET_NAME
+        init_repository(entity_type, self)
+        add_file(self, entity_type, '--bumpversion', 'new')
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_COMMIT % (entity_type,  artifact_name, '')))
+        output = check_output(MLGIT_PUSH % (entity_type, artifact_name))
+        self.assertIn(ERROR_MESSAGE, output)
+        self.assertIn('There was an error checking if bucket \'{}\' exists.'.format(BUCKET_NAME), output)
+
+    @pytest.mark.usefixtures('start_empty_git_server', 'switch_to_tmp_dir')
+    def test_12_push_with_invalid_retry_number(self):
+        entity_type = DATASETS
+        init_repository(entity_type, self)
+        add_file(self, entity_type, '--bumpversion', 'new', file_content='0')
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_COMMIT % (entity_type, DATASET_NAME, '')))
+        expected_error_message = '-2 is not in the valid range of 0 to 99999999.'
+        self.assertIn(expected_error_message, check_output(MLGIT_PUSH % (entity_type, entity_type+'-ex --retry=-2')))

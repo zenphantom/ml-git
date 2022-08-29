@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ################################################################################
-# © Copyright 2020 HP Development Company, L.P.
+# © Copyright 2020-2022 HP Development Company, L.P.
 # SPDX-License-Identifier: GPL-2.0-only
 ################################################################################
 
@@ -25,6 +25,8 @@ create_new_github_repository()
               fi
               OUTPUT_FILE=log_${ENTITY_TYPE}_repository
               HTTP_CODE=$(curl -s -o ../../${OUTPUT_FILE} -w "%{http_code}" -H "Authorization: token ${GITHUB_TOKEN}" ${GITHUB_API_URL}${REPO_OWNER} -d "{\"name\": \"${REPONAME:-${REPO_NAME}}\"}")
+              USERNAME=$(grep -Po -m1 \"login\".+ ../../$OUTPUT_FILE | cut -d '"' -f 4)
+              REPO_NAME=$(grep -Po -m1 \"name\".+ ../../$OUTPUT_FILE | cut -d '"' -f 4)
               if [[ HTTP_CODE -ne 201 ]]; then
                  echo "Could not create the repository, please see ${OUTPUT_FILE} for more information."
                  clear_workspace_and_exit
@@ -42,26 +44,49 @@ create_new_github_repository()
 
 create_new_bucket()
 {
-   read -p "What type of storage do you want to configure? [s3h, azureblobh]: " STORE_TYPE
+   read -p "What type of storage do you want to configure? [s3h, azureblobh, minio]: " STORE_TYPE
    read -p "What name do you want to give to your bucket? " BUCKET_NAME
-   echo "  ${STORE_TYPE}:" >> config.yaml
-   echo "    ${BUCKET_NAME}:" >> config.yaml
-
+   BUCKET_CREATION_RETURN_CODE=0
    {
    if [ "${STORE_TYPE}" == "s3h" ];
    then
+      echo "  ${STORE_TYPE}:" >> config.yaml
+      echo "    ${BUCKET_NAME}:" >> config.yaml
+
       aws s3api create-bucket --bucket ${BUCKET_NAME} --region us-east-1
+      BUCKET_CREATION_RETURN_CODE=$?
       echo "      aws-credentials:" >> config.yaml
       echo "        profile: default" >> config.yaml
+   elif [ "${STORE_TYPE}" == "minio" ];
+   then
+      read -p "What endpoint url connection to your bucket? " ENDPOINT
+
+      echo "  s3h:" >> config.yaml
+      echo "    ${BUCKET_NAME}:" >> config.yaml
+
+      aws --endpoint-url ${ENDPOINT} s3 mb s3://${BUCKET_NAME}
+      BUCKET_CREATION_RETURN_CODE=$?
+      echo "      aws-credentials:" >> config.yaml
+      echo "        profile: default" >> config.yaml
+      echo "      endpoint-url: " ${ENDPOINT} >> config.yaml
    elif [ "${STORE_TYPE}" == "azureblobh" ];
    then
+      echo "  ${STORE_TYPE}:" >> config.yaml
+      echo "    ${BUCKET_NAME}:" >> config.yaml
+
       az storage container create -n ${BUCKET_NAME}
+      BUCKET_CREATION_RETURN_CODE=$?
       echo "      credentials: None" >> config.yaml
    else
       echo "Please enter a valid storage type."
       create_new_bucket
    fi
    } > log.txt
+   if [ $BUCKET_CREATION_RETURN_CODE -eq 0 ]; then
+     echo "Bucket successfully created"
+   else
+     echo "The bucket could not be created"
+   fi
 }
 
 
@@ -75,7 +100,6 @@ create_new_bucket_wizard()
    fi
    case ${yn} in
       [Yy]* ) create_new_bucket;
-              echo "Bucket successfully created"
               create_new_bucket_wizard;;
       [Nn]* ) return;;
       * ) echo "Please answer Yes or no."; create_new_bucket_wizard;;
@@ -98,24 +122,36 @@ create_clone_repository_folder()
 push_config_repository()
 {
    REPO_NAME="${PROJECT_NAME}-mlgit-repository"
-   read -p "What name do you want to give for the repository with this configurations? [default: ${REPO_NAME}] " INPUT_REPO_NAME;
+   read -p "What name do you want to give for the repository with these configurations? [default: ${REPO_NAME}] " INPUT_REPO_NAME;
    git add config.yaml
    git commit -m "Initial commit with .ml-git configured"
+   git branch -M main
    if ! [ -z "${INPUT_REPO_NAME}" ]
    then
      REPO_NAME=${INPUT_REPO_NAME}
    fi
    OUTPUT_FILE=log_clone_repository
+   OLD_USERNAME=$USERNAME
    HTTP_CODE=$(curl -s -o ../../$OUTPUT_FILE -w "%{http_code}" -H "Authorization: token ${GITHUB_TOKEN}" ${GITHUB_API_URL}${REPO_OWNER} -d "{\"name\": \"${REPONAME:-$REPO_NAME}\"}")
+   USERNAME=$(grep -Po -m1 \"login\".+ ../../$OUTPUT_FILE | cut -d '"' -f 4)
+   REPO_NAME=$(grep -Po -m1 \"name\".+ ../../$OUTPUT_FILE | cut -d '"' -f 4)
+   if [ "${ORGANIZATION_NAME}" == "${OLD_USERNAME}" ]; then
+     ORGANIZATION_NAME=$USERNAME
+   fi
    if [[ HTTP_CODE -ne 201 ]]; then
       echo "Could not create the repository, please see $OUTPUT_FILE for more information."
       clear_workspace_and_exit
    else
       GITHUB_REPOSITORY_URL="https://${USERNAME}:${GITHUB_TOKEN}@${GITHUB_BASE_URL//'https://'}/${ORGANIZATION_NAME}/${REPO_NAME}.git"
+      REPO_LINK=${GITHUB_BASE_URL}/${USERNAME}/${REPO_NAME}
       git remote add origin ${GITHUB_REPOSITORY_URL}
       git push --set-upstream origin main
-      REPO_LINK=${GITHUB_BASE_URL}/${USERNAME}/${REPO_NAME}
-      echo "Repository creation done. Go to $REPO_LINK to see."
+      if [ $? -eq 0 ]; then
+        echo "Repository creation done. Go to $REPO_LINK to see."
+        echo -e "\nIf you want to start an ml-git project with these settings you can use:\n\tml-git clone $REPO_LINK"
+      else
+        echo "Something went wrong, verify your $REPO_LINK"
+      fi
    fi
 }
 
@@ -154,17 +190,16 @@ project_information
 
 
 echo -e "\n## GIT REPOSITORIES CONFIGURATION ##"
-create_new_github_repository dataset
+create_new_github_repository datasets
 create_new_github_repository labels
-create_new_github_repository model
+create_new_github_repository models
 
 echo -e "\n## BUCKET CONFIGURATION ##"
-echo "storage:" >> config.yaml
+echo "storages:" >> config.yaml
 create_new_bucket_wizard
 
 echo -e "\n## CREATE REPOSITORY WITH CONFIGURATIONS ##"
 push_config_repository
-echo -e "\nIf you want to start an ml-git project with these settings you can use:\n\tml-git clone $REPO_LINK"
 
 clear_workspace_and_exit
 

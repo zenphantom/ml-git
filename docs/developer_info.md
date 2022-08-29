@@ -16,7 +16,7 @@ Another way to contribute with the community is creating an issue to track your 
 
 To be able to contribute with our project, you will need to have the following **requirements** in your machine: 
 
-*  Python 3.7
+*  Python 3.6.1+
 *  [Pipenv](https://github.com/pypa/pipenv)
 *  [Git](https://git-scm.com/)
 *  [Docker](https://www.docker.com/) (required only for Integration Tests execution)

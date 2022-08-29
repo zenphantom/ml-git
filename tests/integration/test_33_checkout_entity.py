@@ -1,5 +1,5 @@
 """
-© Copyright 2020 HP Development Company, L.P.
+© Copyright 2020-2022 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
 
@@ -8,8 +8,11 @@ import pathlib
 import unittest
 
 import pytest
+from click.testing import CliRunner
 
+from ml_git.commands import entity
 from ml_git.ml_git_message import output_messages
+from ml_git.utils import ensure_path_exists
 from tests.integration.commands import MLGIT_CHECKOUT, MLGIT_PUSH, MLGIT_COMMIT, MLGIT_ADD
 from tests.integration.helper import ML_GIT_DIR, MLGIT_ENTITY_INIT, ERROR_MESSAGE, \
     add_file, GIT_PATH, check_output, clear, init_repository, create_file, move_entity_to_dir, DATASETS, DATASET_NAME, \
@@ -90,7 +93,7 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
         self.assertFalse(os.path.exists(file))
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
-    def test_03_checkout_with_two_entities_wit_same_name(self):
+    def test_03_checkout_with_two_entities_with_same_name(self):
         entity = DATASETS
         self._create_entity(entity, 'images')
         clear(os.path.join(self.tmp_dir, '.ml-git'))
@@ -184,3 +187,77 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
         self.check_metadata(entity_dir)
         self.assertTrue(os.path.exists(workspace_with_dir))
         self.assertFalse(os.path.exists(workspace))
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
+    def test_10_checkout_with_unsaved_work(self):
+        entity = DATASETS
+        init_repository(entity, self)
+        self._create_new_tag(entity, 'tag1')
+        entity_dir = os.path.join(self.tmp_dir, DATASETS, DATASET_NAME)
+        with open(os.path.join(entity_dir, 'tag2'), 'wt') as z:
+            z.write('0' * 100)
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, '')))
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_COMMIT % (entity, entity + '-ex', '--version=3')))
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_PUSH % (entity, entity + '-ex')))
+
+        unsaved_file_dir = os.path.join(self.tmp_dir, DATASETS, DATASET_NAME, 'folderA')
+        ensure_path_exists(unsaved_file_dir)
+        with open(os.path.join(unsaved_file_dir, 'test-unsaved-file'), 'wt') as z:
+            z.write('0' * 100)
+        output_command = check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_NAME + ' --version=2'))
+        self.assertIn(output_messages['ERROR_DISCARDED_LOCAL_CHANGES'], output_command)
+        self.assertIn('test-unsaved-file', output_command)
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
+    def test_11_checkout_with_unsaved_work_and_full_option(self):
+        entity = DATASETS
+        init_repository(entity, self)
+        self._create_new_tag(entity, 'tag1')
+
+        data_path = os.path.join(self.tmp_dir, DATASETS, DATASET_NAME)
+        create_file(data_path, 'file', '0', '')
+
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, '')))
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_COMMIT % (entity, entity + '-ex', '--version=3')))
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_PUSH % (entity, entity + '-ex')))
+
+        entity_dir = os.path.join('folderB')
+        unsaved_files_dir = os.path.join(self.tmp_dir, DATASETS, DATASET_NAME, entity_dir)
+        ensure_path_exists(unsaved_files_dir)
+        for x in range(0, 4):
+            file_name = 'test-unsaved-file' + str(x)
+            with open(os.path.join(unsaved_files_dir, file_name), 'wt') as z:
+                z.write('0' * 100)
+
+        output_command = check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_NAME + ' --version=2'))
+        self.assertIn(output_messages['ERROR_DISCARDED_LOCAL_CHANGES'], output_command)
+        self.assertIn('folderB', output_command)
+        self.assertNotIn('test-unsaved-file0', output_command)
+        self.assertNotIn('test-unsaved-file1', output_command)
+        self.assertNotIn('test-unsaved-file2', output_command)
+        self.assertNotIn('test-unsaved-file3', output_command)
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
+    def test_12_checkout_entity_name_with_wizard(self):
+        entity_type = DATASETS
+        init_repository(entity_type, self)
+        self._create_new_tag(entity_type, 'new')
+        self._clear_workspace(entity_type)
+        runner = CliRunner()
+        result = runner.invoke(entity.datasets, ['checkout', entity_type + '-ex', '--wizard'], input='\n'.join(['']))
+        self.assertNotIn(ERROR_MESSAGE, result.output)
+        file = os.path.join(self.tmp_dir, DATASETS, DATASET_NAME, 'newfile0')
+        self.check_metadata()
+        self.check_amount_of_files(DATASETS, 6)
+        self.assertTrue(os.path.exists(file))
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
+    def test_13_checkout_with_version_number_and_wizard(self):
+        self.set_up_checkout(DATASETS)
+        runner = CliRunner()
+        result = runner.invoke(entity.datasets, ['checkout', DATASETS + '-ex', '--wizard'], input='\n'.join(['1']))
+        self.assertNotIn(ERROR_MESSAGE, result.output)
+        file = os.path.join(self.tmp_dir, DATASETS, DATASET_NAME, 'newfile0')
+        self.check_metadata()
+        self.check_amount_of_files(DATASETS, 6)
+        self.assertTrue(os.path.exists(file))

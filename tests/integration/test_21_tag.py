@@ -1,5 +1,5 @@
 """
-© Copyright 2020 HP Development Company, L.P.
+© Copyright 2020-2022 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
 
@@ -10,7 +10,7 @@ import pytest
 
 from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_COMMIT, MLGIT_PUSH, MLGIT_TAG_ADD
-from tests.integration.helper import PATH_TEST, ML_GIT_DIR, create_file, ERROR_MESSAGE, DATASETS, DATASET_NAME
+from tests.integration.helper import ML_GIT_DIR, create_file, ERROR_MESSAGE, DATASETS, DATASET_NAME
 from tests.integration.helper import check_output, init_repository, add_file
 
 
@@ -67,13 +67,3 @@ class TagAcceptanceTests(unittest.TestCase):
         self.assertTrue(os.path.exists(tag_file))
 
         self.assertIn(output_messages['INFO_TAG_ALREDY_EXISTS'] % 'test-tag', check_output(MLGIT_TAG_ADD % (DATASETS, DATASET_NAME, 'test-tag')))
-
-    @pytest.mark.usefixtures('switch_to_tmp_dir', 'start_local_git_server')
-    def test_05_add_tag_and_push(self):
-        self._add_tag_entity(DATASETS)
-        metadata_path = os.path.join(self.tmp_dir, ML_GIT_DIR, DATASETS, 'metadata')
-        os.chdir(metadata_path)
-
-        self.assertTrue(os.path.exists(os.path.join(PATH_TEST, 'data', 'mlgit',
-                                                    'zdj7WWjGAAJ8gdky5FKcVLfd63aiRUGb8fkc8We2bvsp9WW12')))
-        self.assertIn('test-tag', check_output('git describe --tags'))

@@ -11,7 +11,7 @@ import pytest
 
 from ml_git.constants import EntityType, StorageType, SPEC_EXTENSION, STORAGE_SPEC_KEY, STORAGE_CONFIG_KEY, \
     DATASET_SPEC_KEY
-from ml_git.spec import yaml_load, incr_version, is_valid_version, search_spec_file, SearchSpecException, spec_parse, \
+from ml_git.spec import yaml_load, increment_version, is_valid_version, search_spec_file, SearchSpecException, spec_parse, \
     get_spec_file_dir, increment_version_in_spec, get_root_path, get_version, update_storage_spec, validate_bucket_name, \
     set_version_in_spec, get_entity_dir
 from ml_git.utils import yaml_save, ensure_path_exists
@@ -28,11 +28,11 @@ class SpecTestCases(unittest.TestCase):
         spec_hash = yaml_load(file)
         yaml_save(spec_hash, tmpfile)
         version = spec_hash[DATASET_SPEC_KEY]['version']
-        incr_version(tmpfile)
+        new_version = version + 1
+        increment_version(tmpfile, new_version)
         incremented_hash = yaml_load(tmpfile)
-        self.assertEqual(incremented_hash[DATASET_SPEC_KEY]['version'], version + 1)
-
-        incr_version('non-existent-file')
+        self.assertEqual(incremented_hash[DATASET_SPEC_KEY]['version'], new_version)
+        self.assertEquals(increment_version('non-existent-file', new_version), -1)
 
     def test_is_valid_version(self):
         self.assertFalse(is_valid_version(None))
@@ -101,20 +101,22 @@ class SpecTestCases(unittest.TestCase):
         os.makedirs(os.path.join(self.tmp_dir, dir2))
         file1 = os.path.join(self.tmp_dir, dir1, '%s.spec' % dataset)
         file2 = os.path.join(self.tmp_dir, dir2, '%s.spec' % dataset)
+        target_version = 1
 
-        self.assertFalse(increment_version_in_spec(None))
-
-        self.assertFalse(increment_version_in_spec(os.path.join(get_root_path(), dataset)))
+        self.assertRaises(RuntimeError, lambda: increment_version_in_spec(None, target_version))
+        self.assertRaises(RuntimeError, lambda: increment_version_in_spec(os.path.join(get_root_path(), dataset),
+                                                                          target_version))
 
         spec = yaml_load(os.path.join(testdir, 'invalid2.spec'))
         yaml_save(spec, file1)
-        self.assertFalse(increment_version_in_spec(os.path.join(get_root_path(), dataset)))
+        self.assertRaises(RuntimeError, lambda: increment_version_in_spec(os.path.join(get_root_path(), dataset),
+                          target_version))
 
         spec = yaml_load(os.path.join(testdir, 'valid.spec'))
         yaml_save(spec, file1)
         os.link(file1, file2)
         self.assertTrue(increment_version_in_spec(
-            os.path.join(get_root_path(), self.tmp_dir, DATASETS, dataset, dataset + '.spec')))
+            os.path.join(get_root_path(), self.tmp_dir, DATASETS, dataset, dataset + '.spec'), target_version))
 
     def test_get_version(self):
         file = os.path.join(testdir, 'valid.spec')

@@ -23,10 +23,9 @@ def tmp_dir(request, tmp_path):
 
 @pytest.fixture()
 def switch_to_tmp_dir(tmp_path):
-    cwd = os.getcwd()
     os.chdir(tmp_path)
     yield
-    os.chdir(cwd)
+    os.chdir(PATH_TEST)
 
 
 @pytest.fixture()
@@ -47,6 +46,16 @@ def start_local_git_server(tmp_path):
     repo.index.add(all_files)
     repo.index.commit('README')
     repo.remotes.origin.push()
+
+
+@pytest.fixture()
+def start_empty_git_server(tmp_path):
+    local_git_server = os.path.join(tmp_path, GIT_PATH)
+    os.makedirs(local_git_server, exist_ok=True)
+    master_path = os.path.join(tmp_path, 'master')
+    os.makedirs(master_path, exist_ok=True)
+    Repo.init(local_git_server, bare=True)
+    Repo.clone_from(local_git_server, master_path)
 
 
 @pytest.fixture()

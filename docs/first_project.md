@@ -42,11 +42,11 @@ If you haven't created it yet, you can use the [resources initialization script]
 After that, create a ML-Git project. To do this, use the following commands (note that 'mlgit-project' is the project name used as example):
 
 ```
-$ mkdir mlgit-project && cd mlgit-project (or clone an existing repo from Github or Github Enterprise)
-$ ml-git repository init
+mkdir mlgit-project && cd mlgit-project (or clone an existing repo from Github or Github Enterprise)
+ml-git repository init
 ```
 
-[![asciicast](https://asciinema.org/a/385775.svg)](https://asciinema.org/a/385775)
+[![asciicast](https://asciinema.org/a/435876.svg)](https://asciinema.org/a/435876)
 
 Now, we need to configure our project with the remote configurations. This section is divided into two parts according to the storage: [Setting up a ml-git project with S3](#config-s3) and [Setting up a ml-git project with MinIO](#config-minio).
 
@@ -56,43 +56,43 @@ That way in future projects or if you want to share with someone
 you can use the command ```ml-git clone``` to import the project's settings, 
 without having to configure it for each new project.
 
-#### <a name="config-s3">Setting up a ML-Git project with S3 </a> ####
+#### <a name="config-minio">Setting up an ML-Git project with MinIO </a> ####
 
-In addition to creating the bucket in S3, it is necessary to configure the settings that the ML-Git uses to interact with your bucket, see [how to configure a S3 bucket](s3_configurations.md) for more details.
+In addition to creating the MinIO server, it is necessary to configure the settings that the ML-Git uses to interact with your bucket, see [how to configure MinIO](minio_s3_configuration.md) for this.
 
-For a basic ML-Git repository, you need to add a remote repository for metadata and a S3 bucket configuration.
+For a basic ML-Git repository, you need to add a remote repository for metadata and the MinIO bucket configuration.
 
 ```
-$ ml-git repository remote datasets add git@github.com:example/your-mlgit-datasets.git
-$ ml-git repository storage add mlgit-datasets --credentials=mlgit
+ml-git repository remote datasets add git@github.com:example/your-mlgit-datasets.git
+ml-git repository storage add mlgit-datasets --credentials=mlgit --endpoint-url=<minio-endpoint-url>
 ```
 
 Last but not least, initialize the metadata repository.
 
 ```
-$ ml-git datasets init
+ml-git datasets init
 ```
 
-#### <a name="config-minio">Setting up a ML-Git project with MinIO </a> ####
+**Setting up an ML-Git project with MinIO:**
 
-Same as for S3, in addition to creating the MinIO server, it is necessary to configure the settings that the ML-Git uses to interact with your bucket, see [how to configure a MinIO](s3_configurations.md) for this.
+[![asciicast](https://asciinema.org/a/385777.svg)](https://asciinema.org/a/385777)
 
-For a basic ML-Git repository, you need to add a remote repository for metadata and the MinIO bucket configuration.
+#### <a name="config-s3">Setting up an ML-Git project with S3 </a> ####
+
+Similar to the MinIO setup, in addition to creating the bucket in S3, it is necessary to configure the settings that the ML-Git uses to interact with your bucket, see [how to configure a S3 bucket](aws_s3_configuration.md) for more details.
+
+For a basic ML-Git repository, you need to add a remote repository for metadata and a S3 bucket configuration.
 
 ```
-$ ml-git datasets remote add git@github.com:example/your-mlgit-datasets.git
-$ ml-git storage add mlgit-datasets --credentials=mlgit --endpoint-url=<minio-endpoint-url>
+ml-git repository remote datasets add git@github.com:example/your-mlgit-datasets.git
+ml-git repository storage add mlgit-datasets --credentials=mlgit
 ```
 
 After that initialize the metadata repository.
 
 ```
-$ ml-git datasets init
+ml-git datasets init
 ```
-
-**Setting up ML-Git project with MinIO:**
-
-[![asciicast](https://asciinema.org/a/385777.svg)](https://asciinema.org/a/385777)
 
 #### <a name="git_use">Why ML-Git uses git?</a> ####
 
@@ -105,7 +105,10 @@ You can find more information about metadata [here](mlgit_internals.md).
 
 All configurations are stored in _.ml-git/config.yaml_ and you can look at configuration state at any time with the following command:
 ```
-$ ml-git repository config
+ml-git repository config show
+```
+Output:
+```
 config:
 {'batch_size': 20,
  'cache_path': '',
@@ -119,9 +122,7 @@ config:
  'object_path': '',
  'push_threads_count': 10,
  'refs_path': '',
- 'storages': {'s3': {'mlgit-datasets': {'aws-credentials': {'profile': 'default'},
-                                     'region': 'us-east-1'}},
-           's3h': {'mlgit-datasets': {'aws-credentials': {'profile': 'mlgit'},
+ 'storages': {'s3h': {'mlgit-datasets': {'aws-credentials': {'profile': 'mlgit'},
                                       'endpoint-url': <minio-endpoint-url>,
                                       'region': 'us-east-1'}}},
  'verbose': 'info'}
@@ -130,11 +131,11 @@ config:
 
 To create and upload a dataset to a storage, you must be in an already initialized project, if necessary read [section 1](#initial-config) to initialize and configure a project.
 
-ML-Git expects any dataset to be specified under _dataset/_ directory of your project and it expects a specification file with the name of the dataset.
+ML-Git expects any dataset to be specified under _datasets/_ directory of your project and it expects a specification file with the name of the dataset.
 To create this specification file for a new entity you must run the following command:
 
 ```
-$ ml-git datasets create imagenet8 --category=computer-vision --category=images --mutability=strict --storage-type=s3h --bucket-name=mlgit-datasets
+ml-git datasets create imagenet8 --categories="computer-vision, images" --mutability=strict --storage-type=s3h --bucket-name=mlgit-datasets
 ```
 
 This command will create the dataset directory at the root of the project entity.
@@ -142,10 +143,10 @@ If you want to create a version of your dataset in a different directory, you ca
 to inform the relative directory where the entity is to be created. Example:
 
 ```
-$ ml-git datasets create imagenet8 --category=computer-vision --category=images --mutability=strict --storage-type=s3h --bucket-name=mlgit-datasets --entity-dir=folderA/folderB
+ml-git datasets create imagenet8 --categories="computer-vision, images" --mutability=strict --storage-type=s3h --bucket-name=mlgit-datasets --entity-dir=folderA/folderB
 ```
 
-After that a file must have been created in dataset/folderA/folderB/imagenet8/imagenet8.spec and should look like this:
+After that a file must have been created in datasets/folderA/folderB/imagenet8/imagenet8.spec and should look like this:
 
 ```
 dataset:
@@ -214,7 +215,10 @@ imagenet8/
 You can look at the working tree status with the following command:
 
 ```
-$ ml-git datasets status imagenet8
+ml-git datasets status imagenet8
+```
+Output:
+```
 INFO - Repository: dataset: status of ml-git index for [imagenet8]
 Changes to be committed
 
@@ -239,13 +243,16 @@ corrupted files
 That command allows printing the tracked files and the ones in the index/staging area. Now, you are ready to put that new dataset under ML-Git management. For this, do:
 
 ```
-$ ml-git datasets add imagenet8
+ml-git datasets add imagenet8
 ```
 
 The command "*ml-git dataset add*" adds the files into a specific dataset, such as imagenet8 in the index/staging area. If you check the working tree status, you can see that now the files appear as tracked but not committed yet:
 
 ```
-$ ml-git datasets status imagenet8
+ml-git datasets status imagenet8
+```
+Output:
+```
 INFO - Repository: dataset: status of ml-git index for [imagenet8]
 Changes to be committed
     new file:   data\train\train_data_batch_1
@@ -268,20 +275,20 @@ corrupted files
 Then, you can commit the metadata to the local repository. For this purpose, type the following command:
 
 ```
-$ ml-git datasets commit imagenet8
+ml-git datasets commit imagenet8
 ```
 
 After that, you can use "*ml-git dataset push*" to update the remote metadata repository just after storing all actual data under management in the specified remote data storage.
 
 ```
-$ ml-git datasets push imagenet8
+ml-git datasets push imagenet8
 ```
 
 As you can observe, ML-Git follows very similar workflows as git.
 
 **Uploading a dataset:**
 
-[![asciicast](https://asciinema.org/a/385776.svg)](https://asciinema.org/a/385776)
+[![asciicast](https://asciinema.org/a/435877.svg)](https://asciinema.org/a/435877)
 
 ## <a name="change-dataset">Adding data to a dataset</a> ##
 
@@ -314,16 +321,19 @@ Also, you will need to have a dataset already versioned by ML-Git in your reposi
 The first step is to configure your metadata and data repository/storage.
 
 ```
-$ ml-git repository remote labels add git@github.com:example/your-mlgit-labels.git
-$ ml-git repository storage add mlgit-labels 
-$ ml-git labels init
+ml-git repository remote labels add git@github.com:example/your-mlgit-labels.git
+ml-git repository storage add mlgit-labels --endpoint-url=<minio-endpoint-url>
+ml-git labels init
 ```
 
 Even these commands show a different bucket to store the labels data. It would be possible to store both datasets and labels into the same bucket.
 
 If you look at your config file, you would see the following information:
 ```
-$ ml-git repository config
+ml-git repository config show
+```
+Output:
+```
 config:
 {'batch_size': 20,
  'cache_path': '',
@@ -336,13 +346,11 @@ config:
  'models': {'git': ''},
  'object_path': '',
  'refs_path': '',
- 'storages': {'s3': {'mlgit-datasets': {'aws-credentials': {'profile': 'default'},
-                                     'region': 'us-east-1'}},
-           's3h': {'mlgit-datasets': {'aws-credentials': {'profile': 'default'},
-                                      'endpoint-url': None,
+ 'storages': {'s3h': {'mlgit-datasets': {'aws-credentials': {'profile': 'default'},
+                                      'endpoint-url': <minio-endpoint-url>,
                                       'region': 'us-east-1'}}},
-           's3h': {'mlgit-labels': {'aws-credentials': {'profile': 'default'},
-                                      'endpoint-url': None,
+              's3h': {'mlgit-labels': {'aws-credentials': {'profile': 'default'},
+                                      'endpoint-url': <minio-endpoint-url>,
                                       'region': 'us-east-1'}}},
  'verbose': 'info'}
 ```
@@ -350,7 +358,7 @@ config:
 Then, you can create your first set of labels. As an example, we will use mscoco. ML-Git expects any set of labels to be specified under the _labels/_ directory of your project. Also, it expects a specification file with the name of the _labels_.
 
 ```
-$ ml-git labels create mscoco-captions --category=computer-vision --category=captions --mutability=mutable --storage-type=s3h --bucket-name=mlgit-labels --version=1
+ml-git labels create mscoco-captions --categories="computer-vision, captions" --mutability=mutable --storage-type=s3h --bucket-name=mlgit-labels --version=1
 ```
 
 After create the entity, you can create the README.md describing your set of labels. Below is the tree of caption labels for the mscoco directory and file structure:
@@ -367,9 +375,9 @@ mscoco-captions/
 Now, you are ready to put the new set of labels under ML-Git management.  We assume there is an existing mscoco dataset. For this, do:
 
 ```
-$ ml-git labels add mscoco-captions
-$ ml-git labels commit mscoco-captions --dataset=mscoco
-$ ml-git labels push mscoco-captions
+ml-git labels add mscoco-captions
+ml-git labels commit mscoco-captions --dataset=mscoco
+ml-git labels push mscoco-captions
 ```
 
 The commands are very similar to dataset operations. However, you can note one particular change in the commit command.
@@ -379,7 +387,10 @@ Once done, anyone will be able to retrieve the exact same version of the dataset
 
 One can look at the specific dataset associated with that set of labels by executing the following command:
 ```
-$ ml-git labels show mscoco-captions
+ml-git labels show mscoco-captions
+```
+Output:
+```
 -- labels : mscoco-captions --
 categories:
 - computer-vision
@@ -398,7 +409,7 @@ As you can see, there is a new section "_dataset_" that has been added by ML-Git
 
 **Uploading labels related to a dataset:**
 
-[![asciicast](https://asciinema.org/a/385774.svg)](https://asciinema.org/a/385774)
+[![asciicast](https://asciinema.org/a/435885.svg)](https://asciinema.org/a/435885)
 ## <a name="upload-models">Uploading Models</a> ##
 
 To create and upload your model, you must be in an already initialized project, if necessary read [section 1](#initial-config) to initialize and configure a project.
@@ -406,15 +417,15 @@ To create and upload your model, you must be in an already initialized project, 
 The first step is to configure your metadata & data repository/storage.
 
 ```
-$ ml-git repository remote models add git@github.com:example/your-mlgit-models.git
-$ ml-git repository storage add mlgit-models
-$ ml-git models init
+ml-git repository remote models add git@github.com:example/your-mlgit-models.git
+ml-git repository storage add mlgit-models --endpoint-url=<minio-endpoint-url>
+ml-git models init
 ```
 
 To create a model entity, you can run the following command:
 
 ```
-$ ml-git models create imagenet-model --category=computer-vision --category=images --storage-type=s3h --mutability=mutable --bucket-name=mlgit-models
+ml-git models create imagenet-model --categories="computer-vision, images" --storage-type=s3h --mutability=mutable --bucket-name=mlgit-models
 ```
 
 After creating the model, we add the model file to the data folder. Here below is the directory tree structure:
@@ -430,9 +441,9 @@ imagenet-model/
 Now, you're ready to put that new model set under ML-Git management. We assume there is an existing imagenet8 dataset and mscoco-captions labels. For this, do:
 
 ```
-$ ml-git models add imagenet-model
-$ ml-git models commit imagenet-model --dataset=imagenet8 --labels=mscoco-captions
-$ ml-git models push imagenet-model
+ml-git models add imagenet-model
+ml-git models commit imagenet-model --dataset=imagenet8 --labels=mscoco-captions
+ml-git models push imagenet-model
 ```
 
 There is not much change compared to dataset and labels operation.
@@ -450,13 +461,13 @@ We can insert metrics to the model in the add command, metrics can be added with
 An example of adding a model passing a metrics file, would be the following command:
 
 ```
-$ ml-git models add imagenet-model --metrics-file='/path/to/your/file.csv'
+ml-git models add imagenet-model --metrics-file='/path/to/your/file.csv'
 ```
 
 An example of adding a model passing metrics through the command line, would be the following command:
 
 ```
-$ ml-git models add imagenet-model --metric accuracy 10 --metric precision 20 --metric recall 30
+ml-git models add imagenet-model --metric accuracy 10 --metric precision 20 --metric recall 30
 ```
 
 Obs: The parameters used above were chosen for example purposes, you can name your metrics however you want to, you can also pass as many metrics as you want, as long as you use the command correctly.
@@ -481,10 +492,10 @@ model:
 You can view metrics for all tags for that entity by running the following command:
 
 ```
-$ ml-git models metrics imagenet-model
+ml-git models metrics imagenet-model
 ```
 
-[![asciicast](https://asciinema.org/a/D5Fng853vi8uNKghdrFKunKYb.svg)](https://asciinema.org/a/D5Fng853vi8uNKghdrFKunKYb)
+[![asciicast](https://asciinema.org/a/435899.svg)](https://asciinema.org/a/435899)
 
 ## <a name="download-dataset">Downloading a dataset</a> ##
 
@@ -494,25 +505,33 @@ If you don't have a dataset versioned by the ML-Git, see [section 2](#upload-dat
 To download a dataset, you need to be in an initialized and configured ML-Git project. If you have a repository with your saved settings, you can run the following command to set up your environment:
 
 ```
-$ ml-git clone git@github.com:example/your-mlgit-repository.git
+ml-git clone git@github.com:example/your-mlgit-repository.git
 ```
 
-If you are in a configured ML-Git project directory, the following command will update the metadata repository, allowing visibility of what has been shared since the last update (new ML entity, new versions).
+Then, go to the project directory:
+```
+cd your-mlgit-repository
+```
+
+Inside the configured ML-Git project directory, the following command will update the metadata repository, allowing visibility of what has been shared since the last update (new ML entity, new versions).
 
 ```
-$ ml-git datasets update
+ml-git datasets update
 ```
 
 Or update all metadata repository:
 
 ```
-$ ml-git repository update
+ml-git repository update
 ```
 
 To discover which datasets are under ML-Git management, you can execute the following command:
 
 ```
-$ ml-git datasets list
+ml-git datasets list
+```
+Output:
+```
 ML dataset
 |-- folderA
 |   |-- folderB
@@ -527,7 +546,10 @@ In order for ML-Git to manage the different versions of the same dataset. It int
 To show all these tag representing the versions of a dataset, simply type the following:
 
 ```
-$ ml-git datasets tag list imagenet8
+ml-git datasets tag list imagenet8
+```
+Output:
+```
 computer-vision__images__imagenet8__1
 computer-vision__images__imagenet8__2
 ```
@@ -535,7 +557,10 @@ computer-vision__images__imagenet8__2
 It means there are actually 2 versions under ML-Git management. You can check what version is checked out in the ML-Git workspace with the following command:
 
 ```
-$ ml-git datasets branch imagenet8
+ml-git datasets branch imagenet8
+```
+Output:
+```
 ('vision-computing__images__imagenet8__2', '48ba1e994a1e39e1b508bff4a3302a5c1bb9063e')
 ```
 
@@ -548,17 +573,17 @@ The output is a tuple:
 It is simple to retrieve a specific version locally to start any experiment by executing one of the following commands:
 
 ```
-$ ml-git datasets checkout computer-vision__images__imagenet8__1
+ml-git datasets checkout computer-vision__images__imagenet8__1
 ```
 or 
 ```
-$ ml-git datasets checkout imagenet8 --version=1
+ml-git datasets checkout imagenet8 --version=1
 ```
 
 If you want to get the latest available version of an entity you can just pass its name in the checkout command, as shown below:
 
 ```
-$ ml-git datasets checkout imagenet8
+ml-git datasets checkout imagenet8
 ```
 
 Getting the data will auto-create a directory structure under _dataset_ directory as shown below. That structure _folderA/folderB_ is actually the structure in which the dataset was versioned.
@@ -594,13 +619,13 @@ folderA
 If at some point you want to check the integrity of the metadata repository (e.g. computer shuts down during a process), simply type the following command:
 
 ```
-$ ml-git datasets fsck
+ml-git datasets fsck
 INFO - HashFS: starting integrity check on [.\.ml-git\dataset\objects\hashfs]
-ERROR - HashFS: corruption detected for chunk [zdj7WVccN8cRj1RcvweX3FNUEQyBe1oKEsWsutJNJoxt12mn1] - got [zdj7WdCbyFbcqHVMarj3KCLJ7yjTM3S9X26RyXWTfXGB2czeB]
 INFO - HashFS: starting integrity check on [.\.ml-git\dataset\index\hashfs]
-[1] corrupted file(s) in Local Repository: ['zdj7WVccN8cRj1RcvweX3FNUEQyBe1oKEsWsutJNJoxt12mn1']
-[0] corrupted file(s) in Index: []
+[1] corrupted file(s) in Local Repository
+[0] corrupted file(s) in Index
 Total of corrupted files: 1
+INFO - Repository: For more information about the corrupted files you can run the command with the --verbose option.
 ```
 
 That command will walk through the internal ML-Git directories (index & local repository) and will check the integrity of all blobs under its management.
@@ -608,7 +633,7 @@ It will return the list of blobs that are corrupted.
 
 **Checking data integrity:**
 
-[![asciicast](https://asciinema.org/a/385778.svg)](https://asciinema.org/a/385778)
+[![asciicast](https://asciinema.org/a/471623.svg)](https://asciinema.org/a/471623)
 
 ## <a name="change-dataset">Changing a Dataset</a> ##
 

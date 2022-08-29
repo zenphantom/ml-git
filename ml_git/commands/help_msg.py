@@ -1,9 +1,9 @@
 """
-© Copyright 2020 HP Development Company, L.P.
+© Copyright 2020-2022 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
 
-RETRY_OPTION = 'Number of retries to download the files from the storage [default: 2].'
+RETRY_OPTION = 'Number of retries to download the files from the storage. This number must be in the range 0-999999999 [default: 2].'
 FORCE_CHECKOUT = 'Force checkout command to delete untracked/uncommitted files from local repository.'
 BARE_OPTION = 'Ability to add/commit/push without having the ml-entity checked out.'
 FSCK_OPTION = 'Run fsck after command execution.'
@@ -24,8 +24,9 @@ SEED_OPTION = 'Seed to be used in random-based samplers.'
 ASSOCIATED_WITH_DATASET = 'The checkout associated dataset in user workspace as well.'
 ASSOCIATED_WITH_LABELS = 'The checkout associated labels  in user workspace as well.'
 BUMP_VERSION = 'Increment the version number when adding more files.'
-LINK_DATASET = 'Link dataset entity name to this model set version.'
-LINK_LABELS = 'Link labels entity name to this model set version.'
+LINK_DATASET = 'Link a dataset entity name to this model set version'
+LINK_LABELS = 'Link a labels entity name to this model set version'
+LINK_DATASET_TO_LABEL = 'Link a dataset entity name to this label set version'
 RESET_HARD = 'Remove untracked files from workspace, files to be committed from staging area as well '\
              'as committed files upto <reference>.'
 RESET_MIXED = 'Revert the committed files and the staged files to \'Untracked Files\'. This is the default action.'
@@ -47,8 +48,7 @@ THOROUGH_OPTION = 'Try to download the IPLD if it is not present in the local re
 PARANOID_OPTION = 'Adds an additional step that will download all ' \
                   'IPLD and its associated IPLD links to verify the content by ' \
                   'computing the multihash of all these.'
-CATEGORY_OPTION = 'Artifact\'s category name.'
-STORAGE_TYPE = 'Data storage type [default: s3h].'
+CATEGORIES_OPTION = 'Artifact\'s categories names. The categories names must be separated by comma. E.g: "category1,category2,category3" [required]'
 VERSION_NUMBER = 'Number of artifact version.'
 IMPORT_OPTION = 'Path to be imported to the project.'
 WIZARD_CONFIG = 'If specified, ask interactive questions at console for git & storage configurations.'
@@ -58,13 +58,15 @@ CREDENTIALS_PATH = 'Directory of credentials.json.'
 UNZIP_OPTION = 'Unzip imported zipped files. Only available if --import-url is used.'
 STAT_OPTION = 'Show amount of files and size of an ml-entity.'
 FULL_STAT_OPTION = 'Show added and deleted files.'
-SET_VERSION_NUMBER = 'Set the version number of the artifact. This number must be in the range 0 to 999999999.'
-ARTIFACT_VERSION = 'Number of artifact version to be downloaded [default: latest].'
-MUTABILITY = 'Mutability type.'
+SET_VERSION_NUMBER = 'Set the version number of the artifact. This number must be in the range of 0 to 999999999.'
+ARTIFACT_VERSION = 'Number of artifact version to be downloaded. This number must be in the range 0-999999999 [default: latest].'
+MUTABILITY = 'Mutability type. [required]'
 STATUS_FULL_OPTION = 'Show all contents for each directory.'
 STORAGE_CREDENTIALS = 'Profile name for storage credentials'
-STORAGE_REGION = 'Aws region name for S3 bucket'
-STORAGE_TYPE = 'Storage type (s3h, s3, azureblobh, gdriveh ...) [default: s3h]'
+STORAGE_REGION = 'AWS region name for S3 bucket'
+STORAGE_TYPE = 'Storage type (s3h, s3, azureblobh, gdriveh, gdrive, sftph) [default: s3h]'
+STORAGE_TYPE_MULTIHASH = 'Storage type (s3h, azureblobh, gdriveh, sftph) [default: s3h]'
+STORAGE_TYPE_IMPORT_COMMAND = 'Storage type (s3, gdrive) [default: s3]'
 GLOBAL_OPTION = 'Use this option to set configuration at global level'
 ENTITY_DIR = 'The relative path where the entity will be created inside the ml entity directory.'
 METRICS_FILE_OPTION = 'Metrics file path.'
@@ -72,3 +74,16 @@ METRIC_OPTION = 'Metric key and value.'
 METRICS_COMMAND = 'Shows metrics information for each tag of the entity.'
 EXPORT_METRICS_PATH = 'Set the path to export metrics to a file.'
 EXPORT_METRICS_TYPE = 'Choose the format of the file that will be generated with the metrics [default: json].'
+FAIL_LIMIT = 'Number of failures before aborting the command. This number must be in the range 0-999999999 [default: no limit].'
+LOCAL_CONFIGURATIONS = 'Local configurations.'
+WIZARD_MODE = 'Enable or disable the wizard for all supported commands.'
+GLOBAL_CONFIGURATIONS = 'Global configurations.'
+VERBOSE_OPTION = 'Debug mode'
+FSCK_FULL_OPTION = 'Show the list of corrupted files.'
+REMOTE_FSCK_FULL_OPTION = 'Show the list of fixed and unfixed blobs and IPLDs.'
+CREATE_COMMAND = 'This command will create the workspace structure with data and spec file for an entity and set the ' \
+                 'git and storage configurations. [This command has a wizard that will request the necessary information ' \
+                 'if it is not informed]'
+STORAGE_ADD_COMMAND = 'Add a storage BUCKET_NAME to ml-git. [This command has a wizard that will request the necessary' \
+                      ' information if it is not informed]'
+WIZARD_OPTION = 'Enable the wizard to request information when needed.'

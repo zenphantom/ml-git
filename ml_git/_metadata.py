@@ -1,5 +1,5 @@
 """
-© Copyright 2020 HP Development Company, L.P.
+© Copyright 2020-2022 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
 import io
@@ -8,19 +8,20 @@ import os
 import re
 import time
 
-from git import Repo, Git, InvalidGitRepositoryError, GitError, PushInfo
+from git import Repo, Git, InvalidGitRepositoryError, GitError
 from halo import Halo
 from prettytable import PrettyTable
 
 from ml_git import log
 from ml_git.config import get_metadata_path
-from ml_git.constants import METADATA_MANAGER_CLASS_NAME, HEAD_1, RGX_ADDED_FILES, RGX_DELETED_FILES, RGX_SIZE_FILES, \
+from ml_git.constants import METADATA_MANAGER_CLASS_NAME, HEAD_1, RGX_SIZE_FILES, \
     RGX_AMOUNT_FILES, TAG, AUTHOR, EMAIL, DATE, MESSAGE, ADDED, SIZE, AMOUNT, DELETED, SPEC_EXTENSION, \
     DEFAULT_BRANCH_FOR_EMPTY_REPOSITORY, PERFORMANCE_KEY, EntityType, FileType, RELATED_DATASET_TABLE_INFO, \
-    RELATED_LABELS_TABLE_INFO, DATASET_SPEC_KEY, LABELS_SPEC_KEY
+    RELATED_LABELS_TABLE_INFO, DATASET_SPEC_KEY, LABELS_SPEC_KEY, MANIFEST_FILE
+from ml_git.git_client import GitClient
 from ml_git.manifest import Manifest
 from ml_git.ml_git_message import output_messages
-from ml_git.spec import get_entity_dir, spec_parse, get_spec_key
+from ml_git.spec import get_entity_dir, spec_parse, get_spec_key, search_spec_file
 from ml_git.utils import get_root_path, ensure_path_exists, yaml_load, RootPathException, get_yaml_str, yaml_load_str, \
     clear, posix_path, create_csv_file
 
@@ -34,6 +35,7 @@ class MetadataRepo(object):
             self.__path = os.path.join(root_path, path)
             self.__git = git
             ensure_path_exists(self.__path)
+            self.__git_client = GitClient(self.__git, self.__path)
         except RootPathException as e:
             log.error(e, class_name=METADATA_MANAGER_CLASS_NAME)
             raise e
@@ -45,21 +47,21 @@ class MetadataRepo(object):
             return
 
     def init(self):
-        try:
-            log.info(output_messages['INFO_METADATA_INIT'] % (self.__git, self.__path), class_name=METADATA_MANAGER_CLASS_NAME)
-            Repo.clone_from(self.__git, self.__path)
-        except GitError as g:
-            if 'fatal: repository \'\' does not exist' in g.stderr:
-                raise GitError(output_messages['ERROR_UNABLE_TO_FIND_REMOTE_REPOSITORY'])
-            elif 'Repository not found' in g.stderr:
-                raise GitError(output_messages['ERROR_UNABLE_TO_FIND'] % self.__git)
-            elif 'already exists and is not an empty directory' in g.stderr:
-                raise GitError(output_messages['ERROR_PATH_ALREAD_EXISTS'] % self.__path)
-            elif 'Authentication failed' in g.stderr:
-                raise GitError(output_messages['ERROR_GIT_REMOTE_AUTHENTICATION_FAILED'])
-            else:
-                raise GitError(g.stderr)
-            return
+        log.info(output_messages['INFO_METADATA_INIT'] % (self.__git, self.__path), class_name=METADATA_MANAGER_CLASS_NAME)
+        self.__git_client.clone()
+
+    def init_local_repo(self):
+        if os.path.exists(os.path.join(self.__path, '.git')):
+            log.debug(output_messages['DEBUG_ALREADY_IN_GIT_REPOSITORY'] % self.__path, class_name=METADATA_MANAGER_CLASS_NAME)
+            return False
+        log.info(output_messages['INFO_CREATING_GIT_REPOSITORY'] % self.__path, class_name=METADATA_MANAGER_CLASS_NAME)
+        Repo.init(self.__path)
+        return True
+
+    def create_remote(self):
+        config_repo = Repo(path=self.__path)
+        origin = config_repo.create_remote(name='origin', url=self.__git)
+        origin.fetch()
 
     def remote_set_url(self, mlgit_remote):
         try:
@@ -113,10 +115,8 @@ class MetadataRepo(object):
 
     def update(self):
         log.info(output_messages['INFO_MLGIT_PULL'] % self.__path, class_name=METADATA_MANAGER_CLASS_NAME)
-        repo = Repo(self.__path)
         self.validate_blank_remote_url()
-        o = repo.remotes.origin
-        o.pull('--tags')
+        self.__git_client.pull()
 
     def commit(self, file, msg):
         log.info(output_messages['INFO_COMMIT_REPO'] % (self.__path, file), class_name=METADATA_MANAGER_CLASS_NAME)
@@ -128,40 +128,19 @@ class MetadataRepo(object):
         repo = Repo(self.__path)
         return repo.create_tag(tag, message='Automatic tag "{0}"'.format(tag))
 
-    @Halo(text='Pushing metadata to the git repository', spinner='dots')
     def push(self):
         log.debug(output_messages['DEBUG_PUSH'] % self.__path, class_name=METADATA_MANAGER_CLASS_NAME)
-        repo = Repo(self.__path)
-        try:
-            self.validate_blank_remote_url()
-            for i in repo.remotes.origin.push(tags=True):
-                if (i.flags & PushInfo.ERROR) == PushInfo.ERROR:
-                    raise RuntimeError(output_messages['ERROR_PUSH_METADATA'])
-
-            for i in repo.remotes.origin.push():
-                if (i.flags & PushInfo.ERROR) == PushInfo.ERROR:
-                    raise RuntimeError(output_messages['ERROR_PUSH_METADATA'])
-        except GitError as e:
-            err = e.stderr
-            match = re.search("stderr: 'fatal:((?:.|\\s)*)'", err)
-            if match:
-                err = match.group(1)
-                raise GitError(err)
+        self.validate_blank_remote_url()
+        self.__git_client.push(tags=True)
+        self.__git_client.push(tags=False)
 
     def fetch(self):
         try:
             log.debug(output_messages['DEBUG_FETCH'] % self.__path, class_name=METADATA_MANAGER_CLASS_NAME)
-            repo = Repo(self.__path)
             self.validate_blank_remote_url()
-            repo.remotes.origin.fetch()
-        except GitError as e:
-            err = e.stderr
-            match = re.search('stderr: \'fatal:(.*)\'', err)
-            if match:
-                err = match.group(1)
-                log.error(err, class_name=METADATA_MANAGER_CLASS_NAME)
-            else:
-                log.error(err, class_name=METADATA_MANAGER_CLASS_NAME)
+            self.__git_client.fetch()
+        except Exception as e:
+            log.error(str(e), class_name=METADATA_MANAGER_CLASS_NAME)
             return False
 
     def list_tags(self, spec, full_info=False):
@@ -245,7 +224,7 @@ class MetadataRepo(object):
         if output != (title + '\n'):
             print(output)
         else:
-            log.error(output_messages['ERROR_NONE_ENTITY_MANAGED'])
+            log.info(output_messages['INFO_NONE_ENTITY_MANAGED'])
 
     @staticmethod
     def metadata_print(metadata_file, spec_name):
@@ -378,12 +357,12 @@ class MetadataRepo(object):
         tags.sort(key=self.__sort_tag_by_date)
         return tags
 
-    def get_log_info(self, spec, fullstat=False, specialized_data_info=None):
+    def get_log_info(self, spec, fullstat=False, stat=False, specialized_data_info=None):
         formatted = ''
         tags = self._get_ordered_entity_tags(spec)
 
         for tag in tags:
-            formatted += '\n' + self.get_formatted_log_info(tag, fullstat)
+            formatted += '\n' + self.get_formatted_log_info(spec, tag, fullstat, stat)
             formatted += self._get_metrics(spec, tag.commit)
             if specialized_data_info:
                 value = next(specialized_data_info, '')
@@ -500,7 +479,57 @@ class MetadataRepo(object):
             current_spec = yaml_load_str(self._get_spec_content_from_ref(current_ref, spec_path))
             yield current_spec[entity][spec_manifest_key], base_spec[entity][spec_manifest_key]
 
-    def get_formatted_log_info(self, tag, fullstat):
+    @Halo(text='Getting Manifest Files', spinner='dots')
+    def diff_refs_with_modified_files(self, entity_name, source_ref, ref_to_compare):
+        spec_path, _ = search_spec_file(self.__repo_type, entity_name, root_path=self.__path)
+        manifest_path = os.path.join(spec_path, MANIFEST_FILE)
+        self.checkout(source_ref)
+        manifest_file_source_ref = Manifest(manifest_path)
+        self.checkout(ref_to_compare)
+        manifest_file_ref_to_compare = Manifest(manifest_path)
+        self.checkout()
+        return manifest_file_source_ref.compare_files(manifest_file_ref_to_compare)
+
+    def _diff_refs(self, entity_name, source_ref, ref_to_compare):
+        repo = Repo(self.__path)
+        diff = repo.git.diff(str(source_ref), str(ref_to_compare))
+        size_files = re.findall(RGX_SIZE_FILES, diff)
+        amount_files = re.findall(RGX_AMOUNT_FILES, diff)
+        added_files, deleted_files, _ = self.diff_refs_with_modified_files(entity_name, source_ref, ref_to_compare)
+        return added_files, deleted_files, size_files, amount_files
+
+    def get_tag_diff_from_parent(self, entity_name, tag):
+        commit = tag.commit
+        parents = tag.commit.parents
+        added_files = []
+        deleted_files = []
+        size_files = []
+        amount_files = []
+        if len(parents) > 0:
+            added_files,  deleted_files, size_files, amount_files = self._diff_refs(entity_name, parents[0], commit)
+
+        return added_files, deleted_files, size_files, amount_files
+
+    def _get_files_log_output(self, files_path_list, fullstat):
+        if fullstat:
+            return '\n\t'.join(files_path_list)
+
+        else:
+            paths = {}
+            for file_path in files_path_list:
+                index = file_path.rfind('/')
+                if index == -1:
+                    key = './'
+                else:
+                    key = file_path[:index+1]
+                if key in paths:
+                    paths[key] += 1
+                else:
+                    paths[key] = 1
+
+            return '\n\t'.join('{}\t-> \t{} FILES'.format(k, paths[k]) for k in paths.keys())
+
+    def get_formatted_log_info(self, entity_name, tag, fullstat, stat):
         commit = tag.commit
         info_format = '\n{}: {}'
         info = ''
@@ -510,14 +539,14 @@ class MetadataRepo(object):
         info += info_format.format(DATE, time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(commit.authored_date)))
         info += info_format.format(MESSAGE, commit.message)
 
-        if fullstat:
-            added, deleted, size, amount = self.get_ref_diff(tag)
+        if fullstat or stat:
+            added, deleted, size, amount = self.get_tag_diff_from_parent(entity_name, tag)
             if len(added) > 0:
                 added_list = list(added)
-                info += '\n\n{} [{}]:\n\t{}'.format(ADDED, len(added_list), '\n\t'.join(added_list))
+                info += '\n\n{} [{}]:\n\t{}'.format(ADDED, len(added_list), self._get_files_log_output(added_list, fullstat))
             if len(deleted) > 0:
                 deleted_list = list(deleted)
-                info += '\n\n{} [{}]:\n\t{}'.format(DELETED, len(deleted_list), '\n\t'.join(deleted_list))
+                info += '\n\n{} [{}]:\n\t{}'.format(DELETED, len(deleted_list), self._get_files_log_output(deleted_list, fullstat))
             if len(size) > 0:
                 info += '\n\n{}: {}'.format(SIZE, '\n\t'.join(size))
             if len(amount) > 0:
@@ -525,31 +554,12 @@ class MetadataRepo(object):
 
         return info
 
-    def get_ref_diff(self, tag):
-        repo = Repo(self.__path)
-        commit = tag.commit
-        parents = tag.commit.parents
-        added_files = []
-        deleted_files = []
-        size_files = []
-        amount_files = []
-        if len(parents) > 0:
-            diff = repo.git.diff(str(parents[0]), str(commit))
-            added_files = re.findall(RGX_ADDED_FILES, diff)
-            deleted_files = re.findall(RGX_DELETED_FILES, diff)
-            size_files = re.findall(RGX_SIZE_FILES, diff)
-            amount_files = re.findall(RGX_AMOUNT_FILES, diff)
-
-        return added_files, deleted_files, size_files, amount_files
-
     def validate_blank_remote_url(self):
         blank_url = ''
         repo = Repo(self.__path)
         for url in repo.remote().urls:
             if url == blank_url:
-                git_error = GitError()
-                git_error.stderr = output_messages['ERROR_REMOTE_NOT_FOUND']
-                raise git_error
+                raise Exception(output_messages['ERROR_REMOTE_NOT_FOUND'])
 
     def delete_git_reference(self):
         try:

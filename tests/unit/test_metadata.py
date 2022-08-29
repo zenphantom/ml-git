@@ -1,5 +1,5 @@
 """
-© Copyright 2020 HP Development Company, L.P.
+© Copyright 2020-2021 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
 
@@ -141,10 +141,10 @@ class MetadataTestCases(unittest.TestCase):
                 'computer__images__dataset-ex__2',
                 'computer__videos__dataset-ex__1']
         m = Metadata('', self.test_dir, config, DATASETS)
-        self.assertRaises(RuntimeError, lambda: m._get_target_tag(tags, 'dataset-ex', -1))
-        self.assertRaises(RuntimeError, lambda: m._get_target_tag(tags, 'dataset-ex', 1))
-        self.assertRaises(RuntimeError, lambda: m._get_target_tag(tags, 'dataset-wrong', 1))
-        self.assertEqual(m._get_target_tag(tags, 'dataset-ex', 2), 'computer__images__dataset-ex__2')
+        self.assertRaises(RuntimeError, lambda: m._get_target_tag(tags, -1))
+        self.assertRaises(RuntimeError, lambda: m._get_target_tag(tags, 1))
+        self.assertRaises(RuntimeError, lambda: m._get_target_tag(tags, 1))
+        self.assertEqual(m._get_target_tag(tags, 2), 'computer__images__dataset-ex__2')
         clear(m.path)
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_test_dir')
@@ -343,3 +343,109 @@ class MetadataTestCases(unittest.TestCase):
         self.assertIn('{},{},{},{},accuracy'.format(DATE, TAG, RELATED_DATASET_TABLE_INFO, RELATED_LABELS_TABLE_INFO),
                       data.getvalue())
         self.assertIn(',,,,10.0', data.getvalue())
+
+    @pytest.mark.usefixtures('switch_to_test_dir')
+    def test_last_tag_version(self):
+        sepc_path = 'dataset-ex'
+        config['mlgit_path'] = self.test_dir
+        m = Metadata('', '', config, DATASETS)
+        m.init()
+
+        tag_list = ['computer__images__dataset-ex__1', 'computer__images__dataset-ex__2']
+        with mock.patch('ml_git.metadata.Metadata.list_tags', return_value=tag_list):
+            last_version = m.get_last_tag_version(sepc_path)
+        self.assertEqual(last_version, 2)
+
+        tag_list = []
+        with mock.patch('ml_git.metadata.Metadata.list_tags', return_value=tag_list):
+            last_version = m.get_last_tag_version(sepc_path)
+        self.assertEqual(last_version, 0)
+        clear(self.test_dir)
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_test_dir')
+    def test_init_local_repo(self):
+        m = Metadata(spec, self.test_dir, config, DATASETS)
+        m.init()
+        self.assertTrue(m.check_exists())
+        clear(m.path)
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_test_dir')
+    def test_diff_refs_add_file(self):
+        repo_type = DATASETS
+        mdpath = os.path.join(self.test_dir, '.ml-git', repo_type, 'metadata')
+        entity = 'dataset-ex'
+        specpath = os.path.join('vision-computer', 'images', entity)
+        config_test = deepcopy(config)
+        config_test['mlgit_path'] = '.ml-git'
+        m = Metadata(entity, mdpath, config_test, repo_type)
+        m.init()
+        ensure_path_exists(os.path.join(mdpath, specpath, entity))
+        manifestpath = os.path.join(os.path.join(mdpath, specpath), 'MANIFEST.yaml')
+        shutil.copy('hdata/dataset-ex.spec', os.path.join(mdpath, specpath, '{}.spec'.format(entity)))
+        yaml_save(files_mock, manifestpath)
+        sha1 = m.commit(manifestpath, 'test')
+        files_mock_copy = deepcopy(files_mock)
+        files_mock_copy['zPaksM5tNewHashQ2VABPvvfC3VW6wFRTWKvFhUW5QaDx6JMoma'] = {'11.jpg'}
+        yaml_save(files_mock_copy, manifestpath)
+        sha2 = m.commit(manifestpath, 'test')
+
+        added_files, deleted_files, modified_file = m.diff_refs_with_modified_files(entity, sha1, sha2)
+        self.assertTrue(len(added_files) == 1)
+        self.assertTrue(len(deleted_files) == 0)
+        self.assertTrue(len(modified_file) == 0)
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_test_dir')
+    def test_diff_refs_deleted_file(self):
+        repo_type = DATASETS
+        mdpath = os.path.join(self.test_dir, '.ml-git', repo_type, 'metadata')
+        entity = 'dataset-ex'
+        specpath = os.path.join('vision-computer', 'images', entity)
+        config_test = deepcopy(config)
+        config_test['mlgit_path'] = '.ml-git'
+        m = Metadata(entity, mdpath, config_test, repo_type)
+        m.init()
+        ensure_path_exists(os.path.join(mdpath, specpath, entity))
+        manifestpath = os.path.join(os.path.join(mdpath, specpath), 'MANIFEST.yaml')
+        shutil.copy('hdata/dataset-ex.spec', os.path.join(mdpath, specpath, '{}.spec'.format(entity)))
+
+        yaml_save(files_mock, manifestpath)
+        sha1 = m.commit(manifestpath, 'test')
+
+        files_mock_copy = deepcopy(files_mock)
+        del files_mock_copy['zdj7WZzR8Tw87Dx3dm76W5aehnT23GSbXbQ9qo73JgtwREGwB']
+        yaml_save(files_mock_copy, manifestpath)
+
+        sha2 = m.commit(manifestpath, 'test')
+
+        added_files, deleted_files, modified_file = m.diff_refs_with_modified_files(entity, sha1, sha2)
+        self.assertTrue(len(added_files) == 0)
+        self.assertTrue(len(deleted_files) == 1)
+        self.assertTrue(len(modified_file) == 0)
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_test_dir')
+    def test_diff_refs_modified_file(self):
+        repo_type = DATASETS
+        mdpath = os.path.join(self.test_dir, '.ml-git', repo_type, 'metadata')
+        entity = 'dataset-ex'
+        specpath = os.path.join('vision-computer', 'images', entity)
+        config_test = deepcopy(config)
+        config_test['mlgit_path'] = '.ml-git'
+        m = Metadata(entity, mdpath, config_test, repo_type)
+        m.init()
+        ensure_path_exists(os.path.join(mdpath, specpath, entity))
+        manifestpath = os.path.join(os.path.join(mdpath, specpath), 'MANIFEST.yaml')
+        shutil.copy('hdata/dataset-ex.spec', os.path.join(mdpath, specpath, '{}.spec'.format(entity)))
+        yaml_save(files_mock, manifestpath)
+        sha1 = m.commit(manifestpath, 'test')
+
+        files_mock_copy = deepcopy(files_mock)
+        del files_mock_copy['zdj7WZzR8Tw87Dx3dm76W5aehnT23GSbXbQ9qo73JgtwREGwB']
+        files_mock_copy['NewHash'] = {'7.jpg'}
+
+        yaml_save(files_mock_copy, manifestpath)
+        sha2 = m.commit(manifestpath, 'test')
+
+        added_files, deleted_files, modified_file = m.diff_refs_with_modified_files(entity, sha1, sha2)
+        self.assertTrue(len(added_files) == 0)
+        self.assertTrue(len(deleted_files) == 0)
+        self.assertTrue(len(modified_file) == 1)

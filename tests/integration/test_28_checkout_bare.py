@@ -167,7 +167,7 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
 
         self._clear_path()
 
-        self._checkout_entity(entity_type, tag='computer-vision__images__'+entity_type+'-ex__3', bare=False)
+        self._checkout_entity(entity_type, tag='computer-vision__images__'+entity_type+'-ex__2', bare=False)
 
         file_path = os.path.join(self.tmp_dir, entity_type, entity_type+'-ex', 'data')
         self.assertTrue(os.path.exists(os.path.join(file_path, 'file1')))

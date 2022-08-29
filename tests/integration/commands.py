@@ -1,5 +1,5 @@
 """
-© Copyright 2020 HP Development Company, L.P.
+© Copyright 2020-2022 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
 
@@ -35,8 +35,12 @@ MLGIT_EXPORT = 'ml-git %s export %s'
 MLGIT_UNLOCK = 'ml-git %s unlock %s %s'
 MLGIT_STORAGE_DEL = 'ml-git repository storage del %s'
 MLGIT_LOG = 'ml-git %s log %s %s'
-MLGIT_CONFIG = 'ml-git repository config'
+MLGIT_CONFIG_SHOW = 'ml-git repository config show'
 MLGIT_REMOTE_DEL = 'ml-git repository remote %s del'
 MLGIT_STATUS_SHORT = 'ml-git %s status %s'
 MLGIT_REPOSITORY_GC = 'ml-git repository gc'
 MLGIT_MODELS_METRICS = 'ml-git models metrics %s %s'
+MLGIT_CONFIG_REMOTE = 'ml-git repository remote config add "%s"'
+MLGIT_CONFIG_PUSH = 'ml-git repository config push %s'
+MLGIT_DIFF = 'ml-git %s diff %s %s %s'
+MLGIT_CONFIG_WIZARD = 'ml-git repository config --set-wizard=%s'

@@ -1,5 +1,5 @@
 """
-© Copyright 2020 HP Development Company, L.P.
+© Copyright 2020-2022 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
 
@@ -7,14 +7,17 @@ import os
 import shutil
 from pathlib import Path
 
+import click
 from halo import Halo
 
-from ml_git import spec
+from ml_git import spec, log
 from ml_git.constants import FAKE_STORAGE, BATCH_SIZE_VALUE, BATCH_SIZE, StorageType, GLOBAL_ML_GIT_CONFIG, \
-    PUSH_THREADS_COUNT, SPEC_EXTENSION, EntityType, STORAGE_CONFIG_KEY, STORAGE_SPEC_KEY, DATASET_SPEC_KEY
+    PUSH_THREADS_COUNT, SPEC_EXTENSION, EntityType, STORAGE_CONFIG_KEY, STORAGE_SPEC_KEY, DATASET_SPEC_KEY, \
+    MultihashStorageType
 from ml_git.ml_git_message import output_messages
 from ml_git.spec import get_spec_key
-from ml_git.utils import getOrElse, yaml_load, yaml_save, get_root_path, yaml_load_str
+from ml_git.utils import getOrElse, yaml_load, yaml_save, get_root_path, yaml_load_str, RootPathException, \
+    path_is_parent
 
 push_threads = os.cpu_count()*5
 
@@ -32,14 +35,7 @@ mlgit_config = {
         'git': '',
     },
 
-    STORAGE_CONFIG_KEY: {
-        StorageType.S3.value: {
-            'mlgit-datasets': {
-                'region': 'us-east-1',
-                'aws-credentials': {'profile': 'default'}
-            }
-        }
-    },
+    STORAGE_CONFIG_KEY: {},
 
     'batch_size': BATCH_SIZE_VALUE,
 
@@ -54,6 +50,8 @@ mlgit_config = {
     PUSH_THREADS_COUNT: push_threads
 
 }
+
+USER_INPUT_MESSAGE = 'Inform the {}: '
 
 
 def config_verbose():
@@ -305,8 +303,10 @@ def validate_spec_hash(the_hash, entity_key=DATASET_SPEC_KEY):
 def create_workspace_tree_structure(repo_type, artifact_name, categories, storage_type, bucket_name, version,
                                     imported_dir, mutability, entity_dir=''):
     # get root path to create directories and files
-    path = get_root_path()
-    artifact_path = os.path.join(path, repo_type, entity_dir, artifact_name)
+    repo_type_dir = os.path.join(get_root_path(), repo_type)
+    artifact_path = os.path.join(repo_type_dir, entity_dir, artifact_name)
+    if not path_is_parent(repo_type_dir, artifact_path):
+        raise Exception(output_messages['ERROR_INVALID_ENTITY_DIR'].format(entity_dir))
     if os.path.exists(artifact_path):
         raise PermissionError(output_messages['INFO_ENTITY_NAME_EXISTS'])
     data_path = os.path.join(artifact_path, 'data')
@@ -344,51 +344,66 @@ def create_workspace_tree_structure(repo_type, artifact_name, categories, storag
         return False
 
 
-def start_wizard_questions(repotype):
-    print('_ Current configured storages _')
-    print('   ')
-    storage = config_load()[STORAGE_CONFIG_KEY]
-    count = 1
-    # temporary map with number as key and a array with storage type and bucket as values
-    temp_map = {}
-    # list the buckets to the user choose one
-    for storage_type in storage:
-        for key in storage[storage_type].keys():
-            print('%s - %s - %s' % (str(count), storage_type, key))
-            temp_map[count] = [storage_type, key]
-            count += 1
-    print('X - New Data Storage')
-    print('   ')
-    selected = input('_Which storage do you want to use (a number or new data storage)? _ ')
-    profile = None
-    endpoint = None
-    git_repo = None
+def _configure_metadata_remote(repo_type):
     config = mlgit_config_load()
     try:
-        int(selected)  # the user select one storage from the list
-        has_new_storage = False
-        # extract necessary info from the storage in spec
+        if not config[repo_type]['git']:
+            raise Exception('Need configure a remote repository.')
+    except Exception:
+        git_repo = input(USER_INPUT_MESSAGE.format('git repository for ml-git {} metadata'.format(repo_type))).lower()
+        from ml_git.admin import remote_add
+        remote_add(repo_type, git_repo)
+
+
+def _get_user_input(message, default=None, required=False):
+    value = input(message)
+    if not value.strip():
+        if required:
+            log.warn(output_messages['ERROR_EMPTY_VALUE'])
+            return _get_user_input(message, default, required)
+        return default
+    return value
+
+
+def _create_new_bucket(bucket_name):
+    storage_type = click.prompt(output_messages['INFO_DEFINE_STORAGE_TYPE'], default=StorageType.S3H.value,
+                                show_default=True, type=click.Choice(MultihashStorageType.to_list()), show_choices=True)
+    if bucket_name is None:
+        bucket_name = _get_user_input(output_messages['INFO_DEFINE_WIZARD_MESSAGE'].format('storage name'), required=True)
+    from ml_git.commands.storage import storage_add
+    storage_add(None, wizard=True, type=storage_type, bucket_name=bucket_name, credentials=None, region=None,
+                endpoint_url=None, username=None, private_key=None, port=None)
+    if storage_type == StorageType.AZUREBLOBH.value:
+        log.info(output_messages['INFO_CONFIGURE_AZURE'])
+    return storage_type, bucket_name
+
+
+def _get_configured_buckets(configured_storages):
+    temp_map = {}
+    valid_buckets = []
+    for storage_type in configured_storages:
+        for storage_name in configured_storages[storage_type].keys():
+            valid_buckets.append(storage_name)
+            print('%s - [%s] %s' % (str(len(valid_buckets)), storage_type, storage_name))
+            temp_map[len(valid_buckets)] = [storage_type, storage_name]
+    return valid_buckets, temp_map
+
+
+def start_wizard_questions(bucket_name=None):
+    print(output_messages['INFO_SELECT_STORAGE'])
+    configured_storages = config_load()[STORAGE_CONFIG_KEY]
+    valid_buckets, temp_map = _get_configured_buckets(configured_storages)
+    print(output_messages['INFO_CREATE_NEW_STORAGE_OPTION'])
+    selected = input(output_messages['INFO_SELECT_STORAGE_OPTION'])
+
+    valid_buckets_options = range(1, len(valid_buckets) + 1)
+    if selected.upper() == 'X':
+        storage_type, bucket = _create_new_bucket(bucket_name)
+    elif selected.isnumeric() and int(selected) in valid_buckets_options:
         storage_type, bucket = extract_storage_info_from_list(temp_map[int(selected)])
-    except Exception:  # the user select create a new data storage
-        has_new_storage = True
-        storages_types = [item.value for item in StorageType]
-        storage_type = input('Please specify the storage type ' + str(storages_types) + ': _ ').lower()
-        if storage_type not in storages_types:
-            raise RuntimeError(output_messages['ERROR_INVALID_STORAGE_TYPE'])
-        bucket = input('Please specify the bucket name: _ ').lower()
-        if storage_type in (StorageType.S3.value, StorageType.S3H.value):
-            profile = input('Please specify the credentials: _ ').lower()
-            endpoint = input('If you are using S3 compatible storage (ex. minio), please specify the endpoint URL,'
-                             ' otherwise press ENTER: _ ').lower()
-        elif storage_type == StorageType.GDRIVEH.value:
-            profile = input('Please specify the credentials path: _ ').lower()
-        git_repo = input('Please specify the git repository for ml-git %s metadata: _ ' % repotype).lower()
-    if git_repo is None:
-        try:
-            git_repo = config[repotype]['git']
-        except Exception:
-            git_repo = ''
-    return has_new_storage, storage_type, bucket, profile, endpoint, git_repo
+    else:
+        raise Exception('Invalid option.')
+    return storage_type, bucket
 
 
 def extract_storage_info_from_list(array):
@@ -431,6 +446,7 @@ def merge_conf(local_conf, global_conf):
             global_conf[key] = value
 
     local_conf.update(global_conf)
+    return local_conf
 
 
 def merge_local_with_global_config():
@@ -446,3 +462,15 @@ def get_push_threads_count(config):
         raise RuntimeError(output_messages['ERROR_INVALID_VALUE_IN_CONFIG'] % PUSH_THREADS_COUNT)
 
     return push_threads_count
+
+
+def merged_config_load():
+    try:
+        get_root_path()
+        global mlgit_config
+        global_config = merge_conf(global_config_load(), mlgit_config)
+        local_config = mlgit_config_load()
+        config_file = merge_conf(local_config, global_config)
+    except RootPathException:
+        config_file = global_config_load()
+    return config_file

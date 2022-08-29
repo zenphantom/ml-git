@@ -1,5 +1,5 @@
 """
-© Copyright 2020 HP Development Company, L.P.
+© Copyright 2020-2022 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
 
@@ -10,6 +10,7 @@ import unittest
 
 import pytest
 
+from ml_git.constants import MLGIT_IGNORE_FILE_NAME
 from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_CHECKOUT, MLGIT_PUSH, MLGIT_COMMIT, MLGIT_STORAGE_ADD
 from tests.integration.helper import ML_GIT_DIR, MLGIT_INIT, MLGIT_REMOTE_ADD, MLGIT_ENTITY_INIT, MLGIT_ADD, \
@@ -17,7 +18,7 @@ from tests.integration.helper import ML_GIT_DIR, MLGIT_INIT, MLGIT_REMOTE_ADD, M
     add_file, GIT_PATH, check_output, clear, init_repository, BUCKET_NAME, PROFILE, edit_config_yaml, \
     create_spec, set_write_read, STORAGE_TYPE, create_file, populate_entity_with_new_data, DATASETS, DATASET_NAME, \
     MODELS, \
-    LABELS, DATASET_TAG
+    LABELS, DATASET_TAG, create_ignore_file, disable_wizard_in_config
 
 
 @pytest.mark.usefixtures('tmp_dir', 'aws_session')
@@ -238,6 +239,7 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
         git_server = os.path.join(self.tmp_dir, GIT_PATH)
 
         self.assertIn(output_messages['INFO_INITIALIZED_PROJECT_IN'] % self.tmp_dir, check_output(MLGIT_INIT))
+        disable_wizard_in_config(self.tmp_dir)
         self.assertIn(output_messages['INFO_ADD_REMOTE'] % (git_server, MODELS), check_output(MLGIT_REMOTE_ADD % (MODELS, git_server)))
         self.assertIn(output_messages['INFO_ADD_STORAGE'] % (STORAGE_TYPE, BUCKET_NAME, PROFILE),
                       check_output(MLGIT_STORAGE_ADD % (BUCKET_NAME, PROFILE)))
@@ -307,7 +309,7 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
         clear(os.path.join(self.tmp_dir, '.ml-git', LABELS))
         self.assertIn(output_messages['INFO_METADATA_INIT'] % (git_server, os.path.join(self.tmp_dir, '.ml-git', MODELS, 'metadata')),
                       check_output(MLGIT_ENTITY_INIT % MODELS))
-        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_CHECKOUT % (MODELS, 'computer-vision__images__models-ex__2')
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_CHECKOUT % (MODELS, 'computer-vision__images__models-ex__1')
                                                      + ' -d -l'))
         self.assertTrue(os.path.exists(os.path.join(self.tmp_dir, MODELS)))
         self.assertTrue(os.path.exists(os.path.join(self.tmp_dir, DATASETS)))
@@ -397,3 +399,59 @@ class CheckoutTagAcceptanceTests(unittest.TestCase):
         self.assertTrue(os.path.exists(path_of_tag_3_file))
         expected_files_in_tag_3 = 7
         self.check_amount_of_files(entity, expected_files_in_tag_3, sampling=False)
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
+    def test_27_checkout_tag_with_fail_limit(self):
+        self.set_up_checkout(DATASETS)
+        number_of_files_in_workspace = 6
+        output = check_output(MLGIT_CHECKOUT % (DATASETS, '{} {}'.format(DATASET_TAG, ' --fail-limit=20')))
+        file = os.path.join(self.tmp_dir, DATASETS, DATASET_NAME, 'newfile0')
+        self.check_metadata()
+        self.check_amount_of_files(DATASETS, number_of_files_in_workspace, sampling=False)
+        self.assertTrue(os.path.exists(file))
+        self.assertNotIn('Failed', output)
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
+    def test_28_checkout_entity_with_ignore_file(self):
+        entity = DATASETS
+        init_repository(entity, self)
+        workspace = os.path.join(self.tmp_dir, DATASETS, DATASET_NAME)
+        os.mkdir(os.path.join(workspace, 'data'))
+        create_file(workspace, 'image.png', '0')
+        create_file(workspace, 'file1', '0')
+        create_ignore_file(workspace)
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ADD % (DATASETS, DATASET_NAME, '--bumpversion')))
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_COMMIT % (DATASETS, DATASET_NAME, '')))
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_PUSH % (DATASETS, DATASET_NAME)))
+
+        clear(os.path.join(self.tmp_dir, ML_GIT_DIR, entity))
+        clear(workspace)
+
+        mlgit_ignore_file_path = os.path.join(workspace, MLGIT_IGNORE_FILE_NAME)
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ENTITY_INIT % entity))
+        self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_CHECKOUT % (entity, DATASET_NAME)))
+
+        self.assertTrue(os.path.exists(mlgit_ignore_file_path))
+        self.assertTrue(os.path.exists(os.path.join(workspace, 'data', 'file1')))
+        self.assertFalse(os.path.exists(os.path.join(workspace, 'data', 'image.png')))
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
+    def test_29_checkout_with_invalid_retry(self):
+        self.set_up_checkout(DATASETS)
+        output = check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG + ' --retry=-2'))
+        expected_error_message = '-2 is not in the valid range of 0 to 99999999.'
+        self.assertIn(expected_error_message, output)
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
+    def test_30_checkout_with_invalid_fail_limit(self):
+        self.set_up_checkout(DATASETS)
+        output = check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG + ' --fail-limit=-2'))
+        expected_error_message = '-2 is not in the valid range of 0 to 99999999.'
+        self.assertIn(expected_error_message, output)
+
+    @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
+    def test_31_checkout_with_invalid_fail_version(self):
+        self.set_up_checkout(DATASETS)
+        output = check_output(MLGIT_CHECKOUT % (DATASETS, DATASET_TAG + ' --version=-2'))
+        expected_error_message = '-2 is not in the valid range of 0 to 99999999.'
+        self.assertIn(expected_error_message, output)

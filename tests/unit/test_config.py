@@ -1,5 +1,5 @@
 """
-© Copyright 2020 HP Development Company, L.P.
+© Copyright 2020-2022 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
 
@@ -15,12 +15,14 @@ from ml_git.config import validate_config_spec_hash, get_sample_config_spec, get
     validate_spec_hash, config_verbose, get_refs_path, config_load, mlgit_config_load, list_repos, \
     get_index_path, get_objects_path, get_cache_path, get_metadata_path, import_dir, \
     extract_storage_info_from_list, create_workspace_tree_structure, get_batch_size, merge_conf, \
-    merge_local_with_global_config, mlgit_config, save_global_config_in_local, start_wizard_questions
-from ml_git.constants import BATCH_SIZE_VALUE, BATCH_SIZE, STORAGE_CONFIG_KEY, STORAGE_SPEC_KEY, DATASET_SPEC_KEY
-from ml_git.utils import get_root_path, yaml_load
-from tests.unit.conftest import DATASETS, LABELS, MODELS, STRICT, S3H, S3, GDRIVEH
+    merge_local_with_global_config, mlgit_config, save_global_config_in_local, merged_config_load, _get_user_input
+from ml_git.constants import BATCH_SIZE_VALUE, BATCH_SIZE, STORAGE_CONFIG_KEY, STORAGE_SPEC_KEY, DATASET_SPEC_KEY, \
+    PUSH_THREADS_COUNT
+from ml_git.utils import get_root_path, yaml_load, yaml_processor
+from tests.unit.conftest import DATASETS, LABELS, MODELS, STRICT, S3H, S3
 
 
+@pytest.mark.usefixtures('tmp_dir')
 class ConfigTestCases(unittest.TestCase):
 
     def test_validate_config_spec_hash(self):
@@ -101,6 +103,19 @@ class ConfigTestCases(unittest.TestCase):
     def test_config_load(self):
         mlgit_config_load()
 
+    def check_storage(self, bucket_name, storage_type, tmpdir):
+        config = yaml_load(os.path.join(tmpdir, 'test_dir', '.ml-git', 'config.yaml'))
+        self.assertIn(storage_type, config[STORAGE_CONFIG_KEY])
+        self.assertIn(bucket_name, config[STORAGE_CONFIG_KEY][storage_type])
+
+    @staticmethod
+    def create_bucket_in_config_yaml(storage_type=S3H):
+        with open(os.path.join('.ml-git', 'config.yaml'), 'r') as config_file:
+            config = yaml_processor.load(config_file)
+            config[STORAGE_CONFIG_KEY] = {storage_type: {'mlgit-bucket': {'region': 'us-east-1'}}}
+        with open(os.path.join('.ml-git', 'config.yaml'), 'w') as config_file:
+            yaml_processor.dump(config, config_file)
+
     @pytest.mark.usefixtures('switch_to_test_dir')
     def test_paths(self):
         config = config_load()
@@ -175,7 +190,7 @@ class ConfigTestCases(unittest.TestCase):
 
         self.assertEqual(mlgit_config[DATASETS]['git'], 'url')
         self.assertEqual(mlgit_config[MODELS]['git'], 'url')
-        self.assertNotEqual(mlgit_config[STORAGE_CONFIG_KEY], {})
+        self.assertEqual(mlgit_config[STORAGE_CONFIG_KEY], {})
 
     @pytest.mark.usefixtures('restore_config', 'switch_to_tmp_dir')
     def test_save_global_config_in_local(self):
@@ -193,39 +208,26 @@ class ConfigTestCases(unittest.TestCase):
         config = yaml_load('.ml-git/config.yaml')
         self.assertEqual(config[LABELS]['git'], new_remote)
 
+    @pytest.mark.usefixtures('switch_to_tmp_dir')
+    def test_merged_config_load(self):
+        global_conf = {DATASETS: {'git': 'global-url'}, MODELS: {'git': 'url'}, PUSH_THREADS_COUNT: 10}
+        local_conf = {DATASETS: {'git': 'url'}}
+        init_mlgit()
+
+        with mock.patch('ml_git.config.mlgit_config_load', return_value=local_conf):
+            with mock.patch('ml_git.config.global_config_load', return_value=global_conf):
+                config_file = merged_config_load()
+                self.assertEqual(config_file[DATASETS]['git'], 'url')
+                self.assertEqual(config_file[MODELS]['git'], 'url')
+                self.assertEqual(config_file[PUSH_THREADS_COUNT], 10)
+
     @pytest.mark.usefixtures('switch_to_test_dir')
-    def test_start_wizard_questions(self):
+    def test_get_user_input(self):
+        with mock.patch('builtins.input', return_value=''):
+            self.assertEquals('Test', _get_user_input('', default='Test'))
 
-        new_s3_storage_options = ['git_repo', 'endpoint', 'default', 'mlgit', S3H, 'X']
-        invalid_storage_options = ['invalid_storage', 'X']
-        new_gdrive_storage_options = ['git_repo', '.credentials', 'mlgit', GDRIVEH, 'X']
+        with mock.patch('builtins.input', return_value=''):
+            self.assertEquals(None, _get_user_input(''))
 
-        with mock.patch('builtins.input', return_value='1'):
-            has_new_storage, storage_type, bucket, profile, endpoint_url, git_repo = start_wizard_questions(DATASETS)
-            self.assertEqual(storage_type, S3)
-            self.assertEqual(bucket, 'mlgit-datasets')
-            self.assertIsNone(profile)
-            self.assertIsNone(endpoint_url)
-            self.assertEqual(git_repo, 'git_local_server.git')
-            self.assertFalse(has_new_storage)
-
-        with mock.patch('builtins.input', new=lambda *args, **kwargs: invalid_storage_options.pop()):
-            self.assertRaises(Exception, lambda: start_wizard_questions(DATASETS))
-
-        with mock.patch('builtins.input', new=lambda *args, **kwargs: new_s3_storage_options.pop()):
-            has_new_storage, storage_type, bucket, profile, endpoint_url, git_repo = start_wizard_questions(DATASETS)
-            self.assertEqual(storage_type, S3H)
-            self.assertEqual(bucket, 'mlgit')
-            self.assertEqual(profile, 'default')
-            self.assertEqual(endpoint_url, 'endpoint')
-            self.assertEqual(git_repo, 'git_repo')
-            self.assertTrue(has_new_storage)
-
-        with mock.patch('builtins.input', new=lambda *args, **kwargs: new_gdrive_storage_options.pop()):
-            has_new_storage, storage_type, bucket, profile, endpoint_url, git_repo = start_wizard_questions(DATASETS)
-            self.assertEqual(storage_type, GDRIVEH)
-            self.assertEqual(bucket, 'mlgit')
-            self.assertEqual(profile, '.credentials')
-            self.assertIsNone(endpoint_url)
-            self.assertEqual(git_repo, 'git_repo')
-            self.assertTrue(has_new_storage)
+        with mock.patch('builtins.input', return_value='Test'):
+            self.assertEquals('Test', _get_user_input(''))

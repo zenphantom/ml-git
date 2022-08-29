@@ -1,5 +1,5 @@
 """
-© Copyright 2020 HP Development Company, L.P.
+© Copyright 2020-2022 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
 
@@ -7,6 +7,12 @@ from enum import Enum, unique
 
 ROOT_FILE_NAME = '.ml-git'
 CONFIG_FILE = '.ml-git/config.yaml'
+LOG_FILES_PATH = 'logs'
+LOG_FILE_NAME = 'ml-git_execution.log'
+LOG_FILE_ROTATE_TIME = 'midnight'
+LOG_FILE_MESSAGE_FORMAT = '%(asctime)s - %(thread)d - %(levelname)s - %(message)s'
+LOG_FILE_COMMAND_MESSAGE_FORMAT = '\n%(asctime)s - %(message)s'
+LOG_COMMON_MESSAGE_FORMAT = '%(levelname)s - %(message)s'
 
 CONFIG_CLASS_NAME = 'Ml-git Configuration'
 METADATA_MANAGER_CLASS_NAME = 'Metadata Manager'
@@ -32,11 +38,10 @@ FAKE_TYPE = 's3h'
 BATCH_SIZE = 'batch_size'
 PUSH_THREADS_COUNT = 'push_threads_count'
 BATCH_SIZE_VALUE = 20
-RGX_ADDED_FILES = r'[+]\s+(.*)[:]\s+null'
-RGX_DELETED_FILES = r'[-]\s+(.*)[:]\s+null'
 RGX_SIZE_FILES = r'[+]\s+size:\s+(\d+(?:[.]\d+)*\s+.+)'
 RGX_AMOUNT_FILES = r'[+]\s+amount:\s+(\d+)'
 RGX_TAG_FORMAT = r'(?:[^_]+_{2}){2,}\d+$'
+RGX_TAG_NAME = r'^(?!\/|@)((?!\/{2,}|\.{2,}|@{)(?=[^[^_?*:\\])[(-}])+(?<!\.lock)(?<![\/.])$'
 ADDED = 'Added files'
 DELETED = 'Deleted files'
 AUTHOR = 'Author'
@@ -67,6 +72,10 @@ LABELS_SPEC_KEY = 'labels'
 MODEL_SPEC_KEY = 'model'
 STORAGE_SPEC_KEY = 'storage'
 STORAGE_CONFIG_KEY = 'storages'
+MLGIT_IGNORE_FILE_NAME = '.mlgitignore'
+GIT_CLIENT_CLASS_NAME = 'GitClient'
+RELATIONSHIP_GRAPH_FILENAME = 'entities_relationships'
+WIZARD_KEY = 'wizard'
 
 
 class MutabilityType(Enum):
@@ -94,6 +103,18 @@ class StorageType(Enum):
 
 
 @unique
+class MultihashStorageType(Enum):
+    S3H = 's3h'
+    AZUREBLOBH = 'azureblobh'
+    GDRIVEH = 'gdriveh'
+    SFTPH = 'sftph'
+
+    @staticmethod
+    def to_list():
+        return [storage.value for storage in MultihashStorageType]
+
+
+@unique
 class EntityType(Enum):
     DATASETS = 'datasets'
     LABELS = 'labels'
@@ -108,7 +129,19 @@ class EntityType(Enum):
 class FileType(Enum):
     CSV = 'csv'
     JSON = 'json'
+    DOT = 'dot'
 
     @staticmethod
     def to_list():
         return [file.value for file in FileType]
+
+
+@unique
+class GraphEntityColors(Enum):
+    DATASET_COLOR = '#2271b1'
+    LABEL_COLOR = '#996800'
+    MODEL_COLOR = '#d63638'
+
+    @staticmethod
+    def to_list():
+        return [color.value for color in GraphEntityColors]

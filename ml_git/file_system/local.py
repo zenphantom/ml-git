@@ -1,5 +1,5 @@
 """
-© Copyright 2020 HP Development Company, L.P.
+© Copyright 2020-2022 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
 
@@ -10,6 +10,7 @@ import json
 import os
 import shutil
 import tempfile
+from asyncio import CancelledError
 from pathlib import Path
 
 from botocore.client import ClientError
@@ -20,7 +21,8 @@ from ml_git.config import get_index_path, get_objects_path, get_refs_path, get_i
     get_metadata_path, get_batch_size, get_push_threads_count
 from ml_git.constants import LOCAL_REPOSITORY_CLASS_NAME, STORAGE_FACTORY_CLASS_NAME, REPOSITORY_CLASS_NAME, \
     MutabilityType, StorageType, SPEC_EXTENSION, MANIFEST_FILE, INDEX_FILE, EntityType, PERFORMANCE_KEY, \
-    STORAGE_SPEC_KEY, STORAGE_CONFIG_KEY
+    STORAGE_SPEC_KEY, STORAGE_CONFIG_KEY, MLGIT_IGNORE_FILE_NAME
+from ml_git.error_handler import error_handler
 from ml_git.file_system.cache import Cache
 from ml_git.file_system.hashfs import MultihashFS
 from ml_git.file_system.index import MultihashIndex, FullIndex, Status
@@ -29,10 +31,11 @@ from ml_git.ml_git_message import output_messages
 from ml_git.pool import pool_factory, process_futures
 from ml_git.refs import Refs
 from ml_git.sample import SampleValidate
-from ml_git.spec import spec_parse, search_spec_file, get_entity_dir, get_spec_key
+from ml_git.spec import spec_parse, search_spec_file, get_entity_dir, get_spec_key, SearchSpecException
 from ml_git.storages.store_utils import storage_factory
 from ml_git.utils import yaml_load, ensure_path_exists, convert_path, normalize_path, \
-    posix_path, set_write_read, change_mask_for_routine, run_function_per_group, get_root_path, yaml_save
+    posix_path, set_write_read, change_mask_for_routine, run_function_per_group, get_root_path, yaml_save, \
+    get_ignore_rules, should_ignore_file
 
 
 class LocalRepository(MultihashFS):
@@ -51,11 +54,12 @@ class LocalRepository(MultihashFS):
         ret = storage.file_store(obj, obj_path)
         return ret
 
-    def _create_pool(self, config, storage_str, retry, pb_elts=None, pb_desc='blobs', nworkers=os.cpu_count() * 5):
+    def _create_pool(self, config, storage_str, retry, pb_elts=None, pb_desc='blobs', nworkers=os.cpu_count() * 5, fail_limit=None):
         _storage_factory = lambda: storage_factory(config, storage_str)  # noqa: E731
-        return pool_factory(ctx_factory=_storage_factory, retry=retry, pb_elts=pb_elts, pb_desc=pb_desc, nworkers=nworkers)
+        return pool_factory(ctx_factory=_storage_factory, retry=retry, pb_elts=pb_elts,
+                            pb_desc=pb_desc, nworkers=nworkers, fail_limit=fail_limit)
 
-    def push(self, object_path, spec_file, retry=2, clear_on_fail=False):
+    def push(self, object_path, spec_file, retry=2, clear_on_fail=False, fail_limit=None):
         repo_type = self.__repo_type
         entity_spec_key = get_spec_key(repo_type)
 
@@ -79,33 +83,36 @@ class LocalRepository(MultihashFS):
 
         nworkers = get_push_threads_count(self.__config)
 
-        wp = self._create_pool(self.__config, manifest[STORAGE_SPEC_KEY], retry, len(objs), 'files', nworkers)
+        wp = self._create_pool(self.__config, manifest[STORAGE_SPEC_KEY], retry, len(objs), 'files', nworkers, fail_limit)
         for obj in objs:
             # Get obj from filesystem
             obj_path = self.get_keypath(obj)
             wp.submit(self._pool_push, obj, obj_path)
 
-        upload_errors = False
         futures = wp.wait()
         uploaded_files = []
-        files_not_found = 0
+        error = ''
         for future in futures:
             try:
                 success = future.result()
-                # test success w.r.t potential failures
-                # Get the uploaded file's key
                 uploaded_files.append(list(success.values())[0])
             except Exception as e:
-                if type(e) is FileNotFoundError:
-                    files_not_found += 1
-                log.error(output_messages['ERROR_FATAL_PUSH'] % e, class_name=LOCAL_REPOSITORY_CLASS_NAME)
-                upload_errors = True
-
-        if clear_on_fail and len(uploaded_files) > 0 and upload_errors:
-            self._delete(uploaded_files, spec_file, retry)
+                if not (type(e) is CancelledError):
+                    log.debug(output_messages['ERROR_FATAL_PUSH'] % e, class_name=LOCAL_REPOSITORY_CLASS_NAME)
+                    error = e
         wp.progress_bar_close()
         wp.reset_futures()
-        return 0 if not upload_errors else 1
+
+        if wp.errors_count > 0:
+            log.error(output_messages['ERROR_ON_PUSH_BLOBS'] % wp.errors_count, class_name=LOCAL_REPOSITORY_CLASS_NAME)
+            handler_exit_code = error_handler(error)
+            if handler_exit_code == 0:
+                wp.errors_count = self.push(object_path, spec_file, retry, clear_on_fail, fail_limit)
+            else:
+                log.error(output_messages['ERROR_CANNOT_RECOVER'])
+            if clear_on_fail and len(uploaded_files) > 0 and handler_exit_code != 0:
+                self._delete(uploaded_files, spec_file, retry)
+        return 0 if not wp.errors_count > 0 else 1
 
     def _pool_delete(self, ctx, obj):
         storage = ctx
@@ -224,12 +231,24 @@ class LocalRepository(MultihashFS):
         for key in iplds:
             args["wp"].submit(args["function"], key)
         futures = args["wp"].wait()
-        try:
-            process_futures(futures, args["wp"])
-        except Exception as e:
-            log.error(args["error_msg"] % e, class_name=LOCAL_REPOSITORY_CLASS_NAME)
-            return False
+
+        for future in futures:
+            try:
+                future.result()
+            except Exception as e:
+                if not (type(e) is CancelledError):
+                    log.debug(output_messages['ERROR_FATAL_FETCH'] % e, class_name=LOCAL_REPOSITORY_CLASS_NAME)
+                return e
         return True
+
+    def _handle_fetch_error(self, lkeys, result, args):
+        log.error(output_messages['ERROR_ON_GETTING_BLOBS'] % len(lkeys), class_name=LOCAL_REPOSITORY_CLASS_NAME)
+        exit_code = error_handler(result)
+        if exit_code == 0:
+            exit_code = run_function_per_group(lkeys, 20, function=self._fetch_batch, arguments=args)
+        else:
+            log.error(output_messages['ERROR_CANNOT_RECOVER'], class_name=LOCAL_REPOSITORY_CLASS_NAME)
+        return exit_code
 
     def fetch(self, metadata_path, tag, samples, retries=2, bare=False):
         repo_type = self.__repo_type
@@ -272,7 +291,7 @@ class LocalRepository(MultihashFS):
             args['error_msg'] = 'Error to fetch ipld -- [%s]'
             args['function'] = self._fetch_ipld
             result = run_function_per_group(lkeys, 20, function=self._fetch_batch, arguments=args)
-            if not result:
+            if not result and self._handle_fetch_error(lkeys, result, args) != 0:
                 return False
             wp_ipld.progress_bar_close()
             del wp_ipld
@@ -283,7 +302,7 @@ class LocalRepository(MultihashFS):
             args['error_msg'] = 'Error to fetch blob -- [%s]'
             args['function'] = self._fetch_blob
             result = run_function_per_group(lkeys, 20, function=self._fetch_batch, arguments=args)
-            if not result:
+            if not result and self._handle_fetch_error(lkeys, result, args) != 0:
                 return False
             wp_blob.progress_bar_close()
             del wp_blob
@@ -330,7 +349,7 @@ class LocalRepository(MultihashFS):
 
     @staticmethod
     def _update_metadata(full_md_path, ws_path, spec_name):
-        for md in ['README.md', spec_name + SPEC_EXTENSION]:
+        for md in ['README.md', spec_name + SPEC_EXTENSION, MLGIT_IGNORE_FILE_NAME]:
             md_path = os.path.join(full_md_path, md)
             if os.path.exists(md_path) is False:
                 continue
@@ -388,7 +407,7 @@ class LocalRepository(MultihashFS):
             return None
         return obj_files
 
-    def checkout(self, cache_path, metadata_path, ws_path, tag, samples, bare=False, entity_dir=None):
+    def checkout(self, cache_path, metadata_path, ws_path, tag, samples, bare=False, entity_dir=None, fail_limit=None):
         _, spec_name, version = spec_parse(tag)
         index_path = get_index_path(self.__config, self.__repo_type)
 
@@ -417,13 +436,13 @@ class LocalRepository(MultihashFS):
                 is_shared_cache = 'cache_path' in self.__config[self.__repo_type]
                 with change_mask_for_routine(is_shared_cache):
                     cache = Cache(cache_path)
-                    wp = pool_factory(pb_elts=len(lkey), pb_desc='files into cache')
+                    wp = pool_factory(pb_elts=len(lkey), pb_desc='files into cache', fail_limit=fail_limit)
                     args = {'wp': wp, 'cache': cache, 'cache_path': cache_path}
                     if not run_function_per_group(lkey, 20, function=self.adding_files_into_cache, arguments=args):
                         return
                     wp.progress_bar_close()
 
-            wps = pool_factory(pb_elts=len(lkey), pb_desc='files into workspace')
+            wps = pool_factory(pb_elts=len(lkey), pb_desc='files into workspace', fail_limit=fail_limit)
             args = {'wps': wps, 'cache': cache, 'fidx': fidx, 'ws_path': ws_path, 'mfiles': mfiles,
                     'obj_files': obj_files, 'mutability': mutability}
             if not run_function_per_group(lkey, 20, function=self.adding_files_into_workspace, arguments=args):
@@ -456,7 +475,6 @@ class LocalRepository(MultihashFS):
 
     def _pool_remote_fsck_ipld(self, ctx, obj):
         storage = ctx
-        log.debug(output_messages['DEBUG_CHECK_IPLD'] % obj, class_name=LOCAL_REPOSITORY_CLASS_NAME)
         obj_path = self.get_keypath(obj)
         ret = storage.file_store(obj, obj_path)
         return ret
@@ -526,10 +544,12 @@ class LocalRepository(MultihashFS):
             key = future.result()
             ks = list(key.keys())
             if ks[0] is False:
+                args['ipld_unfixed_list'].append(ks[0])
                 args['ipld_unfixed'] += 1
             elif ks[0] is True:
                 pass
             else:
+                args['ipld_fixed_list'].append(ks[0])
                 args['ipld_fixed'] += 1
         args['wp'].reset_futures()
 
@@ -537,11 +557,14 @@ class LocalRepository(MultihashFS):
 
         for key in lkeys:
             # blob file describing IPLD links
+            log.debug(output_messages['DEBUG_CHECK_IPLD'] % key, class_name=LOCAL_REPOSITORY_CLASS_NAME)
             if not self._exists(key):
                 args['ipld_missing'].append(key)
                 args['wp'].progress_bar_total_inc(-1)
+                log.debug(output_messages['DEBUG_MISSING_IPLD'] % key, class_name=LOCAL_REPOSITORY_CLASS_NAME)
             else:
                 args['wp'].submit(self._pool_remote_fsck_ipld, key)
+
         ipld_futures = args['wp'].wait()
         try:
             self._remote_fsck_ipld_future_process(ipld_futures, args)
@@ -559,10 +582,12 @@ class LocalRepository(MultihashFS):
                 if ret is not None:
                     ks = list(ret.keys())
                     if ks[0] is False:
+                        args['blob_unfixed_list'].append(ks[0])
                         args['blob_unfixed'] += 1
                     elif ks[0] is True:
                         pass
                     else:
+                        args['blob_fixed_list'].append(ks[0])
                         args['blob_fixed'] += 1
         args['wp'].reset_futures()
 
@@ -579,13 +604,16 @@ class LocalRepository(MultihashFS):
         args['wp'].reset_futures()
         return True
 
-    def remote_fsck(self, metadata_path, tag, spec_file, retries=2, thorough=False, paranoid=False):
+    def remote_fsck(self, metadata_path, spec_name, spec_file, retries=2, thorough=False, paranoid=False, full_log=False):
         spec = yaml_load(spec_file)
         entity_spec_key = get_spec_key(self.__repo_type)
         manifest = spec[entity_spec_key]['manifest']
-        _, spec_name, _ = spec_parse(tag)
-        # get all files for specific tag
-        entity_dir = get_entity_dir(self.__repo_type, spec_name, root_path=metadata_path)
+
+        try:
+            entity_dir = get_entity_dir(self.__repo_type, spec_name, root_path=metadata_path)
+        except SearchSpecException:
+            log.warn(output_messages['WARN_EMPTY_ENTITY'] % spec_name, class_name=LOCAL_REPOSITORY_CLASS_NAME)
+            return
         manifest_path = os.path.join(metadata_path, entity_dir, MANIFEST_FILE)
         obj_files = yaml_load(manifest_path)
 
@@ -604,51 +632,67 @@ class LocalRepository(MultihashFS):
                 log.error(e, class_name=LOCAL_REPOSITORY_CLASS_NAME)
                 return
             self._remote_fsck_paranoid(manifest, retries, lkeys, batch_size)
-        wp_ipld = self._create_pool(self.__config, manifest[STORAGE_SPEC_KEY], retries, len(obj_files))
 
-        submit_iplds_args = {'wp': wp_ipld}
-        submit_iplds_args['ipld_unfixed'] = 0
-        submit_iplds_args['ipld_fixed'] = 0
-        submit_iplds_args['ipld'] = 0
-        submit_iplds_args['ipld_missing'] = []
+        log.info(output_messages['INFO_STARTING_IPLDS_CHECK'], class_name=LOCAL_REPOSITORY_CLASS_NAME)
+        wp_ipld = self._create_pool(self.__config, manifest[STORAGE_SPEC_KEY], retries, len(obj_files), pb_desc='iplds')
+        submit_iplds_args = {'wp': wp_ipld, 'ipld_unfixed': 0, 'ipld_fixed': 0, 'ipld': 0, 'ipld_missing': [],
+                             'full_log': full_log, 'ipld_unfixed_list': [], 'ipld_fixed_list': []}
 
         result = run_function_per_group(lkeys, 20, function=self._remote_fsck_submit_iplds, arguments=submit_iplds_args)
         if not result:
             return False
+        wp_ipld.progress_bar_close()
         del wp_ipld
 
         if len(submit_iplds_args['ipld_missing']) > 0:
             if thorough:
-                log.info(str(len(submit_iplds_args['ipld_missing'])) + ' missing descriptor files. Download: ',
-                         class_name=LOCAL_REPOSITORY_CLASS_NAME)
+                log.info(output_messages['INFO_MISSING_DESCRIPTOR_FILES_DOWNLOAD'] %
+                         len(submit_iplds_args['ipld_missing']), class_name=LOCAL_REPOSITORY_CLASS_NAME)
                 self._work_pool_to_submit_file(manifest, retries, submit_iplds_args['ipld_missing'], self._fetch_ipld)
             else:
-                log.info(str(len(submit_iplds_args[
-                                     'ipld_missing'])) + ' missing descriptor files. Consider using the --thorough option.',
-                         class_name=LOCAL_REPOSITORY_CLASS_NAME)
+                log.info(output_messages['INFO_MISSING_DESCRIPTOR_FILES'] % len(submit_iplds_args['ipld_missing']), class_name=LOCAL_REPOSITORY_CLASS_NAME)
+                if full_log:
+                    log.info(output_messages['INFO_LIST_OF_MISSING_FILES'] % str(submit_iplds_args['ipld_missing']), class_name=LOCAL_REPOSITORY_CLASS_NAME)
+                else:
+                    log.info(output_messages['INFO_SEE_COMPLETE_LIST_OF_MISSING_FILES'], class_name=LOCAL_REPOSITORY_CLASS_NAME)
 
+        log.info(output_messages['INFO_STARTING_BLOBS_CHECK'], class_name=LOCAL_REPOSITORY_CLASS_NAME)
         wp_blob = self._create_pool(self.__config, manifest[STORAGE_SPEC_KEY], retries, len(obj_files))
-        submit_blob_args = {'wp': wp_blob}
-        submit_blob_args['blob'] = 0
-        submit_blob_args['blob_fixed'] = 0
-        submit_blob_args['blob_unfixed'] = 0
+        submit_blob_args = {'wp': wp_blob, 'blob': 0, 'blob_fixed': 0, 'blob_unfixed': 0,
+                            'full_log': full_log, 'blob_fixed_list': [], 'blob_unfixed_list': []}
 
         result = run_function_per_group(lkeys, 20, function=self._remote_fsck_submit_blobs, arguments=submit_blob_args)
         if not result:
             return False
+        wp_blob.progress_bar_close()
         del wp_blob
 
+        log.info(output_messages['INFO_FSCK_COMPLETE'], class_name=LOCAL_REPOSITORY_CLASS_NAME)
         if submit_iplds_args['ipld_fixed'] > 0 or submit_blob_args['blob_fixed'] > 0:
-            log.info(output_messages['INFO_REMOTE_FSCK_FIXED'] % (
-                submit_iplds_args['ipld_fixed'], submit_blob_args['blob_fixed']))
+            log.info(output_messages['INFO_REMOTE_FSCK_FIXED'] % (submit_iplds_args['ipld_fixed'], submit_blob_args['blob_fixed']))
+            if full_log:
+                log.info(output_messages['INFO_REMOTE_FSCK_FIXED_LIST'] % ('IPLDs', submit_iplds_args['ipld_fixed_list']))
+                log.info(output_messages['INFO_REMOTE_FSCK_FIXED_LIST'] % ('Blobs', submit_blob_args['blob_fixed_list']))
+            else:
+                log.debug(output_messages['INFO_REMOTE_FSCK_FIXED_LIST'] % ('IPLDs', submit_iplds_args['ipld_fixed_list']) + '\n' +
+                          output_messages['INFO_REMOTE_FSCK_FIXED_LIST'] % ('Blobs', submit_blob_args['blob_fixed_list']))
         if submit_iplds_args['ipld_unfixed'] > 0 or submit_blob_args['blob_unfixed'] > 0:
-            log.error(output_messages['ERROR_REMOTE_FSCK_UNFIXED'] % (
-                submit_iplds_args['ipld_unfixed'], submit_blob_args['blob_unfixed']))
+            log.error(output_messages['ERROR_REMOTE_FSCK_UNFIXED'] % (submit_iplds_args['ipld_unfixed'], submit_blob_args['blob_unfixed']))
+            if full_log:
+                log.info(output_messages['INFO_REMOTE_FSCK_UNFIXED_LIST'] % ('IPLDs', submit_iplds_args['ipld_unfixed_list']))
+                log.info(output_messages['INFO_REMOTE_FSCK_UNFIXED_LIST'] % ('Blobs', submit_blob_args['blob_unfixed_list']))
+            else:
+                log.debug(output_messages['INFO_REMOTE_FSCK_FIXED_LIST'] % ('IPLDs', submit_iplds_args['ipld_unfixed_list']) + '\n' +
+                          output_messages['INFO_REMOTE_FSCK_FIXED_LIST'] % ('Blobs', submit_blob_args['blob_unfixed_list']))
+
         log.info(output_messages['INFO_REMOTE_FSCK_TOTAL'] % (submit_iplds_args['ipld'], submit_blob_args['blob']))
 
+        if (submit_iplds_args['ipld_fixed'] > 0 or submit_blob_args['blob_fixed'] > 0 or
+                submit_iplds_args['ipld_unfixed'] > 0 or submit_blob_args['blob_unfixed'] > 0) and not full_log:
+            log.info(output_messages['INFO_SEE_ALL_FILES'])
         return True
 
-    def exist_local_changes(self, spec_name):
+    def exist_local_changes(self, spec_name, print_method, full_option=False):
         new_files, deleted_files, untracked_files, _, _ = self.status(spec_name, status_directory='', log_errors=False)
         if new_files is not None and deleted_files is not None and untracked_files is not None:
             unsaved_files = new_files + deleted_files + untracked_files
@@ -657,9 +701,8 @@ class LocalRepository(MultihashFS):
             if 'README.md' in unsaved_files:
                 unsaved_files.remove('README.md')
             if len(unsaved_files) > 0:
-                log.error(output_messages['ERROR_DISCARDED_LOCAL_CHANGES'])
-                for file in unsaved_files:
-                    print('\t%s' % file)
+                log.warn(output_messages['ERROR_DISCARDED_LOCAL_CHANGES'])
+                print_method(unsaved_files, full_option)
                 log.info(
                     'Please, commit your changes before the get. You can also use the --force option '
                     'to discard these changes. See \'ml-git --help\'.',
@@ -720,8 +763,9 @@ class LocalRepository(MultihashFS):
                 log.error(e, class_name=REPOSITORY_CLASS_NAME)
 
         if status_directory and not os.path.exists(os.path.join(path, status_directory)):
-            log.error(output_messages['ERROR_INVALID_STATUS_DIRECTORY'], class_name=REPOSITORY_CLASS_NAME)
-            return
+            if tag:
+                metadata.checkout()
+            raise Exception(output_messages['ERROR_INVALID_STATUS_DIRECTORY'])
 
         # All files in MANIFEST.yaml in the index AND all files in datapath which stats links == 1
         idx = MultihashIndex(spec, index_path, objects_path)
@@ -733,6 +777,7 @@ class LocalRepository(MultihashFS):
         bare_mode = os.path.exists(os.path.join(index_metadata_path, spec, 'bare'))
         new_files, deleted_files, all_files, corrupted_files = self._get_index_files_status(bare_mode, idx_yaml_mf,
                                                                                             path, status_directory)
+
         if path is not None:
             changed_files, untracked_files = \
                 self._get_workspace_files_status(all_files, full_metadata_path, idx_yaml_mf,
@@ -747,32 +792,37 @@ class LocalRepository(MultihashFS):
                                     new_files, status_directory=''):
         changed_files = []
         untracked_files = []
+        ignore_rules = get_ignore_rules(path)
         for root, dirs, files in os.walk(path):
             base_path = root[len(path) + 1:]
             base_path_with_separator = base_path + os.path.sep
 
-            if status_directory and not base_path_with_separator.startswith(status_directory + os.path.sep):
+            if (status_directory and not base_path_with_separator.startswith(status_directory + os.path.sep)) \
+                    or should_ignore_file(ignore_rules, '{}/'.format(base_path)):
                 continue
 
             for file in files:
-                bpath = convert_path(base_path, file)
-                if bpath in all_files:
+                file_path = convert_path(base_path, file)
+                if should_ignore_file(ignore_rules, file_path):
+                    continue
+
+                if file_path in all_files:
                     full_file_path = os.path.join(root, file)
                     stat = os.stat(full_file_path)
-                    file_in_index = idx_yaml_mf[posix_path(bpath)]
+                    file_in_index = idx_yaml_mf[posix_path(file_path)]
                     if file_in_index['mtime'] != stat.st_mtime and self.get_scid(full_file_path) != \
                             file_in_index['hash']:
-                        bisect.insort(changed_files, bpath)
+                        bisect.insort(changed_files, file_path)
                 else:
-                    is_metadata_file = SPEC_EXTENSION in file or 'README.md' in file
+                    is_metadata_file = SPEC_EXTENSION in file or file_path == 'README.md' or file_path == MLGIT_IGNORE_FILE_NAME
 
                     if not is_metadata_file:
-                        bisect.insort(untracked_files, bpath)
+                        bisect.insort(untracked_files, file_path)
                     else:
                         file_path_metadata = os.path.join(full_metadata_path, file)
                         file_index_path = os.path.join(index_metadata_entity_path, file)
-                        full_base_path = os.path.join(root, bpath)
-                        self._compare_metadata_file(bpath, file_index_path, file_path_metadata, full_base_path,
+                        full_base_path = os.path.join(root, file_path)
+                        self._compare_metadata_file(file_path, file_index_path, file_path_metadata, full_base_path,
                                                     new_files, untracked_files)
         return changed_files, untracked_files
 
@@ -1080,7 +1130,9 @@ class LocalRepository(MultihashFS):
             second_line = 1
 
             metrics_data = list(csv_reader)
-            return zip(metrics_data[first_line], metrics_data[second_line])
+            if len(metrics_data) > 1:
+                return zip(metrics_data[first_line], metrics_data[second_line])
+            return
 
     def add_metrics(self, spec_path, metrics, metrics_file_path):
 
@@ -1098,10 +1150,15 @@ class LocalRepository(MultihashFS):
 
         spec_file = yaml_load(spec_path)
         metrics = self.__add_metrics_from_file(metrics_file_path, metrics)
+        if not metrics:
+            raise Exception(output_messages['ERROR_INVALID_METRICS_FILE'])
         metrics_to_save = dict()
 
         for metric, value in metrics:
-            metrics_to_save[metric] = float(value)
+            try:
+                metrics_to_save[metric] = float(value)
+            except Exception:
+                raise Exception(output_messages['ERROR_INVALID_METRICS_FILE'])
 
         spec_file[get_spec_key(self.__repo_type)][PERFORMANCE_KEY] = metrics_to_save
         yaml_save(spec_file, spec_path)

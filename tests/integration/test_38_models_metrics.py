@@ -1,5 +1,5 @@
 """
-© Copyright 2020 HP Development Company, L.P.
+© Copyright 2020-2022 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
 import csv
@@ -9,13 +9,15 @@ import unittest
 from datetime import datetime
 
 import pytest
+from click.testing import CliRunner
 from prettytable import PrettyTable
 
+from ml_git.commands import entity
 from ml_git.constants import FileType, DATE, RELATED_DATASET_TABLE_INFO, RELATED_LABELS_TABLE_INFO, TAG
 from ml_git.ml_git_message import output_messages
 from tests.integration.commands import MLGIT_COMMIT, MLGIT_ADD, MLGIT_MODELS_METRICS
-from tests.integration.helper import ERROR_MESSAGE, create_spec, MODELS, init_repository, ML_GIT_DIR, create_file
-from tests.integration.helper import check_output
+from tests.integration.helper import ERROR_MESSAGE, MODELS, ML_GIT_DIR, create_file, \
+    entity_init, check_output
 
 
 @pytest.mark.usefixtures('tmp_dir', 'start_local_git_server', 'switch_to_tmp_dir')
@@ -34,8 +36,9 @@ class ModelsMetricsAcceptanceTests(unittest.TestCase):
     def set_up_test(self, repo_type=MODELS):
         self.TAG_TIMES = []
         entity_name = '{}-ex'.format(repo_type)
-        init_repository(repo_type, self)
-        create_spec(self, repo_type, self.tmp_dir)
+        entity_init(repo_type, self)
+        data_path = os.path.join(self.tmp_dir, repo_type, entity_name)
+        create_file(data_path, 'file', '0', '')
         metrics_options = '--metric Accuracy 10 --metric Recall 10'
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_ADD % (repo_type, entity_name, metrics_options)))
         self.assertNotIn(ERROR_MESSAGE, check_output(MLGIT_COMMIT % (repo_type, entity_name, '')))
@@ -120,9 +123,9 @@ class ModelsMetricsAcceptanceTests(unittest.TestCase):
 
     @pytest.mark.usefixtures('start_local_git_server', 'switch_to_tmp_dir')
     def test_04_export_metrics_without_export_path(self):
-        repo_type = MODELS
-        entity_name = '{}-ex'.format(repo_type)
-        self.set_up_test(repo_type)
-        self.assertIn(output_messages['ERROR_MISSING_EXPORT_PATH'],
-                      check_output(MLGIT_MODELS_METRICS %
-                                   (entity_name, ' --export-type={}'.format(FileType.CSV.value))))
+        runner = CliRunner()
+        used_option = 'export-type'
+        required_option = 'export-path'
+        result = runner.invoke(entity.models, ['metrics', 'ENTITY-NAME', '--export-type=csv'], input='CREDENTIALS_PATH\n')
+        self.assertIn(output_messages['ERROR_REQUIRED_OPTION_MISSING']
+                      .format(required_option, used_option, required_option), result.output)

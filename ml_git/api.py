@@ -1,5 +1,5 @@
 """
-© Copyright 2020 HP Development Company, L.P.
+© Copyright 2020-2022 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
 
@@ -7,6 +7,10 @@ import os
 import re
 import shutil
 import tempfile
+import types
+
+from functools import wraps
+from pathlib import Path
 
 from ml_git import admin
 from ml_git import log
@@ -15,6 +19,8 @@ from ml_git.config import config_load
 from ml_git.constants import EntityType, StorageType, FileType, RGX_TAG_FORMAT
 from ml_git.log import init_logger
 from ml_git.ml_git_message import output_messages
+from ml_git.relationship.entity_manager import EntityManager
+from ml_git.relationship.local_entity_manager import LocalEntityManager
 from ml_git.repository import Repository
 from ml_git.spec import search_spec_file, spec_parse
 from ml_git.utils import get_root_path
@@ -40,8 +46,10 @@ def validate_sample(sampling):
     return True
 
 
-def checkout(entity, tag, sampling=None, retries=2, force=False, dataset=False, labels=False, version=-1):
-    """This command allows retrieving the data of a specific version of an ML entity.
+def checkout(entity, tag, sampling=None, retries=2, force=False, dataset=False, labels=False, version=-1, fail_limit=None, full=False):
+    """**DEPRECATED**: This method will be removed in future versions, MLGitAPI.checkout should be used instead.
+
+    This command allows retrieving the data of a specific version of an ML entity.
 
     Example:
         checkout('datasets', 'computer-vision__images3__imagenet__1')
@@ -61,10 +69,11 @@ def checkout(entity, tag, sampling=None, retries=2, force=False, dataset=False, 
         force (bool, optional): Force checkout command to delete untracked/uncommitted files from the local repository [default: False].
         dataset (bool, optional): If exist a dataset related with the model or labels, this one must be downloaded [default: False].
         labels (bool, optional): If exist labels related with the model, they must be downloaded [default: False].
+        fail_limit (int, optional): Number of failures before aborting the command [default: no limit].
+        full (bool, optional): Show all contents for each directory. [default: False].
 
     Returns:
         str: Return the path where the data was checked out.
-
     """
 
     repo = get_repository_instance(entity)
@@ -78,6 +87,8 @@ def checkout(entity, tag, sampling=None, retries=2, force=False, dataset=False, 
     options['force'] = force
     options['bare'] = False
     options['version'] = version
+    options['fail_limit'] = fail_limit
+    options['full'] = full
     repo.checkout(tag, sampling, options)
 
     spec_name = tag
@@ -90,8 +101,10 @@ def checkout(entity, tag, sampling=None, retries=2, force=False, dataset=False, 
     return data_path
 
 
-def clone(repository_url, folder=None, track=False):
-    """This command will clone minimal configuration files from repository-url with valid .ml-git/config.yaml,
+def clone(repository_url, folder=None, untracked=False):
+    """**DEPRECATED**: This method will be removed in future versions, MLGitAPI.clone should be used instead.
+
+    This command will clone minimal configuration files from repository-url with valid .ml-git/config.yaml,
     then initialize the metadata according to configurations.
 
     Example:
@@ -100,25 +113,26 @@ def clone(repository_url, folder=None, track=False):
     Args:
         repository_url (str): The git repository that will be cloned.
         folder (str, optional): Directory that can be created to execute the clone command [default: current path].
-        track (bool, optional): Set if the tracking of the cloned repository should be kept [default: False].
-
+        untracked (bool, optional): Set whether cloned repository trace should not be kept [default: False].
     """
 
     repo = get_repository_instance('project')
     if folder is not None:
-        repo.clone_config(repository_url, folder, track)
+        repo.clone_config(repository_url, folder, untracked)
     else:
         current_directory = os.getcwd()
         with tempfile.TemporaryDirectory(dir=current_directory) as tempdir:
             mlgit_path = os.path.join(tempdir, 'mlgit')
-            repo.clone_config(repository_url, mlgit_path, track)
+            repo.clone_config(repository_url, mlgit_path, untracked)
             if not os.path.exists(os.path.join(current_directory, '.ml-git')):
                 shutil.move(os.path.join(mlgit_path, '.ml-git'), current_directory)
             os.chdir(current_directory)
 
 
 def add(entity_type, entity_name, bumpversion=False, fsck=False, file_path=[], metric=[], metrics_file=''):
-    """This command will add all the files under the directory into the ml-git index/staging area.
+    """**DEPRECATED**: This method will be removed in future versions, MLGitAPI.add should be used instead.
+
+    This command will add all the files under the directory into the ml-git index/staging area.
 
     Example:
         add('datasets', 'dataset-ex', bumpversion=True)
@@ -145,7 +159,9 @@ def add(entity_type, entity_name, bumpversion=False, fsck=False, file_path=[], m
 
 
 def commit(entity, ml_entity_name, commit_message=None, related_dataset=None, related_labels=None):
-    """That command commits the index / staging area to the local repository.
+    """**DEPRECATED**: This method will be removed in future versions, MLGitAPI.commit should be used instead.
+
+    That command commits the index / staging area to the local repository.
 
     Example:
         commit('datasets', 'dataset-ex')
@@ -171,8 +187,10 @@ def commit(entity, ml_entity_name, commit_message=None, related_dataset=None, re
     repo.commit(ml_entity_name, specs, msg=commit_message)
 
 
-def push(entity, entity_name,  retries=2, clear_on_fail=False):
-    """This command allows pushing the data of a specific version of an ML entity.
+def push(entity, entity_name,  retries=2, clear_on_fail=False, fail_limit=None):
+    """**DEPRECATED**: This method will be removed in future versions, MLGitAPI.push should be used instead.
+
+    This command allows pushing the data of a specific version of an ML entity.
 
         Example:
             push('datasets', 'dataset-ex')
@@ -182,14 +200,17 @@ def push(entity, entity_name,  retries=2, clear_on_fail=False):
             entity_name (str): An ml-git entity name to identify a ML entity.
             retries (int, optional): Number of retries to upload the files to the storage [default: 2].
             clear_on_fail (bool, optional): Remove the files from the storage in case of failure during the push operation [default: False].
+            fail_limit (int, optional): Number of failures before aborting the command [default: no limit].
     """
 
     repo = get_repository_instance(entity)
-    repo.push(entity_name, retries, clear_on_fail)
+    repo.push(entity_name, retries, clear_on_fail, fail_limit)
 
 
 def create(entity, entity_name, categories, mutability, **kwargs):
-    """This command will create the workspace structure with data and spec file for an entity and set the storage configurations.
+    """**DEPRECATED**: This method will be removed in future versions, MLGitAPI.create should be used instead.
+
+    This command will create the workspace structure with data and spec file for an entity and set the storage configurations.
 
         Example:
             create('datasets', 'dataset-ex', categories=['computer-vision', 'images'], mutability='strict')
@@ -197,7 +218,7 @@ def create(entity, entity_name, categories, mutability, **kwargs):
         Args:
             entity (str): The type of an ML entity. (datasets, labels or models)
             entity_name (str): An ml-git entity name to identify a ML entity.
-            categories (list): Artifact's category name.
+            categories (list): Artifact's categories name.
             mutability (str): Mutability type. The mutability options are strict, flexible and mutable.
             storage_type (str, optional): Data storage type [default: s3h].
             version (int, optional): Number of artifact version [default: 1].
@@ -209,19 +230,21 @@ def create(entity, entity_name, categories, mutability, **kwargs):
             entity_dir (str, optional): The relative path where the entity will be created inside the ml entity directory [default: empty].
     """
 
-    args = {'artifact_name': entity_name, 'category': categories, 'mutability': mutability,
+    args = {'artifact_name': entity_name, 'categories': categories, 'mutability': mutability,
             'version': kwargs.get('version', 1), 'import': kwargs.get('import_path', None),
             'storage_type':  kwargs.get('storage_type', StorageType.S3H.value),
             'bucket_name': kwargs.get('bucket_name', None), 'unzip': kwargs.get('unzip', False),
             'import_url': kwargs.get('import_url', None), 'credentials_path': kwargs.get('credentials_path', None),
-            'wizard_config': False, 'entity_dir': kwargs.get('entity_dir', '')}
+            'wizard_config': False, 'wizard': False, 'entity_dir': kwargs.get('entity_dir', '')}
 
     repo = get_repository_instance(entity)
     repo.create(args)
 
 
 def init(entity):
-    """This command will start the ml-git entity.
+    """**DEPRECATED**: This method will be removed in future versions, MLGitAPI.init should be used instead.
+
+    This command will start the ml-git entity.
 
         Examples:
             init('repository')
@@ -241,11 +264,13 @@ def init(entity):
 
 
 def storage_add(bucket_name, bucket_type=StorageType.S3H.value, credentials=None, global_configuration=False,
-                endpoint_url=None, username=None, private_key=None, port=22):
-    """This command will add a storage to the ml-git project.
+                endpoint_url=None, username=None, private_key=None, port=22, region=None):
+    """**DEPRECATED**: This method will be removed in future versions, MLGitAPI.storage_add should be used instead.
+
+    This command will add a storage to the ml-git project.
 
         Examples:
-            storage_add('my-bucket', type='s3h')
+            storage_add('my-bucket', bucket_type='s3h')
 
         Args:
             bucket_name (str): The name of the bucket in the storage.
@@ -255,6 +280,7 @@ def storage_add(bucket_name, bucket_type=StorageType.S3H.value, credentials=None
             endpoint_url (str, optional): Storage endpoint url.
             username (str, optional): The username for the sftp login.
             private_key (str, optional): Full path for the private key file.
+            region (str, optional): AWS region for S3 bucket.
     """
 
     if bucket_type not in StorageType.to_list():
@@ -263,11 +289,15 @@ def storage_add(bucket_name, bucket_type=StorageType.S3H.value, credentials=None
     sftp_configs = {'username': username,
                     'private_key': private_key,
                     'port': port}
-    admin.storage_add(bucket_type, bucket_name, credentials, global_configuration, endpoint_url, sftp_configs=sftp_configs)
+    admin.storage_add(bucket_type, bucket_name, credentials,
+                      global_conf=global_configuration, endpoint_url=endpoint_url,
+                      sftp_configs=sftp_configs, region=region)
 
 
 def remote_add(entity, remote_url, global_configuration=False):
-    """This command will add a remote to store the metadata from this ml-git project.
+    """**DEPRECATED**: This method will be removed in future versions, MLGitAPI.remote_add should be used instead.
+
+    This command will add a remote to store the metadata from this ml-git project.
 
         Examples:
             remote_add('datasets', 'https://git@github.com/mlgit-datasets')
@@ -283,7 +313,9 @@ def remote_add(entity, remote_url, global_configuration=False):
 
 
 def get_models_metrics(entity_name, export_path=None, export_type=FileType.JSON.value):
-    """Get metrics information for each tag of the entity.
+    """**DEPRECATED**: This method will be removed in future versions, MLGitAPI.get_models_metrics should be used instead.
+
+    Get metrics information for each tag of the entity.
 
         Examples:
             get_models_metrics('model-ex', export_type='csv')
@@ -302,3 +334,279 @@ def get_models_metrics(entity_name, export_path=None, export_type=FileType.JSON.
         with tempfile.TemporaryDirectory(dir=current_directory) as tempdir:
             metrics_data = repo.get_models_metrics(entity_name, tempdir, export_type, log_export_info=False)
     return metrics_data
+
+
+def init_entity_manager(github_token, url):
+    """Initialize an entity manager to operate over github API.
+
+        Examples:
+            init_entity_manager('github_token', 'https://api.github.com')
+
+        Args:
+            github_token (str): The personal access github token.
+            url (str): The github api url.
+
+        Returns:
+            object of class EntityManager.
+
+    """
+    return EntityManager(github_token, url)
+
+
+def init_local_entity_manager():
+    """Initialize an entity manager to operate over local git repository.
+
+        Returns:
+            object of class LocalEntityManager.
+
+    """
+    return LocalEntityManager()
+
+
+def use_project_context(f):
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        instance = args[0]  # args[0] will be self
+        root_path = instance.root_path.absolute()
+        origin = Path().absolute()
+        result = None
+        try:
+            os.chdir(root_path)
+            result = f(*args, **kwargs)
+        finally:
+            os.chdir(origin)
+            return result
+    return wrapper
+
+
+class ContextWrappedMeta(type):
+    def __new__(mcs, classname, bases, class_dict):
+        new_class_dict = dict()
+        for key, value in class_dict.items():
+            if isinstance(value, types.FunctionType) and not (key.startswith('_') or key.endswith('__')):
+                value = use_project_context(value)
+            new_class_dict[key] = value
+        return type.__new__(mcs, classname, bases, new_class_dict)
+
+
+class MLGitAPI(metaclass=ContextWrappedMeta):
+    def __init__(self, root_path=''):
+        """ML-Git API instance with the context of a ML-Git Project.
+
+        Examples:
+            api = MLGitAPI('/absolute/path/to/your/project')\n
+            api = MLGitAPI('./relative/path/to/your/project')\n
+            api = MLGitAPI()
+
+        Args:
+            root_path (str, optional): The path for the project root directory. It can be the relative path or the
+             absolute path, if untouched the CWD will be used [default: ''].
+        """
+
+        root_path = Path(root_path)
+        if not root_path.is_dir():
+            raise NotADirectoryError(output_messages['ERROR_INVALID_STATUS_DIRECTORY'])
+        self.root_path = root_path
+
+    def clone(self, repository_url, untracked=False):
+        """This command will clone minimal configuration files from repository-url with valid .ml-git/config.yaml,
+        then initialize the metadata according to configurations.
+
+        Example:
+            api = MLGitApi()\n
+            api.clone('https://git@github.com/mlgit-repository')
+
+        Args:
+            repository_url (str): The git repository that will be cloned.
+            untracked (bool, optional): Set whether cloned repository trace should not be kept [default: False].
+        """
+
+        clone(repository_url=repository_url, untracked=untracked)
+
+    def checkout(self, entity, tag, sampling=None, retries=2, force=False, dataset=False, labels=False, version=-1,
+                 fail_limit=None, full=False):
+        """This command allows retrieving the data of a specific version of an ML entity.
+
+        Example:
+            api = MLGitApi()\n
+            api.checkout('datasets', 'computer-vision__images3__imagenet__1')
+
+        Args:
+            entity (str): The type of an ML entity (datasets, labels or models).
+            tag (str): An ml-git tag to identify a specific version of an ML entity.
+            sampling (dict): group: <amount>:<group> The group sample option consists of amount and group used to
+                                     download a sample.\n
+                             range: <start:stop:step> The range sample option consists of start, stop and step used
+                                    to download a sample. The start parameter can be equal or greater than zero. The
+                                    stop parameter can be 'all', -1 or any integer above zero.\n
+                             random: <amount:frequency> The random sample option consists of amount and frequency
+                                    used to download a sample.
+                             seed: The seed is used to initialize the pseudorandom numbers.
+            retries (int, optional): Number of retries to download the files from the storage [default: 2].
+            force (bool, optional): Force checkout command to delete untracked/uncommitted files from the local repository [default: False].
+            dataset (bool, optional): If exist a dataset related with the model or labels, this one must be downloaded [default: False].
+            labels (bool, optional): If exist labels related with the model, they must be downloaded [default: False].
+            version (int, optional): The entity version [default: -1].
+            fail_limit (int, optional): Number of failures before aborting the command [default: no limit].
+            full (bool, optional): Show all contents for each directory. [default: False].
+
+        Returns:
+            str: Return the path where the data was checked out.
+        """
+
+        checkout(entity=entity, tag=tag, sampling=sampling, retries=retries, force=force, dataset=dataset,
+                 labels=labels, version=version, fail_limit=fail_limit, full=full)
+
+    def add(self, entity_type, entity_name, bumpversion=False, fsck=False, file_path=None, metric=None,
+            metrics_file=''):
+        """This command will add all the files under the directory into the ml-git index/staging area.
+
+        Example:
+            api = MLGitApi()\n
+            api.add('datasets', 'dataset-ex', bumpversion=True)
+
+        Args:
+            entity_type (str): The type of an ML entity (datasets, labels or models).
+            entity_name (str): The name of the ML entity you want to add the files.
+            bumpversion (bool, optional): Increment the entity version number when adding more files [default: False].
+            fsck (bool, optional): Run fsck after command execution [default: False].
+            file_path (list, optional): List of files that must be added by the command [default: all files].
+            metric (dictionary, optional): The metric dictionary, example: { 'metric': value } [default: empty].
+            metrics_file (str, optional): The metrics file path. It is expected a CSV file containing the metric names in the header and
+             the values in the next line [default: empty].
+        """
+
+        if metric is None:
+            metric = []
+        if file_path is None:
+            file_path = []
+        add(entity_type=entity_type, entity_name=entity_name, bumpversion=bumpversion, fsck=fsck, file_path=file_path,
+            metric=metric, metrics_file=metrics_file)
+
+    def commit(self, entity, ml_entity_name, commit_message=None, related_dataset=None, related_labels=None):
+        """That command commits the index / staging area to the local repository.
+
+        Example:
+            api = MLGitApi()\n
+            api.commit('datasets', 'dataset-ex')
+
+        Args:
+            entity (str): The type of an ML entity (datasets, labels or models).
+            ml_entity_name (str): Artefact name to commit.
+            commit_message (str, optional): Message of commit.
+            related_dataset (str, optional): Artefact name of dataset related to commit.
+            related_labels (str, optional): Artefact name of labels related to commit.
+        """
+
+        commit(entity=entity, ml_entity_name=ml_entity_name, commit_message=commit_message,
+               related_dataset=related_dataset, related_labels=related_labels)
+
+    def push(self, entity, entity_name,  retries=2, clear_on_fail=False, fail_limit=None):
+        """This command allows pushing the data of a specific version of an ML entity.
+
+        Example:
+            api = MLGitApi()\n
+            api.push('datasets', 'dataset-ex')
+
+        Args:
+            entity (str): The type of an ML entity. (datasets, labels or models)
+            entity_name (str): An ml-git entity name to identify a ML entity.
+            retries (int, optional): Number of retries to upload the files to the storage [default: 2].
+            clear_on_fail (bool, optional): Remove the files from the storage in case of failure during the push operation [default: False].
+            fail_limit (int, optional): Number of failures before aborting the command [default: no limit].
+        """
+
+        push(entity=entity, entity_name=entity_name, retries=retries, clear_on_fail=clear_on_fail,
+             fail_limit=fail_limit)
+
+    def create(self, entity, entity_name, categories, mutability, **kwargs):
+        """This command will create the workspace structure with data and spec file for an entity and set the storage configurations.
+
+        Example:
+            api = MLGitApi()\n
+            api.create('datasets', 'dataset-ex', categories=['computer-vision', 'images'], mutability='strict')
+
+        Args:
+            entity (str): The type of an ML entity (datasets, labels or models).
+            entity_name (str): An ml-git entity name to identify a ML entity.
+            categories (list): Artifact's categories name.
+            mutability (str): Mutability type. The mutability options are strict, flexible and mutable.
+            storage_type (str, optional): Data storage type [default: s3h].
+            version (int, optional): Number of artifact version [default: 1].
+            import_path (str, optional): Path to be imported to the project.
+            bucket_name (str, optional): Bucket name.
+            import_url (str, optional): Import data from a google drive url.
+            credentials_path (str, optional): Directory of credentials.json.
+            unzip (bool, optional): Unzip imported zipped files [default: False].
+            entity_dir (str, optional): The relative path where the entity will be created inside the ml entity directory [default: empty].
+        """
+
+        create(entity=entity, entity_name=entity_name, categories=categories, mutability=mutability, **kwargs)
+
+    def init(self, entity):
+        """This command will start the ml-git entity.
+
+        Examples:
+            api = MLGitApi()\n
+            api.init('repository')\n
+            api.init('datasets')
+
+        Args:
+            entity (str): The type of an ML entity (datasets, labels or models).
+        """
+
+        init(entity=entity)
+
+    def storage_add(self, bucket_name, bucket_type=StorageType.S3H.value, credentials=None, global_configuration=False,
+                    endpoint_url=None, username=None, private_key=None, port=22, region=None):
+        """This command will add a storage to the ml-git project.
+
+        Examples:
+            api = MLGitApi()\n
+            api.storage_add('my-bucket', bucket_type='s3h')
+
+        Args:
+            bucket_name (str): The name of the bucket in the storage.
+            bucket_type (str, optional): Storage type (s3h, azureblobh or gdriveh) [default: s3h].
+            credentials (str, optional): Name of the profile that stores the credentials or the path to the credentials.
+            global_configuration (bool, optional): Use this option to set configuration at global level [default: False].
+            endpoint_url (str, optional): Storage endpoint url.
+            username (str, optional): The username for the sftp login.
+            private_key (str, optional): Full path for the private key file.
+            port (int, optional): The port to be used when connecting to the storage.
+            region (str, optional): AWS region for S3 bucket.
+        """
+
+        storage_add(bucket_name=bucket_name, bucket_type=bucket_type, credentials=credentials,
+                    global_configuration=global_configuration, endpoint_url=endpoint_url, username=username,
+                    private_key=private_key, port=port, region=region)
+
+    def remote_add(self, entity, remote_url, global_configuration=False):
+        """This command will add a remote to store the metadata from this ml-git project.
+
+        Examples:
+            api = MLGitApi()\n
+            api.remote_add('datasets', 'https://git@github.com/mlgit-datasets')
+
+        Args:
+            entity (str): The type of an ML entity (datasets, labels or models).
+            remote_url(str): URL of an existing remote git repository.
+            global_configuration (bool, optional): Use this option to set configuration at global level [default: False].
+        """
+
+        remote_add(entity=entity, remote_url=remote_url, global_configuration=global_configuration)
+
+    def get_models_metrics(self, entity_name, export_path=None, export_type=FileType.JSON.value):
+        """Get metrics information for each tag of the entity.
+
+        Examples:
+            api = MLGitApi()\n
+            api.get_models_metrics('model-ex', export_type='csv')
+
+        Args:
+            entity_name (str): An ml-git entity name to identify a ML entity.
+            export_path(str, optional): Set the path to export metrics to a file.
+            export_type (str, optional): Choose the format of the file that will be generated with the metrics [default: json].
+        """
+
+        get_models_metrics(entity_name=entity_name, export_path=export_path, export_type=export_type)

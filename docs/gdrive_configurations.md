@@ -73,13 +73,13 @@ Create directory with name  of your preference and copy your credentials  file w
 Add storage configurations example:
 
 ```
-$ ml-git repository storage add path-in-your-drive --type=gdriveh --credentials=/home/profile/.gdrive
+ml-git repository storage add path-in-your-drive --type=gdriveh --credentials=/home/profile/.gdrive
 ```
 
 After that initialize the metadata repository:
 
 ```
-$ ml-git datasets init
+ml-git datasets init
 ```
 
 
@@ -100,10 +100,8 @@ labels:
 models:
   git: ''
 storages:
-  s3:
-    mlgit-datasets:
-      aws-credentials:
-        profile: default
-      region: us-east-1
+  gdriveh:
+    dataset-gdrive:
+      credentials-path: /home/profile/.gdrive
 ```
 

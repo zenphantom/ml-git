@@ -1,14 +1,23 @@
 """
-© Copyright 2020 HP Development Company, L.P.
+© Copyright 2020-2022 HP Development Company, L.P.
 SPDX-License-Identifier: GPL-2.0-only
 """
+import re
 
 import click
+from click import UsageError
 from click_didyoumean import DYMGroup
 
+from ml_git.commands import prompt_msg
+from ml_git.commands.custom_types import CategoriesType
 from ml_git.commands.general import mlgit
-from ml_git.commands.utils import repositories, LABELS, DATASETS, MODELS
-from ml_git.constants import EntityType
+from ml_git.commands.prompt_msg import VERSION_TO_BE_DOWNLOADED
+from ml_git.commands.utils import repositories, LABELS, DATASETS, MODELS, check_entity_name, \
+    parse_entity_type_to_singular, get_last_entity_version, check_project_exists, check_initialized_entity, \
+    check_entity_exists, MAX_INT_VALUE
+from ml_git.commands.wizard import wizard_for_field, choice_wizard_for_field, request_user_confirmation, is_wizard_enabled
+from ml_git.constants import EntityType, MutabilityType, RGX_TAG_FORMAT
+from ml_git.ml_git_message import output_messages
 
 
 @mlgit.group(DATASETS, help='Management of datasets within this ml-git repository.', cls=DYMGroup)
@@ -46,7 +55,8 @@ def md_tag_group():
 
 
 @mlgit.group(LABELS, help='Management of labels sets within this ml-git repository.', cls=DYMGroup)
-def labels():
+@click.pass_context
+def labels(ctx):
     """
     Management of labels sets within this ml-git repository.
     """
@@ -59,6 +69,14 @@ def lb_tag_group():
     Management of tags for this entity.
     """
     pass
+
+
+def _verify_project_settings(wizard_flag, context, entity_type, entity_name, check_entity=True):
+    if wizard_flag or is_wizard_enabled():
+        check_project_exists(context)
+        check_initialized_entity(context, entity_type, entity_name)
+        if check_entity:
+            check_entity_exists(context, entity_type, entity_name)
 
 
 def init(context):
@@ -76,24 +94,43 @@ def push(context, **kwargs):
     clear_on_fail = kwargs['clearonfail']
     entity = kwargs['ml_entity_name']
     retry = kwargs['retry']
-    repositories[repo_type].push(entity, retry, clear_on_fail)
+    fail_limit = kwargs['fail_limit']
+    repositories[repo_type].push(entity, retry, clear_on_fail, fail_limit)
 
 
 def checkout(context, **kwargs):
     repo_type = context.parent.command.name
     repo = repositories[repo_type]
+    entity = kwargs['ml_entity_tag']
+    wizard_flag = kwargs['wizard']
+    _verify_project_settings(wizard_flag, context, repo_type, entity, check_entity=False)
     sample = None
 
     if 'sample_type' in kwargs and kwargs['sample_type'] is not None:
         sample = {kwargs['sample_type']: kwargs['sampling'], 'seed': kwargs['seed']}
     options = {}
+
+    version = kwargs['version']
+    if not re.search(RGX_TAG_FORMAT, entity):
+        version = wizard_for_field(context, version, VERSION_TO_BE_DOWNLOADED.format(parse_entity_type_to_singular(repo_type)),
+                                   wizard_flag=wizard_flag, type=click.IntRange(0, MAX_INT_VALUE))
+    if version is None:
+        version = -1
+    options['version'] = version
+
     options['with_dataset'] = kwargs.get('with_dataset', False)
+    if not options['with_dataset'] and (repo_type == MODELS or repo_type == LABELS):
+        options['with_dataset'] = request_user_confirmation(prompt_msg.CHECKOUT_RELATED_ENTITY.format(parse_entity_type_to_singular(DATASETS)),
+                                                            wizard_flag=wizard_flag)
     options['with_labels'] = kwargs.get('with_labels', False)
+    if not options['with_labels'] and repo_type == MODELS:
+        options['with_labels'] = request_user_confirmation(prompt_msg.CHECKOUT_RELATED_ENTITY.format(LABELS), wizard_flag=wizard_flag)
     options['retry'] = kwargs['retry']
     options['force'] = kwargs['force']
     options['bare'] = kwargs['bare']
-    options['version'] = kwargs['version']
-    repo.checkout(kwargs['ml_entity_tag'], sample, options)
+    options['fail_limit'] = kwargs['fail_limit']
+    options['full'] = kwargs['full']
+    repo.checkout(entity, sample, options)
 
 
 def fetch(context, **kwargs):
@@ -113,37 +150,63 @@ def fetch(context, **kwargs):
 
 def add(context, **kwargs):
     repo_type = context.parent.command.name
+    entity_name = kwargs['ml_entity_name']
+    wizard_flag = False
+    if 'wizard' in kwargs:
+        wizard_flag = kwargs['wizard']
+    _verify_project_settings(wizard_flag, context, repo_type, entity_name)
     bump_version = kwargs['bumpversion']
     run_fsck = kwargs['fsck']
     file_path = kwargs['file_path']
-    entity_name = kwargs['ml_entity_name']
-    metric = kwargs['metric']
-    metrics_file_path = kwargs['metrics_file']
+    metric = kwargs.get('metric')
+    metrics_file_path = kwargs.get('metrics_file')
+    if not metric and repo_type == MODELS:
+        metrics_file_path = wizard_for_field(context, kwargs.get('metrics_file'),
+                                             prompt_msg.METRIC_FILE, wizard_flag=wizard_flag)
     repositories[repo_type].add(entity_name, file_path, bump_version, run_fsck, metric, metrics_file_path)
 
 
 def commit(context, **kwargs):
+    wizard_flag = False
+    if 'wizard' in kwargs:
+        wizard_flag = kwargs['wizard']
     repo_type = context.parent.command.name
-    linked_dataset_key = 'dataset'
-    msg = kwargs['message']
-    version = kwargs['version']
-    run_fsck = kwargs['fsck']
     entity_name = kwargs['ml_entity_name']
-    dataset_tag = None
-    labels_tag = None
+    _verify_project_settings(wizard_flag, context, repo_type, entity_name)
+    run_fsck = kwargs['fsck']
 
+    if not repositories[repo_type].has_data_to_commit(entity_name):
+        context.exit()
+
+    last_version = get_last_entity_version(repo_type, entity_name)
+    version = wizard_for_field(context, kwargs['version'],
+                               prompt_msg.COMMIT_VERSION.format(parse_entity_type_to_singular(repo_type), last_version),
+                               wizard_flag=wizard_flag, type=click.IntRange(0, MAX_INT_VALUE), default=last_version)
+    msg = wizard_for_field(context, kwargs['message'], prompt_msg.COMMIT_MESSAGE, wizard_flag=wizard_flag)
+
+    related_entities = {}
+    linked_dataset_key = parse_entity_type_to_singular(DATASETS)
     if repo_type == MODELS:
-        dataset_tag = kwargs[linked_dataset_key]
-        labels_tag = kwargs[EntityType.LABELS.value]
-    elif repo_type == LABELS:
-        dataset_tag = kwargs[linked_dataset_key]
-    tags = {}
-    if dataset_tag is not None:
-        tags[EntityType.DATASETS.value] = dataset_tag
-    if labels_tag is not None:
-        tags[EntityType.LABELS.value] = labels_tag
+        if kwargs[linked_dataset_key] is not None:
+            related_entities[EntityType.DATASETS.value] = kwargs[linked_dataset_key]
+        elif request_user_confirmation(prompt_msg.WANT_LINK_TO_MODEL_ENTITY.format(
+                linked_dataset_key, parse_entity_type_to_singular(MODELS)), wizard_flag=wizard_flag):
+            related_entities[EntityType.DATASETS.value] = wizard_for_field(context, kwargs[linked_dataset_key],
+                                                                           prompt_msg.DEFINE_LINKED_DATASET, required=True, wizard_flag=wizard_flag)
 
-    repositories[repo_type].commit(entity_name, tags, version, run_fsck, msg)
+        if kwargs[EntityType.LABELS.value] is not None:
+            related_entities[EntityType.LABELS.value] = kwargs[EntityType.LABELS.value]
+        elif request_user_confirmation(prompt_msg.WANT_LINK_TO_MODEL_ENTITY.format(LABELS), wizard_flag=wizard_flag):
+            related_entities[EntityType.LABELS.value] = wizard_for_field(context, kwargs[EntityType.LABELS.value],
+                                                                         prompt_msg.DEFINE_LINKED_LABELS, required=True, wizard_flag=wizard_flag)
+    elif repo_type == LABELS:
+        if kwargs[linked_dataset_key] is not None:
+            related_entities[EntityType.DATASETS.value] = kwargs[linked_dataset_key]
+        elif request_user_confirmation(prompt_msg.WANT_LINK_TO_LABEL_ENTITY.format(linked_dataset_key), wizard_flag=wizard_flag):
+            related_entities[EntityType.DATASETS.value] = wizard_for_field(context, kwargs[linked_dataset_key],
+                                                                           prompt_msg.DEFINE_LINKED_DATASET, required=True, wizard_flag=wizard_flag)
+
+    repositories[repo_type].commit(entity_name, related_entities, version, run_fsck, msg)
 
 
 def tag_list(context, **kwargs):
@@ -174,9 +237,9 @@ def reset(context, **kwargs):
     repositories[repo_type].reset(entity_name, reset_type, head)
 
 
-def fsck(context):
+def fsck(context, full):
     repo_type = context.parent.command.name
-    repositories[repo_type].fsck()
+    repositories[repo_type].fsck(full)
 
 
 def import_tag(context, **kwargs):
@@ -212,17 +275,41 @@ def status(context, ml_entity_name, full, status_directory):
     repositories[repo_type].status(ml_entity_name, full, status_directory)
 
 
+def diff(context, **kwargs):
+    repo_type = context.parent.command.name
+    entity_name = kwargs['ml_entity_name']
+    full = kwargs['full']
+    first_tag = kwargs['first_tag']
+    second_tag = kwargs['second_tag']
+    repositories[repo_type].diff(entity_name, full, first_tag, second_tag)
+
+
 def remote_fsck(context, **kwargs):
     repo_type = context.parent.command.name
     entity_name = kwargs['ml_entity_name']
-    thorough = kwargs['thorough']
+    wizard_flag = kwargs['wizard']
+    _verify_project_settings(wizard_flag, context, repo_type, entity_name)
+    thorough = kwargs['thorough'] if kwargs['thorough'] else request_user_confirmation(prompt_msg.THOROUGH_MESSAGE, wizard_flag=wizard_flag)
     paranoid = kwargs['paranoid']
     retry = kwargs['retry']
-    repositories[repo_type].remote_fsck(entity_name, retry, thorough, paranoid)
+    full_log = kwargs['full']
+    repositories[repo_type].remote_fsck(entity_name, retry, thorough, paranoid, full_log)
 
 
 def create(context, **kwargs):
     repo_type = context.parent.command.name
+    entity_name = kwargs['artifact_name']
+    wizard_flag = kwargs['wizard']
+    check_entity_name(entity_name)
+    _verify_project_settings(wizard_flag, context, repo_type, entity_name, check_entity=False)
+    kwargs['categories'] = wizard_for_field(context, kwargs['categories'], prompt_msg.CATEGORIES_MESSAGE,
+                                            wizard_flag=wizard_flag, required=True, type=CategoriesType())
+    if not kwargs['categories']:
+        raise UsageError(output_messages['ERROR_MISSING_OPTION'].format('categories'))
+    kwargs['mutability'] = choice_wizard_for_field(context, kwargs['mutability'], prompt_msg.MUTABILITY_MESSAGE,
+                                                   click.Choice(MutabilityType.to_list()), default=None, wizard_flag=wizard_flag)
+    if not kwargs['mutability']:
+        raise UsageError(output_messages['ERROR_MISSING_OPTION'].format('mutability'))
     repositories[repo_type].create(kwargs)
 
 
