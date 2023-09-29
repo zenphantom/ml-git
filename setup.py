@@ -36,7 +36,7 @@ this_directory = Path(__file__).parent
 long_description = (this_directory/"README.md").read_text()
 
 setup(
-    name='ml-git',
+    name='ml_git',
     version=get_version(),
     url='https://github.com/HPInc/ml-git',
     project_urls={

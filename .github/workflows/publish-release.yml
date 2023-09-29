@@ -7,14 +7,15 @@ on:
 jobs:
   deploy:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
     - uses: actions/checkout@v2
-    - name: Set up Python
-      uses: actions/setup-python@v1
+
+    - name: Set up Python 3.6
+      uses: actions/setup-python@v4
       with:
-        python-version: '3.6'
+        python-version: 3.6
 
     - name: Define build name
       run: |
@@ -30,13 +31,13 @@ jobs:
     - name: Build package
       run: |
         python setup.py sdist bdist_wheel
-        tar -xf dist/ml-git-${{env.BUILD_NAME}}.tar.gz
-        cp Pipfile.lock ml-git-${{env.BUILD_NAME}}
+        tar -xf dist/ml_git-${{env.BUILD_NAME}}.tar.gz
+        cp Pipfile.lock ml_git-${{env.BUILD_NAME}}
         rm dist/*.tar.gz
-        tar -czf dist/ml-git.${{env.BUILD_NAME}}.tar.gz ml-git-${{env.BUILD_NAME}}
+        tar -czf dist/ml_git-${{env.BUILD_NAME}}.tar.gz ml_git-${{env.BUILD_NAME}}
 
     - name: Publish package
-      uses: pypa/gh-action-pypi-publish@27b31702a0e7fc50959f5ad993c78deac1bdfc29
+      uses: pypa/gh-action-pypi-publish@v1.8.10
       with:
         user: __token__
         password: ${{ secrets.PYPI_API_TOKEN }}
