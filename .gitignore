@@ -134,3 +134,5 @@ csr.pem
 /tests/integration/credentials-json/*
 /tests/integration/fake_ssh_key/*
 ml_git.egg-info
+
+.idea/

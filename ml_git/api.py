@@ -610,3 +610,19 @@ class MLGitAPI(metaclass=ContextWrappedMeta):
         """
 
         get_models_metrics(entity_name=entity_name, export_path=export_path, export_type=export_type)
+
+    def init_entity_manager(self, github_token, url):
+        """Initialize an entity manager to operate over github API.
+
+        Examples:
+            init_entity_manager('github_token', 'https://api.github.com')
+
+        Args:
+            github_token (str): The personal access github token.
+            url (str): The github api url.
+
+        Returns:
+            object of class EntityManager.
+
+        """
+        return init_entity_manager(github_token, url)
